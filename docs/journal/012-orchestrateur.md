@@ -1,6 +1,6 @@
 # #12 — Orchestrateur du Tribunal, trace et sortie JSON validée
 
-- **Issue** : #12 · **PR** : #40 · **Statut** : en cours
+- **Issue** : #12 · **PR** : #40, à venir · **Statut** : en cours
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
@@ -13,6 +13,7 @@ Partie de l'issue qui ne dépend que d'issues fermées (#2, #7, #8, #9) : l'orch
   - `raison_valide(raison)` : une phrase non vide, d'au plus 160 caractères, sans chiffre.
 - **`pipeline/tribunal.py`** : `juger_decision(identifiant_profil, demande)` enchaîne `lancer_agent_profil` (Pacte en P1), `instruire_dossier` (pièces P2, P3…) et assemble un **contrat partiel** : `persona`, `demande`, `decision`, `pacte`, `comparaison`, `pieces`, `controles` (ceux de l'Agent Profil), `verdict: null`, `hypotheses`, `sources`, `limites`, `trace`, `avertissement`.
 - **`pipeline/__main__.py`** : la commande locale.
+- **Greffier branché** (2e PR, fiche [010](010-greffier.md)) : `juger_decision` appelle `verifier_pacte` après l'orchestrateur. Chaque règle du Pacte reçoit son contrôle, plus `biais_survivant`, et la trace gagne une étape `greffier` (« 1 violation, 1 conforme, 2 à vérifier »). `ResultatInstruction.piece_simulation` donne au Greffier la pièce obligatoire, qu'elle vienne du modèle ou de Python.
 - **`tests/test_orchestrateur.py`** : 20 tests avec un faux modèle (`FauxModele`), plus 2 tests réels marqués `bedrock`.
 
 ## Comment l'utiliser
@@ -43,7 +44,9 @@ Les tests vérifient la numérotation des pièces, le paramètre `raison` ajout�
 - **`persona`** contient l'identifiant du profil (`robert`), comme le dit `CLAUDE.md` section 5 (l'exemple `contrat_robert.json` écrit `Robert`).
 - **Commande** : `python -m pipeline <id> "<demande>"` au lieu de `python -m alphaforge personas/robert.json "…"` prévu dans l'issue : il n'y a pas de paquet `alphaforge`, et l'Agent Profil charge un profil par identifiant (fiche 008).
 
+**Greffier, vrai appel** : pour « 30 % en TSLA » et le profil prudent, les contrôles sont ceux de `contrat_robert.json` : `pire_baisse_max` en violation (« Pire baisse −29,0 % au-delà du seuil −12,0 % »), `plafond_crypto` conforme, les deux règles qualitatives à vérifier.
+
 ## Limites et suite
-- **Reste de #12** : débat Procureur et Avocat (#11), boucle du Greffier avec une relance (#10), `taille_max_compatible` (#21), puis la validation du contrat complet par `contrat/schema_sortie.json`. D'ici là, le contrat renvoyé est partiel et ne passe pas le schéma.
-- **Réallocations (#16)** : l'Agent Profil peut maintenant renvoyer une décision `reallocation`, mais `simuler_portefeuille` ne sait pas encore la simuler. L'orchestrateur instruit quand même le dossier ; la trace indique « Pièce obligatoire indisponible » et `comparaison` est absente. L'outil 3 `calculer_correlations` (#16) n'est pas encore dans la liste blanche.
+- **Reste de #12** : débat Procureur et Avocat (#11), puis `verifier_chiffres` et la boucle de relance du Greffier, le contrôle `performance_passee` (il lit les arguments), `taille_max_compatible` (#21), puis la validation du contrat complet par `contrat/schema_sortie.json`. D'ici là, le contrat renvoyé est partiel et ne passe pas le schéma.
+- **Réallocations (#16)** : l'Agent Profil peut maintenant renvoyer une décision `reallocation`, mais `simuler_portefeuille` ne sait pas encore la simuler. L'orchestrateur instruit quand même le dossier ; la trace indique « Pièce obligatoire indisponible », `comparaison` est absente et chaque règle du Pacte est `a_verifier` (jamais « conforme » par défaut). L'outil 3 `calculer_correlations` (#16) n'est pas encore dans la liste blanche.
 - **Champ `duree` de la trace** : demandé par l'issue, mais refusé par le schéma du contrat (`additionalProperties: false`). À ajouter au schéma avec l'accord de l'équipe.

@@ -70,6 +70,9 @@ class ResultatInstruction:
     pieces: list[dict[str, Any]] = field(default_factory=list)  # pièces numérotées
     trace: list[dict[str, Any]] = field(default_factory=list)  # étapes « orchestrateur »
     appels: int = 0  # appels d'outils demandés par le modèle, refus compris
+    # Pièce obligatoire (simulation complète de la décision), lue par le Greffier ;
+    # None pour une réallocation, pas encore simulée (#16).
+    piece_simulation: dict[str, Any] | None = None
 
 
 def outils_du_profil(profil: dict[str, Any]) -> list[Outil]:
@@ -201,7 +204,7 @@ class _Instruction:
         self.outils = outils
         self.numero = premier_numero
         self.resultat = ResultatInstruction()
-        self.entrees_reussies: list[tuple[str, dict[str, Any]]] = []
+        self.pieces_par_entree: dict[str, dict[str, Any]] = {}  # appel réussi → sa pièce
 
     def traiter_demande(self, demande: DemandeOutil) -> dict[str, Any]:
         """Exécute une demande du modèle et renvoie le bloc de résultat à lui retourner."""
@@ -228,14 +231,16 @@ class _Instruction:
             self._tracer(simulation.NOM_OUTIL, RAISON_INDISPONIBLE, decision, "Aucune pièce")
             return
         entree = entree_simulation_obligatoire(decision)
-        if (simulation.NOM_OUTIL, entree) not in self.entrees_reussies:
-            self._executer(simulation.NOM_OUTIL, entree, RAISON_D_OFFICE)
+        piece = self.pieces_par_entree.get(_cle(simulation.NOM_OUTIL, entree))
+        if piece is None:
+            piece = self._executer(simulation.NOM_OUTIL, entree, RAISON_D_OFFICE)
+        self.resultat.piece_simulation = piece
 
     def _executer(self, nom: str, entree: dict[str, Any], raison: str) -> dict[str, Any]:
         piece = self.outils[nom].executer(entree, f"P{self.numero}")
         self.numero += 1
         self.resultat.pieces.append(piece)
-        self.entrees_reussies.append((nom, entree))
+        self.pieces_par_entree[_cle(nom, entree)] = piece
         self._tracer(nom, raison, entree, piece["id"])
         return piece
 
@@ -248,6 +253,11 @@ class _Instruction:
         self.resultat.trace.append(
             {"etape": "orchestrateur", "outil": outil, "raison": raison, "entree": entree, "sortie": sortie}
         )
+
+
+def _cle(nom: str, entree: dict[str, Any]) -> str:
+    """Identifie un appel d'outil par son nom et ses paramètres (ordre des clés indifférent)."""
+    return json.dumps([nom, entree], sort_keys=True)
 
 
 def _avec_raison(description: dict[str, Any]) -> dict[str, Any]:

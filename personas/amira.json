@@ -1,122 +1,62 @@
 {
+  "id": "amira",
   "nom": "Amira",
   "age": 26,
   "metier": "Ingénieure logicielle",
   "etiquette": "fictif",
   "profil_risque": "eleve",
-  "horizon_ans": [
-    15,
-    null
-  ],
+  "horizon_ans": [15, null],
   "capital_fictif_cad": 40000,
   "pacte": {
     "date_signature": "2026-11-14",
-    "pire_baisse_max": -0.45,
-    "plafond_crypto": 0.25,
-    "interdit_exclusivement_tech": true,
-    "exclusions": [],
-    "exclusions_esg": [],
     "regles": [
-      "Pire baisse tolérée : −45 %",
-      "Crypto : 25 % du portefeuille au maximum",
-      "Ne pas miser exclusivement sur la tech",
-      "Horizon : 15 ans ou plus"
-    ],
-    "justifications": {
-      "pire_baisse_max": "Hypothèse : un profil offensif à long horizon peut traverser de fortes baisses, sans que « risque élevé » signifie « tout est acceptable ».",
-      "plafond_crypto": "Hypothèse : l'intérêt pour la crypto est déclaré, mais la diversification doit être maintenue (énoncé, persona 01).",
-      "interdit_exclusivement_tech": "Le persona veut « éviter de miser exclusivement sur les technologies » (énoncé, persona 01)."
-    }
-  },
-  "portefeuille": [
-    {
-      "ticker": "QQQ",
-      "poids": 0.2
-    },
-    {
-      "ticker": "NVDA",
-      "poids": 0.1
-    },
-    {
-      "ticker": "SHOP.TO",
-      "poids": 0.05
-    },
-    {
-      "ticker": "SPY",
-      "poids": 0.15
-    },
-    {
-      "ticker": "XIU.TO",
-      "poids": 0.1
-    },
-    {
-      "ticker": "CNQ.TO",
-      "poids": 0.05
-    },
-    {
-      "ticker": "MFC.TO",
-      "poids": 0.05
-    },
-    {
-      "ticker": "ATD.TO",
-      "poids": 0.05
-    },
-    {
-      "ticker": "GLD",
-      "poids": 0.05
-    },
-    {
-      "ticker": "XBB.TO",
-      "poids": 0.05
-    },
-    {
-      "ticker": "BTC-USD",
-      "poids": 0.1
-    },
-    {
-      "ticker": "ETH-USD",
-      "poids": 0.05
-    }
-  ],
-  "categories": {
-    "crypto": [
-      "BTC-USD",
-      "ETH-USD"
-    ],
-    "tech": [
-      "QQQ",
-      "NVDA",
-      "SHOP.TO",
-      "MSFT",
-      "AAPL",
-      "GOOGL",
-      "AMZN",
-      "CSU.TO"
+      {
+        "id": "pire_baisse_max",
+        "type": "pire_baisse_max",
+        "seuil": -0.45,
+        "libelle": "Pire baisse tolérée : −45 %",
+        "justification": "Hypothèse : un profil offensif à long horizon peut traverser de fortes baisses, sans que « risque élevé » signifie « tout est acceptable »."
+      },
+      {
+        "id": "plafond_crypto",
+        "type": "plafond",
+        "categories": ["crypto"],
+        "max": 0.25,
+        "libelle": "Crypto : 25 % du portefeuille au maximum",
+        "justification": "Hypothèse : l'intérêt pour la crypto est déclaré, mais la diversification doit être maintenue (énoncé, persona 01)."
+      },
+      {
+        "id": "pas_exclusivement_tech",
+        "type": "plafond",
+        "categories": ["tech", "crypto"],
+        "max": 0.75,
+        "libelle": "Ne pas miser exclusivement sur la tech (tech et crypto : 75 % au maximum)",
+        "justification": "Le persona veut « éviter de miser exclusivement sur les technologies » (énoncé, persona 01). Hypothèse de l'équipe : converti en « au moins 25 % hors tech et hors crypto » ; la crypto est comptée avec la tech, car c'est aussi une technologie émergente."
+      }
     ]
   },
+  "portefeuille": [
+    {"ticker": "QQQ", "poids": 0.2},
+    {"ticker": "NVDA", "poids": 0.1},
+    {"ticker": "SHOP.TO", "poids": 0.05},
+    {"ticker": "SPY", "poids": 0.15},
+    {"ticker": "XIU.TO", "poids": 0.1},
+    {"ticker": "CNQ.TO", "poids": 0.05},
+    {"ticker": "MFC.TO", "poids": 0.05},
+    {"ticker": "ATD.TO", "poids": 0.05},
+    {"ticker": "GLD", "poids": 0.05},
+    {"ticker": "XBB.TO", "poids": 0.05},
+    {"ticker": "BTC-USD", "poids": 0.1},
+    {"ticker": "ETH-USD", "poids": 0.05}
+  ],
   "decision_demo": {
     "type": "reallocation",
     "panier": [
-      {
-        "ticker": "BTC-USD",
-        "poids": 0.3
-      },
-      {
-        "ticker": "ETH-USD",
-        "poids": 0.2
-      },
-      {
-        "ticker": "NVDA",
-        "poids": 0.2
-      },
-      {
-        "ticker": "QQQ",
-        "poids": 0.2
-      },
-      {
-        "ticker": "SHOP.TO",
-        "poids": 0.1
-      }
+      {"ticker": "BTC-USD", "poids": 0.3},
+      {"ticker": "ETH-USD", "poids": 0.2},
+      {"ticker": "NVDA", "poids": 0.2},
+      {"ticker": "QQQ", "poids": 0.2},
+      {"ticker": "SHOP.TO", "poids": 0.1}
     ],
     "part_reallouee": 1.0
   }

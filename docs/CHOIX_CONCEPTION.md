@@ -17,11 +17,12 @@ Décision de l'utilisateur (« 30 % en TSLA ») + Pacte du profil (n'importe leq
 └────────────┬─────────────┘
              ▼
 ┌──────────────────────────┐
-│ 2. Outils de calcul      │  Python : pièces à conviction P1, P2…                             (#4, #5, #6)
+│ 2. Orchestrateur         │  LLM Bedrock : choisit les outils à appeler   ──►  Outils Python  (#12)
+│    (garde-fous Python)   │  ◄── pièces à conviction P1, P2…                   (#4, #5, #6)
 └────────────┬─────────────┘
              ▼
 ┌────────────┴─────────────┐
-│ 3. Procureur │ 4. Avocat │  LLM : arguments contre / pour, chacun cite des pièces             (#11)
+│ 3. Procureur │ 4. Avocat │  LLM Bedrock, en parallèle : arguments contre / pour, avec pièces  (#11)
 └────────────┬─────────────┘
              ▼
 ┌──────────────────────────┐
@@ -31,7 +32,7 @@ Décision de l'utilisateur (« 30 % en TSLA ») + Pacte du profil (n'importe leq
      JSON du contrat (+ trace dans S3)  →  Verdict rendu par l'utilisateur             (#2, #12)
 ```
 
-Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **S3** (données et traces), **API Gateway** (accès de l'interface). Voir #7 et #13.
+Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **S3** (données et traces), **point d'accès de l'interface** (API Gateway ou Lambda Function URL, à trancher à cause du délai de 29 s d'API Gateway : voir l'issue #22). Voir aussi #7 et #13.
 
 ---
 
@@ -71,15 +72,22 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 
 ---
 
-## Choix 4 — Un orchestrateur à ordre fixe
+## Choix 4 — Un orchestrateur Bedrock dans des phases fixes
 
-**Décision.** Les étapes s'exécutent toujours dans le même ordre : Profil → Outils → Procureur et Avocat → Greffier (#12).
+**Décision.** Un **orchestrateur** (LLM via Bedrock) instruit le dossier : il lit la décision et le Pacte, **choisit les outils Python à appeler** et leurs paramètres, et justifie chaque appel par une phrase courte visible dans la trace. Les **phases**, elles, restent fixes et sont imposées par Python : Profil → Orchestrateur → Procureur et Avocat (en parallèle) → Greffier → Verdict (#12). Détails et garde-fous : `CLAUDE.md`, section 4.
 
 **Pourquoi.**
-- **Prévisible :** facile à déboguer en un week-end, facile à montrer dans la vidéo.
-- *Une approche simple, focalisée et vérifiable peut être plus forte qu'une architecture spectaculaire mais impossible à expliquer* (diapo 8).
+- **Vraiment agentique (20 % de la note).** Avec un ordre d'outils fixé par Python, les LLM ne faisaient que rédiger : le jury aurait vu un pipeline. L'orchestrateur **mobilise** des outils et **adapte** les preuves au cas (diapo 5) : une décision crypto appelle les corrélations, un horizon court appelle le temps de récupération, un seuil dépassé appelle la taille maximale compatible.
+- **Toujours vérifiable.** L'orchestrateur ne calcule rien (liste blanche d'outils, budget de 8 appels, pièce obligatoire ajoutée d'office si besoin), et le Greffier déterministe passe toujours en dernier.
+- **Prévisible :** les phases fixes restent faciles à déboguer et à montrer dans la vidéo. *Une approche simple, focalisée et vérifiable peut être plus forte qu'une architecture spectaculaire mais impossible à expliquer* (diapo 8).
+- **Le contre-interrogatoire de la maquette** a enfin un moteur : la question de l'utilisateur passe par la même boucle.
 
-**Ce qui reste agentique.** Les agents utilisent des outils, se contredisent, sont contrôlés à un point de vérification, et adaptent leurs arguments au Pacte du profil : mobiliser, coordonner, adapter, expliquer (diapo 5).
+**Mise en œuvre recommandée.** API Bedrock **Converse** avec *tool use* (`toolConfig`), en boucle dans la Lambda : même code en local et dans AWS, et chaque `toolUse` devient une ligne de trace.
+
+**Alternatives écartées.**
+- **Ordre fixe des outils** (version précédente de ce choix) : plus simple, mais pas agentique.
+- **Service managé Bedrock Agents** : plus de configuration (groupes d'actions, schémas), une trace moins maîtrisée, et pas d'exécution locale.
+- **Orchestrateur qui décide aussi des phases** (par exemple sauter le Procureur) : imprévisible, et rien ne garantirait le contrôle du Greffier.
 
 ---
 
@@ -88,11 +96,12 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 | Agent | Valeur apportée | Rôle du LLM | Rôle de Python |
 |---|---|---|---|
 | **Profil** | Transformer une demande en décision structurée | Comprendre le texte (titre, taille) | Charger et valider le Pacte |
+| **Orchestrateur** | Rassembler les bonnes preuves pour **ce** cas | Choisir les outils et leurs paramètres, donner une raison courte | Exécuter les outils, imposer la liste blanche, le budget et la pièce obligatoire |
 | **Procureur** | Exposer les risques de la décision pour **ce** profil | Rédiger les arguments contre, en citant des pièces | — |
 | **Avocat** | Défendre honnêtement la décision | Rédiger les arguments pour, en citant des pièces | — |
 | **Greffier** | Garantir que le débat est fidèle et que le Pacte est respecté | Aucun | Règles du Pacte + vérificateur de chiffres |
 
-**Pourquoi.** Si on retire un agent, une fonction précise disparaît. Sans Avocat, le système devient un censeur ; sans Procureur, il acquiesce ; sans Greffier, rien n'empêche une hallucination.
+**Pourquoi.** Si on retire un agent, une fonction précise disparaît. Sans Orchestrateur, les preuves seraient les mêmes pour tous les cas ; sans Avocat, le système devient un censeur ; sans Procureur, il acquiesce ; sans Greffier, rien n'empêche une hallucination.
 
 ---
 
@@ -102,16 +111,25 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 
 **Pourquoi.**
 - Une vérification doit être **fiable** : la même situation donne toujours la même réponse.
-- Les règles sont **génériques et testables** : elles lisent les seuils du Pacte, quel que soit le profil (ex. : profil de test prudent + 30 % TSLA → au moins une `violation` ; profil audacieux + la même décision → pas de violation sur la pire baisse).
+- Les règles sont **génériques et testables** : elles lisent les seuils du Pacte, quel que soit le profil (ex. : profil de test prudent + 30 % TSLA → au moins une `violation` ; profil audacieux + la même décision → pas de violation sur la pire baisse, avec une marge faible : −42,6 % pour un seuil de −45 %).
 - Argument de pitch : *« notre système ne peut pas citer un chiffre inventé sans qu'on le détecte »*.
+
+**Le vérificateur de chiffres a des règles précises** (`CLAUDE.md`, section 4 ter). Sans elles, le « 17/17 » affiché ne serait pas défendable devant le jury :
+- un nombre n'est comparé **qu'aux pièces citées** par l'argument (plus la décision et la période) ;
+- la valeur brute de la pièce est arrondie **à la précision écrite dans le texte** (« −29 % » valide `-0.2897`, « −28 % » non) ;
+- les nombres dérivés (écarts, ratios) sont interdits : si un argument en a besoin, c'est Python qui les calcule ;
+- les dates sont vérifiées comme les autres nombres.
 
 ---
 
 ## Choix 7 — Le Pacte : des règles déclarées à l'avance
 
-**Décision.** Chaque profil a un Pacte (`personas/<nom>.json`) : pire baisse tolérée, plafonds, exclusions, horizon, avec une justification par seuil (#3). Tous les Pactes suivent **le même format**.
+**Décision.** Chaque profil a un Pacte (`personas/<nom>.json`) avec une justification par règle (#3). Tous les Pactes suivent **le même format** : une liste de **règles typées** (`pire_baisse_max`, `plafond`, `critere_documentaire`, `qualitative`), chacune avec un `id`, ses paramètres, un `libelle` et une `justification` (`CLAUDE.md`, section 3). Les catégories utilisées par les plafonds (`tech`, `crypto`) sont définies **une seule fois** pour tous les profils dans `config/categories.json`, à partir de `assets_universe.csv`.
 
 **Pourquoi.**
+- **Aucune règle propre à un persona.** L'ancien format avait des champs sur mesure (`interdit_exclusivement_tech`, une liste `categories` dans le seul fichier d'Amira, une exclusion `speculatif` définie nulle part). Avec des types génériques, « pas exclusivement tech » devient un simple plafond (tech + crypto ≤ 75 %), et « pas de spéculation » un plafond crypto à 0.
+- **Ajouter un profil ne demande aucun code**, et ajouter un type de règle ne demande qu'une fonction du Greffier.
+- **Honnêteté sur ce qui n'est pas mesurable** : les règles `qualitative` (« préserver mon capital », « entreprises établies ») sont affichées et rendues `a_verifier`, au lieu d'être ignorées ou devinées.
 - Les seuils sont des **hypothèses**, pas des faits. Un fichier séparé les rend visibles et modifiables.
 - **Finance comportementale** : quand l'utilisateur s'emballe pour un titre à la mode, le système lui rappelle ses propres mots, écrits à froid.
 - On peut **changer une hypothèse sans toucher au code**, ce qui permet les tests de sensibilité (#15).
@@ -158,9 +176,11 @@ Les personas de l'énoncé deviennent des **profils de test**. Le code ne teste 
 
 ## Choix 10 — La taille maximale compatible
 
-**Décision.** L'outil `taille_max_compatible` calcule la plus grande position qui respecte le Pacte (ex. : 9 % de TSLA pour le profil de test prudent).
+**Décision.** L'outil `taille_max_compatible` calcule la plus grande position qui respecte toutes les règles calculables du Pacte (ex. : 9 % de TSLA pour le profil de test prudent ; à 10 %, la pire baisse atteint −12,1 %). Recherche par pas de 1 point, avec le même mode de financement. Il fait partie de la **V1**.
 
-**Pourquoi.** La réponse utile n'est souvent pas « non », mais « pas à cette taille ». C'est ce qui transforme un refus en aide à la décision.
+**Pourquoi.**
+- La réponse utile n'est souvent pas « non », mais « pas à cette taille ». C'est ce qui transforme un refus en aide à la décision.
+- **En V1 et non en bonus**, parce que l'interface en dépend déjà : curseur de l'écran Décision (zone compatible / en conflit), plaidoirie (« jusqu'à 9 % ») et faux contrat. C'est une boucle simple autour de `simuler_portefeuille`.
 
 ---
 
@@ -184,10 +204,10 @@ Les personas de l'énoncé deviennent des **profils de test**. Le code ne teste 
 
 | Service | Rôle | Pourquoi ce service |
 |---|---|---|
-| **Bedrock** | LLM du Profil, du Procureur et de l'Avocat | Cœur agentique ; rôle d'AWS directement démontrable |
-| **Lambda** | Exécute les 6 outils et l'orchestration | Même code qu'en local ; aucun serveur à gérer |
+| **Bedrock** | LLM du Profil, de l'Orchestrateur, du Procureur et de l'Avocat (API Converse avec *tool use*) | Cœur agentique ; rôle d'AWS directement démontrable |
+| **Lambda** | Exécute les 6 outils et la boucle de l'orchestrateur | Même code qu'en local ; aucun serveur à gérer |
 | **S3** | Données, traces et journal des verdicts | Traces conservées et consultables (explicabilité) |
-| **API Gateway** | Point d'accès de l'interface | Renvoie le JSON du contrat |
+| **API Gateway ou Lambda Function URL** | Point d'accès de l'interface | Renvoie le JSON du contrat. À trancher : API Gateway coupe après environ 29 s, ce qu'un procès peut dépasser (issue #22) |
 | *Base de connaissances Bedrock (V3)* | *Pièces documentaires ESG* | *Citations sourcées et datées pour le cas « préférences non financières »* |
 
 **Sécurité.** Aucune clé dans le code ni dans Git, rôle IAM minimal (accès au bucket et `bedrock:InvokeModel` seulement).
@@ -196,7 +216,7 @@ Les personas de l'énoncé deviennent des **profils de test**. Le code ne teste 
 
 ## Choix 14 — Livrer petit, puis élargir
 
-**Décision.** Chaque version ajoute un **cas général** : V1 = décision incohérente avec le profil, de bout en bout ; V2 = diversification ; V3 = préférences non financières, si le temps le permet.
+**Décision.** Chaque version ajoute un **cas général** : V1 = décision incohérente avec le profil, de bout en bout (avec l'orchestrateur et `taille_max_compatible`) ; V2 = diversification ; V3 = préférences non financières, si le temps le permet.
 
 **Pourquoi.** Le cas 1 montre que le système sait contester ; le cas 2 montre qu'il accepte le risque sans tout accepter. Démontrés avec les profils de test prudent et audacieux, ce sont les **deux situations contrastées** recommandées pour la vidéo (diapo 4).
 

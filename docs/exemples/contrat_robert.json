@@ -8,35 +8,29 @@
     "libelle": "30 % en TSLA"
   },
   "pacte": {
+    "id": "robert",
     "profil_risque": "faible_a_modere",
-    "horizon_ans": [
-      3,
-      5
-    ],
-    "pire_baisse_max": -0.12,
-    "plafond_crypto": 0.0,
-    "exclusions": [
-      "crypto"
-    ],
+    "horizon_ans": [3, 5],
+    "date_signature": "2026-11-14",
     "regles": [
-      "Pire baisse tolérée : −12 %",
-      "Préserver mon capital",
-      "Entreprises établies, modèle compris",
-      "Crypto : exclue"
+      {"id": "pire_baisse_max", "type": "pire_baisse_max", "seuil": -0.12, "libelle": "Pire baisse tolérée : −12 %"},
+      {"id": "plafond_crypto", "type": "plafond", "categories": ["crypto"], "max": 0.0, "libelle": "Crypto : exclue"},
+      {"id": "preserver_capital", "type": "qualitative", "libelle": "Préserver mon capital"},
+      {"id": "entreprises_etablies", "type": "qualitative", "libelle": "Entreprises établies, modèle compris"}
     ]
   },
   "comparaison": {
     "actuel": {
-      "rendement_annuel": 0.093,
-      "volatilite_annuelle": 0.056,
-      "pire_baisse": -0.078,
-      "rendement_2022": -0.026
+      "rendement_annuel": 0.0929,
+      "volatilite_annuelle": 0.0559,
+      "pire_baisse": -0.0776,
+      "rendement_2022": -0.0259
     },
     "apres": {
-      "rendement_annuel": 0.12,
-      "volatilite_annuelle": 0.19,
-      "pire_baisse": -0.29,
-      "rendement_2022": -0.237
+      "rendement_annuel": 0.1198,
+      "volatilite_annuelle": 0.1897,
+      "pire_baisse": -0.2897,
+      "rendement_2022": -0.2371
     }
   },
   "taille_max_compatible": 0.09,
@@ -48,12 +42,12 @@
       "titre": "Simulation du portefeuille avec la décision",
       "outil": "simuler_portefeuille",
       "valeurs": {
-        "pire_baisse": -0.29,
-        "rendement_annuel": 0.12,
-        "volatilite_annuelle": 0.19,
-        "pire_baisse_actuelle": -0.078,
-        "rendement_annuel_actuel": 0.093,
-        "taille_max_compatible": 0.09
+        "pire_baisse": -0.2897,
+        "rendement_annuel": 0.1198,
+        "volatilite_annuelle": 0.1897,
+        "pire_baisse_actuelle": -0.0776,
+        "rendement_annuel_actuel": 0.0929,
+        "volatilite_annuelle_actuelle": 0.0559
       },
       "valeur_affichee": "−29,0 % max · +12,0 %/an",
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
@@ -67,12 +61,13 @@
       "titre": "Rejeu de 2022",
       "outil": "simuler_portefeuille",
       "valeurs": {
-        "rendement_2022_actuel": -0.026,
-        "rendement_2022_apres": -0.237
+        "periode": ["2021-12-31", "2022-12-30"],
+        "rendement_2022_actuel": -0.0259,
+        "rendement_2022_apres": -0.2371
       },
       "valeur_affichee": "−2,6 % → −23,7 %",
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
-      "traitement": "Portefeuille avec et sans la position, du 31 déc. 2021 au 30 déc. 2022",
+      "traitement": "Portefeuille avec et sans la position, de la dernière séance de 2021 à la dernière séance de 2022",
       "limites": "Une seule année de crise ; la suivante peut être différente"
     },
     {
@@ -82,15 +77,14 @@
       "titre": "Pacte de Robert",
       "outil": "charger_pacte",
       "valeurs": {
+        "date_signature": "2026-11-14",
         "pire_baisse_max": -0.12,
-        "horizon_ans": [
-          3,
-          5
-        ]
+        "plafond_crypto": 0.0,
+        "horizon_ans": [3, 5]
       },
       "valeur_affichee": "Signé le 14 nov. 2026",
       "source": "personas/robert.json (persona fictif)",
-      "traitement": "Règles converties en contraintes vérifiables par l'agent Profil",
+      "traitement": "Règles typées lues par l'agent Profil (format générique du Pacte)",
       "limites": "Les seuils sont des hypothèses de l'équipe"
     },
     {
@@ -103,69 +97,70 @@
         "date_sommet": "2022-01-03",
         "date_creux": "2023-01-03",
         "date_retour_sommet": "2024-12-10",
-        "pire_baisse_usd": -0.73,
-        "pire_baisse_cad": -0.709,
-        "annees_recuperation": 3
+        "pire_baisse_usd": -0.7297,
+        "pire_baisse_cad": -0.7088,
+        "annees_recuperation": 2.935
       },
       "valeur_affichee": "≈ 3 ans",
-      "source": "Yahoo Finance via yfinance (adj_close, dividendes inclus), extrait le 2026-11-13 · en USD",
+      "source": "Yahoo Finance via yfinance (adj_close, dividendes inclus), extrait le 2026-11-13 · dates et durée calculées en USD",
       "traitement": "Du sommet précédant la pire baisse jusqu'au retour à ce sommet",
       "limites": "Une seule chute observée ; la prochaine peut être plus courte ou plus longue"
+    },
+    {
+      "id": "P5",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Taille maximale compatible avec le Pacte",
+      "outil": "taille_max_compatible",
+      "valeurs": {
+        "taille_max_compatible": 0.09,
+        "pire_baisse_a_taille_max": -0.1122,
+        "pire_baisse_a_taille_suivante": -0.1209,
+        "pas_de_recherche": 0.01
+      },
+      "valeur_affichee": "9 % au maximum",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "simuler_portefeuille répété de 0 % à 30 % par pas de 1 point, financement proportionnel ; plus grande taille qui respecte toutes les règles calculables du Pacte",
+      "limites": "Dépend du mode de financement et de la période ; une seule période de 5 ans"
     }
   ],
   "requisitoire": [
     {
       "etiquette": "fait",
       "texte": "Le 14 novembre, vous avez écrit : « préserver mon capital ». Avec « 30 % en TSLA », la pire chute observée passe de −7,8 % à −29,0 %.",
-      "pieces": [
-        "P1",
-        "P3"
-      ]
+      "pieces": ["P1", "P3"]
     },
     {
       "etiquette": "fait",
       "texte": "C'est au-delà du seuil de −12 % que vous avez fixé dans votre Pacte.",
-      "pieces": [
-        "P3"
-      ]
+      "pieces": ["P3"]
     },
     {
       "etiquette": "fait",
       "texte": "Après sa chute de 2022, TSLA a mis près de 3 ans à revenir à son sommet (janv. 2022 → déc. 2024) : presque tout votre horizon de 3 à 5 ans.",
-      "pieces": [
-        "P4",
-        "P3"
-      ]
+      "pieces": ["P4", "P3"]
     },
     {
       "etiquette": "hypothese",
       "texte": "Si une année comme 2022 se répétait au moment de votre retraite, le portefeuille ferait −23,7 % au lieu de −2,6 %.",
-      "pieces": [
-        "P2"
-      ]
+      "pieces": ["P2"]
     }
   ],
   "plaidoirie": [
     {
       "etiquette": "fait",
       "texte": "Sur la période, le rendement annualisé aurait été de +12,0 % contre +9,3 %.",
-      "pieces": [
-        "P1"
-      ]
+      "pieces": ["P1"]
     },
     {
       "etiquette": "fait",
       "texte": "Jusqu'à 9 % (avec ce mode de financement), la pire baisse reste dans les limites de son Pacte : il peut s'exposer au titre sans renier ses objectifs.",
-      "pieces": [
-        "P1"
-      ]
+      "pieces": ["P5", "P3"]
     },
     {
       "etiquette": "hypothese",
       "texte": "Robert suit activement les marchés : il est en mesure de surveiller de près une position volatile.",
-      "pieces": [
-        "P3"
-      ]
+      "pieces": ["P3"]
     }
   ],
   "controles": [
@@ -173,23 +168,30 @@
       "statut": "violation",
       "regle": "pire_baisse_max",
       "message": "Pire baisse −29,0 % au-delà du seuil −12,0 %",
-      "pieces": [
-        "P1",
-        "P3"
-      ]
+      "pieces": ["P1", "P3"]
     },
     {
       "statut": "conforme",
       "regle": "plafond_crypto",
-      "message": "Crypto exclue : respecté",
-      "pieces": [
-        "P3"
-      ]
+      "message": "Crypto : 0 % du portefeuille après la décision (exclue) : respecté",
+      "pieces": ["P3"]
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "preserver_capital",
+      "message": "Règle déclarée, non mesurable par calcul (mesurée indirectement par la pire baisse) : à juger par l'utilisateur",
+      "pieces": ["P3"]
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "entreprises_etablies",
+      "message": "Règle déclarée, non mesurable par calcul : à juger par l'utilisateur",
+      "pieces": ["P3"]
     },
     {
       "statut": "conforme",
       "regle": "verifier_chiffres",
-      "message": "Chiffres cités vérifiés contre leurs pièces : 7/7"
+      "message": "Chiffres cités vérifiés contre leurs pièces : 17/17 chiffres, 7 arguments"
     },
     {
       "statut": "a_verifier",
@@ -209,7 +211,9 @@
     "Rendements calculés sur adj_close",
     "Montants convertis en CAD",
     "Calendrier des séances américaines, dernier prix reporté",
+    "Taille maximale cherchée par pas de 1 point",
     "Seuils du Pacte choisis par l'équipe",
+    "Catégories d'actifs définies par l'équipe (config/categories.json)",
     "Portefeuille et capital fictifs"
   ],
   "sources": [
@@ -234,59 +238,59 @@
       "etape": "agent_profil",
       "outil": "charger_pacte",
       "entree": "robert",
-      "sortie": "Pacte : pire baisse ≥ −12 %, crypto exclue"
+      "sortie": "P3 : 4 règles (1 pire baisse, 1 plafond, 2 qualitatives)"
     },
     {
-      "etape": "outil_calcul",
+      "etape": "agent_profil",
+      "outil": "bedrock",
+      "entree": "Je veux mettre 30 % de mon portefeuille en Tesla",
+      "sortie": {"ticker": "TSLA", "taille": 0.3, "financement": "proportionnel"}
+    },
+    {
+      "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "entree": {
-        "ticker": "TSLA",
-        "taille": 0.3,
-        "financement": "proportionnel"
-      },
+      "raison": "Pièce obligatoire : comparer le portefeuille avant et après la décision",
+      "entree": {"ticker": "TSLA", "taille": 0.3, "financement": "proportionnel"},
       "sortie": "P1"
     },
     {
-      "etape": "outil_calcul",
+      "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "entree": {
-        "periode": "2022"
-      },
+      "raison": "Le Pacte fixe un seuil de pire baisse : rejouer l'année de crise du jeu de données",
+      "entree": {"ticker": "TSLA", "taille": 0.3, "financement": "proportionnel", "periode": "2022"},
       "sortie": "P2"
     },
     {
-      "etape": "outil_calcul",
+      "etape": "orchestrateur",
       "outil": "indicateurs_actif",
-      "entree": "TSLA",
+      "raison": "Horizon court : mesurer le temps de récupération du titre après sa pire baisse",
+      "entree": {"ticker": "TSLA"},
       "sortie": "P4"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "taille_max_compatible",
+      "raison": "Seuil de pire baisse probablement dépassé : chercher la plus grande taille compatible",
+      "entree": {"ticker": "TSLA", "taille_demandee": 0.3, "financement": "proportionnel"},
+      "sortie": "P5"
     },
     {
       "etape": "procureur",
       "outil": "bedrock",
-      "entree": [
-        "P1",
-        "P2",
-        "P3",
-        "P4"
-      ],
+      "entree": ["P1", "P2", "P3", "P4", "P5"],
       "sortie": "4 arguments"
     },
     {
       "etape": "avocat",
       "outil": "bedrock",
-      "entree": [
-        "P1",
-        "P2",
-        "P3",
-        "P4"
-      ],
+      "entree": ["P1", "P2", "P3", "P4", "P5"],
       "sortie": "3 arguments"
     },
     {
       "etape": "greffier",
       "outil": "verifier_pacte+verifier_chiffres",
       "entree": "7 arguments",
-      "sortie": "1 violation, 7/7 chiffres vérifiés"
+      "sortie": "1 violation, 2 règles à vérifier, 17/17 chiffres vérifiés"
     }
   ],
   "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé."

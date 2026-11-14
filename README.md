@@ -65,6 +65,9 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `pipeline/greffier.py` | Greffier, outil 5 `verifier_pacte` : un contrôle par règle du Pacte (une fonction par type de règle), contrôles `biais_survivant` et `performance_passee` | [010](docs/journal/010-greffier.md) |
 | `pipeline/chiffres.py` | Greffier, outil 6 `verifier_chiffres` : chaque nombre cité doit exister dans une pièce citée (`CLAUDE.md` §4 ter) ; `trier_arguments` (une relance, puis rejet), `controle_verifier_chiffres` | [010](docs/journal/010-greffier.md) |
 | `pipeline/agent_profil.py` | Agent Profil (phase 1) : `lancer_agent_profil` charge et valide le Pacte, puis transforme la demande en `decision` du contrat (`position` ou `reallocation` vers un panier explicite). Demande ambiguë → contrôle `a_verifier` | [008](docs/journal/008-agent-profil.md), [016](docs/journal/016-diversification.md) |
+| `pipeline/orchestrateur.py` | Orchestrateur (phase 2) : `instruire_dossier`, le modèle choisit les outils ; garde-fous (liste blanche, budget, raison sans chiffre, simulation obligatoire), pièces numérotées et trace | [012](docs/journal/012-orchestrateur.md) |
+| `pipeline/tribunal.py` | `juger_decision` : enchaîne les phases du procès et assemble le contrat (partiel tant que #10, #11 et #21 ne sont pas branchés) | [012](docs/journal/012-orchestrateur.md) |
+| `pipeline/__main__.py` | Commande locale : `python -m pipeline <id_profil> "<demande>"` (vrais appels Bedrock) | [012](docs/journal/012-orchestrateur.md) |
 | `pipeline/univers.py` | `charger_univers` : les titres connus du système (liste de dictionnaires, pour les prompts) | [008](docs/journal/008-agent-profil.md) |
 | `contrat/schema_sortie.json` | Schéma JSON de la sortie du pipeline | [002](docs/journal/002-contrat-json.md) |
 | `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md) |

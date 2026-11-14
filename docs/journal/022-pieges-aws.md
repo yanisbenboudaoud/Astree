@@ -1,6 +1,6 @@
 # #22 — Pièges AWS à régler avant le déploiement
 
-- **Issue** : #22 · **PR** : #46, à compléter · **Statut** : terminée (le CORS passe à #14, avec le domaine de l'interface)
+- **Issue** : #22 · **PR** : #46, #52 · **Statut** : terminée (le CORS passe à #14, avec le domaine de l'interface)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

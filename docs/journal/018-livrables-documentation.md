@@ -1,6 +1,6 @@
 # #18 — Livrables : README, documentation technique, vidéo et one pager
 
-- **Issue** : #18 · **PR** : à compléter · **Statut** : en cours (README et journal en place)
+- **Issue** : #18 · **PR** : #30 · **Statut** : en cours (README et journal en place)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

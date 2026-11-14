@@ -21,7 +21,7 @@ Les dépendances de `requirements.txt` (boto3, jsonschema), **en version Linux**
 
 ```powershell
 pip install -r requirements.txt --platform manylinux2014_x86_64 --implementation cp --python-version 3.14 --only-binary=:all: --target build
-# puis copier dans build/ : pipeline/, contrat/, personas/, config/, alphaforge_starter/*.csv
+# puis copier dans build/ : pipeline/, contrat/, personas/, config/, donnees_externes/, alphaforge_starter/*.csv
 ```
 
 - **Ne pas** y mettre pandas, numpy ni pyarrow : ils viennent de la couche.

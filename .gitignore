@@ -1,0 +1,16 @@
+# Documents officiels du datathon (non versionnés)
+*.pdf
+*.pptx
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.ipynb_checkpoints/
+
+# Système / éditeurs
+.DS_Store
+.vscode/
+.idea/

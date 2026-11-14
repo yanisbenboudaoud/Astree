@@ -1,6 +1,6 @@
 # #17 — Cas 3 : préférences non financières (ESG, pièces documentaires)
 
-- **Issue** : #17 · **PR** : à compléter · **Statut** : terminée
+- **Issue** : #17 · **PR** : #53 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

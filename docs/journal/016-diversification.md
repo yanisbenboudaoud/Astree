@@ -1,6 +1,6 @@
 # #16 — Cas 2 : diversification (outil 3 et réallocations)
 
-- **Issue** : #16 · **PR** : #39, #41, à compléter · **Statut** : terminée
+- **Issue** : #16 · **PR** : #39, #41, #49 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
@@ -19,7 +19,7 @@ Modifie `pipeline/agent_profil.py` (fiche [008](008-agent-profil.md)) : l'agent 
 - La logique des positions n'a pas changé ; elle est seulement passée dans `_decision_position`.
 - **`tests/test_agent_profil.py`** : 11 tests unitaires et 3 tests réels ajoutés.
 
-### Réallocations dans la simulation, la taille maximale, l'orchestrateur et le procès (PR à compléter)
+### Réallocations dans la simulation, la taille maximale, l'orchestrateur et le procès (PR #49)
 - **`pipeline/simulation.py`** (fiche [009](009-simuler-portefeuille.md)) : `poids_apres_decision` simule aussi les **réallocations**. La part réallouée est retirée de chaque ligne au prorata, puis répartie selon les poids du panier (`_poids_apres_reallocation`). Panier vide, titre en double, poids nul ou total différent de 1 lèvent `ErreurSimulation`. `decrire_simuler_reallocation()` : variante de l'outil où le modèle ne choisit que `part_reallouee` et `periode`.
 - **`pipeline/taille_max.py`** (fiche [021](021-taille-max-compatible.md)) : `decrire_taille_max_reallocation()`, la variante avec le seul paramètre `part_reallouee`. Le calcul traitait déjà la part réallouée comme la taille.
 - **`pipeline/orchestrateur.py`** (fiche [012](012-orchestrateur.md)) :

@@ -1,6 +1,6 @@
 # #12 — Orchestrateur du Tribunal, trace et sortie JSON validée
 
-- **Issue** : #12 · **PR** : à venir · **Statut** : en cours
+- **Issue** : #12 · **PR** : #35 · **Statut** : en cours
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

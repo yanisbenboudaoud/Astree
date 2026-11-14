@@ -31,8 +31,34 @@ pip install -r requirements.txt --platform manylinux2014_x86_64 --implementation
 ## Point d'accès : Lambda Function URL
 
 - **Pourquoi pas API Gateway** : il coupe la requête après environ 29 s, et un procès complet dure de 18 à 33 s avant même l'outil 4 (#21). La démo échouerait par moments avec une erreur 504.
-- Type d'authentification `NONE` (l'interface appelle directement), avec **CORS limité au domaine de l'interface** : `AllowOrigins` = ce domaine seul, `AllowMethods` = `POST`, `AllowHeaders` = `content-type`.
-- Vérifier avec un `curl` après la création, puis **supprimer l'adresse après le jury** (`aws lambda delete-function-url-config`).
+- **Aujourd'hui : type d'authentification `AWS_IAM`.** Seuls les membres connectés au compte (`aws login`) peuvent l'appeler, ce qui évite d'exposer des appels Bedrock payants tant que l'interface n'existe pas. Pour tester, `curl` ne suffit pas : la requête doit être signée. Utiliser [`tester_function_url.py`](tester_function_url.py) :
+  ```powershell
+  .venv\Scripts\python -X utf8 deploiement\tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"
+  ```
+  Il lit l'adresse sur le compte (elle n'est pas dans le dépôt), signe la requête et affiche le statut, la durée et un résumé du contrat.
+- **Quand l'interface sera en ligne (#14)** : passer en type `NONE` (un navigateur ne sait pas signer une requête AWS), avec **CORS limité au domaine de l'interface** : `AllowOrigins` = ce domaine seul, `AllowMethods` = `POST`, `AllowHeaders` = `content-type`, `ExposeHeaders` = `x-proces-id` (sinon le navigateur cache l'identifiant du procès, nécessaire pour `POST /verdict`).
+- **Supprimer l'adresse après le jury** (`aws lambda delete-function-url-config`).
+
+## Vérifié sur la Lambda déployée (2026-11-14)
+
+Lambda `alphaforge-tribunal`, appelée par sa Function URL avec `tester_function_url.py` :
+
+| Vérification | Résultat |
+|---|---|
+| Procès le plus long (cas 2 : réallocation vers le panier crypto-tech, 5 outils) | HTTP 200 en **37,4 s**, dont 4,2 s de démarrage à froid. API Gateway aurait coupé à 29 s |
+| Procès du cas 1 (« 30 % en TSLA »), Lambda déjà démarrée | HTTP 200 en 31,0 s, puis 26,3 s |
+| CSV lus une seule fois | « Données chargées en 0.5 s » n'apparaît qu'au démarrage dans CloudWatch ; les appels suivants n'ont pas de temps d'initialisation |
+| Mémoire | 234 Mo utilisés au maximum sur 1024 Mo |
+| Archivage | Chaque procès est écrit dans `traces/<date>/<id>.json` du bucket ; l'identifiant revient dans l'en-tête `x-proces-id` |
+| Contrat | La réponse passe `python -m contrat.valider` |
+| Concurrence réservée | 2 |
+
+Aucun des procès n'a eu d'argument rejeté puis régénéré : une relance du Greffier ajouterait 2 appels Bedrock, soit quelques secondes, très loin des 300 s.
+
+## Coûts
+
+- **Alerte de budget** `alphaforge-budget-mensuel` : 100 $ par mois pour tout le compte, avec un courriel à 80 % du coût réel et à 100 % du coût prévu. Elle compte aussi l'infrastructure de l'événement (environ 2,55 $ le 14 novembre). Pour ajouter un destinataire : console AWS → Billing → Budgets.
+- Les coûts Bedrock apparaissent dans la facturation avec environ 24 h de retard.
 
 ## IAM
 

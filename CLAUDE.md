@@ -45,7 +45,7 @@ Toujours vérifier les consignes logistiques officielles (services permis, créd
 - **Délai et mémoire de Lambda** : 3 s et 128 Mo par défaut, bien trop peu. Délai de 300 s, mémoire d'au moins 1024 Mo.
 - **pandas et Python** : runtime **`python3.14`** (la version de l'équipe) et couche gérée **`AWSSDKPandas-Python314:12`** (pandas 3.1.0, numpy 2.5.4, pyarrow 24.0.0). Les mêmes versions sont épinglées dans `requirements-dev.txt`. boto3 est embarqué dans le zip : celui du runtime peut être trop ancien pour la sortie JSON structurée de Bedrock.
 - **Bedrock** : région `us-east-1`, profil d'inférence `us.anthropic.claude-sonnet-5-5`, dans `BEDROCK_MODEL_ID`, avec des relances adaptatives (#7). Le profil répartit les appels sur us-east-1, us-east-2 et us-west-2 : le rôle IAM doit autoriser les trois (`deploiement/politique_iam_lambda.json`).
-- **Coûts** : un point d'accès public déclenche des appels Bedrock payants. Concurrence réservée de 2, CORS limité au domaine de l'interface, alerte de budget, point d'accès coupé après le jury.
+- **Coûts** : un point d'accès public déclenche des appels Bedrock payants. Concurrence réservée de 2 ; Function URL en `AWS_IAM` tant que l'interface n'est pas en ligne, puis `NONE` avec CORS limité au domaine de l'interface (#14) ; alerte de budget active (100 $ par mois) ; point d'accès coupé après le jury.
 
 ## 2. Règle d'or : Python calcule, le LLM explique
 

@@ -87,7 +87,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `docs/journal/` | Journal de construction : une fiche par issue, et son modèle | [018](docs/journal/018-livrables-documentation.md) |
 | `.env.example` | Variables à copier dans `.env` | [007](docs/journal/007-client-llm-bedrock.md) |
 | `requirements.txt` / `requirements-dev.txt` | Dépendances épinglées : zip de la Lambda (boto3, jsonschema) / poste local (dont pandas, numpy et pyarrow, aux versions de la couche Lambda) | [007](docs/journal/007-client-llm-bedrock.md), [022](docs/journal/022-pieges-aws.md) |
-| `deploiement/` | Paramètres vérifiés du déploiement (runtime, couche pandas, délai, mémoire, Function URL, zip) et politique IAM de la Lambda | [022](docs/journal/022-pieges-aws.md) |
+| `deploiement/` | Paramètres vérifiés du déploiement (runtime, couche pandas, délai, mémoire, Function URL, zip, coûts), politique IAM de la Lambda, et `tester_function_url.py` pour lancer un procès sur la Lambda déployée | [022](docs/journal/022-pieges-aws.md) |
 | `pyproject.toml` | Configuration de pytest | [007](docs/journal/007-client-llm-bedrock.md) |
 | `.github/pull_request_template.md` | Modèle de PR : `Closes #N`, fiche du journal, carte du dépôt | [000](docs/journal/000-fondations.md) |
 

@@ -1,6 +1,6 @@
 # #16 — Cas 2 : diversification (outil 3 et réallocations)
 
-- **Issue** : #16 · **PR** : à compléter · **Statut** : en cours
+- **Issue** : #16 · **PR** : #39 · **Statut** : en cours
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

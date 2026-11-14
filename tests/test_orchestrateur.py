@@ -13,7 +13,7 @@ import json
 import pytest
 from jsonschema import Draft202012Validator
 
-from contrat.valider import charger_schema
+from contrat.valider import charger_schema, valider_contrat
 from pipeline import agent_profil, tribunal
 from pipeline.agent_profil import chemin_profil
 from pipeline.donnees import ErreurDonnees
@@ -29,7 +29,8 @@ from pipeline.orchestrateur import (
     instruire_dossier,
     raison_valide,
 )
-from pipeline.pacte import charger_pacte
+from pipeline.pacte import charger_pacte, pacte_pour_contrat, piece_pacte
+from pipeline.debat import ResultatDebat as DebatResultat
 from pipeline.tribunal import AVERTISSEMENT, juger_decision
 
 PROFIL = charger_pacte(chemin_profil("robert"))
@@ -235,7 +236,49 @@ def test_taille_impossible_renvoyee_au_modele():
     assert "1.5" in resultat.trace[0]["sortie"]
 
 
-# --- Le Tribunal : Profil puis Orchestrateur ---------------------------------
+# --- Le Tribunal : toutes les phases ------------------------------------------
+
+
+def argument(texte, *pieces):
+    return {"etiquette": "fait", "texte": texte, "pieces": list(pieces)}
+
+
+class FauxDebat:
+    """Remplace le Procureur et l'Avocat (Bedrock) par des arguments écrits à l'avance.
+
+    Le Procureur écrit un argument juste ; l'Avocat un juste et un faux (« 4 fois »,
+    absent des pièces), que sa correction ne répare pas : il doit être rejeté.
+    """
+
+    def __init__(self):
+        self.corrections = []
+
+    def debattre(self, dossier):
+        simulation = next((p for p in dossier["pieces"] if "pire_baisse_actuelle" in p.get("valeurs", {})), None)
+        if simulation is None:  # réallocation : pas de simulation, des arguments sans chiffre
+            requisitoire = [argument("Votre Pacte limite la part des cryptoactifs.", "P1")]
+            plaidoirie = [argument("Votre horizon est long.", "P1")]
+        else:
+            requisitoire = [argument("La pire chute passerait de −7,8 % à −29,0 %.", simulation["id"])]
+            plaidoirie = [argument("Le rendement annualisé aurait été de +12,0 % contre +9,3 %.", simulation["id"]),
+                          argument("Le portefeuille rapporterait 4 fois plus.", simulation["id"])]
+        trace = [{"etape": role, "outil": "bedrock", "entree": [p["id"] for p in dossier["pieces"]],
+                  "sortie": arguments} for role, arguments in [("procureur", requisitoire), ("avocat", plaidoirie)]]
+        return DebatResultat(requisitoire, plaidoirie, trace)
+
+    def corriger_argument(self, role, dossier, arg, motif):
+        self.corrections.append((role, motif))
+        return arg, {"etape": role, "outil": "bedrock_correction",
+                     "entree": {"argument": arg["texte"], "motif": motif}, "sortie": arg}
+
+
+@pytest.fixture(autouse=True)
+def faux_debat(monkeypatch):
+    """Aucun test unitaire n'appelle le vrai débat (Bedrock, payant)."""
+    debat = FauxDebat()
+    monkeypatch.setattr(tribunal, "debattre", debat.debattre)
+    monkeypatch.setattr(tribunal, "corriger_argument", debat.corriger_argument)
+    return debat
 
 
 EXTRACTION_TSLA = {"type_decision": "position", "actif_mentionne": "Tesla", "ticker": "TSLA", "taille": 0.30,
@@ -251,7 +294,10 @@ def test_juger_decision_enchaine_profil_et_orchestrateur(monkeypatch):
     assert contrat["decision"]["ticker"] == "TSLA"
     assert [p["id"] for p in contrat["pieces"]] == ["P1", "P2", "P3"]
     assert contrat["pieces"][0]["outil"] == "charger_pacte"
-    assert [e["etape"] for e in contrat["trace"]] == ["agent_profil"] * 3 + ["orchestrateur"] * 2 + ["greffier"]
+    assert [e["etape"] for e in contrat["trace"]] == (
+        ["agent_profil"] * 3 + ["orchestrateur"] * 2 + ["procureur", "avocat"] + ["greffier"]
+        + ["avocat"] + ["greffier"]  # verifier_pacte, relance de l'avocat, verifier_chiffres
+    )
     assert contrat["comparaison"]["actuel"]["pire_baisse"] == pytest.approx(-0.0776, abs=5e-5)
     assert contrat["comparaison"]["apres"]["pire_baisse"] == pytest.approx(-0.2897, abs=5e-5)
     assert contrat["hypotheses"][0] == "Période : 2021-11-12 au 2026-11-12"
@@ -273,9 +319,41 @@ def test_greffier_controle_chaque_regle_du_pacte(monkeypatch):
     assert controles["preserver_capital"]["statut"] == "a_verifier"
     assert controles["entreprises_etablies"]["statut"] == "a_verifier"
     assert controles["biais_survivant"]["statut"] == "a_verifier"
-    etape = contrat["trace"][-1]
-    assert etape["etape"] == "greffier" and etape["outil"] == "verifier_pacte"
+    etape = next(e for e in contrat["trace"] if e["outil"] == "verifier_pacte")
+    assert etape["etape"] == "greffier"
     assert etape["sortie"] == "1 violation, 1 conforme, 2 à vérifier"
+    # Ordre des contrôles : Pacte, puis système (comme contrat_robert.json).
+    assert [c["regle"] for c in contrat["controles"]] == [
+        "pire_baisse_max", "plafond_crypto", "preserver_capital", "entreprises_etablies",
+        "verifier_chiffres", "performance_passee", "biais_survivant"]
+
+
+def test_debat_verifie_par_le_greffier_avec_une_relance(monkeypatch, faux_debat):
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
+    contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla", converser=FauxModele())
+    assert [a["texte"] for a in contrat["requisitoire"]] == ["La pire chute passerait de −7,8 % à −29,0 %."]
+    assert len(contrat["plaidoirie"]) == 1
+    # L'argument faux est renvoyé une fois à l'Avocat, puis rejeté avec le motif du Greffier.
+    assert [role for role, _ in faux_debat.corrections] == ["avocat"]
+    rejete = contrat["arguments_rejetes"][0]
+    assert rejete["cote"] == "plaidoirie" and "4" in rejete["raison"]
+    controles = {c["regle"]: c for c in contrat["controles"]}
+    assert controles["verifier_chiffres"]["message"] == (
+        "Chiffres cités vérifiés contre leurs pièces : 4/4 chiffres, 2 arguments ; "
+        "1 argument rejeté après une relance")
+    assert controles["performance_passee"]["statut"] == "a_verifier"  # l'Avocat parle de rendement
+    assert contrat["trace"][-1] == {"etape": "greffier", "outil": "verifier_chiffres", "entree": "3 arguments",
+                                    "sortie": controles["verifier_chiffres"]["message"]}
+
+
+def test_contrat_complet_sauf_taille_max(monkeypatch):
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
+    contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla",
+                             converser=FauxModele([demande("indicateurs_actif", ticker="TSLA")]))
+    # Seul taille_max_compatible (#21) manque pour passer le schéma du contrat.
+    erreurs = valider_contrat(contrat)
+    assert erreurs == ["(racine) : 'taille_max_compatible' is a required property"]
+    assert valider_contrat({**contrat, "taille_max_compatible": 0.09}) == []
 
 
 def test_greffier_lit_la_simulation_demandee_par_le_modele(monkeypatch):
@@ -296,16 +374,16 @@ def test_juger_decision_reallocation_sans_planter(monkeypatch):
         decision = reallocation
         controles, hypotheses = [], []
         profil = charger_pacte(chemin_profil("amira"))
-        pacte = {"id": "amira"}
-        piece_pacte = {"id": "P1", "outil": "charger_pacte"}
+        pacte = pacte_pour_contrat(profil)
+        piece_pacte = piece_pacte(profil, "P1")
         trace = [{"etape": "agent_profil", "outil": "charger_pacte", "entree": "amira", "sortie": "P1"}]
 
     monkeypatch.setattr(tribunal, "lancer_agent_profil", lambda *args: ProfilReallocation)
     contrat = juger_decision("amira", "Je réalloue 20 % vers le bitcoin", converser=FauxModele())
     assert "comparaison" not in contrat
-    assert contrat["trace"][-2]["raison"] == RAISON_INDISPONIBLE
+    assert next(e for e in contrat["trace"] if e["etape"] == "orchestrateur")["raison"] == RAISON_INDISPONIBLE
     # Sans simulation, aucune règle n'est jugée conforme par défaut.
-    regles = [c for c in contrat["controles"] if c["regle"] != "biais_survivant"]
+    regles = [c for c in contrat["controles"] if c["regle"] in {r["id"] for r in ProfilReallocation.profil["pacte"]["regles"]}]
     assert regles and all(c["statut"] == "a_verifier" for c in regles)
 
 

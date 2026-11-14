@@ -3,13 +3,14 @@
 Phases fixes, imposées par Python : Profil → Orchestrateur → Procureur et
 Avocat → Greffier → Verdict.
 
-État actuel (#12 en cours) : les phases **Profil**, **Orchestrateur** et la
-partie Pacte du **Greffier** (``verifier_pacte``) sont branchées. Le débat
-(#11), ``verifier_chiffres`` (qui vérifie les arguments du débat) et
-``taille_max_compatible`` (#21) s'ajouteront ici ; d'ici là, ``juger_decision``
-renvoie un contrat **partiel** : les champs ``taille_max_compatible``,
-``requisitoire``, ``plaidoirie`` et ``arguments_rejetes`` sont absents, ainsi
-que les contrôles ``verifier_chiffres`` et ``performance_passee``.
+État actuel (#12 en cours) : toutes les phases sont branchées. Seul manque
+``taille_max_compatible`` (#21) : d'ici là, ce champ est absent du contrat, qui
+ne passe donc pas encore le schéma.
+
+Le Greffier passe en dernier : ``verifier_pacte`` contrôle chaque règle du
+Pacte, puis ``verifier_chiffres`` vérifie chaque argument du débat. Un argument
+refusé est renvoyé **une fois** à son agent (``corriger_argument``), puis rangé
+dans ``arguments_rejetes`` s'il échoue encore (CLAUDE.md, section 4 ter).
 
 Pour une réallocation (#16), que ``simuler_portefeuille`` ne sait pas encore
 simuler, ``comparaison`` est absente et chaque règle du Pacte est ``a_verifier``.
@@ -20,7 +21,9 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from pipeline.agent_profil import lancer_agent_profil
-from pipeline.greffier import controle_biais_survivant, verifier_pacte
+from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
+from pipeline.debat import corriger_argument, debattre
+from pipeline.greffier import controle_biais_survivant, controle_performance_passee, verifier_pacte
 from pipeline.donnees import HYPOTHESES_DONNEES, date_extraction, seances_americaines
 from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.llm import converser_avec_outils
@@ -54,7 +57,7 @@ def juger_decision(
         converser: tour de modèle de l'orchestrateur (remplacé dans les tests).
 
     Returns:
-        Le contrat (partiel tant que #10, #11 et #21 ne sont pas branchés). Si
+        Le contrat (sans ``taille_max_compatible`` tant que #21 n'est pas branché). Si
         l'Agent Profil n'a pas pu construire de décision, ``decision`` vaut
         ``None``, aucune pièce n'est calculée et ``controles`` dit quoi préciser.
 
@@ -85,16 +88,51 @@ def juger_decision(
     contrat["pieces"] += instruction.pieces
     contrat["trace"] += instruction.trace
 
+    # Débat : Procureur et Avocat en parallèle, sur les mêmes pièces.
+    dossier = {"decision": profil.decision, "pacte": profil.pacte, "pieces": contrat["pieces"],
+               "periode": bornes_periode()}
+    debat = debattre(dossier)
+    contrat["trace"] += debat.trace
+
+    # Greffier, en dernier : règles du Pacte, puis chiffres des arguments.
     controles_pacte = controler_pacte(profil.profil, profil.decision, instruction, contrat["pieces"])
-    contrat["controles"] += [*controles_pacte, controle_biais_survivant()]
     contrat["trace"].append({
         "etape": "greffier",
         "outil": "verifier_pacte",
         "entree": [regle["id"] for regle in profil.profil["pacte"]["regles"]],
         "sortie": resumer_controles(controles_pacte),
     })
+    requisitoire = verifier_cote(debat.requisitoire, "requisitoire", "procureur", dossier, contrat["trace"])
+    plaidoirie = verifier_cote(debat.plaidoirie, "plaidoirie", "avocat", dossier, contrat["trace"])
+    controle_chiffres = controle_verifier_chiffres(requisitoire, plaidoirie)
+    contrat["trace"].append({
+        "etape": "greffier",
+        "outil": "verifier_chiffres",
+        "entree": f"{len(debat.requisitoire) + len(debat.plaidoirie)} arguments",
+        "sortie": controle_chiffres["message"],
+    })
+
+    contrat["requisitoire"] = requisitoire.valides
+    contrat["plaidoirie"] = plaidoirie.valides
+    contrat["arguments_rejetes"] = requisitoire.rejetes + plaidoirie.rejetes
+    performance = controle_performance_passee(requisitoire.valides + plaidoirie.valides)
+    contrat["controles"] += [*controles_pacte, controle_chiffres,
+                             *([performance] if performance else []), controle_biais_survivant()]
     contrat["hypotheses"] = [periode_analyse(), *HYPOTHESES_DONNEES, *profil.hypotheses, *HYPOTHESES_PROCES]
     return contrat
+
+
+def verifier_cote(arguments, cote, role, dossier, trace):
+    """``verifier_chiffres`` sur un côté du débat, avec une relance par argument refusé.
+
+    Chaque relance ajoute l'étape de trace de ``corriger_argument``.
+    """
+    def corriger(argument, motif):
+        corrige, etape = corriger_argument(role, dossier, argument, motif)
+        trace.append(etape)
+        return corrige
+
+    return trier_arguments(arguments, cote, dossier, corriger)
 
 
 def controler_pacte(profil, decision, instruction, pieces) -> list[dict[str, Any]]:
@@ -127,9 +165,15 @@ def comparaison(portefeuille: list[dict[str, Any]], decision: dict[str, Any]) ->
     }
 
 
-def periode_analyse() -> str:
+def bornes_periode() -> list[str]:
+    """Première et dernière séance de la période d'analyse (dates ISO)."""
     seances = seances_americaines()
-    return f"Période : {seances[0].date().isoformat()} au {seances[-1].date().isoformat()}"
+    return [seances[0].date().isoformat(), seances[-1].date().isoformat()]
+
+
+def periode_analyse() -> str:
+    debut, fin = bornes_periode()
+    return f"Période : {debut} au {fin}"
 
 
 def sources() -> list[dict[str, str]]:

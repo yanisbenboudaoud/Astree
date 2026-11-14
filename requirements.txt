@@ -1,2 +1,4 @@
-jsonschema>=4.18
-pytest>=8
+# Dépendances du pipeline (local et Lambda).
+# Versions épinglées : toute l'équipe utilise les mêmes (issue #22).
+boto3==1.44.3
+jsonschema==4.26.0

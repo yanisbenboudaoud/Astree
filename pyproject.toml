@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+# Les tests qui appellent vraiment Bedrock (payants) ne tournent que sur demande :
+#   pytest -m bedrock
+addopts = "-m 'not bedrock'"
+markers = [
+    "bedrock: vrai appel à Amazon Bedrock (payant, nécessite un accès AWS)",
+]

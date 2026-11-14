@@ -9,6 +9,7 @@ __pycache__/
 venv/
 .env
 .ipynb_checkpoints/
+.pytest_cache/
 
 # Système / éditeurs
 .DS_Store

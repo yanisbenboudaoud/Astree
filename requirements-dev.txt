@@ -4,5 +4,8 @@
 # Nécessaire pour utiliser la connexion « aws login » depuis Python.
 botocore[crt]==1.44.3
 
+# Dans Lambda, pandas vient de la couche gérée « AWS SDK for pandas » (issue #22).
+pandas==2.3.3
+
 pytest==9.2.0
 python-dotenv==1.2.4

@@ -14,13 +14,14 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from contrat.valider import charger_schema
-from pipeline import agent_profil
+from pipeline import agent_profil, tribunal
 from pipeline.agent_profil import chemin_profil
 from pipeline.donnees import ErreurDonnees
 from pipeline.llm import DemandeOutil, TourOutils, decrire_outil
 from pipeline.orchestrateur import (
     BUDGET_APPELS,
     RAISON_D_OFFICE,
+    RAISON_INDISPONIBLE,
     RAISON_REFUSEE,
     Outil,
     construire_dossier,
@@ -188,6 +189,16 @@ def test_simulation_d_une_autre_taille_ne_compte_pas():
     assert [e["raison"] for e in resultat.trace] == [RAISON, RAISON_D_OFFICE]
 
 
+def test_reallocation_sans_simulation_obligatoire_notee_dans_la_trace():
+    reallocation = {"type": "reallocation", "panier": [{"ticker": "BTC-USD", "poids": 1.0}],
+                    "part_reallouee": 0.2, "libelle": "20 % réalloué vers BTC-USD"}
+    resultat = instruire_dossier(reallocation, PROFIL, premier_numero=2, outils=FAUX_OUTILS,
+                                 converser=FauxModele())
+    assert resultat.pieces == []
+    assert resultat.trace[-1]["raison"] == RAISON_INDISPONIBLE
+    assert resultat.trace[-1]["sortie"] == "Aucune pièce"
+
+
 def test_raisons_de_la_trace_sans_chiffre():
     modele = FauxModele([demande("indicateurs_actif", raison="Il y a 3 risques", ticker="TSLA")],
                         [demande("indicateurs_actif", ticker="TSLA")])
@@ -248,6 +259,24 @@ def test_juger_decision_enchaine_profil_et_orchestrateur(monkeypatch):
     assert contrat["verdict"] is None and contrat["avertissement"] == AVERTISSEMENT
     for piece in contrat["pieces"]:
         valider_piece(piece)
+
+
+def test_juger_decision_reallocation_sans_planter(monkeypatch):
+    reallocation = {"type": "reallocation", "panier": [{"ticker": "BTC-USD", "poids": 1.0}],
+                    "part_reallouee": 0.2, "libelle": "20 % réalloué vers BTC-USD"}
+
+    class ProfilReallocation:
+        decision = reallocation
+        controles, hypotheses = [], []
+        profil = charger_pacte(chemin_profil("amira"))
+        pacte = {"id": "amira"}
+        piece_pacte = {"id": "P1", "outil": "charger_pacte"}
+        trace = [{"etape": "agent_profil", "outil": "charger_pacte", "entree": "amira", "sortie": "P1"}]
+
+    monkeypatch.setattr(tribunal, "lancer_agent_profil", lambda *args: ProfilReallocation)
+    contrat = juger_decision("amira", "Je réalloue 20 % vers le bitcoin", converser=FauxModele())
+    assert "comparaison" not in contrat
+    assert contrat["trace"][-1]["raison"] == RAISON_INDISPONIBLE
 
 
 def test_juger_decision_sans_decision_ne_calcule_rien(monkeypatch):

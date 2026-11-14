@@ -13,7 +13,9 @@ Garde-fous, tous appliqués par Python :
 - **raison** : obligatoire, une phrase, sans chiffre ; sinon l'appel est refusé
   et le modèle reçoit le motif ;
 - **pièce obligatoire** : si le modèle n'a pas demandé la simulation complète de
-  la décision, Python l'ajoute d'office et le note dans la trace ;
+  la décision, Python l'ajoute d'office et le note dans la trace (pour une
+  réallocation, que ``simuler_portefeuille`` ne sait pas encore simuler, #16,
+  la trace l'indique et aucune pièce n'est créée) ;
 - **erreur d'outil** (titre hors univers, taille impossible…) : renvoyée au
   modèle comme résultat en erreur, sans planter et sans créer de pièce.
 
@@ -46,6 +48,7 @@ LONGUEUR_MAX_RAISON = 160
 
 RAISON_D_OFFICE = "Pièce obligatoire ajoutée d'office"
 RAISON_REFUSEE = "Raison refusée par le garde-fou"
+RAISON_INDISPONIBLE = "Pièce obligatoire indisponible : simulation des réallocations pas encore construite"
 
 # Erreurs d'outil renvoyées au modèle au lieu d'arrêter le procès.
 ERREURS_OUTIL = (ErreurDonnees, ErreurSimulation)
@@ -122,7 +125,7 @@ def instruire_dossier(
     """Laisse le modèle choisir les outils, exécute ses appels et numérote les pièces.
 
     Args:
-        decision: décision structurée de type « position » (champ « decision » du contrat).
+        decision: décision structurée (champ « decision » du contrat).
         profil: profil validé par ``charger_pacte`` ; seuls son profil de risque,
             son horizon, ses règles et son portefeuille sont lus.
         premier_numero: numéro de la première pièce créée ici (les pièces
@@ -221,6 +224,9 @@ class _Instruction:
 
     def ajouter_simulation_obligatoire(self, decision: dict[str, Any]) -> None:
         """Ajoute la simulation complète de la décision si le modèle ne l'a pas obtenue."""
+        if decision["type"] != "position":
+            self._tracer(simulation.NOM_OUTIL, RAISON_INDISPONIBLE, decision, "Aucune pièce")
+            return
         entree = entree_simulation_obligatoire(decision)
         if (simulation.NOM_OUTIL, entree) not in self.entrees_reussies:
             self._executer(simulation.NOM_OUTIL, entree, RAISON_D_OFFICE)

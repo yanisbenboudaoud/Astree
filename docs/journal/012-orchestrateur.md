@@ -45,4 +45,5 @@ Les tests vérifient la numérotation des pièces, le paramètre `raison` ajout�
 
 ## Limites et suite
 - **Reste de #12** : débat Procureur et Avocat (#11), boucle du Greffier avec une relance (#10), `taille_max_compatible` (#21), puis la validation du contrat complet par `contrat/schema_sortie.json`. D'ici là, le contrat renvoyé est partiel et ne passe pas le schéma.
+- **Réallocations (#16)** : l'Agent Profil peut maintenant renvoyer une décision `reallocation`, mais `simuler_portefeuille` ne sait pas encore la simuler. L'orchestrateur instruit quand même le dossier ; la trace indique « Pièce obligatoire indisponible » et `comparaison` est absente. L'outil 3 `calculer_correlations` (#16) n'est pas encore dans la liste blanche.
 - **Champ `duree` de la trace** : demandé par l'issue, mais refusé par le schéma du contrat (`additionalProperties: false`). À ajouter au schéma avec l'accord de l'équipe.

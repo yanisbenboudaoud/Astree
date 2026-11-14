@@ -15,8 +15,12 @@ Le code ne connaît aucun persona : ``lancer_agent_profil`` reçoit l'identifian
 de n'importe quel profil, le charge et le valide avec ``charger_pacte`` (#3),
 puis ne lit que son portefeuille et son capital.
 
-V1 : décisions de type « position » (un seul titre). Les réallocations vers
-un panier arrivent avec #16.
+Deux types de décisions (CLAUDE.md, section 5) :
+- « position » : un titre, une taille et un financement ;
+- « reallocation » (#16) : un panier de titres avec leurs poids, et la part du
+  portefeuille réallouée, prise au prorata de toutes les lignes. Un panier
+  vague (« un panier crypto-tech ») n'est jamais complété au hasard : il faut
+  que l'utilisateur donne les titres et leurs poids.
 """
 
 from __future__ import annotations
@@ -37,6 +41,10 @@ from pipeline.pacte import (
 from pipeline.univers import charger_univers
 
 REGLE_CONTROLE = "interpretation_demande"
+
+# Écart d'arrondi toléré sur le total des poids d'un panier, corrigé par
+# normalisation (ex. : 3 × 0,3333). Au-delà, la répartition est ambiguë.
+TOLERANCE_TOTAL_PANIER = 0.01
 
 # Même format que l'« id » d'un profil (personas/schema_pacte.json). Il empêche
 # aussi un identifiant venu de l'interface de désigner un fichier hors de personas/.
@@ -150,16 +158,26 @@ Règles :
 - type_decision : « position » s'il s'agit d'ajouter ou d'augmenter un seul titre ;
   « reallocation » s'il s'agit de déplacer une part du portefeuille vers plusieurs titres
   (un panier) ; « autre » sinon.
-- actif_mentionne : le titre tel que l'utilisateur l'a écrit.
-- ticker : uniquement un ticker de l'univers d'actifs ci-dessous. Si le titre demandé n'y
-  est pas, ou si tu ne peux pas l'identifier avec certitude, mets null.
-- taille : la part du portefeuille visée, en décimale (30 % → 0.30 ; un tiers → 0.3333 ;
-  la moitié → 0.5). Si l'utilisateur donne un montant en argent plutôt qu'une part,
-  mets taille à null et remplis montant.
+- actif_mentionne : le titre (position) ou le panier (réallocation) tel que l'utilisateur
+  l'a écrit.
+- ticker : position seulement, et uniquement un ticker de l'univers d'actifs ci-dessous.
+  Si le titre demandé n'y est pas, ou si tu ne peux pas l'identifier avec certitude, ou
+  s'il s'agit d'une réallocation, mets null.
+- taille : la part du portefeuille visée (position) ou réallouée (réallocation), en
+  décimale (30 % → 0.30 ; un tiers → 0.3333 ; la moitié → 0.5 ; tout → 1.0). Si
+  l'utilisateur donne un montant en argent plutôt qu'une part, mets taille à null et
+  remplis montant.
 - montant : le montant en argent s'il est donné (50 000 $ → 50000), sinon null.
 - devise_montant : « CAD » ou « USD » si l'utilisateur le précise, sinon « non_precisee ».
-- financement_depuis : seulement si l'utilisateur dit quel titre de son portefeuille vendre
-  ou réduire pour financer la décision ; sinon null (financement proportionnel par défaut).
+- panier : réallocation seulement. Les titres du panier et leur poids dans le panier, en
+  décimales (30 % → 0.30), uniquement s'ils sont donnés explicitement. Ne complète jamais
+  un panier vague (« un panier tech ») : laisse la liste vide et signale-le dans
+  ambiguites. Liste vide pour une position.
+- actifs_hors_univers : les titres mentionnés qui ne sont pas dans l'univers d'actifs,
+  tels qu'écrits ; liste vide sinon.
+- financement_depuis : position seulement. Le titre du portefeuille que l'utilisateur dit
+  vendre ou réduire pour financer la décision ; sinon null (financement proportionnel
+  par défaut). Toujours null pour une réallocation, prise au prorata de toutes les lignes.
 - ambiguites : une phrase courte par point incertain ou manquant ; liste vide si tout est
   clair. En cas de doute, ne devine pas : signale-le ici. Ne signale pas l'absence de
   financement : le financement proportionnel s'applique par défaut."""
@@ -203,6 +221,19 @@ def schema_extraction(univers: list[dict[str, str]], profil: dict[str, Any]) -> 
         "taille": ou_null({"type": "number"}),
         "montant": ou_null({"type": "number"}),
         "devise_montant": {"type": "string", "enum": ["CAD", "USD", "non_precisee"]},
+        "panier": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["ticker", "poids"],
+                "properties": {
+                    "ticker": {"type": "string", "enum": tickers_univers},
+                    "poids": {"type": "number"},
+                },
+            },
+        },
+        "actifs_hors_univers": {"type": "array", "items": {"type": "string"}},
         "financement_depuis": (
             ou_null({"type": "string", "enum": tickers_portefeuille})
             if tickers_portefeuille
@@ -240,47 +271,141 @@ def interpreter_extraction(
     for ambiguite in extraction["ambiguites"]:
         a_verifier(f"Point à confirmer dans la demande (interprétation du modèle) : {ambiguite}")
 
-    if extraction["type_decision"] != "position":
+    if extraction["type_decision"] == "position":
+        decision = _decision_position(extraction, profil, univers, a_verifier, hypotheses)
+    elif extraction["type_decision"] == "reallocation":
+        decision = _decision_reallocation(extraction, profil, univers, a_verifier, hypotheses)
+    else:
         a_verifier(
-            "Seules les décisions portant sur un seul titre sont prises en charge pour "
-            "l'instant : précisez un titre et une taille."
+            "Décision non reconnue : précisez un titre et une taille, ou un panier de titres "
+            "et la part du portefeuille à réallouer."
         )
-        return None, controles, hypotheses
+        decision = None
+    return decision, controles, hypotheses
 
+
+def _decision_position(extraction, profil, univers, a_verifier, hypotheses) -> dict[str, Any] | None:
+    """Décision « position » : un titre de l'univers, une taille et un financement."""
     ticker = extraction["ticker"]
     if ticker not in {actif["ticker"] for actif in univers}:
         a_verifier(
             f"Titre « {extraction['actif_mentionne']} » introuvable dans l'univers d'actifs : "
             "il n'est jamais remplacé par un titre approchant."
         )
-        return None, controles, hypotheses
+        return None
 
-    taille = _taille_demandee(extraction, profil, a_verifier, hypotheses)
+    taille = _part_valide(extraction, profil, a_verifier, hypotheses, nom="Taille")
     if taille is None:
-        return None, controles, hypotheses
-    if not 0 < taille <= 1:
-        a_verifier(
-            f"Taille de {formater_part(taille)} impossible : elle doit être comprise "
-            "entre 0 et 100 % du portefeuille."
-        )
-        return None, controles, hypotheses
+        return None
 
     financement = _financement(extraction["financement_depuis"], ticker, profil, a_verifier, hypotheses)
     libelle = f"{formater_part(taille)} en {ticker}"
     if financement.startswith("depuis_"):
         libelle += f", financé par {financement.removeprefix('depuis_')}"
 
-    decision = {
+    return {
         "type": "position",
         "ticker": ticker,
         "taille": taille,
         "financement": financement,
         "libelle": libelle,
     }
-    return decision, controles, hypotheses
 
 
-def _taille_demandee(extraction, profil, a_verifier, hypotheses) -> float | None:
+def _decision_reallocation(extraction, profil, univers, a_verifier, hypotheses) -> dict[str, Any] | None:
+    """Décision « reallocation » : un panier explicite (titres et poids) et la part réallouée."""
+    if extraction["actifs_hors_univers"]:
+        a_verifier(
+            "Titre(s) du panier introuvable(s) dans l'univers d'actifs : "
+            f"{', '.join(extraction['actifs_hors_univers'])}. Ils ne sont jamais remplacés par un "
+            "titre approchant."
+        )
+        return None
+    if not extraction["panier"]:
+        a_verifier(
+            f"Composition du panier « {extraction['actif_mentionne']} » non précisée : indiquez "
+            "les titres et leur poids (ex. : 50 % BTC-USD et 50 % ETH-USD)."
+        )
+        return None
+
+    tickers = [ligne["ticker"] for ligne in extraction["panier"]]
+    poids = [float(ligne["poids"]) for ligne in extraction["panier"]]
+    inconnus = [t for t in tickers if t not in {actif["ticker"] for actif in univers}]
+    if inconnus:
+        a_verifier(f"Titre(s) du panier hors de l'univers d'actifs : {', '.join(inconnus)}.")
+        return None
+    if len(set(tickers)) != len(tickers):
+        a_verifier("Un titre apparaît deux fois dans le panier : précisez son poids.")
+        return None
+    if any(p <= 0 for p in poids):
+        a_verifier("Chaque titre du panier doit avoir un poids positif.")
+        return None
+    poids = _poids_normalises(poids, a_verifier, hypotheses)
+    if poids is None:
+        return None
+
+    part = _part_valide(extraction, profil, a_verifier, hypotheses, nom="Part réallouée")
+    if part is None:
+        return None
+
+    if extraction["financement_depuis"] is not None:
+        a_verifier(
+            f"Financement depuis {extraction['financement_depuis']} ignoré : une réallocation "
+            "est prise au prorata de toutes les lignes du portefeuille."
+        )
+    hypotheses.append("Réallocation prise au prorata de toutes les lignes du portefeuille")
+
+    panier = [{"ticker": t, "poids": p} for t, p in zip(tickers, poids)]
+    return {
+        "type": "reallocation",
+        "panier": panier,
+        "part_reallouee": part,
+        "libelle": f"{formater_part(part)} réalloué vers {_decrire_panier(panier)}",
+    }
+
+
+def _poids_normalises(poids, a_verifier, hypotheses) -> list[float] | None:
+    """Poids du panier ramenés à un total exact de 1 (le contrat l'exige).
+
+    Seuls de petits écarts d'arrondi sont corrigés (ex. : trois tiers écrits
+    0,3333). Au-delà, la répartition est ambiguë : l'utilisateur doit la préciser.
+    """
+    total = sum(poids)
+    if abs(total - 1) > TOLERANCE_TOTAL_PANIER:
+        a_verifier(
+            f"Les poids du panier totalisent {formater_part(total)} au lieu de 100 % : "
+            "précisez la répartition."
+        )
+        return None
+    if total != 1:
+        hypotheses.append(
+            f"Poids du panier ajustés pour totaliser exactement 100 % (total écrit : "
+            f"{total * 100:.2f} %)".replace(".", ",")
+        )
+    return [p / total for p in poids]
+
+
+def _decrire_panier(panier) -> str:
+    """« BTC-USD 30 %, ETH-USD 20 % et NVDA 50 % »."""
+    lignes = [f"{ligne['ticker']} {formater_part(ligne['poids'])}" for ligne in panier]
+    return lignes[0] if len(lignes) == 1 else f"{', '.join(lignes[:-1])} et {lignes[-1]}"
+
+
+def _part_valide(extraction, profil, a_verifier, hypotheses, nom) -> float | None:
+    """Part demandée (taille ou part réallouée), comprise entre 0 et 100 % du portefeuille."""
+    part = _taille_demandee(extraction, profil, a_verifier, hypotheses, nom)
+    if part is None:
+        return None
+    if not 0 < part <= 1:
+        a_verifier(
+            f"{nom} de {formater_part(part)} impossible : elle doit être comprise "
+            "entre 0 et 100 % du portefeuille."
+        )
+        return None
+    return part
+
+
+def _taille_demandee(extraction, profil, a_verifier, hypotheses, nom="Taille") -> float | None:
     """Part du portefeuille demandée : donnée directement, ou calculée depuis un montant."""
     taille, montant = extraction["taille"], extraction["montant"]
 
@@ -290,7 +415,7 @@ def _taille_demandee(extraction, profil, a_verifier, hypotheses) -> float | None
     if taille is not None:
         return float(taille)
     if montant is None:
-        a_verifier("Taille absente : précisez une part du portefeuille (ex. : 10 %) ou un montant.")
+        a_verifier(f"{nom} absente : précisez une part du portefeuille (ex. : 10 %) ou un montant.")
         return None
 
     devise = extraction["devise_montant"]

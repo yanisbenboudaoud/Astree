@@ -8,7 +8,8 @@ branchées. Le débat (#11), le Greffier (#10) et ``taille_max_compatible`` (#21
 s'ajouteront ici ; d'ici là, ``juger_decision`` renvoie un contrat **partiel** :
 les champs ``taille_max_compatible``, ``requisitoire``, ``plaidoirie`` et
 ``arguments_rejetes`` sont absents, et ``controles`` ne contient que ceux de
-l'Agent Profil.
+l'Agent Profil. Pour une réallocation (#16), que ``simuler_portefeuille`` ne
+sait pas encore simuler, ``comparaison`` est aussi absente.
 """
 
 from __future__ import annotations
@@ -74,7 +75,8 @@ def juger_decision(
         return contrat
 
     instruction = instruire_dossier(profil.decision, profil.profil, premier_numero=2, converser=converser)
-    contrat["comparaison"] = comparaison(profil.profil["portefeuille"], profil.decision)
+    if profil.decision["type"] == "position":  # réallocations pas encore simulées (#16)
+        contrat["comparaison"] = comparaison(profil.profil["portefeuille"], profil.decision)
     contrat["pieces"] += instruction.pieces
     contrat["trace"] += instruction.trace
     contrat["hypotheses"] = [periode_analyse(), *HYPOTHESES_DONNEES, *profil.hypotheses, *HYPOTHESES_PROCES]

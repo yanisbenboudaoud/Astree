@@ -1,6 +1,6 @@
 # #22 — Pièges AWS à régler avant le déploiement
 
-- **Issue** : #22 · **PR** : à compléter · **Statut** : en cours
+- **Issue** : #22 · **PR** : #46 · **Statut** : en cours
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

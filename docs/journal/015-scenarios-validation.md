@@ -1,6 +1,6 @@
 # #15 — Scénarios de validation et de sensibilité
 
-- **Issue** : #15 · **PR** : #PR_A_RENSEIGNER · **Statut** : terminée (sauf le scénario « panier », en attente de #16)
+- **Issue** : #15 · **PR** : #50 · **Statut** : terminée (sauf le scénario « panier », en attente de #16)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

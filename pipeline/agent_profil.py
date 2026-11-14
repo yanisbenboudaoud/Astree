@@ -11,8 +11,9 @@ peut pas être construite (titre hors de l'univers, taille absente…), il ne
 renvoie aucune décision : le procès ne peut pas commencer et l'interface doit
 demander à l'utilisateur de préciser.
 
-Le code ne connaît aucun persona : il lit seulement le portefeuille et le
-capital du profil reçu.
+Le code ne connaît aucun persona : ``lancer_agent_profil`` reçoit l'identifiant
+de n'importe quel profil, le charge et le valide avec ``charger_pacte`` (#3),
+puis ne lit que son portefeuille et son capital.
 
 V1 : décisions de type « position » (un seul titre). Les réallocations vers
 un panier arrivent avec #16.
@@ -20,12 +21,30 @@ un panier arrivent avec #16.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from pipeline.llm import appeler_llm
+from pipeline.pacte import (
+    CHEMIN_SCHEMA,
+    DOSSIER_PERSONAS,
+    charger_pacte,
+    pacte_pour_contrat,
+    piece_pacte,
+)
+from pipeline.univers import charger_univers
 
 REGLE_CONTROLE = "interpretation_demande"
+
+# Même format que l'« id » d'un profil (personas/schema_pacte.json). Il empêche
+# aussi un identifiant venu de l'interface de désigner un fichier hors de personas/.
+FORMAT_IDENTIFIANT = re.compile(r"[a-z][a-z0-9_]*")
+
+
+class ProfilInconnu(Exception):
+    """Aucun fichier profil ne porte cet identifiant : le procès ne peut pas commencer."""
 
 
 @dataclass
@@ -36,6 +55,56 @@ class ResultatAgentProfil:
     controles: list[dict[str, Any]] = field(default_factory=list)  # contrôles « a_verifier »
     hypotheses: list[str] = field(default_factory=list)  # à ajouter aux hypothèses du contrat
     trace: list[dict[str, Any]] = field(default_factory=list)  # étapes « agent_profil »
+    # Remplis par lancer_agent_profil :
+    profil: dict[str, Any] | None = None  # profil validé (portefeuille, règles typées du Pacte)
+    pacte: dict[str, Any] | None = None  # champ « pacte » du contrat
+    piece_pacte: dict[str, Any] | None = None  # pièce « Pacte », citable par les agents
+
+
+def lancer_agent_profil(
+    demande: str,
+    identifiant_profil: str,
+    id_piece_pacte: str,
+) -> ResultatAgentProfil:
+    """Phase 1 du Tribunal : charge et valide le Pacte, puis structure la demande.
+
+    Point d'entrée de l'orchestrateur (#12). Le Pacte est chargé **avant** l'appel
+    au LLM : un profil inconnu ou invalide ne coûte aucun appel Bedrock.
+
+    Args:
+        demande: texte de l'utilisateur (ex. : « Je veux mettre 30 % en Tesla »).
+        identifiant_profil: ``id`` du profil, c'est-à-dire le nom du fichier
+            ``personas/<id>.json`` (n'importe quel profil, pas seulement les profils de test).
+        id_piece_pacte: numéro de la pièce « Pacte » (ex. : « P3 »), donné par le
+            pipeline, qui numérote toutes les pièces.
+
+    Raises:
+        ProfilInconnu: aucun profil ne porte cet identifiant.
+        PacteInvalide: le fichier profil ne respecte pas le format commun.
+    """
+    profil = charger_pacte(chemin_profil(identifiant_profil))
+    resultat = structurer_decision(demande, profil, charger_univers())
+    etape_pacte = {
+        "etape": "agent_profil",
+        "outil": "charger_pacte",
+        "entree": identifiant_profil,
+        "sortie": id_piece_pacte,
+    }
+    resultat.trace = [etape_pacte, *resultat.trace]
+    resultat.profil = profil
+    resultat.pacte = pacte_pour_contrat(profil)
+    resultat.piece_pacte = piece_pacte(profil, id_piece_pacte)
+    return resultat
+
+
+def chemin_profil(identifiant: str) -> Path:
+    """Fichier ``personas/<identifiant>.json`` ; lève ``ProfilInconnu`` s'il n'existe pas."""
+    if not isinstance(identifiant, str) or not FORMAT_IDENTIFIANT.fullmatch(identifiant):
+        raise ProfilInconnu(f"Identifiant de profil invalide : {identifiant!r}")
+    chemin = DOSSIER_PERSONAS / f"{identifiant}.json"
+    if chemin == CHEMIN_SCHEMA or not chemin.is_file():
+        raise ProfilInconnu(f"Aucun profil « {identifiant} » dans {DOSSIER_PERSONAS.name}/")
+    return chemin
 
 
 def structurer_decision(
@@ -45,9 +114,11 @@ def structurer_decision(
 ) -> ResultatAgentProfil:
     """Transforme une demande en langage naturel en décision du contrat.
 
+    Appelée par ``lancer_agent_profil`` une fois le profil validé.
+
     Args:
         demande: texte de l'utilisateur (ex. : « Je veux mettre 30 % en Tesla »).
-        profil: profil chargé (fichier personas/<id>.json) ; seuls
+        profil: profil déjà validé par ``charger_pacte`` ; seuls
             « portefeuille » et « capital_fictif_cad » sont lus.
         univers: titres connus du système (``pipeline.univers.charger_univers``).
     """

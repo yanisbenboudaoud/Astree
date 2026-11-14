@@ -12,8 +12,10 @@ Méthode retenue (à reprendre dans la documentation technique) :
   prix. Pour un titre sans prix ce jour-là (jour férié à la TSX, ou crypto
   pendant le week-end), le dernier prix connu est reporté. Les rendements crypto
   du week-end sont donc cumulés dans le lundi.
-- **Devise** : chaque prix reste dans la devise de cotation du titre (CAD pour
-  ``.TO``, USD sinon). La conversion en CAD est l'objet de l'issue #5.
+- **Devise** : ``charger_prix`` garde la devise de cotation du titre (CAD pour
+  ``.TO``, USD sinon). ``charger_donnees`` convertit tout en CAD avec le taux
+  USD/CAD quotidien de la Banque du Canada (``fx_usdcad_daily.csv``). Ce fichier
+  n'a pas de taux les jours fériés canadiens : le dernier taux connu est reporté.
 
 Source des CSV, par la variable d'environnement ``SOURCE_DONNEES`` :
 - ``local`` (par défaut) : dossier ``alphaforge_starter/`` du dépôt ;
@@ -38,6 +40,7 @@ MARCHES_AMERICAINS = {"NASDAQ", "NYSE", "NYSE Arca", "Cboe BZX"}
 HYPOTHESES_DONNEES = [
     "Rendements calculés sur adj_close",
     "Calendrier des séances américaines, dernier prix reporté",
+    "Montants convertis en CAD",
 ]
 
 
@@ -68,6 +71,25 @@ def _prix_bruts() -> pd.DataFrame:
         raise ErreurDonnees("prices_daily.csv contient des lignes en double (date, ticker)")
     prix["date"] = pd.to_datetime(prix["date"])
     return prix.pivot(index="date", columns="ticker", values="adj_close").sort_index()
+
+
+@lru_cache(maxsize=1)
+def _taux_usdcad() -> pd.Series:
+    """Taux USD/CAD (1 USD = x CAD), une valeur par jour ouvrable canadien."""
+    taux = lire_csv("fx_usdcad_daily.csv")
+    taux["date"] = pd.to_datetime(taux["date"])
+    if taux["date"].duplicated().any():
+        raise ErreurDonnees("fx_usdcad_daily.csv contient des dates en double")
+    return taux.set_index("date")["usdcad"].sort_index()
+
+
+def date_extraction(nom_fichier: str) -> str:
+    """Date d'extraction d'un fichier du jeu de données (sources_metadata.csv), ex. « 2026-11-13 »."""
+    sources = lire_csv("sources_metadata.csv")
+    dates = sources.loc[sources["file"] == nom_fichier, "retrieved_on"]
+    if dates.empty:
+        raise ErreurDonnees(f"{nom_fichier} absent de sources_metadata.csv")
+    return str(dates.iloc[0])
 
 
 def charger_univers() -> pd.DataFrame:
@@ -115,3 +137,49 @@ def charger_prix(tickers: list[str]) -> pd.DataFrame:
         raise ErreurDonnees(f"Aucun prix connu au début de la période pour : {', '.join(sans_prix)}")
     prix.columns.name = None
     return prix
+
+
+def convertir_en_cad(prix: pd.DataFrame, devises: dict[str, str]) -> pd.DataFrame:
+    """Convertit en CAD des prix exprimés dans leur devise de cotation.
+
+    Args:
+        prix: une ligne par date, une colonne par titre (sortie de ``charger_prix``).
+        devises: devise de cotation de chaque colonne, ``"CAD"`` ou ``"USD"``.
+
+    Returns:
+        Les mêmes prix en CAD. Une colonne en CAD est inchangée ; une colonne en
+        USD est multipliée par le taux USD/CAD du jour, ou par le dernier taux
+        connu quand la Banque du Canada n'en publie pas (jour férié canadien).
+
+    Raises:
+        ErreurDonnees: devise manquante ou non prise en charge, ou date sans
+            taux connu (avant le premier taux du fichier).
+    """
+    non_gerees = {t: devises.get(t) for t in prix.columns if devises.get(t) not in ("CAD", "USD")}
+    if non_gerees:
+        detail = ", ".join(f"{t} ({d})" for t, d in non_gerees.items())
+        raise ErreurDonnees(f"Devise manquante ou non prise en charge : {detail}")
+
+    taux = _taux_usdcad()
+    taux = taux.reindex(taux.index.union(prix.index)).ffill().reindex(prix.index)
+    if taux.isna().any():
+        premiere = taux.index[taux.isna()][0].date()
+        raise ErreurDonnees(f"Aucun taux USD/CAD connu au {premiere}")
+
+    en_cad = prix.copy()
+    for ticker in prix.columns:
+        if devises[ticker] == "USD":
+            en_cad[ticker] = prix[ticker] * taux
+    return en_cad
+
+
+def charger_donnees(tickers: list[str]) -> pd.DataFrame:
+    """Prix adj_close en CAD, alignés sur les séances américaines : l'entrée de tous les outils.
+
+    Même format et mêmes erreurs que ``charger_prix``, mais tous les prix sont
+    convertis en CAD (``convertir_en_cad``).
+    """
+    prix = charger_prix(tickers)
+    univers = _univers()
+    devises = dict(zip(univers["ticker"], univers["currency"]))
+    return convertir_en_cad(prix, devises)

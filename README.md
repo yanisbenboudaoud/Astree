@@ -57,12 +57,19 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 |---|---|---|
 | `CLAUDE.md` | Règles du projet, architecture du Tribunal, contrat JSON. Lu automatiquement par Claude Code | [000](docs/journal/000-fondations.md) |
 | `alphaforge_starter/` | Données de départ fournies (prix, USD/CAD, macro, univers d'actifs). Ne pas modifier | — |
-| `pipeline/donnees.py` | Socle de données : `charger_prix` (prix `adj_close` sur le calendrier américain), `charger_univers` | [004](docs/journal/004-charger-donnees.md) |
+| `pipeline/donnees.py` | Socle de données : `charger_donnees` (prix `adj_close` en CAD sur le calendrier américain), `charger_prix` (devise d'origine), `convertir_en_cad`, `charger_univers` | [004](docs/journal/004-charger-donnees.md), [005](docs/journal/005-conversion-cad.md) |
+| `pipeline/indicateurs.py` | Outil 1 `indicateurs_actif` (pièce d'un titre) et fonctions de calcul pures : rendement annualisé, volatilité, pire baisse, rendement 2022, temps de récupération | [006](docs/journal/006-indicateurs-actif.md) |
+| `pipeline/orchestrateur.py` | Orchestrateur : `instruire_dossier`, boucle Bedrock où le modèle choisit les outils, garde-fous (liste blanche, budget, raison sans chiffre, pièce obligatoire), pièces numérotées et trace | [012](docs/journal/012-orchestrateur.md) |
 | `pipeline/llm.py` | Client Bedrock commun : `appeler_llm` (texte ou JSON validé), `converser_avec_outils` (*tool use*) | [007](docs/journal/007-client-llm-bedrock.md) |
 | `pipeline/debat.py` | Procureur et Avocat : `debattre` (les deux en parallèle), `corriger_argument` (mode correction) | [011](docs/journal/011-procureur-avocat.md) |
+| `pipeline/agent_profil.py` | Agent Profil (phase 1) : `lancer_agent_profil` charge et valide le Pacte, puis transforme la demande en `decision` du contrat. Demande ambiguë → contrôle `a_verifier` | [008](docs/journal/008-agent-profil.md) |
+| `pipeline/univers.py` | `charger_univers` : les titres connus du système (liste de dictionnaires, pour les prompts) | [008](docs/journal/008-agent-profil.md) |
 | `contrat/schema_sortie.json` | Schéma JSON de la sortie du pipeline | [002](docs/journal/002-contrat-json.md) |
 | `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md) |
+| `pipeline/pacte.py` | Chargement et validation d'un fichier profil : `charger_pacte`, `pacte_pour_contrat`, `piece_pacte` | [003](docs/journal/003-pacte-generique.md) |
+| `pipeline/categories.py` | Catégories d'un titre : `categories_du_titre` (titre hors univers signalé, jamais deviné) | [003](docs/journal/003-pacte-generique.md) |
 | `personas/*.json` | Profils de test et leur Pacte, au format générique | [003](docs/journal/003-pacte-generique.md) |
+| `personas/schema_pacte.json` | Schéma JSON d'un fichier profil, un sous-schéma par type de règle | [003](docs/journal/003-pacte-generique.md) |
 | `config/categories.json` | Catégories (`tech`, `crypto`) des règles `plafond`, communes à tous les profils | [003](docs/journal/003-pacte-generique.md) |
 | `tests/` | Un fichier de test par module (`test_donnees.py` ↔ `pipeline/donnees.py`). `pytest -m bedrock` pour les vrais appels | — |
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](docs/journal/000-fondations.md) |

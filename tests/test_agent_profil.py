@@ -12,12 +12,22 @@ import jsonschema
 import pytest
 
 from pipeline import agent_profil
-from pipeline.agent_profil import formater_part, interpreter_extraction, structurer_decision
+from pipeline.agent_profil import (
+    ProfilInconnu,
+    formater_part,
+    interpreter_extraction,
+    lancer_agent_profil,
+    structurer_decision,
+)
+from pipeline.pacte import PacteInvalide
 from pipeline.univers import charger_univers
 
 RACINE = Path(__file__).resolve().parent.parent
 UNIVERS = charger_univers()
 SCHEMA_CONTRAT = json.loads((RACINE / "contrat" / "schema_sortie.json").read_text(encoding="utf-8"))
+CONTRAT_ROBERT = json.loads(
+    (RACINE / "docs" / "exemples" / "contrat_robert.json").read_text(encoding="utf-8")
+)
 
 
 def charger_profil(identifiant):
@@ -182,6 +192,74 @@ def test_structurer_decision_ecrit_la_trace(monkeypatch):
         valide_contre_le_contrat(etape, "etape_trace")
 
 
+# --- Point d'entrée : chargement du Pacte, puis décision ----------------------
+
+
+def llm_interdit(*args):
+    raise AssertionError("Le LLM ne doit pas être appelé si le profil est refusé")
+
+
+def test_lancer_agent_profil_charge_le_pacte_puis_structure(monkeypatch):
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: extraction())
+    resultat = lancer_agent_profil("Je veux mettre 30 % de mon portefeuille en Tesla", "robert", "P3")
+
+    assert resultat.decision["ticker"] == "TSLA"
+    assert resultat.profil["portefeuille"] == PROFIL_PRUDENT["portefeuille"]
+    # Le pacte et la pièce sont ceux attendus par l'interface dans le faux contrat.
+    assert resultat.pacte == CONTRAT_ROBERT["pacte"]
+    piece_p3 = next(p for p in CONTRAT_ROBERT["pieces"] if p["id"] == "P3")
+    assert resultat.piece_pacte == piece_p3
+
+    assert resultat.trace[0] == {
+        "etape": "agent_profil", "outil": "charger_pacte", "entree": "robert", "sortie": "P3",
+    }
+    assert [etape["outil"] for etape in resultat.trace] == [
+        "charger_pacte", "bedrock", "valider_decision",
+    ]
+    for etape in resultat.trace:
+        valide_contre_le_contrat(etape, "etape_trace")
+
+
+@pytest.mark.parametrize("identifiant", ["robert", "amira", "mateo"])
+def test_chaque_profil_de_test_se_charge(monkeypatch, identifiant):
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: extraction())
+    resultat = lancer_agent_profil("30 % en Tesla", identifiant, "P1")
+    assert resultat.profil["id"] == identifiant
+    valide_contre_le_contrat(resultat.pacte, "pacte")
+    valide_contre_le_contrat(resultat.piece_pacte, "piece")
+
+
+def test_profil_invente_se_charge_sans_changer_le_code(monkeypatch, tmp_path):
+    profil = charger_profil("robert") | {"id": "inventee", "nom": "Inventée"}
+    (tmp_path / "inventee.json").write_text(json.dumps(profil), encoding="utf-8")
+    monkeypatch.setattr(agent_profil, "DOSSIER_PERSONAS", tmp_path)
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: extraction())
+
+    resultat = lancer_agent_profil("30 % en Tesla", "inventee", "P1")
+    assert resultat.pacte["id"] == "inventee"
+    assert resultat.decision is not None
+
+
+@pytest.mark.parametrize("identifiant", [
+    "inconnu", "Robert", "../personas/robert", "robert.json", "", "schema_pacte", None,
+])
+def test_profil_inconnu_refuse_avant_le_llm(monkeypatch, identifiant):
+    monkeypatch.setattr(agent_profil, "appeler_llm", llm_interdit)
+    with pytest.raises(ProfilInconnu):
+        lancer_agent_profil("30 % en Tesla", identifiant, "P1")
+
+
+def test_pacte_invalide_refuse_avant_le_llm(monkeypatch, tmp_path):
+    profil = charger_profil("robert") | {"id": "casse"}
+    del profil["pacte"]["regles"][0]["seuil"]
+    (tmp_path / "casse.json").write_text(json.dumps(profil), encoding="utf-8")
+    monkeypatch.setattr(agent_profil, "DOSSIER_PERSONAS", tmp_path)
+    monkeypatch.setattr(agent_profil, "appeler_llm", llm_interdit)
+
+    with pytest.raises(PacteInvalide):
+        lancer_agent_profil("30 % en Tesla", "casse", "P1")
+
+
 # --- Vrais appels Bedrock (payants) : pytest -m bedrock -----------------------
 
 DEMANDES_DEMO = [
@@ -196,8 +274,8 @@ DEMANDES_DEMO = [
 @pytest.mark.bedrock
 @pytest.mark.parametrize("identifiant, demande, attendu", DEMANDES_DEMO)
 def test_demande_de_demo_de_chaque_profil(identifiant, demande, attendu):
-    profil = charger_profil(identifiant)
-    resultat = structurer_decision(demande, profil, UNIVERS)
+    resultat = lancer_agent_profil(demande, identifiant, "P1")
+    profil = resultat.profil
     if attendu is None:
         assert resultat.decision is None
         assert resultat.controles and all(c["statut"] == "a_verifier" for c in resultat.controles)

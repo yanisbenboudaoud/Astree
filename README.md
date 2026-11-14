@@ -64,7 +64,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `pipeline/debat.py` | Procureur et Avocat : `debattre` (les deux en parallèle), `corriger_argument` (mode correction) | [011](docs/journal/011-procureur-avocat.md) |
 | `pipeline/greffier.py` | Greffier, outil 5 `verifier_pacte` : un contrôle par règle du Pacte (une fonction par type de règle), contrôles `biais_survivant` et `performance_passee` | [010](docs/journal/010-greffier.md) |
 | `pipeline/chiffres.py` | Greffier, outil 6 `verifier_chiffres` : chaque nombre cité doit exister dans une pièce citée (`CLAUDE.md` §4 ter) ; `trier_arguments` (une relance, puis rejet), `controle_verifier_chiffres` | [010](docs/journal/010-greffier.md) |
-| `pipeline/agent_profil.py` | Agent Profil (phase 1) : `lancer_agent_profil` charge et valide le Pacte, puis transforme la demande en `decision` du contrat. Demande ambiguë → contrôle `a_verifier` | [008](docs/journal/008-agent-profil.md) |
+| `pipeline/agent_profil.py` | Agent Profil (phase 1) : `lancer_agent_profil` charge et valide le Pacte, puis transforme la demande en `decision` du contrat (`position` ou `reallocation` vers un panier explicite). Demande ambiguë → contrôle `a_verifier` | [008](docs/journal/008-agent-profil.md), [016](docs/journal/016-diversification.md) |
 | `pipeline/univers.py` | `charger_univers` : les titres connus du système (liste de dictionnaires, pour les prompts) | [008](docs/journal/008-agent-profil.md) |
 | `contrat/schema_sortie.json` | Schéma JSON de la sortie du pipeline | [002](docs/journal/002-contrat-json.md) |
 | `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md) |

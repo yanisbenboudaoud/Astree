@@ -49,11 +49,27 @@ def extraction(**champs):
         "taille": 0.30,
         "montant": None,
         "devise_montant": "non_precisee",
+        "panier": [],
+        "actifs_hors_univers": [],
         "financement_depuis": None,
         "ambiguites": [],
     }
     valeurs.update(champs)
     return valeurs
+
+
+PANIER_DEMO = [  # panier de la décision de démo du profil audacieux
+    {"ticker": "BTC-USD", "poids": 0.3}, {"ticker": "ETH-USD", "poids": 0.2},
+    {"ticker": "NVDA", "poids": 0.2}, {"ticker": "QQQ", "poids": 0.2}, {"ticker": "SHOP.TO", "poids": 0.1},
+]
+
+
+def extraction_reallocation(**champs):
+    """Extraction du LLM pour « tout réallouer vers le panier de démo »."""
+    valeurs = {"type_decision": "reallocation", "actif_mentionne": "panier crypto-tech",
+               "ticker": None, "taille": 1.0, "panier": PANIER_DEMO}
+    valeurs.update(champs)
+    return extraction(**valeurs)
 
 
 PROFIL_PRUDENT = charger_profil("robert")
@@ -130,12 +146,107 @@ def test_taille_hors_limites_refusee(taille):
     assert "comprise entre 0 et 100 %" in controles[0]["message"]
 
 
-def test_reallocation_signalee_en_v1():
+def test_decision_non_reconnue_signalee():
     decision, controles, _ = interpreter_extraction(
-        extraction(type_decision="reallocation", ticker=None, taille=1.0), PROFIL_PRUDENT, UNIVERS
+        extraction(type_decision="autre", ticker=None), PROFIL_PRUDENT, UNIVERS
     )
     assert decision is None
-    assert "un seul titre" in controles[0]["message"]
+    assert "Décision non reconnue" in controles[0]["message"]
+
+
+# --- Réallocations (#16) ---------------------------------------------------------
+
+
+def test_reallocation_avec_panier_explicite():
+    decision, controles, hypotheses = interpreter_extraction(
+        extraction_reallocation(), charger_profil("amira"), UNIVERS
+    )
+    assert decision == {
+        "type": "reallocation",
+        "panier": PANIER_DEMO,
+        "part_reallouee": 1.0,
+        "libelle": "100 % réalloué vers BTC-USD 30 %, ETH-USD 20 %, NVDA 20 %, QQQ 20 % et SHOP.TO 10 %",
+    }
+    assert controles == []
+    assert any("prorata" in h for h in hypotheses)
+    valide_contre_le_contrat(decision, "decision")
+
+
+def test_reallocation_identique_a_la_decision_de_demo():
+    profil = charger_profil("amira")
+    decision, _, _ = interpreter_extraction(extraction_reallocation(), profil, UNIVERS)
+    attendu = profil["decision_demo"]
+    assert decision["panier"] == attendu["panier"]
+    assert decision["part_reallouee"] == attendu["part_reallouee"]
+
+
+def test_panier_vague_aucune_decision():
+    decision, controles, _ = interpreter_extraction(
+        extraction_reallocation(panier=[]), PROFIL_PRUDENT, UNIVERS
+    )
+    assert decision is None
+    assert "Composition du panier « panier crypto-tech » non précisée" in controles[0]["message"]
+
+
+def test_titre_du_panier_hors_univers():
+    decision, controles, _ = interpreter_extraction(
+        extraction_reallocation(actifs_hors_univers=["Solana"]), PROFIL_PRUDENT, UNIVERS
+    )
+    assert decision is None
+    assert "Solana" in controles[0]["message"]
+
+
+def test_titre_en_double_dans_le_panier():
+    panier = [{"ticker": "NVDA", "poids": 0.5}, {"ticker": "NVDA", "poids": 0.5}]
+    decision, controles, _ = interpreter_extraction(
+        extraction_reallocation(panier=panier), PROFIL_PRUDENT, UNIVERS
+    )
+    assert decision is None
+    assert "deux fois" in controles[0]["message"]
+
+
+def test_poids_arrondis_ajustes_a_100():
+    panier = [{"ticker": t, "poids": 0.3333} for t in ("BTC-USD", "ETH-USD", "NVDA")]
+    decision, controles, hypotheses = interpreter_extraction(
+        extraction_reallocation(panier=panier), PROFIL_PRUDENT, UNIVERS
+    )
+    assert controles == []
+    assert sum(ligne["poids"] for ligne in decision["panier"]) == pytest.approx(1.0, abs=1e-9)
+    assert any("99,99 %" in h for h in hypotheses)
+    valide_contre_le_contrat(decision, "decision")
+
+
+def test_poids_qui_ne_totalisent_pas_100_aucune_decision():
+    panier = [{"ticker": "BTC-USD", "poids": 0.5}, {"ticker": "ETH-USD", "poids": 0.3}]
+    decision, controles, _ = interpreter_extraction(
+        extraction_reallocation(panier=panier), PROFIL_PRUDENT, UNIVERS
+    )
+    assert decision is None
+    assert "totalisent 80 %" in controles[0]["message"]
+
+
+def test_part_reallouee_absente_aucune_decision():
+    decision, controles, _ = interpreter_extraction(
+        extraction_reallocation(taille=None), PROFIL_PRUDENT, UNIVERS
+    )
+    assert decision is None
+    assert "Part réallouée absente" in controles[0]["message"]
+
+
+def test_part_reallouee_depuis_un_montant():
+    decision, _, hypotheses = interpreter_extraction(
+        extraction_reallocation(taille=None, montant=65000, devise_montant="CAD"), PROFIL_PRUDENT, UNIVERS
+    )
+    assert decision["part_reallouee"] == pytest.approx(0.1)
+    assert decision["libelle"].startswith("10 % réalloué vers")
+
+
+def test_financement_ignore_pour_une_reallocation():
+    decision, controles, _ = interpreter_extraction(
+        extraction_reallocation(financement_depuis="ZST.TO"), PROFIL_PRUDENT, UNIVERS
+    )
+    assert decision is not None
+    assert "prorata" in controles[0]["message"]
 
 
 def test_ambiguite_signalee_sans_bloquer():
@@ -263,10 +374,12 @@ def test_pacte_invalide_refuse_avant_le_llm(monkeypatch, tmp_path):
 # --- Vrais appels Bedrock (payants) : pytest -m bedrock -----------------------
 
 DEMANDES_DEMO = [
-    # (profil de test, demande, décision attendue ou None si la V1 ne peut pas la construire)
+    # (profil de test, demande, décision attendue ou None si elle ne peut pas être construite)
     ("robert", "Je veux mettre 30 % de mon portefeuille en Tesla", "decision_demo"),
     ("mateo", "Je veux ajouter 10 % d'Exxon Mobil à mon portefeuille", "decision_demo"),
-    # Le panier n'est pas décrit dans la phrase et les réallocations arrivent avec #16.
+    ("amira", "Je veux réallouer tout mon portefeuille vers un panier : 30 % Bitcoin, 20 % Ether, "
+              "20 % Nvidia, 20 % QQQ et 10 % Shopify", "decision_demo"),
+    # Le panier n'est pas décrit : il n'est jamais complété au hasard.
     ("amira", "Je veux tout réallouer vers un panier crypto-tech", None),
 ]
 
@@ -281,9 +394,14 @@ def test_demande_de_demo_de_chaque_profil(identifiant, demande, attendu):
         assert resultat.controles and all(c["statut"] == "a_verifier" for c in resultat.controles)
         return
     decision_demo = profil["decision_demo"]
-    for champ in ("type", "ticker", "financement"):
-        assert resultat.decision[champ] == decision_demo[champ]
-    assert resultat.decision["taille"] == pytest.approx(decision_demo["taille"])
+    assert resultat.decision["type"] == decision_demo["type"]
+    if decision_demo["type"] == "position":
+        assert resultat.decision["ticker"] == decision_demo["ticker"]
+        assert resultat.decision["financement"] == decision_demo["financement"]
+        assert resultat.decision["taille"] == pytest.approx(decision_demo["taille"])
+    else:
+        assert resultat.decision["panier"] == decision_demo["panier"]
+        assert resultat.decision["part_reallouee"] == pytest.approx(decision_demo["part_reallouee"])
 
 
 FORMULATIONS = [
@@ -306,9 +424,21 @@ def test_formulations_variees(demande, ticker, taille, financement):
 
 
 @pytest.mark.bedrock
+def test_reallocation_partielle_reelle():
+    resultat = structurer_decision(
+        "Je veux réallouer la moitié de mon portefeuille vers 60 % Apple et 40 % Microsoft",
+        PROFIL_PRUDENT, UNIVERS,
+    )
+    assert resultat.decision is not None, resultat.controles
+    assert resultat.decision["part_reallouee"] == pytest.approx(0.5)
+    assert resultat.decision["panier"] == [{"ticker": "AAPL", "poids": 0.6}, {"ticker": "MSFT", "poids": 0.4}]
+
+
+@pytest.mark.bedrock
 @pytest.mark.parametrize("demande, mot_attendu", [
     ("Je veux mettre 10 % en Netflix", "Netflix"),
     ("Je veux acheter des actions Nvidia", "Taille absente"),
+    ("Je veux réallouer 20 % de mon portefeuille vers 50 % Bitcoin et 50 % Solana", "Solana"),
 ])
 def test_demande_incomplete_signalee_sans_deviner(demande, mot_attendu):
     resultat = structurer_decision(demande, PROFIL_PRUDENT, UNIVERS)

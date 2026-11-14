@@ -1,6 +1,6 @@
 # #16 — Cas 2 : diversification (outil 3 et réallocations)
 
-- **Issue** : #16 · **PR** : #39, à compléter · **Statut** : en cours
+- **Issue** : #16 · **PR** : #39, #41 · **Statut** : en cours
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
@@ -12,7 +12,7 @@
   - `DESCRIPTION_BEDROCK` : la description de l'outil pour l'orchestrateur, avec un seul paramètre, `tickers` (2 à 10 titres).
 - **`tests/test_correlations.py`** : 13 tests unitaires et 1 test réel Bedrock.
 
-### Réallocations dans l'Agent Profil (PR à compléter)
+### Réallocations dans l'Agent Profil (PR #41)
 Modifie `pipeline/agent_profil.py` (fiche [008](008-agent-profil.md)) : l'agent produit maintenant aussi des décisions `reallocation` (format du contrat, section 5 : `panier`, `part_reallouee`, `libelle`).
 - **Extraction du LLM** : deux champs ajoutés, `panier` (titres de l'univers et leurs poids) et `actifs_hors_univers`. Le champ `taille` sert de part réallouée.
 - **Vérifications en Python** (`_decision_reallocation`) : panier non vide, titres dans l'univers et sans doublon, poids positifs dont le total vaut 100 %, part réallouée entre 0 et 100 % (ou calculée depuis un montant, comme une taille). En cas de problème, aucune décision n'est renvoyée et un contrôle `a_verifier` explique quoi préciser.

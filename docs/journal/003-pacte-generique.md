@@ -1,6 +1,6 @@
 # #3 — Pacte générique : schéma, validation et chargement
 
-- **Issue** : #3 · **PR** : #20, #23, #PR_A_RENSEIGNER · **Statut** : terminée
+- **Issue** : #3 · **PR** : #20, #23, #32 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

@@ -119,17 +119,24 @@ def controler_plafond(regle: dict[str, Any], contexte: dict[str, Any]) -> dict[s
 def controler_critere_documentaire(regle: dict[str, Any], contexte: dict[str, Any]) -> dict[str, Any]:
     """Selon une pièce documentaire sur le critère ; ``a_verifier`` sans pièce.
 
-    Format attendu (V3) : pièce de type ``documentaire`` dont ``valeurs`` contient
-    le critère, à ``true`` si le titre de la décision le remplit (ex. :
-    ``{"controverse_esg_importante": true}`` → violation).
+    Format attendu : pièce de type ``documentaire`` dont ``valeurs`` contient le
+    critère, à ``true`` si le titre le remplit (ex. :
+    ``{"ticker": "XOM", "controverse_esg_importante": true}`` → violation). Une
+    pièce qui nomme un titre (``ticker``) ne compte que si ce titre est dans le
+    portefeuille après la décision (outil ``rechercher_documents``, #17).
     """
     critere = regle["critere"]
     for piece in contexte["pieces"]:
-        if piece["type"] == "documentaire" and isinstance(piece["valeurs"].get(critere), bool):
-            pieces = [piece["id"], contexte["id_piece_pacte"]]
-            if piece["valeurs"][critere]:
-                return _controle("violation", regle, f"Critère « {critere} » rempli selon {piece['id']}", pieces)
-            return _controle("conforme", regle, f"Critère « {critere} » non rempli selon {piece['id']}", pieces)
+        valeurs = piece["valeurs"]
+        if piece["type"] != "documentaire" or not isinstance(valeurs.get(critere), bool):
+            continue
+        if "ticker" in valeurs and valeurs["ticker"] not in contexte["poids_apres"]:
+            continue  # document sur un titre absent du portefeuille après la décision
+        pieces = [piece["id"], contexte["id_piece_pacte"]]
+        sujet = f" pour {valeurs['ticker']}" if "ticker" in valeurs else ""
+        if valeurs[critere]:
+            return _controle("violation", regle, f"Critère « {critere} » rempli{sujet} selon {piece['id']}", pieces)
+        return _controle("conforme", regle, f"Critère « {critere} » non rempli{sujet} selon {piece['id']}", pieces)
     return _controle(
         "a_verifier", regle,
         f"Source manquante : aucune pièce documentaire sur le critère « {critere} »",

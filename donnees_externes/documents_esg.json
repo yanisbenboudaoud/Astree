@@ -1,0 +1,72 @@
+{
+  "description": "Corpus de documents publics sur des critères extra-financiers (cas général 3, issue #17). Chaque document a été lu par l'équipe dans sa version originale : les extraits sont copiés mot pour mot, le résumé et la qualification sont écrits par l'équipe. Aucune donnée ESG n'est fournie avec le jeu de départ : ce fichier est la seule source ESG du système. Un titre ou un critère absent de ce fichier n'est jamais deviné : le Greffier rend « a_verifier » (source manquante).",
+  "date_constitution": "2026-11-14",
+  "conditions_utilisation": "Courts extraits de documents publics, cités avec leur source à des fins éducatives et non commerciales. Aucune reproduction intégrale.",
+  "documents": [
+    {
+      "id": "xom_poursuite_climat_massachusetts",
+      "ticker": "XOM",
+      "critere": "controverse_esg_importante",
+      "valeur": true,
+      "titre": "Poursuite de l'État du Massachusetts contre Exxon Mobil sur les risques climatiques",
+      "valeur_affichee": "Controverse documentée : poursuite de l'État du Massachusetts sur l'information climatique (en cours)",
+      "resume": "Le procureur général du Massachusetts poursuit Exxon Mobil pour pratiques trompeuses envers les investisseurs et les consommateurs de l'État, notamment pour ne pas avoir révélé les risques liés au changement climatique. Le 2022-05-24, la Cour suprême de l'État a seulement refusé de rejeter la poursuite, qui a donc pu continuer : elle ne s'est pas prononcée sur le fond. Des actes de procédure datent encore du 2026-04-15. Ce sont des allégations, contestées par l'entreprise : la fiche ne mentionne aucun jugement sur le fond.",
+      "extraits": [
+        "asserting that Exxon Mobil Corporation committed deceptive practices against Massachusetts investors and consumers",
+        "including by failing to disclose climate change risks",
+        "affirmed a trial court's denial of Exxon Mobil Corporation's (Exxon's) special motion to dismiss"
+      ],
+      "valeurs": {
+        "date_decision_cour_supreme": "2022-05-24",
+        "date_dernier_acte_consulte": "2026-04-15"
+      },
+      "source": "Sabin Center for Climate Change Law (Columbia Law School), Climate Change Litigation Databases, fiche « Commonwealth v. Exxon Mobil Corp. » (Massachusetts Superior Court, dossier 1984CV03333), https://climatecasechart.com/case/commonwealth-v-exxon-mobil-corp/",
+      "date_consultation": "2026-11-14",
+      "traitement": "Fiche lue le 2026-11-14 ; extraits copiés mot pour mot ; résumé en français par l'équipe. Qualification « controverse environnementale importante » : hypothèse de l'équipe, car il s'agit d'une poursuite d'un État sur l'information climatique, liée aux principes environnementaux 7 à 9 du Pacte mondial de l'ONU.",
+      "limites": "Allégations d'une poursuite en cours, contestées par l'entreprise : aucun jugement sur le fond n'est mentionné. Une seule source, consultée à une date donnée : l'affaire peut avoir évolué. La qualification « importante » est un jugement de l'équipe, pas celui d'une agence de notation ESG."
+    },
+    {
+      "id": "esgv_prospectus_exclusions",
+      "ticker": "ESGV",
+      "critere": "methodologie_fonds_esg",
+      "valeur": null,
+      "titre": "Exclusions de l'indice suivi par ESGV, selon son prospectus",
+      "valeur_affichee": "ESGV suit le FTSE US All Cap Choice, qui exclut notamment le charbon, le pétrole et le gaz",
+      "resume": "ESGV (Vanguard ESG U.S. Stock ETF) suit l'indice FTSE US All Cap Choice. Cet indice exclut les entreprises qui, selon FTSE Russell, exercent certaines activités, dont le charbon, le pétrole et le gaz, ainsi que celles qui ne respectent pas certaines normes en matière de travail, de droits humains, d'environnement et de lutte contre la corruption.",
+      "extraits": [
+        "The Fund employs an indexing investment approach designed to track the performance of the FTSE US All Cap Choice Index",
+        "nuclear power, and coal, oil, or gas",
+        "do not meet certain labor, human rights, environmental, and anti-corruption standards"
+      ],
+      "valeurs": {
+        "date_document": "2025-12-19"
+      },
+      "source": "Vanguard, « Vanguard ESG U.S. Stock ETF – Summary Prospectus », 2025-12-19, déposé à la SEC (formulaire 497K), https://www.sec.gov/Archives/edgar/data/52848/000119312525325205/f43589d1.htm",
+      "date_consultation": "2026-11-14",
+      "traitement": "Prospectus lu le 2026-11-14 (section « Principal Investment Strategies ») ; extraits copiés mot pour mot ; résumé en français par l'équipe.",
+      "limites": "Le prospectus décrit les règles de l'indice, pas la liste de ses titres : il ne dit pas lui-même si un titre précis, comme XOM, en est exclu. Les exclusions sont déterminées par FTSE Russell."
+    },
+    {
+      "id": "ftse_choice_regles_exclusions",
+      "ticker": "ESGV",
+      "critere": "methodologie_fonds_esg",
+      "valeur": null,
+      "titre": "Seuils d'exclusion de la série d'indices FTSE Global Choice",
+      "valeur_affichee": "Exclusion dès 50 % de réserves fossiles détenues ou 5 % de revenus du pétrole et du gaz",
+      "resume": "Les règles de la série FTSE Global Choice, dont fait partie l'indice FTSE US All Cap Choice, excluent les entreprises qui détiennent des réserves prouvées ou probables de charbon, de pétrole ou de gaz (participation de 50 % ou plus), et celles qui tirent au moins 5 % de leurs revenus de l'exploration, de la production, du raffinage, du traitement, du transport ou du stockage de pétrole et de gaz. Elles excluent aussi les entreprises impliquées dans des controverses liées aux principes environnementaux 7, 8 et 9 du Pacte mondial de l'ONU, évaluées à partir des données de Sustainalytics.",
+      "extraits": [
+        "Companies that own proved or probable reserves in coal, oil or gas",
+        "Companies involved in oil and gas exploration, production, refining, processing, transportation and/or storage.",
+        "Controversies related to Principles 7, 8, and 9 of the UN Global Compact"
+      ],
+      "valeurs": {
+        "seuil_participation_reserves_fossiles": 0.5,
+        "seuil_revenus_petrole_gaz": 0.05
+      },
+      "source": "FTSE Russell (LSEG), « FTSE Global Choice Index Series – Ground Rules », v5.0, août 2026, section 1.4, annexe A (tableau 4) et tableau 5, https://www.lseg.com/content/dam/ftse-russell/en_us/documents/ground-rules/ftse-global-choice-index-series-ground-rules.pdf",
+      "date_consultation": "2026-11-14",
+      "traitement": "Texte du PDF extrait le 2026-11-14 ; extraits copiés mot pour mot ; seuils convertis en décimales (« Equal to or greater than 50% ownership » → 0.5 ; « Equal to or greater than 5% of revenues » → 0.05) ; résumé en français par l'équipe.",
+      "limites": "Règles générales de l'indice : elles ne disent pas si un titre précis en est exclu. Les controverses sont évaluées par Sustainalytics, dont les données ne sont pas publiques. Version d'août 2026 : les règles peuvent changer."
+    }
+  ]
+}

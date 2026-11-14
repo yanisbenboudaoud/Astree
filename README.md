@@ -59,6 +59,8 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `alphaforge_starter/` | Données de départ fournies (prix, USD/CAD, macro, univers d'actifs). Ne pas modifier | — |
 | `pipeline/donnees.py` | Socle de données : `charger_donnees` (prix `adj_close` en CAD sur le calendrier américain), `charger_prix` (devise d'origine), `convertir_en_cad`, `charger_univers` | [004](docs/journal/004-charger-donnees.md), [005](docs/journal/005-conversion-cad.md) |
 | `pipeline/indicateurs.py` | Outil 1 `indicateurs_actif` (pièce d'un titre) et fonctions de calcul pures : rendement annualisé, volatilité, pire baisse, rendement 2022, temps de récupération | [006](docs/journal/006-indicateurs-actif.md) |
+| `pipeline/documents.py` | Recherche documentaire `rechercher_documents` : pièce `documentaire` sur un titre et un critère extra-financier, tirée du corpus ESG ; sans document, « source manquante » | [017](docs/journal/017-preferences-non-financieres.md) |
+| `donnees_externes/documents_esg.json` | Corpus ESG constitué par l'équipe : documents publics sourcés et datés, extraits mot pour mot, limites | [017](docs/journal/017-preferences-non-financieres.md) |
 | `pipeline/correlations.py` | Outil 3 `calculer_correlations` (pièce : corrélation de chaque paire de titres) et `calculer_matrice_correlations` (calcul pur) | [016](docs/journal/016-diversification.md) |
 | `pipeline/llm.py` | Client Bedrock commun : `appeler_llm` (texte ou JSON validé), `converser_avec_outils` (*tool use*) | [007](docs/journal/007-client-llm-bedrock.md) |
 | `pipeline/debat.py` | Procureur et Avocat : `debattre` (les deux en parallèle), `corriger_argument` (mode correction) | [011](docs/journal/011-procureur-avocat.md) |
@@ -99,3 +101,10 @@ Jeu de départ `alphaforge_starter/`, période du 2021-11-12 au 2026-11-12, extr
 - taux et indicateurs macroéconomiques : Banque du Canada et FRED.
 
 Sources, traitements, limites et conditions d'utilisation : `alphaforge_starter/README.md` et `alphaforge_starter/sources_metadata.csv`. Les pièges connus de ces données sont dans `CLAUDE.md`, section 6.
+
+**Données ajoutées par l'équipe : documents ESG** (cas 3, #17), dans `donnees_externes/documents_esg.json`. Le jeu de départ ne contient aucune donnée ESG. Trois documents publics ont été lus dans leur version originale le 2026-11-14 :
+- la fiche « Commonwealth v. Exxon Mobil Corp. » du Sabin Center for Climate Change Law (Columbia Law School) ;
+- le prospectus simplifié de Vanguard ESG U.S. Stock ETF (ESGV) du 2025-12-19, déposé à la SEC ;
+- les règles de la série d'indices FTSE Global Choice (v5.0, août 2026).
+
+Pour chaque document, le fichier donne la source, la date de consultation, des extraits copiés mot pour mot, un résumé et une qualification écrits par l'équipe, le traitement et les limites. Les conditions d'utilisation sont de courts extraits cités avec leur source, à des fins éducatives.

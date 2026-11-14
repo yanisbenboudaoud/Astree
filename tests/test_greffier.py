@@ -161,6 +161,17 @@ def test_critere_documentaire_selon_la_piece():
     assert controle_unique(une_regle, pieces=[piece])["statut"] == "conforme"
 
 
+def test_piece_documentaire_sur_un_titre_hors_du_portefeuille_ignoree():
+    """Une controverse sur un titre absent du portefeuille après la décision ne compte pas (#17)."""
+    une_regle = regle("esg", "critere_documentaire", critere="controverse_esg_importante")
+    piece = {"id": "P6", "type": "documentaire",
+             "valeurs": {"ticker": "XOM", "controverse_esg_importante": True}}
+    assert controle_unique(une_regle, poids={"SPY": 1.0}, pieces=[piece])["statut"] == "a_verifier"
+    controle = controle_unique(une_regle, poids={"SPY": 0.9, "XOM": 0.1}, pieces=[piece])
+    assert controle["statut"] == "violation"
+    assert controle["message"] == "Critère « controverse_esg_importante » rempli pour XOM selon P6"
+
+
 def test_piece_calculee_ignoree_pour_un_critere_documentaire():
     une_regle = regle("esg", "critere_documentaire", critere="controverse_esg_importante")
     piece = {"id": "P6", "type": "calculee", "valeurs": {"controverse_esg_importante": True}}

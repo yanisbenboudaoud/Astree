@@ -36,16 +36,16 @@ Architecture AWS visée (simple) :
 - **Amazon S3** : stocke les CSV de données et les traces d'exécution.
 - **Amazon Bedrock** : fournit le LLM des agents (ex. : un modèle Claude via Bedrock). C'est le cœur agentique, donc la contribution la plus visible d'AWS.
 - **AWS Lambda** : exécute le pipeline (outils Python + appels Bedrock).
-- **Point d'accès** pour l'interface : **API Gateway** ou **Lambda Function URL** (à trancher, voir les pièges ci-dessous). Il renvoie le JSON du contrat.
+- **Point d'accès** pour l'interface : **Lambda Function URL** (tranché dans #22). Il renvoie le JSON du contrat.
 
 Toujours vérifier les consignes logistiques officielles (services permis, crédits, région).
 
-**Pièges AWS connus** (détails, solutions et critères de validation dans l'issue #22 « Pièges AWS ») :
-- **Délai** : API Gateway coupe la requête après environ 29 à 30 s par défaut, alors qu'un procès enchaîne plusieurs appels Bedrock. Solution proposée : Lambda Function URL (jusqu'à 15 min), avec le Procureur et l'Avocat appelés en parallèle.
-- **Délai et mémoire de Lambda** : 3 s et 128 Mo par défaut, bien trop peu. Monter le délai à environ 300 s et la mémoire à au moins 1024 Mo.
-- **pandas absent de Lambda** : utiliser la couche gérée « AWS SDK for pandas » (ou une image conteneur), et un runtime Python disponible dans Lambda (aligner la version locale dessus).
-- **Bedrock** : vérifier la région permise, l'accès au modèle et l'identifiant à utiliser (certains modèles passent par un profil d'inférence). Prévoir des relances en cas de limitation de débit.
-- **Coûts** : un point d'accès public déclenche des appels Bedrock payants. Limiter la concurrence de la Lambda, restreindre le CORS au domaine de l'interface, activer une alerte de budget, couper le point d'accès après le jury.
+**Pièges AWS connus**, réglés dans l'issue #22. Les paramètres exacts sont dans `deploiement/README.md` :
+- **Délai** : API Gateway coupe la requête après environ 29 s, et un procès complet dure de 18 à 33 s (mesuré). Décision : **Lambda Function URL** (jusqu'à 15 min), avec le Procureur et l'Avocat appelés en parallèle.
+- **Délai et mémoire de Lambda** : 3 s et 128 Mo par défaut, bien trop peu. Délai de 300 s, mémoire d'au moins 1024 Mo.
+- **pandas et Python** : runtime **`python3.14`** (la version de l'équipe) et couche gérée **`AWSSDKPandas-Python314:12`** (pandas 3.1.0, numpy 2.5.4, pyarrow 24.0.0). Les mêmes versions sont épinglées dans `requirements-dev.txt`. boto3 est embarqué dans le zip : celui du runtime peut être trop ancien pour la sortie JSON structurée de Bedrock.
+- **Bedrock** : région `us-east-1`, profil d'inférence `us.anthropic.claude-sonnet-5-5`, dans `BEDROCK_MODEL_ID`, avec des relances adaptatives (#7). Le profil répartit les appels sur us-east-1, us-east-2 et us-west-2 : le rôle IAM doit autoriser les trois (`deploiement/politique_iam_lambda.json`).
+- **Coûts** : un point d'accès public déclenche des appels Bedrock payants. Concurrence réservée de 2, CORS limité au domaine de l'interface, alerte de budget, point d'accès coupé après le jury.
 
 ## 2. Règle d'or : Python calcule, le LLM explique
 

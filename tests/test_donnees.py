@@ -46,7 +46,7 @@ def test_periode_et_nombre_de_seances(prix):
 
 
 def test_aucune_seance_le_week_end(prix):
-    assert (prix.index.dayofweek < 5).all()
+    assert (prix.index.day_of_week < 5).all()
 
 
 def test_ticker_inconnu_erreur_claire():
@@ -82,7 +82,7 @@ def test_jour_ferie_tsx_reporte_le_dernier_prix(prix, prix_bruts):
 
 def test_crypto_du_week_end_cumulee_dans_le_lundi(prix, prix_bruts):
     btc = prix_bruts[prix_bruts["ticker"] == "BTC-USD"].set_index("date")["adj_close"]
-    lundis = [d for d in prix.index if d.dayofweek == 0]
+    lundis = [d for d in prix.index if d.day_of_week == 0]
     for lundi in lundis[:20]:
         # Le prix du lundi est celui du lundi lui-même, pas celui du vendredi :
         # le rendement du lundi couvre donc samedi et dimanche.

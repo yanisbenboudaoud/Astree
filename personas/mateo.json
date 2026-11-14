@@ -1,0 +1,72 @@
+{
+  "nom": "Mateo",
+  "age": 41,
+  "metier": "Gestionnaire des opérations",
+  "etiquette": "fictif",
+  "profil_risque": "modere",
+  "horizon_ans": [
+    8,
+    12
+  ],
+  "capital_fictif_cad": 180000,
+  "pacte": {
+    "date_signature": "2026-11-14",
+    "pire_baisse_max": -0.2,
+    "plafond_crypto": 0.0,
+    "exclusions": [
+      "speculatif"
+    ],
+    "exclusions_esg": [
+      "controverses_environnementales_ou_sociales_importantes"
+    ],
+    "regles": [
+      "Pire baisse tolérée : −20 %",
+      "Exclure les entreprises liées à des controverses ESG importantes",
+      "Pas de placements hautement spéculatifs",
+      "Équilibre croissance et stabilité"
+    ],
+    "justifications": {
+      "pire_baisse_max": "Hypothèse : profil modéré avec un horizon de 8 à 12 ans.",
+      "exclusions_esg": "Le persona veut éviter les entreprises liées à des controverses environnementales ou sociales importantes (énoncé, persona 02). Nécessite une source ESG externe documentée."
+    }
+  },
+  "portefeuille": [
+    {
+      "ticker": "ESGV",
+      "poids": 0.3
+    },
+    {
+      "ticker": "XIU.TO",
+      "poids": 0.2
+    },
+    {
+      "ticker": "XBB.TO",
+      "poids": 0.25
+    },
+    {
+      "ticker": "GLD",
+      "poids": 0.05
+    },
+    {
+      "ticker": "RY.TO",
+      "poids": 0.05
+    },
+    {
+      "ticker": "MSFT",
+      "poids": 0.05
+    },
+    {
+      "ticker": "JNJ",
+      "poids": 0.05
+    },
+    {
+      "ticker": "FTS.TO",
+      "poids": 0.05
+    }
+  ],
+  "decision_demo": {
+    "ticker": "XOM",
+    "taille": 0.1,
+    "financement": "proportionnel"
+  }
+}

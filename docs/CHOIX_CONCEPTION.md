@@ -2,172 +2,189 @@
 
 Ce document explique **comment** la pipeline AlphaForge AI est construite et surtout **pourquoi**. Il sert de base à la documentation technique, à la vidéo et au pitch.
 
-> Les références « diapo X » renvoient à la présentation officielle du datathon. Les numéros `#X` renvoient aux issues GitHub.
+> Les références « diapo X » renvoient à la présentation officielle du datathon. Les numéros `#X` renvoient aux issues GitHub. La maquette de référence est dans `docs/maquette/`.
 
 ---
 
-## Vue d'ensemble
+## Vue d'ensemble : le Tribunal
 
 ```
-Demande de l'utilisateur + persona
+Décision de l'utilisateur (« 30 % en TSLA ») + Pacte du persona
               │
               ▼
-┌──────────────────────┐
-│ 1. Agent Profil      │  LLM : comprendre le texte → contraintes structurées      (#8)
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ 2. Outils Python     │  Calculs : rendement, volatilité, pire baisse             (#4, #5, #6)
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ 3. Agent Analyse     │  Python : poids  |  LLM : candidats et raisons            (#9)
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ 4. Agent Gouvernance │  Python : règles  |  LLM : formulation du message         (#10)
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ 5. Agent Explicab.   │  LLM : rédaction  →  Python : vérificateur de chiffres    (#11)
-└──────────┬───────────┘
-           ▼
-     JSON du contrat (+ trace d'exécution dans S3)                                 (#2, #12)
+┌──────────────────────────┐
+│ 1. Agent Profil          │  LLM : demande → décision structurée | Python : charge le Pacte   (#8, #3)
+└────────────┬─────────────┘
+             ▼
+┌──────────────────────────┐
+│ 2. Outils de calcul      │  Python : pièces à conviction P1, P2…                             (#4, #5, #6)
+└────────────┬─────────────┘
+             ▼
+┌────────────┴─────────────┐
+│ 3. Procureur │ 4. Avocat │  LLM : arguments contre / pour, chacun cite des pièces             (#11)
+└────────────┬─────────────┘
+             ▼
+┌──────────────────────────┐
+│ 5. Greffier              │  Python : règles du Pacte + vérificateur de chiffres              (#10, #11)
+└────────────┬─────────────┘
+             ▼
+     JSON du contrat (+ trace dans S3)  →  Verdict rendu par l'utilisateur             (#2, #12)
 ```
 
-Infrastructure AWS : **Bedrock** (LLM), **Lambda** (exécution), **S3** (données et traces), **API Gateway** (accès de l'interface). Voir #7 et #13.
+Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **S3** (données et traces), **API Gateway** (accès de l'interface). Voir #7 et #13.
 
 ---
 
-## Choix 1 — « Python calcule, le LLM explique »
+## Choix 1 — Un procès plutôt qu'une recommandation
 
-**Décision.** Tous les chiffres (rendement, volatilité, pire baisse, poids) sont calculés par des fonctions Python testées. Le LLM ne produit jamais un chiffre lui-même.
+**Décision.** L'utilisateur arrive avec **sa propre décision**. Le système ne propose pas de portefeuille : il présente les arguments **contre** (Procureur) et **pour** (Avocat), vérifiés par un Greffier, et l'utilisateur rend le verdict.
 
 **Pourquoi.**
-- Un LLM peut **inventer un chiffre crédible** (hallucination). Dans un contexte financier, c'est inacceptable.
-- L'énoncé demande des explications **fidèles aux données, vérifiables**, qui n'**inventent aucune justification** (énoncé, section 4 ; diapo 11).
-- Un calcul Python donne **toujours le même résultat** pour les mêmes données : il est reproductible et testable.
+- **Aide à la décision, pas conseil.** L'énoncé interdit de se présenter comme un conseil financier personnalisé (section 4). Un système qui dit « achetez X » s'en approche ; un système qui expose les deux côtés et laisse l'humain trancher reste du bon côté.
+- **L'explication devient le produit.** Le débat, avec ses pièces numérotées, *est* l'explication. Elle n'est pas ajoutée après coup.
+- **Le test de Robert devient spectaculaire** : le Procureur le confronte à sa propre règle (« préserver mon capital ») avec les chiffres, sans condescendance.
+- **Différenciation** : la plupart des équipes construiront un générateur de portefeuille.
 
-**Alternative écartée.** Laisser le LLM lire les prix et calculer lui-même. C'est plus rapide à coder, mais impossible à vérifier et non reproductible.
+**Alternative écartée.** Un agent Analyse qui propose une allocation (ancienne issue #9). Plus classique, plus proche du conseil, et le jury verrait un résultat plutôt qu'un raisonnement.
 
 ---
 
-## Choix 2 — Un orchestrateur à ordre fixe
+## Choix 2 — « Python calcule, le LLM explique »
 
-**Décision.** Les agents s'exécutent toujours dans le même ordre : Profil → Indicateurs → Analyse → Gouvernance → Explicabilité (#12).
+**Décision.** Tous les chiffres (rendement, volatilité, pire baisse, corrélations, taille maximale) sont calculés par 6 outils Python testés (`CLAUDE.md`, section 4 bis). Le Procureur et l'Avocat reçoivent ces pièces et ne produisent jamais un chiffre eux-mêmes.
 
 **Pourquoi.**
-- **Prévisible :** chaque exécution suit le même chemin, donc elle est facile à déboguer en un weekend.
-- **Facile à expliquer** au jury et à montrer dans la vidéo.
-- La présentation le dit : *une approche simple, focalisée et vérifiable peut être plus forte qu'une architecture spectaculaire mais impossible à expliquer* (diapo 8).
-
-**Alternative écartée.** Un seul agent « autonome » qui décide lui-même quels outils appeler et dans quel ordre. C'est plus impressionnant, mais il peut sauter une étape (par exemple la gouvernance), boucler ou se comporter différemment d'une exécution à l'autre.
-
-**Ce qui reste agentique.** Les agents utilisent des données et des outils, coordonnent des tâches avec des points de contrôle et adaptent l'analyse au persona. Ce sont les 4 dimensions de la diapo 5 : mobiliser, coordonner, adapter, expliquer.
+- Un LLM peut **inventer un chiffre crédible**. Dans un contexte financier, c'est inacceptable.
+- L'énoncé demande des explications **fidèles aux données et vérifiables**, qui n'**inventent aucune justification** (section 4 ; diapo 11).
+- Un calcul Python donne **toujours le même résultat** : reproductible et testable.
 
 ---
 
-## Choix 3 — Un rôle clair par agent
+## Choix 3 — Des pièces à conviction numérotées
 
-La présentation demande pour chaque agent : *« Pourquoi cet agent existe-t-il et quelle valeur apporte-t-il ? »* (diapo 5).
+**Décision.** Chaque résultat d'outil devient une **pièce** (P1, P2…) avec sa valeur, sa source, son traitement et ses limites. Chaque argument doit citer au moins une pièce.
+
+**Pourquoi.**
+- L'utilisateur peut **remonter de l'argument à la donnée** en un clic : argument → pièce → outil → fichier source.
+- C'est ce que l'énoncé demande dans la documentation technique : *un exemple reliant une conclusion aux données ou aux traces observables*.
+- Les pièces peuvent être `calculee` (outil Python) ou, en V3, `documentaire` (extrait d'un document ESG, par exemple via une base de connaissances Bedrock).
+
+---
+
+## Choix 4 — Un orchestrateur à ordre fixe
+
+**Décision.** Les étapes s'exécutent toujours dans le même ordre : Profil → Outils → Procureur et Avocat → Greffier (#12).
+
+**Pourquoi.**
+- **Prévisible :** facile à déboguer en un week-end, facile à montrer dans la vidéo.
+- *Une approche simple, focalisée et vérifiable peut être plus forte qu'une architecture spectaculaire mais impossible à expliquer* (diapo 8).
+
+**Ce qui reste agentique.** Les agents utilisent des outils, se contredisent, sont contrôlés à un point de vérification, et adaptent leurs arguments au Pacte du persona : mobiliser, coordonner, adapter, expliquer (diapo 5).
+
+---
+
+## Choix 5 — Un rôle clair par agent
 
 | Agent | Valeur apportée | Rôle du LLM | Rôle de Python |
 |---|---|---|---|
-| **Profil** | Transformer une demande en langage naturel en contraintes structurées | Comprendre le texte, extraire les actifs demandés | Valider la sortie, fusionner avec le fichier du persona |
-| **Analyse** | Proposer une allocation fictive adaptée au profil | Choisir les candidats, rédiger la raison de chaque choix | Calculer les poids avec une règle documentée |
-| **Gouvernance** | Vérifier les contraintes et **contester** une demande incohérente | Formuler le message d'alerte | Appliquer les règles (seuils, exclusions, plafonds) |
-| **Explicabilité** | Rendre le résultat compréhensible et vérifiable | Rédiger l'explication | Vérifier chaque chiffre cité |
+| **Profil** | Transformer une demande en décision structurée | Comprendre le texte (titre, taille) | Charger et valider le Pacte |
+| **Procureur** | Exposer les risques de la décision pour **ce** persona | Rédiger les arguments contre, en citant des pièces | — |
+| **Avocat** | Défendre honnêtement la décision | Rédiger les arguments pour, en citant des pièces | — |
+| **Greffier** | Garantir que le débat est fidèle et que le Pacte est respecté | Aucun | Règles du Pacte + vérificateur de chiffres |
 
-**Pourquoi.** Un agent sans rôle clair, c'est de la « complexité décorative » (diapo 5). Ici, si on retire un agent, une fonction précise disparaît.
+**Pourquoi.** Si on retire un agent, une fonction précise disparaît. Sans Avocat, le système devient un censeur ; sans Procureur, il acquiesce ; sans Greffier, rien n'empêche une hallucination.
 
 ---
 
-## Choix 4 — La gouvernance par règles déterministes
+## Choix 6 — Le Greffier : gouvernance déterministe
 
-**Décision.** Les vérifications sont des règles Python. Exemple : *si la volatilité de TSLA dépasse la volatilité maximale de Robert, alors l'agent lève une alerte `conflit`*.
+**Décision.** Le Greffier est du **Python sans LLM**. Il applique les règles du Pacte (`conforme`, `violation`, `a_verifier`) et vérifie que chaque nombre cité par le Procureur et l'Avocat existe dans une pièce. Un argument non prouvé est régénéré une fois, puis retiré et signalé dans `arguments_rejetes`.
 
 **Pourquoi.**
-- Une vérification doit être **fiable** : la même situation doit toujours donner la même réponse. Un LLM peut répondre différemment à chaque appel.
-- Les règles sont **testables** (ex. : Robert + TSLA → au moins une alerte `conflit`).
-- Chaque alerte cite **le chiffre et le seuil**, donc l'utilisateur comprend pourquoi.
-- C'est exactement le test de **Robert** : le système doit *remettre en question une demande incohérente avec le profil* au lieu d'*acquiescer automatiquement*.
-
-**Alternative écartée.** Demander au LLM « TSLA convient-il à Robert ? ». La réponse pourrait varier, être influencée par la formulation de la demande, et serait difficile à justifier.
+- Une vérification doit être **fiable** : la même situation donne toujours la même réponse.
+- Les règles sont **testables** (ex. : Robert + 30 % TSLA → au moins une `violation`).
+- Argument de pitch : *« notre système ne peut pas citer un chiffre inventé sans qu'on le détecte »*.
 
 ---
 
-## Choix 5 — Le vérificateur de chiffres
+## Choix 7 — Le Pacte : des règles déclarées à l'avance
 
-**Décision.** Après la rédaction de l'explication, une fonction Python extrait chaque nombre du texte et vérifie qu'il existe dans les indicateurs ou les contraintes. En cas d'erreur, le texte est régénéré une fois. Si l'erreur persiste, la phrase fautive est retirée et une alerte est ajoutée (#11).
+**Décision.** Chaque persona a un Pacte (`personas/<nom>.json`) : pire baisse tolérée, plafond crypto, exclusions, horizon, avec une justification par seuil (#3).
 
 **Pourquoi.**
-- C'est une **garantie concrète contre les hallucinations**, et pas seulement une consigne donnée au LLM.
-- C'est un argument fort pour le pitch : *« notre système ne peut pas citer un chiffre inventé sans qu'on le détecte »*.
+- Les seuils sont des **hypothèses**, pas des faits. Un fichier séparé les rend visibles et modifiables.
+- **Finance comportementale** : quand l'utilisateur s'emballe pour un titre à la mode, le système lui rappelle ses propres mots, écrits à froid.
+- On peut **changer une hypothèse sans toucher au code**, ce qui permet les tests de sensibilité (#15).
 
 ---
 
-## Choix 6 — La trace d'exécution
+## Choix 8 — L'humain rend le verdict, le système ne bloque jamais
 
-**Décision.** Chaque étape ajoute à la trace ce qu'elle a reçu, ce qu'elle a fait (outil appelé) et ce qu'elle a produit. La trace est incluse dans le JSON et stockée dans S3.
+**Décision.** L'utilisateur choisit : maintenir, modifier sa décision ou ajuster son Pacte. Toute décision est archivée avec ses pièces et les avertissements, même si elle viole le Pacte.
 
-**Pourquoi.**
-- L'énoncé demande, dans la documentation technique, *un exemple reliant une conclusion aux données ou aux traces d'exécution observables*.
-- Elle permet de **remonter de la conclusion jusqu'aux données** : « TSLA est rejeté » ← alerte de gouvernance ← volatilité calculée ← prix `adj_close` de `prices_daily.csv`.
-- Stockée dans S3, elle donne à AWS un **rôle réel** dans l'explicabilité, ce qui compte pour l'admissibilité (diapo 7).
+**Pourquoi.** Bloquer reviendrait à décider à sa place, donc à conseiller. Archiver garde la responsabilité chez l'humain et rend la décision traçable.
 
 ---
 
-## Choix 7 — Les personas en fichiers de configuration
+## Choix 9 — Faits, hypothèses, fictif : des étiquettes partout
 
-**Décision.** Les contraintes de chaque persona (volatilité max, pire baisse max, horizon, exclusions, préférences) sont dans `personas/<nom>.json`, avec une justification pour chaque seuil (#3).
+**Décision.** Chaque argument, pièce et chiffre affiché porte une étiquette `fait`, `hypothese` ou `fictif`.
 
-**Pourquoi.**
-- Les seuils sont des **hypothèses**, pas des faits. L'énoncé demande de distinguer *faits, hypothèses et scénarios fictifs*. Un fichier séparé rend ces hypothèses visibles.
-- On peut **changer une hypothèse sans toucher au code**. C'est ce qui permet les tests de sensibilité (#15) : *« Changez une hypothèse. Changez un profil. Votre solution reste-t-elle cohérente ? »* (diapo 8).
+**Pourquoi.** L'énoncé exige de *distinguer faits, hypothèses et scénarios fictifs* (section 4). Une étiquette visible le rend évident pour le jury, sans texte supplémentaire.
 
 ---
 
-## Choix 8 — Un contrat JSON entre la pipeline et l'interface
+## Choix 10 — La taille maximale compatible
 
-**Décision.** La pipeline produit toujours le même format JSON, défini dans `CLAUDE.md` (section 5) et validé par un schéma (#2, #12).
+**Décision.** L'outil `taille_max_compatible` calcule la plus grande position qui respecte le Pacte (ex. : 9 % de TSLA pour Robert).
 
-**Pourquoi.**
-- La pipeline et l'interface sont développées **en parallèle** : l'interface utilise un faux JSON en attendant la vraie pipeline.
-- Le format impose de toujours fournir `hypotheses`, `sources`, `limites` et `avertissement`, donc l'explicabilité est **structurelle** et ne dépend pas de la bonne volonté du LLM.
+**Pourquoi.** La réponse utile n'est souvent pas « non », mais « pas à cette taille ». C'est ce qui transforme un refus en aide à la décision.
 
 ---
 
-## Choix 9 — Peu de services AWS, chacun justifié
+## Choix 11 — La trace d'exécution
+
+**Décision.** Chaque étape ajoute à la trace ce qu'elle a reçu, l'outil appelé et ce qu'elle a produit. La trace est affichée dans l'interface et stockée dans S3.
+
+**Pourquoi.** Elle permet de remonter de la conclusion jusqu'aux données : « violation » ← pièce P1 ← `simuler_portefeuille` ← `adj_close` de `prices_daily.csv`. Stockée dans S3, elle donne à AWS un rôle réel dans l'explicabilité (diapo 7).
+
+---
+
+## Choix 12 — Un contrat JSON entre la pipeline et l'interface
+
+**Décision.** La pipeline produit toujours le format défini dans `CLAUDE.md` (section 5). Un faux JSON (`docs/exemples/contrat_robert.json`) permet à l'interface d'avancer en parallèle (#2).
+
+**Pourquoi.** Le format impose `pieces`, `controles`, `hypotheses`, `sources`, `limites` et `avertissement` : l'explicabilité est **structurelle**, elle ne dépend pas de la bonne volonté du LLM.
+
+---
+
+## Choix 13 — Peu de services AWS, chacun justifié
 
 | Service | Rôle | Pourquoi ce service |
 |---|---|---|
-| **Bedrock** | LLM des agents | Cœur agentique ; rôle d'AWS directement démontrable |
-| **Lambda** | Exécute la pipeline | Aucun serveur à gérer, coût à l'usage |
-| **S3** | Données et traces | Traces conservées et consultables (explicabilité) |
+| **Bedrock** | LLM du Profil, du Procureur et de l'Avocat | Cœur agentique ; rôle d'AWS directement démontrable |
+| **Lambda** | Exécute les 6 outils et l'orchestration | Même code qu'en local ; aucun serveur à gérer |
+| **S3** | Données, traces et journal des verdicts | Traces conservées et consultables (explicabilité) |
 | **API Gateway** | Point d'accès de l'interface | Renvoie le JSON du contrat |
-
-**Pourquoi peu de services.** La présentation dit : *« Ne multipliez pas les services pour impressionner. Justifiez chaque choix. »* (diapo 7).
+| *Base de connaissances Bedrock (V3)* | *Pièces documentaires ESG* | *Citations sourcées et datées pour Mateo* |
 
 **Sécurité.** Aucune clé dans le code ni dans Git, rôle IAM minimal (accès au bucket et `bedrock:InvokeModel` seulement).
 
 ---
 
-## Choix 10 — Livrer petit, puis élargir
+## Choix 14 — Livrer petit, puis élargir
 
 **Décision.** Version 1 = Robert de bout en bout. Ensuite Amira (V2), puis Mateo (V3) si le temps le permet.
 
-**Pourquoi.**
-- Robert est le persona le plus **démonstratif** : il montre que la gouvernance sait dire non.
-- Avoir **toujours une version qui fonctionne** protège contre le manque de temps.
-- Robert puis Amira donnent les **deux situations contrastées** recommandées pour la vidéo (diapo 4).
+**Pourquoi.** Robert montre que le système sait dire non ; Amira montre qu'il accepte le risque sans tout accepter. Ce sont les **deux situations contrastées** recommandées pour la vidéo (diapo 4).
 
 ---
 
 ## Limites connues de cette conception
 
-- **Les seuils des personas sont des hypothèses** choisies par l'équipe. Ils ne sont pas des recommandations réglementaires.
-- **Les règles d'allocation sont volontairement simples**, choisies pour être explicables plutôt qu'optimales.
-- **Indicateurs historiques :** les performances passées ne prédisent pas les performances futures. La volatilité n'est qu'un indicateur de risque parmi d'autres.
-- **Biais du survivant** dans l'univers d'actifs fourni (choisi en 2026).
-- **Données ESG** : aucune n'est fournie, elles dépendent de sources externes (V3).
+- **Les seuils des Pactes sont des hypothèses** choisies par l'équipe, pas des recommandations réglementaires.
+- **Indicateurs historiques :** les performances passées ne prédisent pas les performances futures. La pire baisse et la volatilité ne sont que des indicateurs de risque parmi d'autres.
+- **Biais du survivant** dans l'univers d'actifs fourni (choisi en 2026) : les arguments de l'Avocat basés sur le rendement passé sont flattés.
+- **Une seule période** (2021-2026) : un autre découpage donnerait d'autres chiffres.
+- **Données ESG** : aucune n'est fournie ; elles dépendent de sources externes (V3).
 - **Simulation uniquement :** aucune transaction réelle, aucun conseil financier personnalisé.

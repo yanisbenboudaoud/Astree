@@ -12,6 +12,34 @@ Le jury évalue surtout :
 
 Une démonstration convaincante et des explications fidèles aux données comptent plus que la complexité ou le rendement passé.
 
+### Grille d'évaluation (présentation officielle, diapo 10)
+
+| Critère | Poids |
+|---|---|
+| Solution (pertinence, innovation, prototype) | 20 % |
+| Agentique (architecture et explicabilité) | 20 % |
+| Données (rigueur, validation, visualisation) | 20 % |
+| AWS (qualité de l'intégration) | 15 % |
+| Pitch (présentation, business, marketing) | 15 % |
+| UX/UI | 10 % |
+
+## 1 bis. ⚠️ AWS est OBLIGATOIRE (condition d'admissibilité)
+
+Source : présentation officielle, diapo 7. **Sans intégration réelle d'AWS, le projet n'est pas admissible à l'évaluation finale.**
+
+- AWS doit contribuer **réellement et de façon démontrable** au fonctionnement de la solution (pas juste héberger une page).
+- Choisir peu de services, chacun **justifié**. Ne pas multiplier les services pour impressionner.
+- Montrer le rôle d'AWS dans le flux (schéma d'architecture dans la doc et la vidéo).
+- Bonnes pratiques : aucune clé AWS dans le code ni dans Git, permissions IAM minimales, surveiller les coûts.
+
+Architecture AWS visée (simple) :
+- **Amazon S3** : stocke les CSV de données et les traces d'exécution.
+- **Amazon Bedrock** : fournit le LLM des agents (ex. : un modèle Claude via Bedrock). C'est le cœur agentique, donc la contribution la plus visible d'AWS.
+- **AWS Lambda** : exécute le pipeline (outils Python + appels Bedrock).
+- **API Gateway** (si l'interface doit appeler le pipeline) : expose un point d'accès qui renvoie le JSON du contrat.
+
+Toujours vérifier les consignes logistiques officielles (services permis, crédits, région).
+
 ## 2. Règle d'or : Python calcule, le LLM explique
 
 - **Tous les chiffres** (rendement, volatilité, pire baisse, corrélations, poids) sont calculés en **Python** à partir des CSV. Ces fonctions sont les « outils » des agents.
@@ -112,7 +140,9 @@ Toujours garder une version qui fonctionne de bout en bout avant d'ajouter quelq
 
 ## 10. Conventions de code
 
-- Python 3.11+, `pandas` pour les données.
+- Python 3.11+, `pandas` pour les données, `boto3` pour AWS (S3, Bedrock).
+- Les appels au LLM passent par **Amazon Bedrock**, pas par une API externe.
+- Développer d'abord en local (CSV locaux), puis brancher S3 et Bedrock. Garder une variable de configuration pour basculer entre les deux.
 - Les fonctions de calcul (outils) sont **pures** et **testées** : mêmes entrées, mêmes sorties.
 - Une fonction = une responsabilité. Nommer clairement (`calculer_volatilite_annuelle`, pas `calc_v`).
 - Chaque membre doit **comprendre le code qu'il garde** : si Claude génère du code, demandez-lui de l'expliquer avant de le garder.

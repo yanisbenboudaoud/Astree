@@ -141,12 +141,20 @@ def test_outil_hors_liste_blanche_refuse():
     assert resultat.trace[0]["raison"] == RAISON_REFUSEE
 
 
-@pytest.mark.parametrize("raison", ["La pire baisse dépasse 12 %", "", "   ", "x" * 200, None])
-def test_raison_avec_chiffre_vide_ou_trop_longue_refusee(raison):
+@pytest.mark.parametrize("raison, motif", [
+    ("La pire baisse dépasse 12 %", "aucun chiffre"),
+    ("", "obligatoire"),
+    ("   ", "obligatoire"),
+    (None, "obligatoire"),
+    ("x" * 200, "au plus 160 caractères"),
+])
+def test_raison_avec_chiffre_vide_ou_trop_longue_refusee(raison, motif):
     assert not raison_valide(raison)
     modele = FauxModele([demande("indicateurs_actif", raison=raison, ticker="TSLA")])
     resultat = instruire(modele)
-    assert resultats_envoyes(modele, 0)[0]["status"] == "error"
+    envoye = resultats_envoyes(modele, 0)[0]
+    assert envoye["status"] == "error"
+    assert motif in envoye["content"][0]["json"]["erreur"]  # le modèle sait quoi corriger
     assert resultat.trace[0]["raison"] == RAISON_REFUSEE
 
 
@@ -263,7 +271,9 @@ def test_bedrock_instruit_le_dossier_tsla():
     resultat = instruire_dossier(DECISION, PROFIL, premier_numero=2)
     assert resultat.appels >= 1, "le modèle aurait dû demander au moins un outil"
     assert all(raison_valide(e["raison"]) for e in resultat.trace)
-    assert resultat.pieces[-1]["outil"] == "simuler_portefeuille"
+    # La simulation obligatoire est présente, que le modèle l'ait demandée ou non.
+    assert any(e["outil"] == "simuler_portefeuille" and e["entree"] == SIMULATION_DECISION
+               and e["sortie"].startswith("P") for e in resultat.trace)
     print(json.dumps(resultat.trace, ensure_ascii=False, indent=2))
 
 

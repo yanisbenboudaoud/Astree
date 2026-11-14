@@ -31,9 +31,12 @@ pytest -m bedrock tests/test_orchestrateur.py -s      # vrais appels Bedrock (pa
 ```
 Les tests vérifient la numérotation des pièces, le paramètre `raison` ajouté à chaque outil, et chaque garde-fou : budget de 8 appels (même dans un seul tour), outil hors liste blanche refusé, raison avec chiffre, vide ou trop longue refusée, erreur d'outil (titre inconnu, taille impossible) renvoyée au modèle sans planter, simulation ajoutée d'office et pas en double. Avec les vrais outils, les pièces passent le schéma du contrat et la simulation d'office retrouve la pire baisse de la maquette (−0,2897). `juger_decision` est testé avec l'Agent Profil simulé, avec et sans décision.
 
+**Vrais appels (Sonnet 5.5, 2026-11-14)** : les 2 tests `bedrock` passent. `python -m pipeline robert "Je veux mettre 30 % de mon portefeuille en Tesla"` produit P1 (Pacte), le rejeu 2022 (−2,6 % → −23,7 %), les indicateurs de TSLA et la simulation complète (−29,0 % max · +12,0 %/an), soit les chiffres de la maquette. Pour la même décision, le profil audacieux reçoit un autre dossier (le modèle insiste sur le risque propre du titre « malgré un horizon long »).
+
 ## Choix faits en cours de route
 - **La raison est un paramètre de chaque outil** : `_avec_raison` ajoute un champ `raison` obligatoire au schéma envoyé à Bedrock. Python le retire avant d'appeler l'outil et le place dans la trace.
 - **Tout refus compte dans le budget** : un modèle qui insiste ne peut pas boucler.
+- **Motif précis** (`probleme_raison`) : raison absente, avec un chiffre, ou trop longue. Lors des premiers vrais appels, le modèle écrivait souvent un chiffre (une année, un seuil) dans sa première raison ; la consigne le précise maintenant (« ni seuil, ni pourcentage, ni année »), et deux procès de suite n'ont plus eu de refus.
 - **Pièce obligatoire** : la simulation `periode: "complete"` de la décision demandée (même titre, taille et financement). Une simulation d'une autre taille ou du rejeu 2022 ne compte pas.
 - **Numérotation** : le Pacte est P1 (créé par l'Agent Profil), l'orchestrateur numérote à partir de P2.
 - **`comparaison`** est calculée directement par `simuler_portefeuille` dans `juger_decision` : ce n'est pas un choix du modèle.
@@ -43,4 +46,3 @@ Les tests vérifient la numérotation des pièces, le paramètre `raison` ajout�
 ## Limites et suite
 - **Reste de #12** : débat Procureur et Avocat (#11), boucle du Greffier avec une relance (#10), `taille_max_compatible` (#21), puis la validation du contrat complet par `contrat/schema_sortie.json`. D'ici là, le contrat renvoyé est partiel et ne passe pas le schéma.
 - **Champ `duree` de la trace** : demandé par l'issue, mais refusé par le schéma du contrat (`additionalProperties: false`). À ajouter au schéma avec l'accord de l'équipe.
-- Les tests réels `bedrock` n'ont pas encore été lancés.

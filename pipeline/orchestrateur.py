@@ -104,7 +104,8 @@ Règles :
   une règle de pire baisse rend utile le rejeu d'une année de crise.
 - La simulation complète du portefeuille avec la décision est toujours nécessaire.
 - Chaque appel a un paramètre « raison » : une phrase courte, en français, qui dit pourquoi
-  cette preuve est utile. La raison ne contient AUCUN chiffre.
+  cette preuve est utile. La raison ne contient AUCUN chiffre : ni seuil, ni pourcentage,
+  ni année (écris « l'année de crise », pas l'année en chiffres). Sinon l'appel est refusé.
 - Tu as au plus {budget} appels d'outils. Tu peux demander plusieurs outils à la fois.
 - Si un outil renvoie une erreur, ne réessaie pas à l'identique.
 - Quand le dossier est suffisant, réponds en une phrase, sans appeler d'outil.
@@ -165,13 +166,23 @@ def construire_dossier(decision: dict[str, Any], profil: dict[str, Any]) -> str:
     return "Dossier à instruire :\n" + json.dumps(dossier, ensure_ascii=False, indent=2)
 
 
+def probleme_raison(raison: Any) -> str | None:
+    """Motif du refus d'une raison, ou None si elle est valide.
+
+    Une raison valide est une phrase non vide, d'au plus LONGUEUR_MAX_RAISON
+    caractères, sans chiffre.
+    """
+    if not isinstance(raison, str) or not raison.strip():
+        return "La raison est obligatoire : une phrase courte, sans chiffre"
+    if re.search(r"\d", raison):
+        return "La raison ne doit contenir aucun chiffre"
+    if len(raison) > LONGUEUR_MAX_RAISON:
+        return f"La raison doit faire au plus {LONGUEUR_MAX_RAISON} caractères"
+    return None
+
+
 def raison_valide(raison: Any) -> bool:
-    """Une phrase non vide, d'au plus LONGUEUR_MAX_RAISON caractères, sans chiffre."""
-    return (
-        isinstance(raison, str)
-        and 0 < len(raison.strip()) <= LONGUEUR_MAX_RAISON
-        and not re.search(r"\d", raison)
-    )
+    return probleme_raison(raison) is None
 
 
 def entree_simulation_obligatoire(decision: dict[str, Any]) -> dict[str, Any]:
@@ -199,9 +210,9 @@ class _Instruction:
             return self._refuser(demande, entree, RAISON_REFUSEE, "Budget d'appels atteint")
         if demande.nom not in self.outils:
             return self._refuser(demande, entree, RAISON_REFUSEE, f"Outil « {demande.nom} » non autorisé")
-        if not raison_valide(raison):
-            return self._refuser(demande, entree, RAISON_REFUSEE,
-                                 "La raison doit être une phrase courte, sans chiffre")
+        probleme = probleme_raison(raison)
+        if probleme:
+            return self._refuser(demande, entree, RAISON_REFUSEE, probleme)
         try:
             piece = self._executer(demande.nom, entree, raison)
         except ERREURS_OUTIL as erreur:

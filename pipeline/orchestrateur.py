@@ -31,7 +31,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from pipeline import indicateurs, simulation
+from pipeline import indicateurs, simulation, taille_max
 from pipeline.donnees import ErreurDonnees
 from pipeline.llm import (
     DemandeOutil,
@@ -76,10 +76,7 @@ class ResultatInstruction:
 
 
 def outils_du_profil(profil: dict[str, Any]) -> list[Outil]:
-    """Liste blanche des outils, décrits pour le portefeuille de ce profil.
-
-    ``taille_max_compatible`` (#21) s'ajoutera ici.
-    """
+    """Liste blanche des outils, décrits pour le portefeuille de ce profil."""
     portefeuille = profil["portefeuille"]
     tickers_univers = [ligne["ticker"] for ligne in charger_univers()]
 
@@ -91,11 +88,18 @@ def outils_du_profil(profil: dict[str, Any]) -> list[Outil]:
                     "financement": entree["financement"]}
         return simulation.piece_simulation(id_piece, portefeuille, decision, entree["periode"])
 
+    def executer_taille_max(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
+        decision = {"type": "position", "ticker": entree["ticker"], "taille": entree["taille"],
+                    "financement": entree["financement"]}
+        return taille_max.piece_taille_max(id_piece, portefeuille, decision, profil["pacte"]["regles"])
+
     return [
         Outil("indicateurs_actif", indicateurs.DESCRIPTION_BEDROCK, executer_indicateurs),
         Outil(simulation.NOM_OUTIL,
               simulation.decrire_simuler_portefeuille(tickers_univers, portefeuille),
               executer_simulation),
+        Outil(taille_max.NOM_OUTIL, taille_max.decrire_taille_max(tickers_univers, portefeuille),
+              executer_taille_max),
     ]
 
 
@@ -107,7 +111,8 @@ Règles :
 - Tu ne calcules rien toi-même : tous les chiffres viennent des outils.
 - Appelle seulement les outils utiles pour juger CETTE décision au regard de CE Pacte.
   Par exemple : un horizon court rend le temps de récupération d'un titre important ;
-  une règle de pire baisse rend utile le rejeu d'une année de crise.
+  une règle de pire baisse rend utile le rejeu d'une année de crise ; une règle
+  probablement dépassée rend utile la taille maximale compatible avec le Pacte.
 - La simulation complète du portefeuille avec la décision est toujours nécessaire.
 - Chaque appel a un paramètre « raison » : une phrase courte, en français, qui dit pourquoi
   cette preuve est utile. La raison ne contient AUCUN chiffre : ni seuil, ni pourcentage,

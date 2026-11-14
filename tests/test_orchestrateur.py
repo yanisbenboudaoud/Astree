@@ -346,14 +346,13 @@ def test_debat_verifie_par_le_greffier_avec_une_relance(monkeypatch, faux_debat)
                                     "sortie": controles["verifier_chiffres"]["message"]}
 
 
-def test_contrat_complet_sauf_taille_max(monkeypatch):
+def test_contrat_complet_passe_le_schema(monkeypatch):
     monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
     contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla",
                              converser=FauxModele([demande("indicateurs_actif", ticker="TSLA")]))
-    # Seul taille_max_compatible (#21) manque pour passer le schéma du contrat.
-    erreurs = valider_contrat(contrat)
-    assert erreurs == ["(racine) : 'taille_max_compatible' is a required property"]
-    assert valider_contrat({**contrat, "taille_max_compatible": 0.09}) == []
+    # taille_max_compatible (#21) est calculé par Python même si le modèle n'a pas demandé l'outil.
+    assert contrat["taille_max_compatible"] == 0.09
+    assert valider_contrat(contrat) == []
 
 
 def test_greffier_lit_la_simulation_demandee_par_le_modele(monkeypatch):

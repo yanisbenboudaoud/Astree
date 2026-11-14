@@ -1,0 +1,53 @@
+{
+  "id": "profil_invente",
+  "nom": "Profil inventé",
+  "etiquette": "fictif",
+  "profil_risque": "modere_a_eleve",
+  "horizon_ans": [10, 20],
+  "capital_fictif_cad": 75000,
+  "pacte": {
+    "date_signature": "2026-11-14",
+    "regles": [
+      {
+        "id": "pire_baisse_max",
+        "type": "pire_baisse_max",
+        "seuil": -0.3,
+        "libelle": "Pire baisse tolérée : −30 %",
+        "justification": "Profil de test inventé pour vérifier qu'un 4e Pacte se charge sans changer le code."
+      },
+      {
+        "id": "tech_limitee",
+        "type": "plafond",
+        "categories": ["tech"],
+        "max": 0.4,
+        "libelle": "Tech : 40 % du portefeuille au maximum",
+        "justification": "Hypothèse de test : un plafond sur une seule catégorie autre que la crypto."
+      },
+      {
+        "id": "sans_controverse",
+        "type": "critere_documentaire",
+        "critere": "controverse_esg_importante",
+        "libelle": "Exclure les controverses ESG importantes",
+        "justification": "Hypothèse de test : règle documentaire, sans source pour l'instant."
+      },
+      {
+        "id": "comprendre_ses_placements",
+        "type": "qualitative",
+        "libelle": "Comprendre chacun de ses placements",
+        "justification": "Hypothèse de test : règle non mesurable par calcul."
+      }
+    ]
+  },
+  "portefeuille": [
+    {"ticker": "SPY", "poids": 0.4},
+    {"ticker": "AAPL", "poids": 0.2},
+    {"ticker": "AGG", "poids": 0.3},
+    {"ticker": "PG", "poids": 0.1}
+  ],
+  "decision_demo": {
+    "type": "position",
+    "ticker": "NVDA",
+    "taille": 0.15,
+    "financement": "depuis_AGG"
+  }
+}

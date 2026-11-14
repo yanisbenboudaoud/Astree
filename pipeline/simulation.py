@@ -197,6 +197,16 @@ class _Simulation:
         }
 
 
+def valeurs_avant_apres(portefeuille: list[dict[str, Any]], decision: dict[str, Any]) -> tuple[pd.Series, pd.Series]:
+    """Valeurs quotidiennes (départ à 1) du portefeuille actuel et après la décision.
+
+    Sert aux scénarios de sensibilité (#15), par exemple pour recalculer les
+    indicateurs sur une sous-période. Les séries sont des copies.
+    """
+    actuel, apres = _deux_simulations(portefeuille, decision)
+    return actuel.valeurs.copy(), apres.valeurs.copy()
+
+
 def _deux_simulations(portefeuille, decision) -> tuple[_Simulation, _Simulation]:
     """Le portefeuille actuel et le portefeuille après la décision, sur les mêmes séances."""
     poids_actuels = _poids_actuels(portefeuille)

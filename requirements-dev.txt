@@ -1,0 +1,8 @@
+# Dépendances pour développer en local (pas déployées dans Lambda).
+-r requirements.txt
+
+# Nécessaire pour utiliser la connexion « aws login » depuis Python.
+botocore[crt]==1.44.3
+
+pytest==9.2.0
+python-dotenv==1.2.4

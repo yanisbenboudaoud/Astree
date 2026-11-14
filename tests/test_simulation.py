@@ -126,10 +126,53 @@ def test_financement_depuis_le_titre_achete():
         poids_apres_decision(PORTEFEUILLE, position("RY.TO", 0.05, "depuis_RY.TO"))
 
 
-def test_reallocation_pas_encore_prise_en_charge():
-    reallocation = {"type": "reallocation", "panier": [{"ticker": "BTC-USD", "poids": 1.0}], "part_reallouee": 0.5}
-    with pytest.raises(ErreurSimulation, match="#16"):
-        simuler_portefeuille(PORTEFEUILLE, reallocation)
+# --- Réallocations vers un panier (#16) ------------------------------------------
+
+AMIRA = json.loads((RACINE / "personas" / "amira.json").read_text(encoding="utf-8"))
+CONTRAT_AMIRA = json.loads((RACINE / "docs" / "exemples" / "contrat_amira.json").read_text(encoding="utf-8"))
+PIECES_AMIRA = {piece["id"]: piece for piece in CONTRAT_AMIRA["pieces"]}
+
+
+def reallocation(part, panier):
+    return {"type": "reallocation", "panier": panier, "part_reallouee": part}
+
+
+def test_reallocation_totale_donne_le_panier():
+    poids = poids_apres_decision(AMIRA["portefeuille"], AMIRA["decision_demo"])
+    assert poids == pytest.approx({ligne["ticker"]: ligne["poids"] for ligne in AMIRA["decision_demo"]["panier"]})
+
+
+def test_reallocation_partielle_au_prorata():
+    poids = poids_apres_decision(PORTEFEUILLE, reallocation(0.2, [{"ticker": "BTC-USD", "poids": 0.5},
+                                                                  {"ticker": "ZST.TO", "poids": 0.5}]))
+    assert poids["BTC-USD"] == pytest.approx(0.1)
+    assert poids["ZST.TO"] == pytest.approx(0.3 * 0.8 + 0.1)  # ligne déjà détenue : renforcée
+    assert poids["XBB.TO"] == pytest.approx(0.2 * 0.8)
+    assert sum(poids.values()) == pytest.approx(1.0)
+
+
+def test_reallocation_de_demo_memes_valeurs_que_la_maquette():
+    """Pièces P1 et P2 de contrat_amira.json : même méthode, mêmes valeurs."""
+    resultat = simuler_portefeuille(AMIRA["portefeuille"], AMIRA["decision_demo"])
+    p1, p2 = PIECES_AMIRA["P1"]["valeurs"], PIECES_AMIRA["P2"]["valeurs"]
+    assert resultat["apres"]["pire_baisse"] == pytest.approx(p1["pire_baisse"], abs=1e-6)
+    assert resultat["apres"]["rendement_annuel"] == pytest.approx(p1["rendement_annuel"], abs=1e-6)
+    assert resultat["apres"]["volatilite_annuelle"] == pytest.approx(p1["volatilite_annuelle"], abs=1e-6)
+    assert resultat["actuel"]["pire_baisse"] == pytest.approx(p1["pire_baisse_actuelle"], abs=1e-6)
+    assert resultat["apres"]["rendement_2022"] == pytest.approx(p2["rendement_2022_apres"], abs=1e-6)
+
+
+@pytest.mark.parametrize("decision, message", [
+    (reallocation(0.5, []), "Panier vide"),
+    (reallocation(0.5, [{"ticker": "NVDA", "poids": 0.5}, {"ticker": "NVDA", "poids": 0.5}]), "deux fois"),
+    (reallocation(0.5, [{"ticker": "NVDA", "poids": 0.6}, {"ticker": "QQQ", "poids": 0.3}]), "totalisent"),
+    (reallocation(0.5, [{"ticker": "NVDA", "poids": 0.0}, {"ticker": "QQQ", "poids": 1.0}]), "poids positif"),
+    (reallocation(1.5, [{"ticker": "NVDA", "poids": 1.0}]), "Part réallouée"),
+    ({"type": "autre"}, "inconnu"),
+])
+def test_reallocation_invalide_erreur_lisible(decision, message):
+    with pytest.raises(ErreurSimulation, match=message):
+        poids_apres_decision(PORTEFEUILLE, decision)
 
 
 def test_portefeuille_qui_ne_totalise_pas_1():

@@ -3,8 +3,8 @@
 Phases fixes, imposées par Python : Profil → Orchestrateur → Procureur et
 Avocat → Greffier → Verdict.
 
-État actuel (#12 en cours) : toutes les phases sont branchées. Pour une
-décision de type « position », le contrat est complet.
+Toutes les phases sont branchées : le contrat est complet, pour une décision de
+type « position » comme pour une « reallocation » vers un panier (#16).
 
 ``taille_max_compatible`` (#21) est toujours calculé par Python, que
 l'orchestrateur ait demandé l'outil ou non : le curseur de l'écran Décision
@@ -14,10 +14,6 @@ Le Greffier passe en dernier : ``verifier_pacte`` contrôle chaque règle du
 Pacte, puis ``verifier_chiffres`` vérifie chaque argument du débat. Un argument
 refusé est renvoyé **une fois** à son agent (``corriger_argument``), puis rangé
 dans ``arguments_rejetes`` s'il échoue encore (CLAUDE.md, section 4 ter).
-
-Pour une réallocation (#16), que ``simuler_portefeuille`` ne sait pas encore
-simuler, ``comparaison`` et ``taille_max_compatible`` sont absentes et chaque
-règle du Pacte est ``a_verifier``.
 """
 
 from __future__ import annotations
@@ -35,7 +31,6 @@ from pipeline.orchestrateur import instruire_dossier
 from pipeline.taille_max import rechercher_taille_max
 from pipeline.simulation import poids_apres_decision, simuler_portefeuille
 
-MESSAGE_REALLOCATION = "Réallocation pas encore simulée (#16) : règle non contrôlée"
 ID_PIECE_PACTE = "P1"  # le Pacte est la première pièce ; l'orchestrateur numérote la suite
 
 AVERTISSEMENT = (
@@ -62,7 +57,7 @@ def juger_decision(
         converser: tour de modèle de l'orchestrateur (remplacé dans les tests).
 
     Returns:
-        Le contrat, complet pour une décision de type « position ». Si
+        Le contrat complet (position ou réallocation). Si
         l'Agent Profil n'a pas pu construire de décision, ``decision`` vaut
         ``None``, aucune pièce n'est calculée et ``controles`` dit quoi préciser.
 
@@ -88,11 +83,10 @@ def juger_decision(
         return contrat
 
     instruction = instruire_dossier(profil.decision, profil.profil, premier_numero=2, converser=converser)
-    if profil.decision["type"] == "position":  # réallocations pas encore simulées (#16)
-        contrat["comparaison"] = comparaison(profil.profil["portefeuille"], profil.decision)
-        contrat["taille_max_compatible"] = rechercher_taille_max(
-            profil.profil["portefeuille"], profil.decision, profil.profil["pacte"]["regles"]
-        ).taille_max
+    contrat["comparaison"] = comparaison(profil.profil["portefeuille"], profil.decision)
+    contrat["taille_max_compatible"] = rechercher_taille_max(
+        profil.profil["portefeuille"], profil.decision, profil.profil["pacte"]["regles"]
+    ).taille_max
     contrat["pieces"] += instruction.pieces
     contrat["trace"] += instruction.trace
 
@@ -146,9 +140,6 @@ def verifier_cote(arguments, cote, role, dossier, trace):
 def controler_pacte(profil, decision, instruction, pieces) -> list[dict[str, Any]]:
     """Un contrôle par règle du Pacte (outil 5 du Greffier)."""
     regles = profil["pacte"]["regles"]
-    if decision["type"] != "position":
-        return [{"statut": "a_verifier", "regle": regle["id"], "message": MESSAGE_REALLOCATION,
-                 "pieces": [ID_PIECE_PACTE]} for regle in regles]
     poids_apres = poids_apres_decision(profil["portefeuille"], decision)
     return verifier_pacte(regles, poids_apres, instruction.piece_simulation, ID_PIECE_PACTE, pieces)
 

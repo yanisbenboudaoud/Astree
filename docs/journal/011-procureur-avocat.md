@@ -1,6 +1,6 @@
 # #11 — Procureur et Avocat : arguments contre et pour, avec pièces
 
-- **Issue** : #11 · **PR** : à compléter · **Statut** : en cours
+- **Issue** : #11 · **PR** : #36 · **Statut** : en cours
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

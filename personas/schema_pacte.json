@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphaforge.ai/personas/schema_pacte.json",
+  "title": "Fichier profil et son Pacte (CLAUDE.md, section 3)",
+  "description": "Format commun à tous les fichiers personas/<id>.json. Ajouter un profil = ajouter un fichier qui respecte ce schéma, sans changer le code. Les nombres sont des décimales (0.30 = 30 %). Ce que le schéma ne peut pas exprimer est vérifié en Python au chargement : id de règles uniques, catégories existantes dans config/categories.json, poids qui totalisent 1, tickers sans doublon, horizon minimum ≤ maximum.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "nom", "etiquette", "profil_risque", "horizon_ans",
+    "capital_fictif_cad", "portefeuille", "decision_demo", "pacte"
+  ],
+  "properties": {
+    "id": {
+      "description": "Identifiant du Pacte, repris dans le champ « persona » du contrat. Même nom que le fichier, sans l'extension.",
+      "$ref": "#/$defs/identifiant"
+    },
+    "nom": {"type": "string", "minLength": 1},
+    "age": {"type": "integer", "minimum": 18},
+    "metier": {"type": "string", "minLength": 1},
+    "etiquette": {
+      "description": "Tout profil est un scénario simulé (CLAUDE.md, section 4).",
+      "const": "fictif"
+    },
+    "profil_risque": {"type": "string", "minLength": 1},
+    "horizon_ans": {
+      "description": "[minimum, maximum] ; maximum null = sans borne (ex. : « 15 ans et plus »).",
+      "type": "array",
+      "prefixItems": [{"type": "number", "minimum": 0}, {"type": ["number", "null"], "minimum": 0}],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "capital_fictif_cad": {"type": "number", "exclusiveMinimum": 0},
+    "portefeuille": {
+      "description": "Portefeuille de départ. Les poids doivent totaliser 1 (vérifié en Python).",
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/ligne_portefeuille"}
+    },
+    "decision_demo": {"$ref": "#/$defs/decision"},
+    "pacte": {"$ref": "#/$defs/pacte"}
+  },
+
+  "$defs": {
+    "identifiant": {
+      "description": "snake_case : minuscules, chiffres et « _ ».",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "date_iso": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "part": {"type": "number", "minimum": 0, "maximum": 1},
+    "texte": {"type": "string", "minLength": 1},
+
+    "ligne_portefeuille": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticker", "poids"],
+      "properties": {
+        "ticker": {"type": "string", "minLength": 1},
+        "poids": {"$ref": "#/$defs/part"}
+      }
+    },
+
+    "decision": {
+      "description": "Même format que « decision » du contrat de sortie, sans « libelle ». « position » : ajouter un titre à une taille donnée. « reallocation » : déplacer une part du portefeuille vers un panier, prise au prorata de toutes les lignes.",
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["position", "reallocation"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "position"}}, "required": ["type"]},
+          "then": {"$ref": "#/$defs/decision_position"}
+        },
+        {
+          "if": {"properties": {"type": {"const": "reallocation"}}, "required": ["type"]},
+          "then": {"$ref": "#/$defs/decision_reallocation"}
+        }
+      ]
+    },
+    "decision_position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "ticker", "taille", "financement"],
+      "properties": {
+        "type": {"const": "position"},
+        "ticker": {"type": "string", "minLength": 1},
+        "taille": {"$ref": "#/$defs/part"},
+        "financement": {"type": "string", "pattern": "^(proportionnel|depuis_.+)$"}
+      }
+    },
+    "decision_reallocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "panier", "part_reallouee"],
+      "properties": {
+        "type": {"const": "reallocation"},
+        "panier": {
+          "description": "Les poids du panier doivent totaliser 1 (vérifié en Python).",
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/ligne_portefeuille"}
+        },
+        "part_reallouee": {"$ref": "#/$defs/part"}
+      }
+    },
+
+    "pacte": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date_signature", "regles"],
+      "properties": {
+        "date_signature": {"$ref": "#/$defs/date_iso"},
+        "regles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/regle"}}
+      }
+    },
+
+    "regle": {
+      "description": "Règle du Pacte. Le « type » choisit le sous-schéma de ses paramètres. Ajouter un type = un sous-schéma ici, une fonction dans le Greffier et une ligne dans le tableau de CLAUDE.md, section 3.",
+      "type": "object",
+      "required": ["id", "type", "libelle", "justification"],
+      "properties": {
+        "type": {"enum": ["pire_baisse_max", "plafond", "critere_documentaire", "qualitative"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "pire_baisse_max"}}, "required": ["type"]},
+          "then": {"$ref": "#/$defs/regle_pire_baisse_max"}
+        },
+        {
+          "if": {"properties": {"type": {"const": "plafond"}}, "required": ["type"]},
+          "then": {"$ref": "#/$defs/regle_plafond"}
+        },
+        {
+          "if": {"properties": {"type": {"const": "critere_documentaire"}}, "required": ["type"]},
+          "then": {"$ref": "#/$defs/regle_critere_documentaire"}
+        },
+        {
+          "if": {"properties": {"type": {"const": "qualitative"}}, "required": ["type"]},
+          "then": {"$ref": "#/$defs/regle_qualitative"}
+        }
+      ]
+    },
+    "regle_pire_baisse_max": {
+      "description": "Violation si la pire baisse simulée après la décision est plus basse que « seuil ».",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "seuil", "libelle", "justification"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifiant"},
+        "type": {"const": "pire_baisse_max"},
+        "seuil": {"description": "Décimale négative (−0.12 = −12 %).", "type": "number", "minimum": -1, "maximum": 0},
+        "libelle": {"$ref": "#/$defs/texte"},
+        "justification": {"$ref": "#/$defs/texte"}
+      }
+    },
+    "regle_plafond": {
+      "description": "Violation si la part totale des titres de ces catégories dépasse « max ». max = 0 : exclusion. Les catégories doivent exister dans config/categories.json (vérifié en Python).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "categories", "max", "libelle", "justification"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifiant"},
+        "type": {"const": "plafond"},
+        "categories": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/identifiant"}},
+        "max": {"$ref": "#/$defs/part"},
+        "libelle": {"$ref": "#/$defs/texte"},
+        "justification": {"$ref": "#/$defs/texte"}
+      }
+    },
+    "regle_critere_documentaire": {
+      "description": "Violation ou conforme selon une pièce documentaire ; a_verifier (« source manquante ») sans pièce.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "critere", "libelle", "justification"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifiant"},
+        "type": {"const": "critere_documentaire"},
+        "critere": {"$ref": "#/$defs/identifiant"},
+        "libelle": {"$ref": "#/$defs/texte"},
+        "justification": {"$ref": "#/$defs/texte"}
+      }
+    },
+    "regle_qualitative": {
+      "description": "Règle déclarée, non mesurable par calcul : toujours a_verifier, à juger par l'utilisateur.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "libelle", "justification"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifiant"},
+        "type": {"const": "qualitative"},
+        "libelle": {"$ref": "#/$defs/texte"},
+        "justification": {"$ref": "#/$defs/texte"}
+      }
+    }
+  }
+}

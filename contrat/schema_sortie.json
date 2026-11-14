@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphaforge.ai/contrat/schema_sortie.json",
+  "title": "Contrat de sortie du Tribunal (CLAUDE.md, section 5)",
+  "description": "Une réponse par audience, quel que soit le profil. Les nombres sont des décimales (0.30 = 30 %), en CAD sauf mention contraire. Les renvois entre champs (pièces citées, règles contrôlées) sont vérifiés par contrat/valider.py, pas par ce schéma.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "persona", "demande", "decision", "pacte", "comparaison", "taille_max_compatible",
+    "pieces", "requisitoire", "plaidoirie", "controles", "arguments_rejetes", "verdict",
+    "hypotheses", "sources", "limites", "trace", "avertissement"
+  ],
+  "properties": {
+    "persona": {"type": "string", "minLength": 1},
+    "demande": {"type": "string", "minLength": 1},
+    "decision": {"$ref": "#/$defs/decision"},
+    "pacte": {"$ref": "#/$defs/pacte"},
+    "comparaison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actuel", "apres"],
+      "properties": {
+        "actuel": {"$ref": "#/$defs/indicateurs"},
+        "apres": {"$ref": "#/$defs/indicateurs"}
+      }
+    },
+    "taille_max_compatible": {
+      "description": "Plus grande taille (ou part réallouée) qui respecte toutes les règles calculables du Pacte. null si même 0 % viole le Pacte (portefeuille de départ déjà hors Pacte).",
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "pieces": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/piece"}},
+    "requisitoire": {"type": "array", "items": {"$ref": "#/$defs/argument"}},
+    "plaidoirie": {"type": "array", "items": {"$ref": "#/$defs/argument"}},
+    "controles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/controle"}},
+    "arguments_rejetes": {"type": "array", "items": {"$ref": "#/$defs/argument_rejete"}},
+    "verdict": {"enum": [null, "maintenu", "modifie", "pacte_ajuste"]},
+    "hypotheses": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nom", "fichier", "date_extraction"],
+        "properties": {
+          "nom": {"type": "string", "minLength": 1},
+          "fichier": {"type": "string", "minLength": 1},
+          "date_extraction": {"$ref": "#/$defs/date_iso"}
+        }
+      }
+    },
+    "limites": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "trace": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/etape_trace"}},
+    "avertissement": {"type": "string", "minLength": 1}
+  },
+
+  "$defs": {
+    "date_iso": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "id_piece": {"type": "string", "pattern": "^P[1-9][0-9]*$"},
+    "etiquette": {"enum": ["fait", "hypothese", "fictif"]},
+    "statut": {"enum": ["conforme", "violation", "a_verifier"]},
+    "part": {"type": "number", "minimum": 0, "maximum": 1},
+
+    "ligne_portefeuille": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticker", "poids"],
+      "properties": {
+        "ticker": {"type": "string", "minLength": 1},
+        "poids": {"$ref": "#/$defs/part"}
+      }
+    },
+
+    "decision": {
+      "description": "Deux formes, distinguées par « type » (même format que decision_demo des fichiers personas/). « position » : ajouter un titre à une taille donnée. « reallocation » : déplacer une part du portefeuille vers un panier ; la part réallouée est prise au prorata de toutes les lignes.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "ticker", "taille", "financement", "libelle"],
+          "properties": {
+            "type": {"const": "position"},
+            "ticker": {"type": "string", "minLength": 1},
+            "taille": {"$ref": "#/$defs/part"},
+            "financement": {"type": "string", "pattern": "^(proportionnel|depuis_.+)$"},
+            "libelle": {"type": "string", "minLength": 1}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "panier", "part_reallouee", "libelle"],
+          "properties": {
+            "type": {"const": "reallocation"},
+            "panier": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ligne_portefeuille"}},
+            "part_reallouee": {"$ref": "#/$defs/part"},
+            "libelle": {"type": "string", "minLength": 1}
+          }
+        }
+      ]
+    },
+
+    "pacte": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "profil_risque", "horizon_ans", "date_signature", "regles"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "profil_risque": {"type": "string", "minLength": 1},
+        "horizon_ans": {
+          "description": "[minimum, maximum] ; maximum null = sans borne (ex. : « 15 ans et plus »).",
+          "type": "array",
+          "prefixItems": [{"type": "number", "minimum": 0}, {"type": ["number", "null"], "minimum": 0}],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "date_signature": {"$ref": "#/$defs/date_iso"},
+        "regles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/regle"}}
+      }
+    },
+
+    "regle": {
+      "description": "Règle du Pacte, reprise du fichier profil sans sa justification. Paramètres selon le type (CLAUDE.md, section 3).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "libelle"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {"enum": ["pire_baisse_max", "plafond", "critere_documentaire", "qualitative"]},
+        "libelle": {"type": "string", "minLength": 1},
+        "seuil": {"type": "number", "maximum": 0, "minimum": -1},
+        "categories": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "max": {"$ref": "#/$defs/part"},
+        "critere": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "pire_baisse_max"}}},
+          "then": {"required": ["seuil"], "properties": {"categories": false, "max": false, "critere": false}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "plafond"}}},
+          "then": {"required": ["categories", "max"], "properties": {"seuil": false, "critere": false}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "critere_documentaire"}}},
+          "then": {"required": ["critere"], "properties": {"seuil": false, "categories": false, "max": false}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "qualitative"}}},
+          "then": {"properties": {"seuil": false, "categories": false, "max": false, "critere": false}}
+        }
+      ]
+    },
+
+    "indicateurs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rendement_annuel", "volatilite_annuelle", "pire_baisse", "rendement_2022"],
+      "properties": {
+        "rendement_annuel": {"type": "number"},
+        "volatilite_annuelle": {"type": "number", "minimum": 0},
+        "pire_baisse": {"type": "number", "maximum": 0, "minimum": -1},
+        "rendement_2022": {"type": "number"}
+      }
+    },
+
+    "valeur_piece": {
+      "description": "Valeurs brutes (au moins 4 décimales), dates ISO, ou listes de celles-ci.",
+      "type": ["number", "string", "boolean", "null", "array"],
+      "items": {"type": ["number", "string", "null"]}
+    },
+
+    "piece": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "etiquette", "titre", "outil", "valeurs", "valeur_affichee", "source", "traitement", "limites"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id_piece"},
+        "type": {"enum": ["calculee", "documentaire"]},
+        "etiquette": {"$ref": "#/$defs/etiquette"},
+        "titre": {"type": "string", "minLength": 1},
+        "outil": {"type": "string", "minLength": 1},
+        "valeurs": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/valeur_piece"}},
+        "valeur_affichee": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "traitement": {"type": "string", "minLength": 1},
+        "limites": {"type": "string", "minLength": 1}
+      }
+    },
+
+    "argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["etiquette", "texte", "pieces"],
+      "properties": {
+        "etiquette": {"$ref": "#/$defs/etiquette"},
+        "texte": {"type": "string", "minLength": 1},
+        "pieces": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id_piece"}}
+      }
+    },
+
+    "argument_rejete": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cote", "etiquette", "texte", "pieces", "raison"],
+      "properties": {
+        "cote": {"enum": ["requisitoire", "plaidoirie"]},
+        "etiquette": {"$ref": "#/$defs/etiquette"},
+        "texte": {"type": "string", "minLength": 1},
+        "pieces": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id_piece"}},
+        "raison": {"type": "string", "minLength": 1}
+      }
+    },
+
+    "controle": {
+      "description": "« regle » est l'id d'une règle du Pacte ou un contrôle du système (verifier_chiffres, performance_passee, biais_survivant).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statut", "regle", "message"],
+      "properties": {
+        "statut": {"$ref": "#/$defs/statut"},
+        "regle": {"type": "string", "minLength": 1},
+        "message": {"type": "string", "minLength": 1},
+        "pieces": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id_piece"}}
+      }
+    },
+
+    "etape_trace": {
+      "description": "Une étape du procès. Les appels de l'orchestrateur portent une « raison » courte et sans chiffre.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["etape", "outil", "entree", "sortie"],
+      "properties": {
+        "etape": {"enum": ["agent_profil", "orchestrateur", "procureur", "avocat", "greffier"]},
+        "outil": {"type": "string", "minLength": 1},
+        "raison": {"type": "string", "minLength": 1, "pattern": "^[^0-9]*$"},
+        "entree": true,
+        "sortie": true
+      },
+      "if": {"properties": {"etape": {"const": "orchestrateur"}}},
+      "then": {"required": ["raison"]},
+      "else": {"properties": {"raison": false}}
+    }
+  }
+}

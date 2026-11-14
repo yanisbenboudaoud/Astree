@@ -1,0 +1,326 @@
+{
+  "persona": "Amira",
+  "demande": "Je veux tout réallouer vers un panier crypto-tech",
+  "decision": {
+    "type": "reallocation",
+    "panier": [
+      {"ticker": "BTC-USD", "poids": 0.3},
+      {"ticker": "ETH-USD", "poids": 0.2},
+      {"ticker": "NVDA", "poids": 0.2},
+      {"ticker": "QQQ", "poids": 0.2},
+      {"ticker": "SHOP.TO", "poids": 0.1}
+    ],
+    "part_reallouee": 1.0,
+    "libelle": "100 % réalloué vers le panier crypto-tech"
+  },
+  "pacte": {
+    "id": "amira",
+    "profil_risque": "eleve",
+    "horizon_ans": [15, null],
+    "date_signature": "2026-11-14",
+    "regles": [
+      {"id": "pire_baisse_max", "type": "pire_baisse_max", "seuil": -0.45, "libelle": "Pire baisse tolérée : −45 %"},
+      {"id": "plafond_crypto", "type": "plafond", "categories": ["crypto"], "max": 0.25, "libelle": "Crypto : 25 % du portefeuille au maximum"},
+      {"id": "pas_exclusivement_tech", "type": "plafond", "categories": ["tech", "crypto"], "max": 0.75, "libelle": "Ne pas miser exclusivement sur la tech (tech et crypto : 75 % au maximum)"}
+    ]
+  },
+  "comparaison": {
+    "actuel": {
+      "rendement_annuel": 0.190397,
+      "volatilite_annuelle": 0.205738,
+      "pire_baisse": -0.329494,
+      "rendement_2022": -0.248547
+    },
+    "apres": {
+      "rendement_annuel": 0.158969,
+      "volatilite_annuelle": 0.389127,
+      "pire_baisse": -0.618555,
+      "rendement_2022": -0.524972
+    }
+  },
+  "taille_max_compatible": 0.28,
+  "pieces": [
+    {
+      "id": "P1",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Simulation du portefeuille avec la décision",
+      "outil": "simuler_portefeuille",
+      "valeurs": {
+        "pire_baisse": -0.618555,
+        "rendement_annuel": 0.158969,
+        "volatilite_annuelle": 0.389127,
+        "pire_baisse_actuelle": -0.329494,
+        "rendement_annuel_actuel": 0.190397,
+        "volatilite_annuelle_actuelle": 0.205738,
+        "part_crypto": 0.5,
+        "part_crypto_actuelle": 0.15,
+        "part_tech_crypto": 1.0,
+        "part_tech_crypto_actuelle": 0.5
+      },
+      "valeur_affichee": "−61,9 % max · +15,9 %/an",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines (crypto du week-end cumulée dans le lundi), rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; parts par catégorie selon config/categories.json",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir"
+    },
+    {
+      "id": "P2",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Rejeu de 2022",
+      "outil": "simuler_portefeuille",
+      "valeurs": {
+        "periode": ["2021-12-31", "2022-12-30"],
+        "rendement_2022_actuel": -0.248547,
+        "rendement_2022_apres": -0.524972
+      },
+      "valeur_affichee": "−24,9 % → −52,5 %",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "Portefeuille avant et après la réallocation, de la dernière séance de 2021 à la dernière séance de 2022",
+      "limites": "Une seule année de crise ; la suivante peut être différente"
+    },
+    {
+      "id": "P3",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Pacte d'Amira",
+      "outil": "charger_pacte",
+      "valeurs": {
+        "date_signature": "2026-11-14",
+        "pire_baisse_max": -0.45,
+        "plafond_crypto": 0.25,
+        "pas_exclusivement_tech": 0.75,
+        "horizon_ans": [15, null]
+      },
+      "valeur_affichee": "Signé le 14 nov. 2026",
+      "source": "personas/amira.json (persona fictif)",
+      "traitement": "Règles typées lues par l'agent Profil (format générique du Pacte)",
+      "limites": "Les seuils sont des hypothèses de l'équipe"
+    },
+    {
+      "id": "P4",
+      "type": "calculee",
+      "etiquette": "fait",
+      "titre": "Corrélations entre les lignes du panier",
+      "outil": "calculer_correlations",
+      "valeurs": {
+        "correlation_btc_eth": 0.84453,
+        "correlation_nvda_qqq": 0.765894,
+        "correlation_btc_nvda": 0.320952
+      },
+      "valeur_affichee": "BTC/ETH 0,84 · NVDA/QQQ 0,77",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "Corrélation de Pearson des rendements quotidiens en CAD, calendrier des séances américaines, 2021-11-12 → 2026-11-12",
+      "limites": "Une corrélation passée peut changer, surtout en crise ; elle ne mesure qu'une relation linéaire"
+    },
+    {
+      "id": "P5",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Part maximale réallouable compatible avec le Pacte",
+      "outil": "taille_max_compatible",
+      "valeurs": {
+        "taille_max_compatible": 0.28,
+        "regle_limitante": "plafond_crypto",
+        "part_crypto_a_taille_max": 0.248,
+        "part_crypto_a_taille_suivante": 0.2515,
+        "pire_baisse_a_taille_max": -0.423096,
+        "pas_de_recherche": 0.01
+      },
+      "valeur_affichee": "28 % au maximum",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "simuler_portefeuille répété de 0 % à 100 % de part réallouée par pas de 1 point ; plus grande part qui respecte toutes les règles calculables du Pacte",
+      "limites": "Dépend de la composition du panier et de la période ; une seule période de 5 ans"
+    }
+  ],
+  "requisitoire": [
+    {
+      "etiquette": "fait",
+      "texte": "En réallouant tout vers ce panier, la crypto passerait de 15 % à 50 % du portefeuille, alors que votre Pacte la plafonne à 25 %.",
+      "pieces": ["P1", "P3"]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "La tech et la crypto formeraient 100 % du portefeuille : vous aviez écrit ne pas vouloir miser exclusivement sur la tech (75 % au maximum).",
+      "pieces": ["P1", "P3"]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "La pire chute observée passerait de −33 % à −61,9 %, au-delà du seuil de −45 % de votre Pacte.",
+      "pieces": ["P1", "P3"]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "BTC et ETH évoluent presque ensemble (corrélation de +0,84) : les deux lignes crypto ne se diversifient pas l'une l'autre.",
+      "pieces": ["P4"]
+    },
+    {
+      "etiquette": "hypothese",
+      "texte": "Si une année comme 2022 se répétait, le portefeuille ferait −52,5 % au lieu de −24,9 %.",
+      "pieces": ["P2"]
+    }
+  ],
+  "plaidoirie": [
+    {
+      "etiquette": "fait",
+      "texte": "Avec un horizon de 15 ans et plus, Amira a le temps de traverser de fortes baisses : son Pacte tolère jusqu'à −45 %.",
+      "pieces": ["P3"]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Jusqu'à 28 % de réallocation vers ce panier, toutes les règles calculables de son Pacte restent respectées : elle peut renforcer son exposition crypto-tech sans renier sa diversification.",
+      "pieces": ["P5"]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Son portefeuille actuel est déjà offensif et conforme : pire baisse de −33 % pour +19,0 %/an sur la période.",
+      "pieces": ["P1"]
+    }
+  ],
+  "controles": [
+    {
+      "statut": "violation",
+      "regle": "pire_baisse_max",
+      "message": "Pire baisse −61,9 % au-delà du seuil −45,0 %",
+      "pieces": ["P1", "P3"]
+    },
+    {
+      "statut": "violation",
+      "regle": "plafond_crypto",
+      "message": "Crypto : 50,0 % du portefeuille après la décision, au-delà du plafond de 25,0 %",
+      "pieces": ["P1", "P3"]
+    },
+    {
+      "statut": "violation",
+      "regle": "pas_exclusivement_tech",
+      "message": "Tech et crypto : 100,0 % du portefeuille après la décision, au-delà du plafond de 75,0 %",
+      "pieces": ["P1", "P3"]
+    },
+    {
+      "statut": "conforme",
+      "regle": "verifier_chiffres",
+      "message": "Chiffres cités vérifiés contre leurs pièces : 17/17 chiffres, 8 arguments ; 1 argument rejeté après une relance"
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "performance_passee",
+      "message": "Performance passée invoquée : elle ne prédit pas l'avenir"
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "biais_survivant",
+      "message": "Biais du survivant : univers choisi en 2026 (BTC et ETH compris)"
+    }
+  ],
+  "arguments_rejetes": [
+    {
+      "cote": "plaidoirie",
+      "etiquette": "fait",
+      "texte": "NVDA a rapporté 4 fois plus que le portefeuille actuel sur la période.",
+      "pieces": ["P1"],
+      "raison": "« 4 » introuvable dans P1 : un ratio doit être calculé par un outil Python (nombre dérivé)"
+    }
+  ],
+  "verdict": null,
+  "hypotheses": [
+    "Période : 2021-11-12 au 2026-11-12",
+    "Rendements calculés sur adj_close",
+    "Montants convertis en CAD",
+    "Calendrier des séances américaines, dernier prix reporté (crypto du week-end cumulée dans le lundi)",
+    "Part réallouée prise au prorata de toutes les lignes du portefeuille",
+    "Part maximale cherchée par pas de 1 point",
+    "Seuils du Pacte choisis par l'équipe",
+    "Catégories d'actifs définies par l'équipe (config/categories.json) : QQQ compté en entier dans la tech",
+    "Portefeuille et capital fictifs"
+  ],
+  "sources": [
+    {
+      "nom": "Yahoo Finance via yfinance",
+      "fichier": "prices_daily.csv",
+      "date_extraction": "2026-11-13"
+    },
+    {
+      "nom": "Banque du Canada (API Valet)",
+      "fichier": "fx_usdcad_daily.csv",
+      "date_extraction": "2026-11-13"
+    }
+  ],
+  "limites": [
+    "Les rendements passés ne garantissent pas les rendements futurs",
+    "Biais du survivant dans l'univers d'actifs",
+    "La pire baisse, la volatilité et la corrélation ne sont que des indicateurs de risque parmi d'autres"
+  ],
+  "trace": [
+    {
+      "etape": "agent_profil",
+      "outil": "charger_pacte",
+      "entree": "amira",
+      "sortie": "P3 : 3 règles (1 pire baisse, 2 plafonds)"
+    },
+    {
+      "etape": "agent_profil",
+      "outil": "bedrock",
+      "entree": "Je veux tout réallouer vers un panier crypto-tech",
+      "sortie": {"type": "reallocation", "panier": ["BTC-USD", "ETH-USD", "NVDA", "QQQ", "SHOP.TO"], "part_reallouee": 1.0}
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "simuler_portefeuille",
+      "raison": "Pièce obligatoire : comparer le portefeuille avant et après la décision",
+      "entree": {"type": "reallocation", "part_reallouee": 1.0},
+      "sortie": "P1"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "simuler_portefeuille",
+      "raison": "Panier très volatil : rejouer l'année de crise du jeu de données",
+      "entree": {"type": "reallocation", "part_reallouee": 1.0, "periode": "2022"},
+      "sortie": "P2"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "calculer_correlations",
+      "raison": "Panier concentré en crypto et en tech : mesurer si ses lignes se diversifient vraiment",
+      "entree": {"paires": [["BTC-USD", "ETH-USD"], ["NVDA", "QQQ"], ["BTC-USD", "NVDA"]]},
+      "sortie": "P4"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "taille_max_compatible",
+      "raison": "Plafonds du Pacte probablement dépassés : chercher la plus grande part réallouable",
+      "entree": {"type": "reallocation", "part_demandee": 1.0},
+      "sortie": "P5"
+    },
+    {
+      "etape": "procureur",
+      "outil": "bedrock",
+      "entree": ["P1", "P2", "P3", "P4", "P5"],
+      "sortie": "5 arguments"
+    },
+    {
+      "etape": "avocat",
+      "outil": "bedrock",
+      "entree": ["P1", "P2", "P3", "P4", "P5"],
+      "sortie": "4 arguments"
+    },
+    {
+      "etape": "greffier",
+      "outil": "verifier_chiffres",
+      "entree": "9 arguments",
+      "sortie": "1 argument de l'avocat renvoyé : « 4 » introuvable dans P1"
+    },
+    {
+      "etape": "avocat",
+      "outil": "bedrock",
+      "entree": "Relance : « 4 » introuvable dans P1",
+      "sortie": "Argument maintenu sans pièce qui le prouve"
+    },
+    {
+      "etape": "greffier",
+      "outil": "verifier_pacte+verifier_chiffres",
+      "entree": "9 arguments",
+      "sortie": "3 violations, 17/17 chiffres vérifiés, 1 argument rejeté"
+    }
+  ],
+  "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé."
+}

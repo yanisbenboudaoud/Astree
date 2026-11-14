@@ -2,6 +2,7 @@
   "persona": "Robert",
   "demande": "Je veux mettre 30 % de mon portefeuille en Tesla",
   "decision": {
+    "type": "position",
     "ticker": "TSLA",
     "taille": 0.3,
     "financement": "proportionnel",

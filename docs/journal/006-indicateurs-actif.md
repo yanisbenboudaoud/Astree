@@ -1,6 +1,6 @@
 # #6 — Outil 1 : indicateurs_actif
 
-- **Issue** : #6 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #6 · **PR** : #33 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

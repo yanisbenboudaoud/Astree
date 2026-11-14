@@ -7,9 +7,10 @@ parallèle** et **n'appellent aucun outil** : ils ne produisent jamais un
 chiffre eux-mêmes, ils citent ceux des pièces.
 
 Leurs consignes reprennent les règles de ``verifier_chiffres`` (CLAUDE.md,
-section 4 ter). Le Greffier (#10) vérifie ensuite chaque chiffre ; un argument
-refusé revient **une fois** à son agent avec ``corriger_argument``, puis est
-rejeté s'il échoue encore (boucle gérée par l'orchestrateur, #12).
+section 4 ter). Le Greffier vérifie ensuite chaque chiffre
+(``pipeline.chiffres.trier_arguments``) ; un argument refusé revient **une
+fois** à son agent avec ``corriger_argument``, puis est rejeté s'il échoue
+encore.
 
 Le dossier est un dict au format du contrat (section 5) ::
 
@@ -134,10 +135,13 @@ respecte pas) :
    aurais calculé. Pour comparer, cite les deux valeurs (« passe de −7,8 % à −29,0 % »).
 5. N'écris aucun nombre en lettres (« trois fois », « la moitié ») et n'arrondis pas
    au-delà de ce que permet la règle 2.
-6. Virgule décimale française (−29,0 %). Une date doit figurer dans une pièce citée,
-   dans la décision ou dans la période.
+6. Virgule décimale française (−29,0 %). Une date ou une année doit figurer dans les
+   valeurs d'une pièce citée, dans la décision ou dans la période : pour écrire « en 2022 »,
+   cite aussi la pièce qui contient une date de 2022 (ex. : le rejeu de 2022). Le nom
+   d'une clé (« rendement_2022 ») ne compte pas comme une date.
 7. Les chiffres viennent uniquement des « valeurs » des pièces : n'en reprends aucun dans
-   les textes « titre » ou « limites » (ex. : n'écris pas « période de 5 ans »).
+   les textes « titre » ou « limites ». Pour rappeler une limite, écris-la sans aucun
+   chiffre : « une seule période passée », jamais « une seule période de 5 ans ».
 
 Règles sur le fond :
 - etiquette « fait » : l'argument ne dit que ce que montrent les pièces ou le Pacte.

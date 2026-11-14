@@ -1,13 +1,10 @@
 """Tests du Procureur et de l'Avocat (pipeline/debat.py).
 
 Les tests unitaires remplacent le LLM par une fonction écrite à la main. Les
-tests réels (marqueur « bedrock ») font plaider les deux agents sur les pièces
-des faux contrats de docs/exemples/ : on peut commencer avant les vrais outils
-de calcul (#6, #9).
-
-La vérification des chiffres cités (verifier_chiffres, #10) n'existe pas
-encore : les tests réels affichent les arguments (pytest -m bedrock -s) pour
-une relecture humaine, en attendant de les passer au Greffier.
+tests réels (marqueur « bedrock ») font plaider les deux agents, sur les pièces
+des faux contrats de docs/exemples/ et sur les vraies pièces d'un procès, puis
+passent chaque argument au Greffier (verifier_chiffres, #10). Ajouter « -s »
+pour lire les arguments.
 """
 
 import json
@@ -18,6 +15,9 @@ import jsonschema
 import pytest
 
 from pipeline import debat
+from pipeline.chiffres import controle_verifier_chiffres, trier_arguments, verifier_argument
+from pipeline.donnees import seances_americaines
+from pipeline.tribunal import juger_decision
 
 RACINE = Path(__file__).resolve().parent.parent
 SCHEMA_CONTRAT = json.loads((RACINE / "contrat" / "schema_sortie.json").read_text(encoding="utf-8"))
@@ -129,6 +129,32 @@ def test_corriger_argument_transmet_le_motif_du_greffier(monkeypatch):
 # --- Vrais appels Bedrock (payants) : pytest -m bedrock -s ------------------------
 
 
+def passer_au_greffier(dossier, resultat):
+    """Affiche les arguments, puis les fait trier par le Greffier (une relance au plus).
+
+    Returns:
+        (arguments refusés au premier jet, tris du réquisitoire et de la plaidoirie)
+    """
+    refuses = []
+    tris = []
+    for role, cote, arguments in (("procureur", "requisitoire", resultat.requisitoire),
+                                  ("avocat", "plaidoirie", resultat.plaidoirie)):
+        print(f"--- {cote.upper()}")
+        for argument in arguments:
+            verification = verifier_argument(argument, dossier)
+            print(f"[{'OK ' if verification.valide else 'NON'}] [{argument['etiquette']}] "
+                  f"{argument['texte']}  ({', '.join(argument['pieces'])})")
+            if not verification.valide:
+                refuses.append(verification.motif)
+
+        def corriger(argument, motif, role=role):
+            return debat.corriger_argument(role, dossier, argument, motif)[0]
+
+        tris.append(trier_arguments(arguments, cote, dossier, corriger))
+    print(controle_verifier_chiffres(*tris)["message"], f"; refusés au premier jet : {refuses}")
+    return refuses, tris
+
+
 @pytest.mark.bedrock
 @pytest.mark.parametrize("exemple", ["contrat_robert", "contrat_amira"])
 def test_debat_reel_sur_un_faux_contrat(exemple):
@@ -138,14 +164,38 @@ def test_debat_reel_sur_un_faux_contrat(exemple):
     resultat = debat.debattre(dossier)
 
     print(f"\n===== {exemple} : {dossier['decision']['libelle']}")
-    for cote, arguments in (("RÉQUISITOIRE", resultat.requisitoire), ("PLAIDOIRIE", resultat.plaidoirie)):
-        print(f"--- {cote}")
-        for argument in arguments:
-            print(f"[{argument['etiquette']}] {argument['texte']}  ({', '.join(argument['pieces'])})")
+    for arguments in (resultat.requisitoire, resultat.plaidoirie):
         assert 1 <= len(arguments) <= 5
         for argument in arguments:
             valide_contre_le_contrat(argument, "argument")
             assert set(argument["pieces"]) <= ids
+    _, tris = passer_au_greffier(dossier, resultat)
+    assert all(not tri.rejetes for tri in tris), [tri.rejetes for tri in tris]
+
+
+@pytest.mark.bedrock
+@pytest.mark.parametrize("identifiant, demande", [
+    ("robert", "Je veux mettre 30 % de mon portefeuille en Tesla"),        # cas de démo (cas 1)
+    ("mateo", "Je veux ajouter 10 % d'Exxon Mobil à mon portefeuille"),
+])
+def test_proces_reel_tous_les_chiffres_passent_le_greffier(identifiant, demande):
+    """Critère de fin de #11 : vraies pièces (Agent Profil + orchestrateur), débat, Greffier."""
+    contrat = juger_decision(identifiant, demande)
+    seances = seances_americaines()
+    dossier = {
+        "decision": contrat["decision"],
+        "pacte": contrat["pacte"],
+        "pieces": contrat["pieces"],
+        "periode": [seances[0].date().isoformat(), seances[-1].date().isoformat()],
+    }
+
+    resultat = debat.debattre(dossier)
+
+    print(f"\n===== {identifiant} : {contrat['decision']['libelle']} ; pièces "
+          f"{[piece['id'] + ' ' + piece['titre'] for piece in contrat['pieces']]}")
+    _, tris = passer_au_greffier(dossier, resultat)
+    assert all(not tri.rejetes for tri in tris), [tri.rejetes for tri in tris]
+    assert controle_verifier_chiffres(*tris)["statut"] == "conforme"
 
 
 @pytest.mark.bedrock

@@ -47,27 +47,33 @@ Toujours vérifier les consignes logistiques officielles (services permis, créd
 - **Le LLM n'invente jamais un chiffre ni une source.** Chaque nombre cité dans une explication doit exister dans la sortie d'un outil Python.
 - Si une donnée manque, l'agent le **signale** au lieu de deviner.
 
-## 3. Personas (situations de référence)
+## 3. Cas généraux et profils de test
 
-| Persona | Profil de risque | Horizon | Ce que le persona teste | Décision testée dans la démo |
-|---|---|---|---|---|
-| **Robert**, 59 ans | Faible à modéré | 3 à 5 ans | Le système sait **contester** une demande incohérente avec le profil au lieu d'acquiescer. | Ajouter 30 % de TSLA |
-| **Amira**, 26 ans | Élevé | 15 ans et plus | Le système accepte du risque **sans tout accepter** : il garde une diversification (pas 100 % tech ou crypto). | Tout réallouer vers un panier crypto-tech |
-| **Mateo**, 41 ans | Modéré | 8 à 12 ans | Le système intègre des critères **ESG** en plus du rendement et du risque. | Ajouter 10 % de XOM |
+Le système est conçu pour **n'importe quel investisseur**, pas pour trois personas codés en dur. Il doit gérer **trois cas généraux**. Les personas de l'énoncé servent de **profils de test** pour prouver que chaque cas fonctionne (l'énoncé les présente comme des « situations de référence pour concevoir et tester la solution »).
 
-Chaque persona a un **Pacte** : ses règles, déclarées à l'avance, converties en contraintes vérifiables (fichiers `personas/<nom>.json`). Les seuils sont des **hypothèses** de l'équipe, pas des recommandations réglementaires.
+| Cas général | Ce que le système doit faire | Profil de test | Décision testée dans la démo |
+|---|---|---|---|
+| **1. Décision incohérente avec le profil** | **Contester** la décision avec des preuves, au lieu d'acquiescer, sans bloquer l'utilisateur | Prudent : Robert, 59 ans, risque faible à modéré, 3 à 5 ans | Ajouter 30 % de TSLA |
+| **2. Profil tolérant au risque** | Accepter du risque **sans tout accepter** : faire respecter la diversification (plafonds par classe d'actifs ou par secteur) | Audacieux : Amira, 26 ans, risque élevé, 15 ans et plus | Tout réallouer vers un panier crypto-tech |
+| **3. Préférences non financières** | Intégrer des critères **autres que le rendement et le risque** (ESG, exclusions, valeurs) | Équilibré ESG : Mateo, 41 ans, risque modéré, 8 à 12 ans | Ajouter 10 % de XOM |
 
-| Persona | Règles du Pacte |
+### Le Pacte : un format générique
+
+Chaque profil a un **Pacte** : ses règles, déclarées à l'avance, converties en contraintes vérifiables. Tous les Pactes suivent **le même format** (fichiers `personas/<nom>.json`), donc **ajouter un nouveau profil ne demande aucun code**. Le code ne doit jamais tester un nom de persona (`if persona == "robert"` est interdit) : il lit uniquement les règles du Pacte.
+
+Les seuils sont des **hypothèses** de l'équipe, pas des recommandations réglementaires.
+
+| Profil de test | Règles du Pacte |
 |---|---|
-| Robert | Pire baisse ≥ −12 %, préserver le capital, entreprises établies, crypto exclue |
-| Amira | Pire baisse ≥ −45 %, crypto ≤ 25 %, pas exclusivement tech, horizon 15 ans et plus |
-| Mateo | Pire baisse ≥ −20 %, exclusion des controverses ESG importantes, pas de spéculation |
+| Prudent (Robert) | Pire baisse ≥ −12 %, préserver le capital, entreprises établies, crypto exclue |
+| Audacieux (Amira) | Pire baisse ≥ −45 %, crypto ≤ 25 %, pas exclusivement tech, horizon 15 ans et plus |
+| Équilibré ESG (Mateo) | Pire baisse ≥ −20 %, exclusion des controverses ESG importantes, pas de spéculation |
 
 ## 4. Architecture visée : le Tribunal (simple et vérifiable)
 
 L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % en TSLA »). Le système ne recommande rien : il **fait le procès de cette décision** et l'utilisateur rend le verdict. C'est ce qui garde la solution du côté de l'aide à la décision, pas du conseil personnalisé.
 
-1. **Agent Profil** (LLM + Python) : charge le Pacte du persona et transforme la demande en décision structurée (titre, taille, financement).
+1. **Agent Profil** (LLM + Python) : charge le Pacte du profil (n'importe lequel) et transforme la demande en décision structurée (titre, taille, financement).
 2. **Outils de calcul** (Python, voir section 4 bis) : produisent les **pièces à conviction** numérotées (P1, P2…).
 3. **Procureur** (LLM) : argumente **contre** la décision, en citant uniquement des pièces.
 4. **Avocat** (LLM) : argumente **pour** la décision, honnêtement, en citant uniquement des pièces.
@@ -78,7 +84,7 @@ Correspondance avec l'ancienne architecture : l'agent Gouvernance devient le **G
 
 Chaque étape écrit une **trace** (entrée, outil appelé, sortie) affichée dans l'interface et stockée dans S3.
 
-Chaque élément affiché porte une **étiquette** : `fait` (donnée calculée ou règle déclarée, avec sa source), `hypothese` (interprétation ou information à confirmer) ou `fictif` (persona, portefeuille ou scénario simulé).
+Chaque élément affiché porte une **étiquette** : `fait` (donnée calculée ou règle déclarée, avec sa source), `hypothese` (interprétation ou information à confirmer) ou `fictif` (profil de test, portefeuille ou scénario simulé).
 
 ## 4 bis. Les 6 outils (Python, exécutés dans Lambda)
 
@@ -97,7 +103,7 @@ Aucun de ces outils n'utilise le LLM. On les développe et teste **en local**, p
 
 ## 5. Contrat JSON entre le pipeline et l'interface
 
-Le pipeline produit **exactement** ce format, une réponse par audience. L'équipe interface travaille avec le faux JSON `docs/exemples/contrat_robert.json` en attendant. **Ne changez pas ce format sans prévenir toute l'équipe.**
+Le pipeline produit **exactement** ce format, une réponse par audience, quel que soit le profil. Le champ `persona` contient l'identifiant du Pacte utilisé (n'importe quel profil, pas seulement les profils de test). L'exemple ci-dessous illustre le cas général 1 avec le profil de test prudent. L'équipe interface travaille avec le faux JSON `docs/exemples/contrat_robert.json` en attendant. **Ne changez pas ce format sans prévenir toute l'équipe.**
 
 Conventions : les nombres sont des **décimales** (0.30 = 30 %), en CAD sauf mention contraire. `valeur_affichee` est le texte prêt à afficher, produit par Python (jamais par le LLM).
 
@@ -195,9 +201,11 @@ Ces choix ont servi à produire les chiffres de la maquette. Le code doit les re
 
 ## 8. Plan de livraison (petit d'abord, puis on élargit)
 
-1. **Version 1 — Robert** : socle de données, outils 1, 2, 5 et 6, Procureur, Avocat, Greffier et le JSON complet pour « 30 % en TSLA ».
-2. **Version 2 — Amira** : ajouter la crypto (BTC, ETH), l'outil 3 (corrélations) et les règles « crypto ≤ 25 % » et « pas exclusivement tech ».
-3. **Version 3 — Mateo** : seulement s'il reste du temps. Source ESG externe documentée (pièce `documentaire`, éventuellement via une base de connaissances Bedrock), comparaison ESGV vs SPY, examen de XOM.
+Chaque version ajoute un **cas général**, pas un persona. Le profil de test sert à le démontrer.
+
+1. **Version 1 — Cas 1 : décision incohérente avec le profil** : socle de données, outils 1, 2, 5 et 6, Procureur, Avocat, Greffier, règles génériques du Pacte (pire baisse, exclusions) et le JSON complet. Démontré avec le profil prudent et « 30 % en TSLA ».
+2. **Version 2 — Cas 2 : diversification** : ajouter la crypto (BTC, ETH), l'outil 3 (corrélations) et les règles génériques de plafonds (par classe d'actifs, par secteur). Démontré avec le profil audacieux (« crypto ≤ 25 % », « pas exclusivement tech »).
+3. **Version 3 — Cas 3 : préférences non financières** : seulement s'il reste du temps. Règles génériques d'exclusion et de critères ESG, source ESG externe documentée (pièce `documentaire`, éventuellement via une base de connaissances Bedrock). Démontré avec le profil équilibré ESG (ESGV vs SPY, examen de XOM).
 4. **Bonus** : outil 4 (`taille_max_compatible`).
 
 Toujours garder une version qui fonctionne de bout en bout avant d'ajouter quelque chose.
@@ -207,7 +215,7 @@ La maquette de référence est dans `docs/maquette/` (lien Figma + prototype int
 ## 9. Livrables à prévoir
 
 - Prototype et dépôt de code avec un **README** (dépendances, sources, configuration, démarrage).
-- **Vidéo** d'environ 5 minutes, idéalement avec deux personas contrastés (ex. : Robert vs Amira).
+- **Vidéo** d'environ 5 minutes, idéalement avec **la même décision** jugée pour deux profils contrastés (ex. : profil prudent vs profil audacieux), pour montrer que le système s'adapte au Pacte et non à un persona codé en dur.
 - **Documentation technique** : méthodes, sources, traitements, mécanisme d'explicabilité avec un exemple relié à la trace, validations et limites.
 - **One pager**.
 
@@ -217,5 +225,6 @@ La maquette de référence est dans `docs/maquette/` (lien Figma + prototype int
 - Les appels au LLM passent par **Amazon Bedrock**, pas par une API externe.
 - Développer d'abord en local (CSV locaux), puis brancher S3 et Bedrock. Garder une variable de configuration pour basculer entre les deux.
 - Les fonctions de calcul (outils) sont **pures** et **testées** : mêmes entrées, mêmes sorties.
+- **Aucun nom de persona dans le code** : la logique lit les règles du Pacte. Les noms des profils de test n'apparaissent que dans les fichiers `personas/` et dans les tests.
 - Une fonction = une responsabilité. Nommer clairement (`calculer_volatilite_annuelle`, pas `calc_v`).
 - Chaque membre doit **comprendre le code qu'il garde** : si Claude génère du code, demandez-lui de l'expliquer avant de le garder.

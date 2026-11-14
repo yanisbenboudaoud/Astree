@@ -168,7 +168,7 @@ Conventions : les nombres sont des **décimales** (0.30 = 30 %), en CAD sauf men
 {
   "persona": "Robert",
   "demande": "Je veux mettre 30 % de mon portefeuille en Tesla",
-  "decision": {"ticker": "TSLA", "taille": 0.30, "financement": "proportionnel", "libelle": "30 % en TSLA"},
+  "decision": {"type": "position", "ticker": "TSLA", "taille": 0.30, "financement": "proportionnel", "libelle": "30 % en TSLA"},
   "pacte": {
     "id": "robert",
     "profil_risque": "faible_a_modere",
@@ -228,6 +228,9 @@ Conventions : les nombres sont des **décimales** (0.30 = 30 %), en CAD sauf men
 ```
 
 Règles du contrat :
+- Le contrat est vérifiable automatiquement : schéma `contrat/schema_sortie.json`, renvois entre champs dans `contrat/valider.py` (`python -m contrat.valider <fichier.json>`). Exemples valides : `docs/exemples/contrat_robert.json` (cas 1) et `docs/exemples/contrat_amira.json` (cas 2).
+- `decision.type` vaut `position` (`ticker`, `taille`, `financement` : `proportionnel` ou `depuis_<ticker>`) ou `reallocation` (`panier` : liste `ticker` + `poids` totalisant 1, `part_reallouee`, prise au prorata de toutes les lignes). Même format que `decision_demo` des fichiers profils, plus `libelle`.
+- `taille_max_compatible` vaut `null` si même 0 % viole le Pacte. Pour une réallocation, c'est la plus grande part réallouée compatible.
 - `statut` d'un contrôle : `conforme`, `violation` ou `a_verifier`. `etiquette` : `fait`, `hypothese` ou `fictif`. `type` d'une pièce : `calculee` (outil Python) ou `documentaire` (extrait de document, V3).
 - `pacte.regles` reprend les règles du fichier profil (section 3), sans les justifications. `controles[].regle` est l'`id` d'une règle du Pacte, ou l'un des contrôles du système : `verifier_chiffres`, `performance_passee`, `biais_survivant`.
 - Chaque argument cite au moins une pièce. Un argument dont un chiffre est introuvable dans ses pièces (section 4 ter) va dans `arguments_rejetes`, avec `cote` (`requisitoire` ou `plaidoirie`), son texte, ses pièces et la `raison` du rejet.

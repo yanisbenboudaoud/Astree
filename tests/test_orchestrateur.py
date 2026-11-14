@@ -21,7 +21,6 @@ from pipeline.llm import DemandeOutil, TourOutils, decrire_outil
 from pipeline.orchestrateur import (
     BUDGET_APPELS,
     RAISON_D_OFFICE,
-    RAISON_INDISPONIBLE,
     RAISON_REFUSEE,
     Outil,
     construire_dossier,
@@ -190,14 +189,15 @@ def test_simulation_d_une_autre_taille_ne_compte_pas():
     assert [e["raison"] for e in resultat.trace] == [RAISON, RAISON_D_OFFICE]
 
 
-def test_reallocation_sans_simulation_obligatoire_notee_dans_la_trace():
+def test_reallocation_simulation_obligatoire_ajoutee_d_office():
     reallocation = {"type": "reallocation", "panier": [{"ticker": "BTC-USD", "poids": 1.0}],
                     "part_reallouee": 0.2, "libelle": "20 % réalloué vers BTC-USD"}
     resultat = instruire_dossier(reallocation, PROFIL, premier_numero=2, outils=FAUX_OUTILS,
                                  converser=FauxModele())
-    assert resultat.pieces == []
-    assert resultat.trace[-1]["raison"] == RAISON_INDISPONIBLE
-    assert resultat.trace[-1]["sortie"] == "Aucune pièce"
+    assert resultat.pieces == [{"id": "P2", "outil": "simuler_portefeuille",
+                                "entree": {"part_reallouee": 0.2, "periode": "complete"}}]
+    assert resultat.trace[-1]["raison"] == RAISON_D_OFFICE
+    assert resultat.piece_simulation["id"] == "P2"
 
 
 def test_raisons_de_la_trace_sans_chiffre():
@@ -255,7 +255,7 @@ class FauxDebat:
 
     def debattre(self, dossier):
         simulation = next((p for p in dossier["pieces"] if "pire_baisse_actuelle" in p.get("valeurs", {})), None)
-        if simulation is None:  # réallocation : pas de simulation, des arguments sans chiffre
+        if dossier["decision"]["type"] == "reallocation":  # arguments sans chiffre, toujours valides
             requisitoire = [argument("Votre Pacte limite la part des cryptoactifs.", "P1")]
             plaidoirie = [argument("Votre horizon est long.", "P1")]
         else:
@@ -365,7 +365,7 @@ def test_greffier_lit_la_simulation_demandee_par_le_modele(monkeypatch):
     assert len([p for p in contrat["pieces"] if p["outil"] == "simuler_portefeuille"]) == 1
 
 
-def test_juger_decision_reallocation_sans_planter(monkeypatch):
+def test_juger_decision_reallocation_contrat_complet(monkeypatch):
     reallocation = {"type": "reallocation", "panier": [{"ticker": "BTC-USD", "poids": 1.0}],
                     "part_reallouee": 0.2, "libelle": "20 % réalloué vers BTC-USD"}
 
@@ -379,11 +379,14 @@ def test_juger_decision_reallocation_sans_planter(monkeypatch):
 
     monkeypatch.setattr(tribunal, "lancer_agent_profil", lambda *args: ProfilReallocation)
     contrat = juger_decision("amira", "Je réalloue 20 % vers le bitcoin", converser=FauxModele())
-    assert "comparaison" not in contrat
-    assert next(e for e in contrat["trace"] if e["etape"] == "orchestrateur")["raison"] == RAISON_INDISPONIBLE
-    # Sans simulation, aucune règle n'est jugée conforme par défaut.
-    regles = [c for c in contrat["controles"] if c["regle"] in {r["id"] for r in ProfilReallocation.profil["pacte"]["regles"]}]
-    assert regles and all(c["statut"] == "a_verifier" for c in regles)
+    # Simulation obligatoire ajoutée d'office, comme pour une position.
+    assert next(e for e in contrat["trace"] if e["etape"] == "orchestrateur")["raison"] == RAISON_D_OFFICE
+    assert contrat["comparaison"]["apres"]["pire_baisse"] < contrat["comparaison"]["actuel"]["pire_baisse"]
+    # Crypto après la décision : 0,15 × (1 − t) + t ≤ 0,25 → au plus 11 % réalloués.
+    assert contrat["taille_max_compatible"] == 0.11
+    statuts = {c["regle"]: c["statut"] for c in contrat["controles"]}
+    assert statuts["plafond_crypto"] == "violation"  # 0,15 × 0,8 + 0,2 = 32 % de crypto
+    assert valider_contrat(contrat) == []
 
 
 def test_juger_decision_sans_decision_ne_calcule_rien(monkeypatch):

@@ -228,6 +228,30 @@ def decrire_taille_max(tickers_univers: list[str], portefeuille: list[dict[str, 
     )
 
 
+def decrire_taille_max_reallocation() -> dict[str, Any]:
+    """Description de l'outil pour une décision de **réallocation** (#16) : la taille est la part réallouée."""
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["part_reallouee"],
+        "properties": {
+            "part_reallouee": {
+                "type": "number",
+                "description": "Part réallouée demandée par la décision, en décimale (1.0 = tout) : "
+                "la recherche va de 0 jusqu'à elle",
+            },
+        },
+    }
+    return decrire_outil(
+        NOM_OUTIL,
+        "Plus grande part du portefeuille réallouable vers le panier de la décision, de 0 jusqu'à "
+        "la part demandée par pas de 1 point, qui respecte toutes les règles calculables du Pacte "
+        "(pire baisse, plafonds). Utile quand la réallocation semble dépasser un seuil ou un "
+        "plafond du Pacte : montre si une réallocation plus modeste serait compatible.",
+        schema,
+    )
+
+
 # --- Mise en forme ------------------------------------------------------------
 
 

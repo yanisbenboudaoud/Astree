@@ -64,24 +64,28 @@ def poids_apres_decision(portefeuille: list[dict[str, Any]], decision: dict[str,
 
     Args:
         portefeuille: lignes ``{"ticker", "poids"}`` du profil (poids totalisant 1).
-        decision: décision du contrat, de type « position » : ``ticker``,
-            ``taille`` (part du portefeuille, entre 0 et 1) et ``financement``
-            (``proportionnel`` ou ``depuis_<ticker>``).
+        decision: décision du contrat (section 5), de l'un des deux types :
+            - « position » : ``ticker``, ``taille`` (part du portefeuille, entre
+              0 et 1) et ``financement`` (``proportionnel`` ou ``depuis_<ticker>``) ;
+            - « reallocation » : ``panier`` (lignes ``{"ticker", "poids"}``
+              totalisant 1) et ``part_reallouee`` (entre 0 et 1), prise au
+              prorata de toutes les lignes du portefeuille (#16).
 
     Returns:
-        Un poids par titre, totalisant 1. Une ligne vidée par un financement
-        ``depuis_<ticker>`` disparaît.
+        Un poids par titre, totalisant 1. Une ligne vidée (financement
+        ``depuis_<ticker>``, ou réallocation de 100 %) disparaît.
 
     Raises:
-        ErreurSimulation: portefeuille mal formé, décision d'un autre type, taille
-            hors de [0, 1], financement inconnu ou impossible.
+        ErreurSimulation: portefeuille ou panier mal formé, type de décision
+            inconnu, taille hors de [0, 1], financement inconnu ou impossible.
     """
     poids = _poids_actuels(portefeuille)
 
+    if decision.get("type") == "reallocation":
+        return _poids_apres_reallocation(poids, decision)
     if decision.get("type") != "position":
         raise ErreurSimulation(
-            "Seules les décisions de type « position » (un seul titre) sont simulées "
-            "pour l'instant ; les réallocations vers un panier arrivent avec #16"
+            f"Type de décision « {decision.get('type')} » inconnu : « position » ou « reallocation » attendu"
         )
     ticker = decision["ticker"]
     taille = decision["taille"]
@@ -112,6 +116,29 @@ def poids_apres_decision(portefeuille: list[dict[str, Any]], decision: dict[str,
 
     apres[ticker] = apres.get(ticker, 0.0) + taille
     return apres
+
+
+def _poids_apres_reallocation(poids: dict[str, float], decision: dict[str, Any]) -> dict[str, float]:
+    """Retire la part réallouée de chaque ligne au prorata, puis la répartit selon le panier."""
+    part = decision["part_reallouee"]
+    if isinstance(part, bool) or not isinstance(part, (int, float)) or not 0 <= part <= 1:
+        raise ErreurSimulation(f"Part réallouée « {part} » impossible : elle doit être comprise entre 0 et 1")
+    panier = decision["panier"]
+    if not panier:
+        raise ErreurSimulation("Panier vide : rien à réallouer")
+    tickers = [ligne["ticker"] for ligne in panier]
+    if len(set(tickers)) != len(tickers):
+        raise ErreurSimulation("Un titre apparaît deux fois dans le panier")
+    if any(isinstance(ligne["poids"], bool) or not ligne["poids"] > 0 for ligne in panier):
+        raise ErreurSimulation("Chaque titre du panier doit avoir un poids positif")
+    total = sum(ligne["poids"] for ligne in panier)
+    if abs(total - 1) > TOLERANCE_POIDS:
+        raise ErreurSimulation(f"Les poids du panier totalisent {total} au lieu de 1")
+
+    apres = {t: p * (1 - part) for t, p in poids.items()}
+    for ligne in panier:
+        apres[ligne["ticker"]] = apres.get(ligne["ticker"], 0.0) + part * ligne["poids"]
+    return {t: p for t, p in apres.items() if p > TOLERANCE_POIDS}
 
 
 def _poids_actuels(portefeuille: list[dict[str, Any]]) -> dict[str, float]:
@@ -360,3 +387,34 @@ def decrire_simuler_portefeuille(tickers_univers: list[str], portefeuille: list[
         },
     }
     return decrire_outil(NOM_OUTIL, DESCRIPTION, schema)
+
+
+def decrire_simuler_reallocation() -> dict[str, Any]:
+    """Description de l'outil pour une décision de **réallocation** (#16).
+
+    Le panier est celui de la décision (lu par Python) : le modèle choisit
+    seulement la part réallouée et la période.
+    """
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["part_reallouee", "periode"],
+        "properties": {
+            "part_reallouee": {
+                "type": "number",
+                "description": "Part du portefeuille réallouée vers le panier de la décision, "
+                "en décimale entre 0 et 1 (1.0 = tout le portefeuille)",
+            },
+            "periode": {
+                "type": "string",
+                "enum": ["complete", "2022"],
+                "description": "« complete » : toute la période d'analyse ; « 2022 » : rejeu de l'année de crise",
+            },
+        },
+    }
+    return decrire_outil(
+        NOM_OUTIL,
+        DESCRIPTION + " Ici, la décision est une réallocation vers le panier qu'elle décrit : "
+        "la part réallouée est prise au prorata de toutes les lignes.",
+        schema,
+    )

@@ -13,9 +13,8 @@ Garde-fous, tous appliqués par Python :
 - **raison** : obligatoire, une phrase, sans chiffre ; sinon l'appel est refusé
   et le modèle reçoit le motif ;
 - **pièce obligatoire** : si le modèle n'a pas demandé la simulation complète de
-  la décision, Python l'ajoute d'office et le note dans la trace (pour une
-  réallocation, que ``simuler_portefeuille`` ne sait pas encore simuler, #16,
-  la trace l'indique et aucune pièce n'est créée) ;
+  la décision (position ou réallocation), Python l'ajoute d'office et le note
+  dans la trace ;
 - **erreur d'outil** (titre hors univers, taille impossible…) : renvoyée au
   modèle comme résultat en erreur, sans planter et sans créer de pièce.
 
@@ -31,7 +30,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from pipeline import indicateurs, simulation, taille_max
+from pipeline import correlations, indicateurs, simulation, taille_max
 from pipeline.donnees import ErreurDonnees
 from pipeline.llm import (
     DemandeOutil,
@@ -48,7 +47,6 @@ LONGUEUR_MAX_RAISON = 160
 
 RAISON_D_OFFICE = "Pièce obligatoire ajoutée d'office"
 RAISON_REFUSEE = "Raison refusée par le garde-fou"
-RAISON_INDISPONIBLE = "Pièce obligatoire indisponible : simulation des réallocations pas encore construite"
 
 # Erreurs d'outil renvoyées au modèle au lieu d'arrêter le procès.
 ERREURS_OUTIL = (ErreurDonnees, ErreurSimulation)
@@ -70,36 +68,53 @@ class ResultatInstruction:
     pieces: list[dict[str, Any]] = field(default_factory=list)  # pièces numérotées
     trace: list[dict[str, Any]] = field(default_factory=list)  # étapes « orchestrateur »
     appels: int = 0  # appels d'outils demandés par le modèle, refus compris
-    # Pièce obligatoire (simulation complète de la décision), lue par le Greffier ;
-    # None pour une réallocation, pas encore simulée (#16).
+    # Pièce obligatoire (simulation complète de la décision), lue par le Greffier.
     piece_simulation: dict[str, Any] | None = None
 
 
-def outils_du_profil(profil: dict[str, Any]) -> list[Outil]:
-    """Liste blanche des outils, décrits pour le portefeuille de ce profil."""
+def outils_du_profil(profil: dict[str, Any], decision: dict[str, Any] | None = None) -> list[Outil]:
+    """Liste blanche des outils (1 à 4), décrits pour le portefeuille de ce profil.
+
+    Pour une décision de réallocation (#16), la simulation et la taille maximale
+    portent sur le panier de la décision : le modèle choisit seulement la part
+    réallouée (et la période de la simulation).
+    """
     portefeuille = profil["portefeuille"]
+    regles = profil["pacte"]["regles"]
     tickers_univers = [ligne["ticker"] for ligne in charger_univers()]
 
     def executer_indicateurs(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
         return {"id": id_piece, **indicateurs.indicateurs_actif(entree["ticker"])}
 
-    def executer_simulation(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
-        decision = {"type": "position", "ticker": entree["ticker"], "taille": entree["taille"],
+    def executer_correlations(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
+        return {"id": id_piece, **correlations.calculer_correlations(entree["tickers"])}
+
+    if decision is not None and decision["type"] == "reallocation":
+        def decision_simulee(entree: dict[str, Any]) -> dict[str, Any]:
+            return {"type": "reallocation", "panier": decision["panier"],
+                    "part_reallouee": entree["part_reallouee"]}
+
+        description_simulation = simulation.decrire_simuler_reallocation()
+        description_taille_max = taille_max.decrire_taille_max_reallocation()
+    else:
+        def decision_simulee(entree: dict[str, Any]) -> dict[str, Any]:
+            return {"type": "position", "ticker": entree["ticker"], "taille": entree["taille"],
                     "financement": entree["financement"]}
-        return simulation.piece_simulation(id_piece, portefeuille, decision, entree["periode"])
+
+        description_simulation = simulation.decrire_simuler_portefeuille(tickers_univers, portefeuille)
+        description_taille_max = taille_max.decrire_taille_max(tickers_univers, portefeuille)
+
+    def executer_simulation(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
+        return simulation.piece_simulation(id_piece, portefeuille, decision_simulee(entree), entree["periode"])
 
     def executer_taille_max(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
-        decision = {"type": "position", "ticker": entree["ticker"], "taille": entree["taille"],
-                    "financement": entree["financement"]}
-        return taille_max.piece_taille_max(id_piece, portefeuille, decision, profil["pacte"]["regles"])
+        return taille_max.piece_taille_max(id_piece, portefeuille, decision_simulee(entree), regles)
 
     return [
         Outil("indicateurs_actif", indicateurs.DESCRIPTION_BEDROCK, executer_indicateurs),
-        Outil(simulation.NOM_OUTIL,
-              simulation.decrire_simuler_portefeuille(tickers_univers, portefeuille),
-              executer_simulation),
-        Outil(taille_max.NOM_OUTIL, taille_max.decrire_taille_max(tickers_univers, portefeuille),
-              executer_taille_max),
+        Outil(simulation.NOM_OUTIL, description_simulation, executer_simulation),
+        Outil("calculer_correlations", correlations.DESCRIPTION_BEDROCK, executer_correlations),
+        Outil(taille_max.NOM_OUTIL, description_taille_max, executer_taille_max),
     ]
 
 
@@ -138,10 +153,10 @@ def instruire_dossier(
             son horizon, ses règles et son portefeuille sont lus.
         premier_numero: numéro de la première pièce créée ici (les pièces
             précédentes, comme le Pacte, sont numérotées par l'appelant).
-        outils: liste blanche (par défaut ``outils_du_profil(profil)``).
+        outils: liste blanche (par défaut ``outils_du_profil(profil, decision)``).
         converser: fonction qui fait jouer un tour au modèle (remplacée dans les tests).
     """
-    outils = outils_du_profil(profil) if outils is None else outils
+    outils = outils_du_profil(profil, decision) if outils is None else outils
     instruction = _Instruction({outil.nom: outil for outil in outils}, premier_numero)
 
     systeme = CONSIGNES.format(budget=BUDGET_APPELS)
@@ -198,6 +213,8 @@ def raison_valide(raison: Any) -> bool:
 
 def entree_simulation_obligatoire(decision: dict[str, Any]) -> dict[str, Any]:
     """Paramètres de la pièce obligatoire : la décision demandée, sur toute la période."""
+    if decision["type"] == "reallocation":
+        return {"part_reallouee": decision["part_reallouee"], "periode": "complete"}
     return {"ticker": decision["ticker"], "taille": decision["taille"],
             "financement": decision["financement"], "periode": "complete"}
 
@@ -232,9 +249,6 @@ class _Instruction:
 
     def ajouter_simulation_obligatoire(self, decision: dict[str, Any]) -> None:
         """Ajoute la simulation complète de la décision si le modèle ne l'a pas obtenue."""
-        if decision["type"] != "position":
-            self._tracer(simulation.NOM_OUTIL, RAISON_INDISPONIBLE, decision, "Aucune pièce")
-            return
         entree = entree_simulation_obligatoire(decision)
         piece = self.pieces_par_entree.get(_cle(simulation.NOM_OUTIL, entree))
         if piece is None:

@@ -207,10 +207,10 @@ Les personas de l'énoncé deviennent des **profils de test**. Le code ne teste 
 | **Bedrock** | LLM du Profil, de l'Orchestrateur, du Procureur et de l'Avocat (API Converse avec *tool use*) | Cœur agentique ; rôle d'AWS directement démontrable |
 | **Lambda** | Exécute les 6 outils et la boucle de l'orchestrateur | Même code qu'en local ; aucun serveur à gérer |
 | **S3** | Données, traces et journal des verdicts | Traces conservées et consultables (explicabilité) |
-| **API Gateway ou Lambda Function URL** | Point d'accès de l'interface | Renvoie le JSON du contrat. À trancher : API Gateway coupe après environ 29 s, ce qu'un procès peut dépasser (issue #22) |
+| **Lambda Function URL** | Point d'accès de l'interface | Renvoie le JSON du contrat. Préféré à API Gateway, qui coupe la requête après environ 29 s : un procès complet dure de 18 à 33 s (mesuré dans #22). C'est aussi un service de moins |
 | *Base de connaissances Bedrock (V3)* | *Pièces documentaires ESG* | *Citations sourcées et datées pour le cas « préférences non financières »* |
 
-**Sécurité.** Aucune clé dans le code ni dans Git, rôle IAM minimal (accès au bucket et `bedrock:InvokeModel` seulement).
+**Sécurité.** Aucune clé dans le code ni dans Git, rôle IAM minimal : accès au bucket et `bedrock:InvokeModel` seulement (`deploiement/politique_iam_lambda.json`). Paramètres de la Lambda : `deploiement/README.md`.
 
 ---
 

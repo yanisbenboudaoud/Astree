@@ -1,4 +1,7 @@
-# Dépendances du pipeline (local et Lambda).
+# Dépendances du pipeline, embarquées dans le zip de la Lambda (et installées en local).
 # Versions épinglées : toute l'équipe utilise les mêmes (issue #22).
+# boto3 est embarqué même si Lambda en fournit un : celui du runtime peut être plus
+# ancien et ignorer la sortie JSON structurée de Bedrock (outputConfig).
+# pandas n'est pas ici : il vient de la couche Lambda (voir requirements-dev.txt).
 boto3==1.44.3
 jsonschema==4.26.0

@@ -2,9 +2,12 @@ import pandas as pd
 import pytest
 
 from pipeline.donnees import (
+    HYPOTHESES_DONNEES,
     ErreurDonnees,
+    charger_donnees,
     charger_prix,
     charger_univers,
+    convertir_en_cad,
     lire_csv,
     seances_americaines,
 )
@@ -106,3 +109,75 @@ def test_source_inconnue_erreur(monkeypatch):
     monkeypatch.setenv("SOURCE_DONNEES", "ftp")
     with pytest.raises(ErreurDonnees, match="local"):
         lire_csv("assets_universe.csv")
+
+
+# --- Conversion en CAD (issue #5) -------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def prix_cad():
+    return charger_donnees(MELANGE)
+
+
+@pytest.fixture(scope="module")
+def taux_usdcad():
+    taux = lire_csv("fx_usdcad_daily.csv")
+    taux["date"] = pd.to_datetime(taux["date"])
+    return taux.set_index("date")["usdcad"]
+
+
+def test_titre_cad_inchange_apres_conversion(prix, prix_cad):
+    for ticker in ["RY.TO", "XBB.TO"]:
+        pd.testing.assert_series_equal(prix_cad[ticker], prix[ticker])
+
+
+def test_titre_usd_multiplie_par_le_taux_du_jour(prix, prix_cad, taux_usdcad):
+    jour = pd.Timestamp("2022-06-15")
+    for ticker in ["TSLA", "SPY", "BTC-USD"]:
+        assert prix_cad.at[jour, ticker] == pytest.approx(prix.at[jour, ticker] * taux_usdcad[jour])
+
+
+def test_jour_ferie_canadien_reporte_le_dernier_taux(prix, prix_cad, taux_usdcad):
+    feries_canadiens = [d for d in prix.index if d not in taux_usdcad.index]
+    assert feries_canadiens, "le jeu de données devrait contenir des jours fériés canadiens"
+    for jour in feries_canadiens:
+        dernier_taux = taux_usdcad[taux_usdcad.index < jour].iloc[-1]
+        assert prix_cad.at[jour, "SPY"] == pytest.approx(prix.at[jour, "SPY"] * dernier_taux)
+
+
+def test_conversion_sans_trou(prix_cad):
+    assert list(prix_cad.columns) == MELANGE
+    assert not prix_cad.isna().any().any()
+
+
+def test_devise_non_prise_en_charge_erreur(prix):
+    with pytest.raises(ErreurDonnees, match="TSLA \\(EUR\\)"):
+        convertir_en_cad(prix[["TSLA"]], {"TSLA": "EUR"})
+
+
+def test_devise_manquante_erreur(prix):
+    with pytest.raises(ErreurDonnees, match="SPY"):
+        convertir_en_cad(prix[["SPY"]], {})
+
+
+def test_hypothese_cad_listee():
+    assert "Montants convertis en CAD" in HYPOTHESES_DONNEES
+
+
+def test_reproduit_la_pire_baisse_de_tsla_en_cad(prix_cad):
+    # Valeur de la pièce P4 de docs/exemples/contrat_robert.json (pire_baisse_cad).
+    tsla = prix_cad["TSLA"]
+    assert round((tsla / tsla.cummax() - 1).min(), 4) == -0.7088
+
+
+def test_reproduit_le_portefeuille_actuel_de_robert():
+    # Portefeuille de personas/robert.json, rééquilibré chaque jour (CLAUDE.md, section 6 bis).
+    # Valeurs attendues : « comparaison.actuel » de docs/exemples/contrat_robert.json.
+    poids = pd.Series({"ZST.TO": 0.3, "XBB.TO": 0.2, "XIU.TO": 0.2, "JNJ": 0.1, "RY.TO": 0.1, "FTS.TO": 0.1})
+    rendements = charger_donnees(list(poids.index)).pct_change().dropna()
+    rendement_portefeuille = (rendements * poids).sum(axis=1)
+    valeur = (1 + rendement_portefeuille).cumprod()
+    annees = (valeur.index[-1] - pd.Timestamp("2021-11-12")).days / 365.25
+    assert round(valeur.iloc[-1] ** (1 / annees) - 1, 4) == 0.0929
+    assert round(rendement_portefeuille.std() * 252**0.5, 4) == 0.0559
+    assert round((valeur / valeur.cummax().clip(lower=1) - 1).min(), 4) == -0.0776

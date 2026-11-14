@@ -1,6 +1,6 @@
 # #5 — Conversion USD → CAD
 
-- **Issue** : #5 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #5 · **PR** : #31 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

@@ -1,6 +1,6 @@
 # #21 — Outil 4 : taille_max_compatible
 
-- **Issue** : #21 · **PR** : à compléter · **Statut** : terminée
+- **Issue** : #21 · **PR** : #47 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

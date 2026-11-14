@@ -1,60 +1,54 @@
 {
+  "id": "robert",
   "nom": "Robert",
   "age": 59,
   "metier": "Professionnel de la santé",
   "etiquette": "fictif",
   "profil_risque": "faible_a_modere",
-  "horizon_ans": [
-    3,
-    5
-  ],
+  "horizon_ans": [3, 5],
   "capital_fictif_cad": 650000,
   "pacte": {
     "date_signature": "2026-11-14",
-    "pire_baisse_max": -0.12,
-    "plafond_crypto": 0.0,
-    "exclusions": [
-      "crypto"
-    ],
-    "exclusions_esg": [],
     "regles": [
-      "Pire baisse tolérée : −12 %",
-      "Préserver mon capital",
-      "Entreprises établies, modèle compris",
-      "Crypto : exclue"
-    ],
-    "justifications": {
-      "pire_baisse_max": "Hypothèse : avec un horizon de 3 à 5 ans avant la retraite, une baisse au-delà de 12 % laisse peu de temps pour récupérer.",
-      "plafond_crypto": "Le persona se dit peu intéressé par les cryptoactifs (énoncé, persona 03)."
-    }
+      {
+        "id": "pire_baisse_max",
+        "type": "pire_baisse_max",
+        "seuil": -0.12,
+        "libelle": "Pire baisse tolérée : −12 %",
+        "justification": "Hypothèse : avec un horizon de 3 à 5 ans avant la retraite, une baisse au-delà de 12 % laisse peu de temps pour récupérer."
+      },
+      {
+        "id": "plafond_crypto",
+        "type": "plafond",
+        "categories": ["crypto"],
+        "max": 0.0,
+        "libelle": "Crypto : exclue",
+        "justification": "Le persona se dit peu intéressé par les cryptoactifs (énoncé, persona 03)."
+      },
+      {
+        "id": "preserver_capital",
+        "type": "qualitative",
+        "libelle": "Préserver mon capital",
+        "justification": "Objectif déclaré (énoncé, persona 03). Mesuré indirectement par la règle pire_baisse_max."
+      },
+      {
+        "id": "entreprises_etablies",
+        "type": "qualitative",
+        "libelle": "Entreprises établies, modèle compris",
+        "justification": "Préférence déclarée (énoncé, persona 03). Aucune donnée du jeu de départ ne la mesure : à juger par l'utilisateur."
+      }
+    ]
   },
   "portefeuille": [
-    {
-      "ticker": "ZST.TO",
-      "poids": 0.3
-    },
-    {
-      "ticker": "XBB.TO",
-      "poids": 0.2
-    },
-    {
-      "ticker": "XIU.TO",
-      "poids": 0.2
-    },
-    {
-      "ticker": "JNJ",
-      "poids": 0.1
-    },
-    {
-      "ticker": "RY.TO",
-      "poids": 0.1
-    },
-    {
-      "ticker": "FTS.TO",
-      "poids": 0.1
-    }
+    {"ticker": "ZST.TO", "poids": 0.3},
+    {"ticker": "XBB.TO", "poids": 0.2},
+    {"ticker": "XIU.TO", "poids": 0.2},
+    {"ticker": "JNJ", "poids": 0.1},
+    {"ticker": "RY.TO", "poids": 0.1},
+    {"ticker": "FTS.TO", "poids": 0.1}
   ],
   "decision_demo": {
+    "type": "position",
     "ticker": "TSLA",
     "taille": 0.3,
     "financement": "proportionnel"

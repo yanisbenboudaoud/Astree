@@ -1,0 +1,21 @@
+{
+  "description": "Catégories d'actifs utilisées par les règles de type « plafond » des Pactes. Un seul fichier pour tous les profils. Un titre appartient à une catégorie si sa classe d'actifs (asset_class) ou son secteur (sector) dans assets_universe.csv figure dans la définition, ou s'il est listé dans « ajouts ». Un titre absent de l'univers n'est jamais classé au hasard : le Greffier rend « a_verifier ».",
+  "etiquette": "hypothese",
+  "source": "alphaforge_starter/assets_universe.csv (champs asset_class et sector)",
+  "categories": {
+    "crypto": {
+      "libelle": "Cryptoactifs",
+      "classes_actifs": ["crypto"],
+      "secteurs": [],
+      "ajouts": [],
+      "justification": "Classe d'actifs « crypto » du fichier d'univers (BTC-USD, ETH-USD)."
+    },
+    "tech": {
+      "libelle": "Technologie",
+      "classes_actifs": [],
+      "secteurs": ["Information Technology"],
+      "ajouts": ["GOOGL", "AMZN", "QQQ"],
+      "justification": "Hypothèse de l'équipe : secteur GICS « Information Technology », plus GOOGL et AMZN (classés ailleurs par le GICS, mais à activité largement technologique) et QQQ (FNB Nasdaq-100 à forte pondération tech, compté en entier par simplicité)."
+    }
+  }
+}

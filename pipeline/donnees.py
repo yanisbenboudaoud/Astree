@@ -83,6 +83,15 @@ def _taux_usdcad() -> pd.Series:
     return taux.set_index("date")["usdcad"].sort_index()
 
 
+def date_extraction(nom_fichier: str) -> str:
+    """Date d'extraction d'un fichier du jeu de données (sources_metadata.csv), ex. « 2026-11-13 »."""
+    sources = lire_csv("sources_metadata.csv")
+    dates = sources.loc[sources["file"] == nom_fichier, "retrieved_on"]
+    if dates.empty:
+        raise ErreurDonnees(f"{nom_fichier} absent de sources_metadata.csv")
+    return str(dates.iloc[0])
+
+
 def charger_univers() -> pd.DataFrame:
     """Univers d'actifs (assets_universe.csv) : ticker, classe d'actifs, marché, devise, secteur."""
     return _univers().copy()

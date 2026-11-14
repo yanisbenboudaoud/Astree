@@ -1,6 +1,6 @@
 # #8 — Agent Profil : demande → décision structurée
 
-- **Issue** : #8 · **PR** : #29, à compléter · **Statut** : terminée (les réallocations passent à #16)
+- **Issue** : #8 · **PR** : #29, #34 · **Statut** : terminée (les réallocations passent à #16)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

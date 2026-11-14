@@ -1,6 +1,6 @@
 # #9 — Outil 2 : simuler_portefeuille (avant / après la décision)
 
-- **Issue** : #9 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #9 · **PR** : #37 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

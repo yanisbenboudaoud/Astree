@@ -70,7 +70,7 @@ pytest tests/test_correlations.py tests/test_agent_profil.py -m bedrock   # vrai
 - **Outils d'une réallocation** : le panier est celui de la décision, lu par Python. Le modèle ne peut donc pas simuler un autre panier ; il choisit seulement la part réallouée (et la période).
 
 ## Limites et suite
-- **Hypothèse à valider par l'équipe** : « ne pas miser exclusivement sur la tech » est traduit par tech et crypto à 75 % au plus (`personas/amira.json`). C'est un seuil choisi par l'équipe, pas une citation de l'énoncé.
+- **Hypothèse validée par l'équipe le 2026-11-14** : « ne pas miser exclusivement sur la tech » est traduit par tech et crypto à 75 % au plus (`personas/amira.json`). La crypto y est comptée avec la tech, comme technologie émergente. Le seuil reste une hypothèse (ce n'est pas une citation de l'énoncé) et s'affiche comme telle. Sans elle, le cas 2 donnerait 2 violations au lieu de 3.
 - Dans un essai isolé (outils 1 et 3 seulement), le modèle avait demandé un `indicateurs_actif` par titre du panier. Dans le vrai procès, avec les quatre outils, il ne l'a pas fait (4 appels).
 - Les corrélations couvrent toujours toute la période : pas de paramètre de période pour l'instant.
 - Le panier d'une demande vague doit venir de l'interface (#14) : sélection des titres et des poids.

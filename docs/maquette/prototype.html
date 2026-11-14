@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlphaForge · Le Tribunal</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3EF}
+a{color:#1E3A8A}a:hover{color:#15296A}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #93B4F5;outline-offset:2px}
+</style>
+
+</head>
+<body>
+<div id="root"></div>
+<template id="tpl">
+<div style="min-height: 100vh; background: #F4F3EF; color: #15171C; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="background: #15171C; color: #FFFFFF; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px">
+  <div style="display: flex; align-items: center; gap: 10px">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"></path><path d="M5 7h14"></path><path d="M5 7l-3 7a3.5 3.5 0 0 0 6 0z"></path><path d="M19 7l-3 7a3.5 3.5 0 0 0 6 0z"></path><path d="M8 21h8"></path></svg>
+    <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px; letter-spacing: -0.01em">AlphaForge</span>
+    <span style="font-size: 12px; color: #C9CCD3; border-left: 1px solid #3A3D45; padding-left: 10px">Le Tribunal de vos décisions</span>
+  </div>
+  <div style="flex: 1 1 auto"></div>
+  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+    <span style="font-size: 12px; color: #C9CCD3">Profil de démo :</span>
+    <template data-sc="for" list="{{personaTabs}}" as="pt" hint-placeholder-count="3">
+      <button type="button" onClick="{{pt.pick}}" aria-pressed="{{pt.pressed}}" style="border: 1px solid {{pt.border}}; background: {{pt.bg}}; color: {{pt.fg}}; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; min-height: 36px">{{pt.label}}</button>
+    </template>
+  </div>
+  <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; background: #3A2A06; color: #F6D88A; border-radius: 6px; padding: 6px 10px">Simulation · aucune transaction réelle · pas un conseil personnalisé</span>
+</header>
+
+<nav aria-label="Étapes" style="background: #FFFFFF; border-bottom: 1px solid #E2E0DA; padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+  <template data-sc="for" list="{{steps}}" as="s" hint-placeholder-count="4">
+    <button type="button" onClick="{{s.go}}" disabled="{{s.disabled}}" style="display: flex; align-items: center; gap: 8px; border: none; background: {{s.bg}}; color: {{s.fg}}; border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 600; min-height: 36px">
+      <span style="display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; background: {{s.dotBg}}; color: {{s.dotFg}}">{{s.n}}</span>{{s.label}}
+    </button>
+  </template>
+  <div style="flex: 1 1 auto"></div>
+  <span style="font-size: 12px; color: #5B606B">{{p.name}} · {{p.meta}}</span>
+</nav>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 24px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 12px; color: #5B606B; margin-bottom: 16px">
+  <span style="font-weight: 600; color: #15171C">Légende :</span>
+  <span style="display: flex; align-items: center; gap: 6px"><span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: #E6EEF9; color: #1E3A8A">Fait</span>donnée calculée ou règle déclarée, avec sa source</span>
+  <span style="display: flex; align-items: center; gap: 6px"><span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: #FDF4DF; color: #7A4F00">Hypothèse</span>interprétation ou information à confirmer</span>
+  <span style="display: flex; align-items: center; gap: 6px"><span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: #F1EAFB; color: #5B2A86">Fictif</span>persona, portefeuille ou scénario simulé</span>
+</div>
+
+
+<template data-sc="if" value="{{isDash}}" hint-placeholder-val="{{true}}">
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+      <div style="flex: 1 1 400px">
+        <div style="font-size: 12px; color: #5B606B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em">Tableau de bord</div>
+        <h1 style="margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; letter-spacing: -0.02em">Bonjour {{p.name}}</h1>
+      </div>
+      <div style="font-size: 12px; color: #5B606B">Période d'analyse : 12 nov. 2021 → 12 nov. 2026 · montants en CAD</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+      <template data-sc="for" list="{{kpis}}" as="k" hint-placeholder-count="4">
+        <div style="background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 16px">
+          <div style="display: flex; justify-content: space-between; gap: 8px; align-items: center"><span style="font-size: 12px; color: #5B606B">{{k.label}}</span><span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: {{k.tagBg}}; color: {{k.tagFg}}">{{k.tag}}</span></div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; margin-top: 4px">{{k.value}}</div>
+          <div style="font-size: 12px; color: #5B606B; margin-top: 2px">{{k.sub}}</div>
+        </div>
+      </template>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px">
+      <section style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+        <div style="background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 20px">
+          <h2 style="margin: 0 0 12px; font-size: 15px; display: flex; align-items: center; gap: 8px">Allocation actuelle <span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: #F1EAFB; color: #5B2A86">Fictif</span></h2>
+          <div style="display: flex; height: 14px; border-radius: 7px; overflow: hidden; gap: 2px" role="img" aria-label="Répartition du portefeuille par catégorie">
+            <template data-sc="for" list="{{alloc}}" as="a" hint-placeholder-count="5"><div style="width: {{a.pct}}%; background: {{a.c}}"></div></template>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px">
+            <template data-sc="for" list="{{alloc}}" as="a" hint-placeholder-count="5">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 13px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{a.c}}"></span>{{a.label}} <strong>{{a.pct}} %</strong></div>
+            </template>
+          </div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 20px">
+          <h2 style="margin: 0 0 12px; font-size: 15px; display: flex; align-items: center; gap: 8px">Positions <span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: #F1EAFB; color: #5B2A86">Fictif</span></h2>
+          <div style="overflow-x: auto">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+              <thead><tr style="text-align: left; color: #5B606B; font-size: 12px"><th style="padding: 8px 6px; border-bottom: 1px solid #E2E0DA">Titre</th><th style="padding: 8px 6px; border-bottom: 1px solid #E2E0DA">Nom</th><th style="padding: 8px 6px; border-bottom: 1px solid #E2E0DA; text-align: right">Poids</th><th style="padding: 8px 6px; border-bottom: 1px solid #E2E0DA; text-align: right">Rend. annualisé*</th><th style="padding: 8px 6px; border-bottom: 1px solid #E2E0DA; text-align: right">Volatilité*</th></tr></thead>
+              <tbody>
+                <template data-sc="for" list="{{positions}}" as="r" hint-placeholder-count="6">
+                  <tr><td style="padding: 8px 6px; border-bottom: 1px solid #F0EEE9; font-weight: 600">{{r.t}}</td><td style="padding: 8px 6px; border-bottom: 1px solid #F0EEE9; color: #5B606B">{{r.n}}</td><td style="padding: 8px 6px; border-bottom: 1px solid #F0EEE9; text-align: right">{{r.w}} %</td><td style="padding: 8px 6px; border-bottom: 1px solid #F0EEE9; text-align: right">{{r.cagr}}</td><td style="padding: 8px 6px; border-bottom: 1px solid #F0EEE9; text-align: right">{{r.vol}}</td></tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <p style="margin: 10px 0 0; font-size: 12px; color: #5B606B">* Par titre, dans sa devise de cotation (CAD pour .TO, USD pour les autres), 12 nov. 2021 → 12 nov. 2026. Les indicateurs du portefeuille sont calculés en CAD.</p>
+        </div>
+      </section>
+
+      <aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+        <div style="background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 20px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <h2 style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px">Pacte de {{p.name}} <span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: #F1EAFB; color: #5B2A86">Fictif</span></h2>
+            <span style="font-size: 11px; font-weight: 600; color: #157F3D; background: #E9F6EE; border-radius: 6px; padding: 4px 8px">Respecté</span>
+          </div>
+          <p style="margin: 6px 0 12px; font-size: 12px; color: #5B606B">Signé le 14 nov. 2026 · risque {{p.risk}} · horizon {{p.horizon}}</p>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px">
+            <template data-sc="for" list="{{p.pact}}" as="rule" hint-placeholder-count="4">
+              <li style="display: flex; gap: 8px; align-items: flex-start; font-size: 13px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#157F3D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M5 12l5 5L20 7"></path></svg>{{rule}}</li>
+            </template>
+          </ul>
+        </div>
+        <div style="background: #15171C; color: #FFFFFF; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+          <div style="font-size: 12px; color: #C9CCD3; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em">Votre idée en cours</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600">{{p.asset.title}}</div>
+          <div style="font-size: 13px; color: #D9DBE0">{{p.asset.hook}}</div>
+          <button type="button" onClick="{{toTicket}}" style="align-self: flex-start; margin-top: 6px; border: none; background: #FFFFFF; color: #15171C; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 600; min-height: 44px">Ouvrir la fiche →</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</template>
+
+
+<template data-sc="if" value="{{isTicket}}" hint-placeholder-val="{{false}}">
+  <div style="display: flex; flex-wrap: wrap; gap: 20px">
+    <section style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 12px; color: #5B606B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em">Fiche</div>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; letter-spacing: -0.02em">{{p.asset.title}}</h1>
+      <div style="font-size: 13px; color: #5B606B">{{p.asset.sub}}</div>
+      <div style="display: flex; align-items: center; gap: 8px; background: #FDF4DF; color: #7A4F00; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 600">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A4F00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg>{{p.asset.badge}}
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <template data-sc="for" list="{{p.asset.stats}}" as="st" hint-placeholder-count="4">
+          <div style="border: 1px solid #E2E0DA; border-radius: 10px; padding: 12px">
+            <div style="font-size: 12px; color: #5B606B">{{st.k}}</div>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; margin-top: 2px">{{st.v}}</div>
+          </div>
+        </template>
+      </div>
+      <div style="font-size: 12px; color: #5B606B">Source : Yahoo Finance (prix ajustés, dividendes inclus), extraits le 13 nov. 2026 · devise précisée sur chaque indicateur · 12 nov. 2021 → 12 nov. 2026</div>
+    </section>
+
+    <section style="flex: 2 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 17px">Paramètres de la décision</h2>
+      <div style="border: 1px solid #E2E0DA; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px">
+          <div>
+            <label for="size" style="font-size: 12px; color: #5B606B; font-weight: 600">{{sizeLegend}}</label>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.1">{{sizeLabel}}</div>
+            <div style="font-size: 12px; color: #5B606B">{{sizeSub}}</div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+            <span style="font-size: 12px; color: #5B606B">Raccourcis :</span>
+            <template data-sc="for" list="{{presets}}" as="pr" hint-placeholder-count="4">
+              <button type="button" onClick="{{pr.pick}}" style="border: 1px solid #C9C6BE; background: {{pr.bg}}; color: {{pr.fg}}; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; min-height: 36px">{{pr.label}}</button>
+            </template>
+          </div>
+        </div>
+        <div style="position: relative; padding-top: 22px">
+          <div style="position: absolute; top: 0; left: {{okW}}%; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: #11632F; white-space: nowrap">▼ Limite du Pacte</div>
+          <input id="size" type="range" min="0" max="{{maxK}}" step="{{stepK}}" value="{{size}}" onChange="{{onSize}}" style="width: 100%; accent-color: #15171C; margin: 0; height: 28px">
+          <div aria-hidden="true" style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px">
+            <div style="width: {{okW}}%; background: #9ED9B3"></div>
+            <div style="flex: 1 1 auto; background: #F4B4AD"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #5B606B; margin-top: 4px"><span>0 %</span><span>{{maxK}} %</span></div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13px">
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #9ED9B3"></span>Compatible avec votre Pacte</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #F4B4AD"></span>En conflit</span>
+          <span style="flex: 1 1 auto"></span>
+          <strong>Taille maximale compatible : {{maxOkLabel}}</strong>
+        </div>
+        <template data-sc="if" value="{{hasFundings}}" hint-placeholder-val="{{true}}">
+          <div style="border-top: 1px solid #F0EEE9; padding-top: 12px">
+            <div style="font-size: 12px; color: #5B606B; font-weight: 600; margin-bottom: 8px">Financement de la position (simulé)</div>
+            <div role="radiogroup" aria-label="Financement de la position" style="display: flex; flex-wrap: wrap; gap: 8px">
+              <template data-sc="for" list="{{fundings}}" as="fd" hint-placeholder-count="2">
+                <button type="button" role="radio" aria-checked="{{fd.checked}}" onClick="{{fd.pick}}" style="border: 2px solid {{fd.border}}; background: {{fd.bg}}; color: #15171C; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; min-height: 40px">{{fd.label}}</button>
+              </template>
+            </div>
+          </div>
+        </template>
+        <div style="font-size: 12px; color: #5B606B">Chaque taille a été calculée d'avance par l'outil de calcul sur les données réelles (pas de 1 %{{stepNote}}) : aucun chiffre n'est estimé à la volée.</div>
+      </div>
+
+      <div style="overflow-x: auto">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px">
+          <thead><tr style="text-align: left; color: #5B606B; font-size: 12px"><th style="padding: 8px; border-bottom: 1px solid #E2E0DA">Indicateur (période étudiée)</th><th style="padding: 8px; border-bottom: 1px solid #E2E0DA; text-align: right">Portefeuille actuel</th><th style="padding: 8px; border-bottom: 1px solid #E2E0DA; text-align: right">Avec cette décision <span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: #F1EAFB; color: #5B2A86">Fictif</span></th><th style="padding: 8px; border-bottom: 1px solid #E2E0DA; text-align: right">Limite du Pacte</th></tr></thead>
+          <tbody>
+            <template data-sc="for" list="{{compare}}" as="c" hint-placeholder-count="4">
+              <tr><td style="padding: 10px 8px; border-bottom: 1px solid #F0EEE9">{{c.k}}</td><td style="padding: 10px 8px; border-bottom: 1px solid #F0EEE9; text-align: right">{{c.a}}</td><td style="padding: 10px 8px; border-bottom: 1px solid #F0EEE9; text-align: right; font-weight: 700; color: {{c.color}}">{{c.b}}</td><td style="padding: 10px 8px; border-bottom: 1px solid #F0EEE9; text-align: right; color: #5B606B">{{c.lim}}</td></tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <template data-sc="if" value="{{hasConflict}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; gap: 10px; align-items: flex-start; background: #FDECEA; color: #8F1C13; border-radius: 10px; padding: 12px 14px; font-size: 13px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8F1C13" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>
+          <div><strong>Conflit détecté avec votre Pacte.</strong> {{conflictText}} Nous vous suggérons de soumettre cette décision au Tribunal avant de la simuler.</div>
+        </div>
+      </template>
+      <template data-sc="if" value="{{noConflictChange}}" hint-placeholder-val="{{false}}">
+        <div style="background: #E9F6EE; color: #11632F; border-radius: 10px; padding: 12px 14px; font-size: 13px"><strong>Aucun conflit avec votre Pacte.</strong> Vous pouvez tout de même demander un second regard.</div>
+      </template>
+      <template data-sc="if" value="{{isNone}}" hint-placeholder-val="{{false}}">
+        <div style="background: #F1F0EC; color: #3F3F46; border-radius: 10px; padding: 12px 14px; font-size: 13px">Aucun changement au portefeuille : rien à juger.</div>
+      </template>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px">
+        <button type="button" onClick="{{startTrial}}" disabled="{{isNone}}" style="border: none; background: {{trialBg}}; color: #FFFFFF; border-radius: 10px; padding: 12px 20px; font-size: 15px; font-weight: 700; min-height: 48px; display: flex; align-items: center; gap: 8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"></path><path d="M5 7h14"></path><path d="M5 7l-3 7a3.5 3.5 0 0 0 6 0z"></path><path d="M19 7l-3 7a3.5 3.5 0 0 0 6 0z"></path></svg>Soumettre au Tribunal
+        </button>
+        <button type="button" onClick="{{skipToVerdict}}" style="border: 1px solid #C9C6BE; background: #FFFFFF; color: #15171C; border-radius: 10px; padding: 12px 18px; font-size: 14px; font-weight: 600; min-height: 48px">Simuler sans revue</button>
+      </div>
+    </section>
+  </div>
+</template>
+
+
+<template data-sc="if" value="{{isTrial}}" hint-placeholder-val="{{false}}">
+  <div style="display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <div style="flex: 1 1 400px">
+        <div style="font-size: 12px; color: #5B606B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em">Audience en cours</div>
+        <h1 style="margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 26px; letter-spacing: -0.02em">{{p.name}} c. « {{opt.label}} »</h1>
+      </div>
+      <span style="font-size: 12px; color: #5B606B">Le Tribunal présente les deux côtés. C'est vous qui rendez le verdict.</span>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+      <aside aria-label="Trace d'exécution" style="flex: 1 1 280px; min-width: 0; background: #15171C; color: #FFFFFF; border-radius: 12px; padding: 18px">
+        <div style="font-size: 12px; color: #C9CCD3; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px">Trace d'exécution des agents</div>
+        <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+          <template data-sc="for" list="{{trace}}" as="t" hint-placeholder-count="7">
+            <li style="display: flex; gap: 10px; align-items: flex-start; opacity: {{t.op}}">
+              <span style="flex: none; width: 20px; height: 20px; border-radius: 50%; margin-top: 1px; display: inline-flex; align-items: center; justify-content: center; background: {{t.dot}}; color: #15171C; font-size: 11px; font-weight: 700">{{t.mark}}</span>
+              <div><div style="font-size: 13px; font-weight: 600">{{t.who}}</div><div style="font-size: 12px; color: #C9CCD3; font-family: ui-monospace, monospace">{{t.what}}</div></div>
+            </li>
+          </template>
+        </ol>
+        <button type="button" onClick="{{replay}}" style="margin-top: 14px; border: 1px solid #3A3D45; background: transparent; color: #FFFFFF; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; min-height: 36px">Rejouer la trace</button>
+      </aside>
+
+      <section style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <template data-sc="if" value="{{waiting}}" hint-placeholder-val="{{false}}">
+          <div style="background: #FFFFFF; border: 1px dashed #C9C6BE; border-radius: 12px; padding: 28px; text-align: center; color: #5B606B">Les agents instruisent le dossier… les arguments apparaîtront dès que les pièces seront calculées.</div>
+        </template>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+          <template data-sc="if" value="{{showProc}}" hint-placeholder-val="{{true}}">
+            <div style="background: #FDF1EA; border: 1px solid #F3C9B2; border-radius: 12px; padding: 18px">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #B4410F"></span><h2 style="margin: 0; font-size: 15px; color: #9A360C">Procureur · contre la décision</h2></div>
+              <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+                <template data-sc="for" list="{{proc}}" as="g" hint-placeholder-count="3">
+                  <li style="background: #FFFFFF; border-radius: 8px; padding: 10px 12px; font-size: 13px"><span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: {{g.tagBg}}; color: {{g.tagFg}}">{{g.tag}}</span> {{g.text}} <button type="button" onClick="{{g.open}}" style="border: none; background: #F7DCCB; color: #7E2C09; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700; min-height: 24px">{{g.pieceLabel}}</button></li>
+                </template>
+              </ul>
+            </div>
+          </template>
+          <template data-sc="if" value="{{showAvoc}}" hint-placeholder-val="{{true}}">
+            <div style="background: #EEF3FE; border: 1px solid #C3D3FA; border-radius: 12px; padding: 18px">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #1D4ED8"></span><h2 style="margin: 0; font-size: 15px; color: #1A43B8">Avocat · pour la décision</h2></div>
+              <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+                <template data-sc="for" list="{{avoc}}" as="g" hint-placeholder-count="2">
+                  <li style="background: #FFFFFF; border-radius: 8px; padding: 10px 12px; font-size: 13px"><span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: {{g.tagBg}}; color: {{g.tagFg}}">{{g.tag}}</span> {{g.text}} <button type="button" onClick="{{g.open}}" style="border: none; background: #D6E2FC; color: #173A9E; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700; min-height: 24px">{{g.pieceLabel}}</button></li>
+                </template>
+              </ul>
+              <p style="margin: 10px 0 0; font-size: 12px; color: #1A43B8; background: #FFFFFF; border-radius: 8px; padding: 8px 10px"><strong>Biais du survivant :</strong> l'univers a été choisi en 2026 parmi des titres devenus gros (NVDA, BTC…). Les rendements passés cités ici sont donc flattés.</p>
+            </div>
+          </template>
+        </div>
+
+        <template data-sc="if" value="{{showGreffe}}" hint-placeholder-val="{{true}}">
+          <div style="background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 18px">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #3F3F46"></span><h2 style="margin: 0; font-size: 15px">Greffier · contrôles de gouvernance</h2></div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px">
+              <template data-sc="for" list="{{checks}}" as="ck" hint-placeholder-count="4">
+                <div style="display: flex; gap: 8px; align-items: flex-start; background: {{ck.bg}}; color: {{ck.fg}}; border-radius: 8px; padding: 10px 12px; font-size: 13px"><strong style="flex: none">{{ck.tag}}</strong><span>{{ck.text}}</span></div>
+              </template>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 18px">
+            <h2 style="margin: 0 0 4px; font-size: 15px">Pièces à conviction</h2>
+            <p style="margin: 0 0 12px; font-size: 12px; color: #5B606B">Chaque chiffre vient d'un outil de calcul déterministe : les agents ne font que le citer, et le Greffier vérifie que chaque chiffre cité correspond à sa pièce. Ouvrez une pièce pour voir sa source et ses limites.</p>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <template data-sc="for" list="{{pieces}}" as="pc" hint-placeholder-count="3">
+                <div style="border: 1px solid {{pc.border}}; border-radius: 10px; overflow: hidden">
+                  <button type="button" onClick="{{pc.toggle}}" aria-expanded="{{pc.open}}" style="width: 100%; text-align: left; border: none; background: {{pc.bg}}; padding: 12px 14px; display: flex; gap: 10px; align-items: center; min-height: 44px; font-size: 14px; color: #15171C">
+                    <strong style="flex: none">{{pc.id}}</strong><span style="font-size: 11px; font-weight: 700; border-radius: 4px; padding: 2px 6px; background: {{pc.tagBg}}; color: {{pc.tagFg}}">{{pc.tag}}</span><span style="flex: 1 1 auto">{{pc.title}}</span><span style="font-weight: 700">{{pc.value}}</span><span aria-hidden="true" style="color: #5B606B">{{pc.chev}}</span>
+                  </button>
+                  <template data-sc="if" value="{{pc.open}}" hint-placeholder-val="{{false}}">
+                    <dl style="margin: 0; padding: 12px 14px; display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; font-size: 13px; border-top: 1px solid #E2E0DA">
+                      <dt style="color: #5B606B">Source</dt><dd style="margin: 0">{{pc.source}}</dd>
+                      <dt style="color: #5B606B">Traitement</dt><dd style="margin: 0">{{pc.method}}</dd>
+                      <dt style="color: #5B606B">Limites</dt><dd style="margin: 0">{{pc.limits}}</dd>
+                    </dl>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <h2 style="margin: 0; font-size: 15px">Contre-interroger les agents</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <template data-sc="for" list="{{questions}}" as="q" hint-placeholder-count="3">
+                <button type="button" onClick="{{q.ask}}" disabled="{{q.asked}}" style="border: 1px solid #C9C6BE; background: {{q.bg}}; color: #15171C; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 500; min-height: 40px">{{q.q}}</button>
+              </template>
+            </div>
+            <template data-sc="for" list="{{answers}}" as="ans" hint-placeholder-count="1">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <div style="align-self: flex-end; background: #15171C; color: #FFFFFF; border-radius: 12px 12px 2px 12px; padding: 8px 12px; font-size: 13px; max-width: 80%">{{ans.q}}</div>
+                <div style="align-self: flex-start; background: #F1F0EC; border-radius: 12px 12px 12px 2px; padding: 10px 12px; font-size: 13px; max-width: 85%"><strong>{{ans.who}} :</strong> {{ans.a}}</div>
+              </div>
+            </template>
+            <div style="display: flex; gap: 8px">
+              <label for="freeq" style="position: absolute; left: -9999px">Votre question</label>
+              <input id="freeq" type="text" placeholder="Posez votre propre question (ex. : et si mon horizon était de 8 ans ?)" style="flex: 1 1 auto; border: 1px solid #C9C6BE; border-radius: 10px; padding: 10px 12px; font-size: 13px; min-height: 44px; font-family: inherit">
+              <button type="button" style="border: none; background: #15171C; color: #FFFFFF; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 600; min-height: 44px">Envoyer</button>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end">
+            <button type="button" onClick="{{toVerdict}}" style="border: none; background: {{accent}}; color: #FFFFFF; border-radius: 10px; padding: 12px 22px; font-size: 15px; font-weight: 700; min-height: 48px">Rendre mon verdict →</button>
+          </div>
+        </template>
+      </section>
+    </div>
+  </div>
+</template>
+
+
+<template data-sc="if" value="{{isVerdict}}" hint-placeholder-val="{{false}}">
+  <div style="max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E0DA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 12px; color: #5B606B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em">Votre verdict</div>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 26px; letter-spacing: -0.02em">« {{opt.label}} »</h1>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px">
+        <template data-sc="for" list="{{summary}}" as="sm" hint-placeholder-count="4">
+          <div style="border: 1px solid #E2E0DA; border-radius: 10px; padding: 12px"><div style="font-size: 12px; color: #5B606B">{{sm.k}}</div><div style="font-weight: 700; font-size: 16px; margin-top: 2px; color: {{sm.color}}">{{sm.v}}</div></div>
+        </template>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #5B606B">Les chiffres décrivent la période du 12 nov. 2021 au 12 nov. 2026 et ne prédisent pas les rendements futurs. AlphaForge ne fournit pas de conseil financier : la décision vous appartient.</p>
+      <template data-sc="if" value="{{noDecision}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-wrap: wrap; gap: 10px">
+          <button type="button" onClick="{{keep}}" style="border: none; background: #15171C; color: #FFFFFF; border-radius: 10px; padding: 12px 18px; font-size: 14px; font-weight: 700; min-height: 48px">Je maintiens ma décision</button>
+          <button type="button" onClick="{{modify}}" style="border: 1px solid #C9C6BE; background: #FFFFFF; color: #15171C; border-radius: 10px; padding: 12px 18px; font-size: 14px; font-weight: 600; min-height: 48px">Je modifie ma décision</button>
+          <button type="button" onClick="{{amend}}" style="border: 1px solid #C9C6BE; background: #FFFFFF; color: #15171C; border-radius: 10px; padding: 12px 18px; font-size: 14px; font-weight: 600; min-height: 48px">J'ajuste mon Pacte</button>
+        </div>
+      </template>
+    </div>
+    <template data-sc="if" value="{{hasDecision}}" hint-placeholder-val="{{false}}">
+      <div style="background: #E9F6EE; border: 1px solid #B9E2C7; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#157F3D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg><h2 style="margin: 0; font-size: 15px; color: #11632F">Archivé dans votre journal des décisions</h2></div>
+        <div style="font-size: 13px">{{journal}}</div>
+        <div style="font-size: 12px; color: #11632F">14 nov. 2026 · {{p.pieceCount}} pièces, trace d'exécution et avertissements joints · aucune transaction exécutée (simulation)</div>
+        <button type="button" onClick="{{restart}}" style="align-self: flex-start; margin-top: 6px; border: 1px solid #8CCBA2; background: #FFFFFF; color: #11632F; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; min-height: 40px">Retour au tableau de bord</button>
+      </div>
+    </template>
+  </div>
+</template>
+
+</main>
+</div>
+</template>
+<script>
+
+class DCLogic { constructor(props){ this.props = props || {}; this.state = {}; } setState(o){ Object.assign(this.state, typeof o === 'function' ? o(this.state) : o); scheduleRender(); } forceUpdate(){ scheduleRender(); } }
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { persona: 'robert', step: 'dash', size: { amira: 100, mateo: 10, robert: 30 }, fund: { amira: 'prop', mateo: 'prop', robert: 'prop' }, trace: 0, open: null, asked: [], verdict: null };
+    this.timer = null;
+  }
+  componentWillUnmount() { this.stop(); }
+  stop() { if (this.timer) { clearInterval(this.timer); this.timer = null; } }
+  runTrace() {
+    this.stop();
+    this.setState({ trace: 0 });
+    const n = 7;
+    this.timer = setInterval(() => {
+      const t = this.state.trace + 1;
+      this.setState({ trace: t });
+      if (t >= n) this.stop();
+    }, this.props.traceSpeed ?? 550);
+  }
+  grid() { return {"robert":{"prop":[[9.3,5.6,-7.8,-2.6],[9.4,5.7,-7.9,-3.3],[9.6,5.9,-8.2,-4.1],[9.7,6.1,-8.4,-4.8],[9.8,6.3,-8.7,-5.5],[10.0,6.6,-9.0,-6.2],[10.1,7.0,-9.2,-7.0],[10.2,7.3,-9.5,-7.7],[10.3,7.7,-10.3,-8.4],[10.4,8.2,-11.2,-9.1],[10.5,8.6,-12.1,-9.8],[10.6,9.0,-13.0,-10.6],[10.8,9.5,-13.8,-11.3],[10.9,10.0,-14.7,-12.0],[10.9,10.5,-15.5,-12.7],[11.0,11.0,-16.4,-13.4],[11.1,11.5,-17.2,-14.1],[11.2,12.0,-18.0,-14.8],[11.3,12.5,-18.9,-15.5],[11.4,13.0,-19.8,-16.2],[11.4,13.5,-20.6,-16.9],[11.5,14.1,-21.5,-17.6],[11.6,14.6,-22.3,-18.3],[11.6,15.1,-23.2,-19.0],[11.7,15.7,-24.0,-19.7],[11.8,16.2,-24.9,-20.3],[11.8,16.8,-25.7,-21.0],[11.9,17.3,-26.5,-21.7],[11.9,17.9,-27.3,-22.4],[11.9,18.4,-28.2,-23.0],[12.0,19.0,-29.0,-23.7],[12.0,19.5,-29.8,-24.4],[12.0,20.1,-30.6,-25.0],[12.1,20.6,-31.3,-25.7],[12.1,21.2,-32.1,-26.4],[12.1,21.7,-32.9,-27.0],[12.1,22.3,-33.7,-27.7],[12.1,22.9,-34.4,-28.3],[12.1,23.4,-35.2,-29.0],[12.1,24.0,-35.9,-29.6],[12.1,24.6,-36.7,-30.3],[12.1,25.1,-37.4,-30.9],[12.1,25.7,-38.1,-31.5],[12.1,26.2,-38.9,-32.2],[12.1,26.8,-39.6,-32.8],[12.1,27.4,-40.3,-33.4],[12.1,27.9,-41.0,-34.0],[12.0,28.5,-41.7,-34.7],[12.0,29.1,-42.4,-35.3],[12.0,29.6,-43.1,-35.9],[11.9,30.2,-43.8,-36.5]],"src":[[9.3,5.6,-7.8,-2.6],[9.5,5.8,-8.0,-3.4],[9.7,6.0,-8.3,-4.1],[9.9,6.2,-8.7,-4.9],[10.1,6.5,-9.0,-5.7],[10.3,6.9,-9.4,-6.4],[10.4,7.3,-9.7,-7.2],[10.6,7.7,-10.1,-8.0],[10.8,8.1,-10.7,-8.7],[11.0,8.5,-11.6,-9.5],[11.1,9.0,-12.5,-10.2],[11.3,9.5,-13.4,-11.0],[11.5,10.0,-14.3,-11.7],[11.6,10.5,-15.2,-12.5],[11.8,11.0,-16.1,-13.2],[11.9,11.5,-17.0,-13.9],[12.1,12.0,-17.8,-14.7],[12.2,12.5,-18.7,-15.4],[12.4,13.1,-19.6,-16.2],[12.5,13.6,-20.4,-16.9],[12.6,14.1,-21.3,-17.6],[12.8,14.7,-22.1,-18.3],[12.9,15.2,-23.0,-19.1],[13.0,15.8,-23.8,-19.8],[13.1,16.3,-24.7,-20.5],[13.2,16.9,-25.6,-21.2],[13.3,17.5,-26.4,-21.9],[13.4,18.0,-27.3,-22.6],[13.5,18.6,-28.1,-23.3],[13.6,19.1,-28.9,-24.0],[13.7,19.7,-29.8,-24.7]]},"mateo":{"prop":[[11.5,9.7,-15.1,-10.1],[11.7,9.7,-14.5,-9.3],[11.9,9.6,-13.9,-8.5],[12.1,9.6,-13.4,-7.8],[12.3,9.5,-12.8,-7.0],[12.5,9.5,-12.3,-6.2],[12.7,9.5,-11.8,-5.4],[12.9,9.5,-11.2,-4.6],[13.1,9.5,-10.7,-3.8],[13.3,9.5,-10.1,-2.9],[13.5,9.5,-10.0,-2.1],[13.7,9.5,-10.0,-1.3],[13.9,9.5,-9.9,-0.5],[14.1,9.5,-9.9,0.4],[14.3,9.6,-9.9,1.2],[14.5,9.6,-9.9,2.1],[14.6,9.7,-9.9,2.9],[14.8,9.7,-10.0,3.8],[15.0,9.8,-10.0,4.7],[15.2,9.8,-10.0,5.5],[15.4,9.9,-10.0,6.4],[15.6,10.0,-10.0,7.3],[15.8,10.1,-10.0,8.2],[16.0,10.2,-10.0,9.1],[16.2,10.3,-10.0,10.0],[16.4,10.4,-10.0,10.9],[16.6,10.5,-10.0,11.9],[16.7,10.6,-10.1,12.8],[16.9,10.7,-10.2,13.7],[17.1,10.9,-10.2,14.7],[17.3,11.0,-10.3,15.6],[17.5,11.1,-10.4,16.6],[17.7,11.3,-10.5,17.5],[17.9,11.4,-10.6,18.5],[18.0,11.6,-10.6,19.5],[18.2,11.7,-10.7,20.4],[18.4,11.9,-10.8,21.4],[18.6,12.1,-10.9,22.4],[18.8,12.2,-11.0,23.4],[19.0,12.4,-11.0,24.4],[19.1,12.6,-11.1,25.4],[19.3,12.7,-11.2,26.5],[19.5,12.9,-11.3,27.5],[19.7,13.1,-11.4,28.5],[19.8,13.3,-11.5,29.6],[20.0,13.5,-11.5,30.6],[20.2,13.7,-11.6,31.7],[20.4,13.9,-11.7,32.7],[20.6,14.1,-11.8,33.8],[20.7,14.2,-11.9,34.9],[20.9,14.4,-12.0,36.0]],"src":[[11.5,9.7,-15.1,-10.1],[11.7,9.6,-14.4,-9.2],[11.9,9.5,-13.7,-8.4],[12.0,9.4,-13.0,-7.5],[12.2,9.3,-12.3,-6.6],[12.4,9.2,-11.7,-5.7],[12.6,9.1,-11.0,-4.8],[12.7,9.0,-10.3,-3.9],[12.9,9.0,-9.6,-3.0],[13.1,8.9,-9.1,-2.1],[13.3,8.8,-9.0,-1.2],[13.4,8.8,-8.9,-0.3],[13.6,8.8,-8.8,0.6],[13.8,8.8,-8.7,1.6],[14.0,8.8,-8.6,2.5],[14.1,8.8,-8.6,3.5],[14.3,8.8,-8.5,4.5],[14.5,8.8,-8.4,5.4],[14.6,8.8,-8.4,6.4],[14.8,8.9,-8.5,7.4],[15.0,8.9,-8.5,8.4],[15.1,9.0,-8.5,9.4],[15.3,9.0,-8.6,10.4],[15.5,9.1,-8.6,11.4],[15.6,9.2,-8.6,12.4],[15.8,9.3,-8.6,13.5],[16.0,9.4,-8.7,14.5],[16.1,9.5,-8.7,15.6],[16.3,9.7,-8.7,16.6],[16.4,9.8,-8.8,17.7],[16.6,9.9,-8.8,18.7]]},"amira":{"prop":[[19.0,20.6,-32.9,-24.9],[19.0,21.4,-34.7,-26.4],[19.0,22.2,-36.4,-28.0],[18.9,23.0,-38.0,-29.5],[18.8,23.9,-39.7,-31.0],[18.7,24.8,-41.3,-32.5],[18.6,25.6,-42.9,-34.0],[18.5,26.5,-44.5,-35.4],[18.4,27.4,-46.0,-36.9],[18.3,28.4,-47.5,-38.3],[18.1,29.3,-49.0,-39.7],[17.9,30.2,-50.4,-41.1],[17.8,31.2,-51.8,-42.4],[17.6,32.1,-53.2,-43.7],[17.4,33.1,-54.5,-45.1],[17.2,34.0,-55.8,-46.3],[16.9,35.0,-57.1,-47.6],[16.7,36.0,-58.3,-48.9],[16.4,36.9,-59.5,-50.1],[16.2,37.9,-60.7,-51.3],[15.9,38.9,-61.9,-52.5]]}}; }
+  pct(v) { return (v < 0 ? '−' : '+') + Math.abs(v).toFixed(1).replace('.', ',') + ' %'; }
+  vol(v) { return v.toFixed(1).replace('.', ',') + ' %'; }
+
+  data() {
+    const SRC = 'Yahoo Finance via yfinance (adj_close, ajusté dividendes et fractionnements), extrait le 13 nov. 2026 ; taux USD/CAD de la Banque du Canada';
+    const SRCUSD = 'Yahoo Finance via yfinance (adj_close, dividendes inclus), extrait le 13 nov. 2026 · en USD';
+    return {
+      amira: {
+        name: 'Amira', meta: '26 ans · Ingénieure logicielle', risk: 'élevé', horizon: '15 ans et plus', capital: '40 000 $', ddMax: -45,
+        pact: ['Chute maximale tolérée : −45 %', 'Crypto : 25 % du portefeuille au maximum', 'Ne pas miser exclusivement sur la tech', 'Horizon : 15 ans ou plus'],
+        base: { cagr: 19.0, vol: 20.6, dd: -32.9, y22: -24.9 },
+        alloc: [['Tech US', 30], ['Actions larges', 25], ['Canada hors tech', 15], ['Crypto', 15], ['Or et obligations', 10], ['Tech CA', 5]],
+        positions: [['QQQ', 'Invesco QQQ', 20, 12.4, 23.4], ['SPY', 'SPDR S&P 500', 15, 11.6, 17.3], ['NVDA', 'NVIDIA', 10, 40.6, 51.9], ['XIU.TO', 'iShares S&P/TSX 60', 10, 13.7, 13.1], ['BTC-USD', 'Bitcoin', 10, 2.1, 50.8], ['ETH-USD', 'Ether', 5, -15.4, 68.5], ['SHOP.TO', 'Shopify', 5, 0.0, 64.4], ['CNQ.TO', 'Canadian Natural', 5, 28.7, 30.7], ['MFC.TO', 'Manulife', 5, 26.0, 21.6], ['ATD.TO', 'Couche-Tard', 5, 11.4, 24.1], ['GLD', 'SPDR Gold', 5, 15.3, 19.2], ['XBB.TO', 'iShares obligations CA', 5, 0.7, 6.6]],
+        asset: { title: 'Panier crypto-tech', sub: 'BTC 30 % · ETH 20 % · NVDA 20 % · QQQ 20 % · SHOP 10 %', hook: 'Simuler la réallocation de tout le portefeuille vers BTC, ETH, NVDA, QQQ et SHOP.', badge: 'Concentration élevée : 100 % crypto ou tech',
+          stats: [{ k: 'BTC · chute max (USD)', v: '−75,9 %' }, { k: 'ETH · rend. annualisé (USD)', v: '−15,4 %' }, { k: 'Corrélation BTC / ETH', v: '0,84' }, { k: 'Corrélation NVDA / QQQ', v: '0,77' }] },
+        cfg: { kind: 'mix', max: 100, step: 5, unit: '% réalloués', presets: [0, 25, 50, 100], fundings: [] },
+        proc: (o, f) => {
+          const a = [{ tag: 'fait', text: 'Avec « ' + o.label + ' », la pire chute observée atteint ' + f(o.dd) + (o.dd < -45 ? ', au-delà du seuil de −45 % inscrit dans votre Pacte.' : ', sous votre seuil de −45 %.'), piece: 'P1' },
+            { tag: 'fait', text: 'BTC et ETH sont corrélés à 0,84 : deux cryptos, c’est presque un seul pari.', piece: 'P2' },
+            { tag: 'hyp', text: 'NVDA et QQQ sont corrélés à 0,77, car NVDA est l’une des principales positions de QQQ : vous prenez deux fois le même pari tech (poids exact à documenter).', piece: 'P4' }];
+          if (o.crypto > 25) a.push({ tag: 'fait', text: 'La crypto passerait à ' + String(o.crypto).replace('.', ',') + ' % du portefeuille ; votre Pacte en fixe le maximum à 25 %.', piece: 'P3' });
+          if (o.techOnly) a.push({ tag: 'fait', text: '100 % crypto ou tech : votre Pacte exclut de miser exclusivement sur la tech.', piece: 'P3' });
+          return a;
+        },
+        avoc: (o, f) => [{ tag: 'hyp', text: 'Horizon de 15 ans et plus : le temps de traverser plusieurs cycles et de récupérer d’une forte baisse.', piece: 'P3' }, { tag: 'hyp', text: 'Une poche spéculative est cohérente avec un profil de risque élevé : la vraie question est sa taille, pas sa présence.', piece: 'P1' }],
+        extraChecks: (o) => [{ ok: o.crypto <= 25, text: 'Crypto ≤ 25 % (' + String(o.crypto).replace('.', ',') + ' %)' }, { ok: !o.techOnly, text: 'Pas exclusivement tech' }],
+        piece2: { tag: 'fait', title: 'Corrélations quotidiennes sur 5 ans', value: 'BTC/ETH 0,84 · NVDA/QQQ 0,77', source: SRC, method: 'Corrélation de Pearson des rendements quotidiens en CAD, calendrier boursier américain (prix crypto du week-end reportés au lundi)', limits: 'Les corrélations changent en période de crise ; BTC/QQQ : 0,40 sur la même période' },
+        piece4: { id: 'P4', tag: 'hyp', title: 'Poids de NVDA dans QQQ', value: 'À documenter', source: '[À AJOUTER : liste des titres détenus publiée par Invesco, avec sa date]', method: 'Pondération de NVDA dans le FNB à la date de la liste', limits: 'Les pondérations changent chaque jour ; seule la corrélation de 0,77 vient du jeu de données' },
+        questions: [
+          { q: 'Et si je garde 15 % de crypto ?', who: 'Avocat', a: 'Votre portefeuille actuel (15 % de crypto) a connu une chute maximale de −32,9 % pour un rendement de +19,0 %/an sur la période. Il respecte les quatre règles de votre Pacte.' },
+          { q: 'Pourquoi la corrélation compte-t-elle ?', who: 'Procureur', a: 'Deux actifs corrélés à 0,84 montent et baissent presque ensemble. Détenir BTC et ETH n’ajoute presque pas de diversification : en 2022, les deux ont perdu plus de 60 % (en USD).' },
+          { q: 'Ces données sont-elles fiables ?', who: 'Greffier', a: 'Prix ajustés Yahoo Finance extraits le 13 nov. 2026, convertis en CAD avec la Banque du Canada. Limites : 5 ans seulement, univers choisi en 2026 (biais du survivant), prix crypto du week-end reportés au lundi.' }
+        ]
+      },
+      mateo: {
+        name: 'Mateo', meta: '41 ans · Gestionnaire des opérations', risk: 'modéré', horizon: '8 à 12 ans', capital: '180 000 $', ddMax: -20,
+        pact: ['Chute maximale tolérée : −20 %', 'Exclure les entreprises liées à des controverses ESG importantes', 'Pas de placements hautement spéculatifs', 'Équilibre croissance et stabilité'],
+        base: { cagr: 11.5, vol: 9.7, dd: -15.1, y22: -10.1 },
+        alloc: [['Actions US filtrées ESG', 30], ['Actions canadiennes', 30], ['Obligations', 25], ['Qualité US', 10], ['Or', 5]],
+        positions: [['ESGV', 'Vanguard ESG U.S. Stock', 30, 10.0, 18.7], ['XBB.TO', 'iShares obligations CA', 25, 0.7, 6.6], ['XIU.TO', 'iShares S&P/TSX 60', 20, 13.7, 13.1], ['RY.TO', 'Banque Royale', 5, 21.0, 15.5], ['FTS.TO', 'Fortis', 5, 12.7, 14.7], ['MSFT', 'Microsoft', 5, 10.1, 28.5], ['JNJ', 'Johnson & Johnson', 5, 14.6, 18.1], ['GLD', 'SPDR Gold', 5, 15.3, 19.2]],
+        asset: { title: 'XOM · Exxon Mobil', sub: 'Actions américaines · secteur Énergie · coté en USD', hook: 'XOM a fait +87 % en 2022 (USD, dividendes inclus). Simuler l’ajout de 10 % ?', badge: 'Exclusion possible selon votre Pacte (critère ESG)',
+          stats: [{ k: 'Rendement 2022 · USD', v: '+87,4 %' }, { k: 'Rendement 2022 · CAD', v: '+100,2 %' }, { k: 'Rend. annualisé 5 ans · USD', v: '+25,6 %' }, { k: 'Chute maximale · USD', v: '−20,5 %' }] },
+        cfg: { kind: 'add', ticker: 'XOM', max: 50, step: 1, presets: [0, 5, 10, 20], capitalNum: 180000, fundings: [{ id: 'prop', label: 'Proportionnellement à tout le portefeuille' }, { id: 'src', label: 'En réduisant ESGV (actions ESG, 30 % max)', max: 30 }] },
+        proc: (o, f) => [{ tag: 'fait', text: 'Votre Pacte exclut les entreprises liées à des controverses environnementales ou sociales importantes. C’est une règle de valeurs, pas un calcul de risque.', piece: 'P3' }, { tag: 'hyp', text: 'Le jeu de données ne contient aucune donnée ESG : la controverse doit être établie par une source externe documentée avant toute conclusion.', piece: 'P4' }, { tag: 'fait', text: 'Votre Pacte ne vous demande pas de maximiser le rendement, mais d’équilibrer croissance et stabilité selon vos valeurs.', piece: 'P3' }],
+        avoc: (o, f) => [{ tag: 'fait', text: 'Les chiffres sont favorables : rendement de ' + f(o.cagr) + '/an contre +11,5 %, chute maximale de ' + f(o.dd) + ' contre −15,1 %.', piece: 'P1' }, { tag: 'fait', text: 'L’énergie a protégé les portefeuilles en 2022 : XOM a gagné +87,4 % (USD, dividendes inclus) quand actions et obligations reculaient.', piece: 'P2' }, { tag: 'fait', text: 'Vos valeurs ont déjà un coût : ESGV a fait +10,0 %/an contre +11,6 % pour SPY (−1,6 pt). Dans votre portefeuille, où ESGV pèse 30 %, l’écart est d’environ 0,4 pt/an.', piece: 'P5' }],
+        extraChecks: (o) => [{ ok: !o.esg, text: 'Exclusion ESG du Pacte' }, { warn: true, text: 'Source ESG externe : à documenter' }],
+        piece2: { tag: 'fait', title: 'XOM en 2022', value: '+87,4 % (USD)', source: SRCUSD, method: 'Prix ajusté du 31 déc. 2021 au 30 déc. 2022 ; en CAD : +100,2 % (hausse du dollar américain)', limits: 'Année exceptionnelle pour l’énergie ; ne se généralise pas' },
+        piece4: { id: 'P4', tag: 'hyp', title: 'Source ESG externe', value: 'À documenter', source: '[À AJOUTER : vérifier si XOM figure dans la liste des titres détenus d’ESGV et citer la méthodologie d’exclusion de l’indice suivi par ESGV, avec leurs dates]', method: 'Critère de controverse défini par l’équipe et appliqué de façon identique à tous les titres', limits: 'Le jeu de départ ne contient aucune cote ESG : sans source, le Greffier ne peut pas conclure' },
+        piece5: { id: 'P5', tag: 'fait', title: 'Coût du filtre ESG', value: 'Fonds −1,6 pt · portefeuille −0,4 pt', source: SRC, method: 'Rendement annualisé ESGV contre SPY (USD) ; puis portefeuille de Mateo recalculé avec SPY à la place d’ESGV (30 %), en CAD', limits: 'Dépend fortement de la période : 2021–2026 a favorisé l’énergie et les très grandes capitalisations' },
+        questions: [
+          { q: 'Combien me coûtent mes valeurs ?', who: 'Greffier', a: 'Au niveau des fonds, ESGV a fait +10,0 %/an contre +11,6 % pour SPY (−1,6 pt). Dans votre portefeuille, où ESGV pèse 30 %, l’écart est d’environ 0,4 pt/an (11,5 % contre 11,9 %). Ajouter 10 % de XOM : environ +2 pts. Le coût dépend fortement de la période choisie.' },
+          { q: 'Y a-t-il une alternative dans l’énergie ?', who: 'Avocat', a: 'Le jeu de départ ne contient pas de titre d’énergie de transition. Il faudrait ajouter un actif et une source ESG documentée avant de pouvoir comparer.' },
+          { q: 'Pourquoi le Greffier ne conclut-il pas ?', who: 'Greffier', a: 'Aucune donnée ESG n’est incluse dans les sources utilisées. Sans preuve documentée, la controverse reste une hypothèse : je la signale au lieu de l’inventer.' }
+        ]
+      },
+      robert: {
+        name: 'Robert', meta: '59 ans · Professionnel de la santé', risk: 'faible à modéré', horizon: '3 à 5 ans', capital: '650 000 $', ddMax: -12,
+        pact: ['Chute maximale tolérée : −12 %', 'Préserver mon capital', 'Entreprises établies, modèle compris', 'Crypto : exclue'],
+        base: { cagr: 9.3, vol: 5.6, dd: -7.8, y22: -2.6 },
+        alloc: [['Obligations court terme', 30], ['Obligations', 20], ['Actions CA larges', 20], ['Dividendes CA', 20], ['Santé US', 10]],
+        positions: [['ZST.TO', 'BMO obligations ultra court terme', 30, 3.4, 0.6], ['XBB.TO', 'iShares obligations CA', 20, 0.7, 6.6], ['XIU.TO', 'iShares S&P/TSX 60', 20, 13.7, 13.1], ['JNJ', 'Johnson & Johnson', 10, 14.6, 18.1], ['RY.TO', 'Banque Royale', 10, 21.0, 15.5], ['FTS.TO', 'Fortis', 10, 12.7, 14.7]],
+        asset: { title: 'TSLA · Tesla', sub: 'Actions américaines · consommation discrétionnaire · coté en USD', hook: 'Simuler l’ajout de 30 % du portefeuille en Tesla.', badge: 'Volatilité environ 10 fois celle de votre portefeuille (59 % contre 5,6 %)',
+          stats: [{ k: 'Volatilité annualisée', v: '≈ 59 %' }, { k: 'Chute maximale · USD / CAD', v: '−73,0 % / −70,9 %' }, { k: 'Retour au sommet après la chute', v: '≈ 3 ans' }, { k: 'Rendement 2022 · USD', v: '−65,0 %' }] },
+        cfg: { kind: 'add', ticker: 'TSLA', max: 50, step: 1, presets: [0, 5, 10, 30], capitalNum: 650000, fundings: [{ id: 'prop', label: 'Proportionnellement à tout le portefeuille' }, { id: 'src', label: 'En réduisant ZST (obligations court terme, 30 % max)', max: 30 }] },
+        proc: (o, f) => [{ tag: 'fait', text: 'Le 14 novembre, vous avez écrit : « préserver mon capital ». Avec « ' + o.label + ' », la pire chute observée passe de −7,8 % à ' + f(o.dd) + '.', piece: 'P1' }, { tag: 'fait', text: o.dd < -12 ? 'C’est au-delà du seuil de −12 % que vous avez fixé dans votre Pacte.' : 'Cela reste sous votre seuil de −12 %, mais la volatilité passe de 5,6 % à ' + String(o.vol.toFixed(1)).replace('.', ',') + ' %.', piece: 'P3' }, { tag: 'fait', text: 'Après sa chute de 2022, TSLA a mis près de 3 ans à revenir à son sommet (janv. 2022 → déc. 2024) : presque tout votre horizon de 3 à 5 ans.', piece: 'P4' }, { tag: 'hyp', text: 'Si une année comme 2022 se répétait au moment de votre retraite, le portefeuille ferait ' + f(o.y22) + ' au lieu de −2,6 %.', piece: 'P2' }],
+        avoc: (o, f) => [{ tag: 'fait', text: 'Sur la période, le rendement annualisé aurait été de ' + f(o.cagr) + ' contre +9,3 %.', piece: 'P1' }, { tag: 'fait', text: 'Jusqu\u2019à ' + (o.maxOk || 0) + ' % (avec ce mode de financement), la chute maximale reste dans les limites de son Pacte : il peut s\u2019exposer au titre sans renier ses objectifs.', piece: 'P1' }, { tag: 'hyp', text: 'Robert suit activement les marchés : il est en mesure de surveiller de près une position volatile.', piece: 'P3' }],
+        extraChecks: (o) => [{ ok: true, text: 'Crypto exclue : respecté' }],
+        piece2: { tag: 'fictif', title: 'Rejeu de 2022', value: '', source: SRC, method: 'Le portefeuille, avec et sans la position, rejoué du 31 déc. 2021 au 30 déc. 2022', limits: 'Une seule année de crise ; la suivante peut être différente' },
+        piece4: { id: 'P4', tag: 'fait', title: 'Temps de récupération de TSLA', value: '≈ 3 ans', source: SRCUSD, method: 'Sommet le 3 janv. 2022, creux le 3 janv. 2023, retour au niveau du sommet le 10 déc. 2024 (prix ajusté)', limits: 'Une seule chute observée ; la prochaine peut être plus courte ou plus longue' },
+        questions: [
+          { q: 'Et à 15 % ?', who: 'Procureur', a: 'À 15 %, la chute maximale observée serait de −16,4 % et 2022 aurait donné −13,4 %. C’est encore au-delà de votre seuil de −12 %.' },
+          { q: 'Pourquoi pas 5 % ?', who: 'Avocat', a: 'À 5 %, la chute maximale reste à −9,0 %, dans votre Pacte, pour un rendement passé de +10,0 %/an. Le choix vous appartient.' },
+          { q: 'Ces données sont-elles fiables ?', who: 'Greffier', a: 'Prix ajustés (dividendes et fractionnements) de Yahoo Finance extraits le 13 nov. 2026, convertis en CAD avec la Banque du Canada. Limites : 5 ans seulement et titres choisis en 2026 (biais du survivant).' }
+        ]
+      }
+    };
+  }
+
+  renderVals() {
+    const D = this.data();
+    const s = this.state;
+    const accent = this.props.accent ?? '#1E3A8A';
+    const p = D[s.persona];
+    const f = (v) => this.pct(v);
+    const TAGS = { fait: ['Fait', '#E6EEF9', '#1E3A8A'], hyp: ['Hypothèse', '#FDF4DF', '#7A4F00'], fictif: ['Fictif', '#F1EAFB', '#5B2A86'] };
+    const tg = (k) => ({ tag: TAGS[k][0], tagBg: TAGS[k][1], tagFg: TAGS[k][2] });
+    const G = this.grid()[s.persona];
+    const cfg = p.cfg;
+    const fund = cfg.fundings.length ? s.fund[s.persona] : 'prop';
+    const fundDef = cfg.fundings.find((x) => x.id === fund);
+    const maxK = fundDef && fundDef.max ? fundDef.max : cfg.max;
+    const size = Math.min(s.size[s.persona], maxK);
+    const statAt = (k) => { const row = cfg.kind === 'mix' ? G.prop[k / 5] : G[fund][k]; return { cagr: row[0], vol: row[1], dd: row[2], y22: row[3] }; };
+    const makeOpt = (k) => {
+      const st = statAt(k);
+      if (cfg.kind === 'mix') {
+        const crypto = Math.round((15 + 0.35 * k) * 10) / 10;
+        return Object.assign(st, { none: k === 0, crypto, techOnly: 50 + 0.5 * k >= 100, esg: false, label: k === 0 ? 'Garder mon portefeuille' : (k === 100 ? 'Panier complet' : k + ' % réalloués vers le panier') });
+      }
+      return Object.assign(st, { none: k === 0, crypto: 0, techOnly: false, esg: s.persona === 'mateo' && k > 0, label: k === 0 ? 'Ne pas ajouter' : k + ' % en ' + cfg.ticker + (fund === 'src' ? ' (financé par ' + (s.persona === 'robert' ? 'ZST' : 'ESGV') + ')' : '') });
+    };
+    const okAt = (k) => { const o = makeOpt(k); return o.dd >= p.ddMax && !p.extraChecks(o).some((e) => e.ok === false); };
+    let maxOk = 0;
+    for (let k = cfg.step; k <= maxK; k += cfg.step) { if (okAt(k)) maxOk = k; else break; }
+    const opt = makeOpt(size);
+    opt.maxOk = maxOk;
+    const ddOk = opt.dd >= p.ddMax;
+    const extra = p.extraChecks(opt);
+    const conflicts = [];
+    if (!ddOk) conflicts.push('Chute maximale de ' + f(opt.dd) + ' pour un seuil de ' + f(p.ddMax) + '.');
+    extra.forEach((e) => { if (e.ok === false) conflicts.push(e.text + ' : non respecté.'); });
+    const isNone = !!opt.none;
+    const hasConflict = !isNone && conflicts.length > 0;
+
+    const go = (step) => () => { if (step === 'trial') { this.setState({ step: 'trial', asked: [], open: null }); this.runTrace(); } else { this.stop(); this.setState({ step }); } };
+    const order = ['dash', 'ticket', 'trial', 'verdict'];
+    const idx = order.indexOf(s.step);
+    const labels = ['Portefeuille', 'Décision', 'Tribunal', 'Verdict'];
+    const steps = order.map((k, i) => ({ n: String(i + 1), label: labels[i], go: go(k), disabled: i > idx,
+      bg: i === idx ? '#15171C' : 'transparent', fg: i === idx ? '#FFFFFF' : (i < idx ? '#15171C' : '#6B7079'),
+      dotBg: i === idx ? '#FFFFFF' : (i < idx ? '#E9F6EE' : '#EDEBE6'), dotFg: i === idx ? '#15171C' : (i < idx ? '#157F3D' : '#5B606B') }));
+
+    const personaTabs = ['amira', 'mateo', 'robert'].map((id) => ({ label: D[id].name, pressed: String(id === s.persona),
+      bg: id === s.persona ? '#FFFFFF' : 'transparent', fg: id === s.persona ? '#15171C' : '#FFFFFF', border: id === s.persona ? '#FFFFFF' : '#5B606B',
+      pick: () => { this.stop(); this.setState({ persona: id, step: 'dash', trace: 0, asked: [], open: null, verdict: null }); } }));
+
+    const palette = ['#1E3A8A', '#3B5FC0', '#7C93D6', '#B4410F', '#C9A227', '#8A8E97'];
+    const alloc = p.alloc.map((a, i) => ({ label: a[0], pct: a[1], c: palette[i % palette.length] }));
+    const positions = p.positions.map((r) => ({ t: r[0], n: r[1], w: r[2], cagr: f(r[3]), vol: this.vol(r[4]) }));
+    const kpis = [
+      Object.assign({ label: 'Valeur du portefeuille', value: p.capital, sub: 'Montant fictif · CAD' }, tg('fictif')),
+      Object.assign({ label: 'Rendement annualisé', value: f(p.base.cagr), sub: 'En CAD, sur la période étudiée' }, tg('fait')),
+      Object.assign({ label: 'Volatilité annualisée', value: this.vol(p.base.vol), sub: 'Rendements quotidiens, en CAD' }, tg('fait')),
+      Object.assign({ label: 'Chute maximale', value: f(p.base.dd), sub: 'Limite du Pacte : ' + f(p.ddMax) }, tg('fait'))
+    ];
+
+    const setSize = (k) => { const sz = Object.assign({}, this.state.size); sz[this.state.persona] = Math.max(0, Math.min(maxK, k)); this.setState({ size: sz, verdict: null }); };
+    const onSize = (e) => setSize(Number(e.target.value));
+    const presets = cfg.presets.filter((k) => k <= maxK).map((k) => ({ label: k + ' %', pick: () => setSize(k), bg: k === size ? '#15171C' : '#FFFFFF', fg: k === size ? '#FFFFFF' : '#15171C' }));
+    const fundings = cfg.fundings.map((x) => ({ label: x.label, checked: String(x.id === fund), bg: x.id === fund ? '#F4F3EF' : '#FFFFFF', border: x.id === fund ? '#15171C' : '#E2E0DA', pick: () => { const fd = Object.assign({}, this.state.fund); fd[this.state.persona] = x.id; this.setState({ fund: fd, verdict: null }); } }));
+    const okW = Math.round(maxOk / maxK * 1000) / 10;
+    const curW = Math.round(size / maxK * 1000) / 10;
+    const sizeLabel = cfg.kind === 'mix' ? size + ' % réalloués' : size + ' %';
+    const sizeSub = cfg.kind === 'mix' ? 'Crypto : ' + String(opt.crypto).replace('.', ',') + ' % du portefeuille · crypto + tech : ' + Math.min(100, 50 + size / 2) + ' %' : '≈ ' + Math.round(cfg.capitalNum * size / 100).toLocaleString('fr-CA') + ' $ sur ' + p.capital + ' (fictif)';
+    const maxOkLabel = s.persona === 'mateo' ? '0 % (exclusion ESG du Pacte)' : maxOk + ' %';
+    const sizeLegend = cfg.kind === 'mix' ? 'Part du portefeuille réallouée vers le panier crypto-tech' : 'Taille de la position en ' + cfg.ticker;
+    const red = '#B42318', green = '#157F3D', ink = '#15171C';
+    const compare = [
+      { k: 'Rendement annualisé (CAD)', a: f(p.base.cagr), b: f(opt.cagr), lim: '—', color: ink },
+      { k: 'Volatilité annualisée (CAD)', a: this.vol(p.base.vol), b: this.vol(opt.vol), lim: '—', color: ink },
+      { k: 'Chute maximale (CAD)', a: f(p.base.dd), b: f(opt.dd), lim: f(p.ddMax), color: ddOk ? green : red },
+      { k: 'Rejeu de 2022 (CAD)', a: f(p.base.y22), b: f(opt.y22), lim: '—', color: ink }
+    ];
+
+    const n = s.trace;
+    const procRaw = p.proc(opt, f), avocRaw = p.avoc(opt, f);
+    const traceDefs = [
+      ['Agent Profil', 'charger_pacte(' + p.name.toLowerCase() + ')'],
+      ['Outil de calcul', 'calculer_risque(tailles=' + (maxK / cfg.step + 1) + ', séances=1 255)'],
+      ['Outil de calcul', 'rejouer_periode(2022)'],
+      s.persona === 'mateo' ? ['Source', 'données ESG : introuvables → signalé'] : ['Source', 'yahoo + banque_du_canada · 2026-11-13'],
+      ['Procureur', 'réquisitoire · ' + procRaw.length + ' arguments'],
+      ['Avocat', 'plaidoirie · ' + avocRaw.length + ' arguments'],
+      ['Greffier', 'contrôle chiffres + Pacte · ' + (extra.length + 4) + ' règles']
+    ];
+    const trace = traceDefs.map((t, i) => ({ who: t[0], what: t[1], op: i <= n ? '1' : '0.35', dot: i < n ? '#7FD3A0' : (i === n ? '#F6D88A' : '#3A3D45'), mark: i < n ? '✓' : (i === n ? '…' : '') }));
+    const done = n >= traceDefs.length;
+    const open = (id) => () => this.setState({ open: this.state.open === id ? null : id });
+    const mk = (arr) => arr.map((g) => Object.assign({ text: g.text, pieceLabel: 'Pièce ' + g.piece, open: open(g.piece) }, tg(g.tag)));
+    const proc = mk(procRaw);
+    const avoc = mk(avocRaw);
+    const cited = procRaw.length + avocRaw.length;
+
+    const checks = [];
+    checks.push(ddOk ? { tag: 'Conforme', text: 'Chute maximale ' + f(opt.dd) + ' ≥ seuil ' + f(p.ddMax) } : { tag: 'Violation', text: 'Chute maximale ' + f(opt.dd) + ' au-delà du seuil ' + f(p.ddMax), fail: true });
+    extra.forEach((e) => checks.push(e.warn ? { tag: 'À vérifier', text: e.text, warn: true } : (e.ok ? { tag: 'Conforme', text: e.text } : { tag: 'Violation', text: e.text, fail: true })));
+    checks.push({ tag: 'Conforme', text: 'Chiffres cités vérifiés contre leurs pièces : ' + cited + '/' + cited });
+    checks.push({ tag: 'Avertissement', text: 'Performance passée invoquée : elle ne prédit pas l’avenir', warn: true });
+    checks.push({ tag: 'Avertissement', text: 'Biais du survivant : univers choisi en 2026', warn: true });
+    const checksV = checks.map((c) => Object.assign({}, c, { bg: c.fail ? '#FDECEA' : (c.warn ? '#FDF4DF' : '#E9F6EE'), fg: c.fail ? '#8F1C13' : (c.warn ? '#7A4F00' : '#11632F') }));
+
+    const p2 = Object.assign({ id: 'P2' }, p.piece2);
+    if (s.persona === 'robert') p2.value = '−2,6 % → ' + f(opt.y22);
+    const pieceList = [
+      { id: 'P1', tag: 'fictif', title: 'Simulation du portefeuille avec la décision', value: f(opt.dd) + ' max · ' + f(opt.cagr) + '/an', source: 'Yahoo Finance via yfinance (adj_close), extrait le 13 nov. 2026 ; USD/CAD Banque du Canada', method: 'Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, volatilité annualisée sur 252 séances, 12 nov. 2021 → 12 nov. 2026', limits: 'Une seule période de 5 ans ; univers choisi en 2026 (biais du survivant) ; le passé ne prédit pas l’avenir' },
+      p2,
+      { id: 'P3', tag: 'fictif', title: 'Pacte de ' + p.name, value: 'Signé le 14 nov. 2026', source: 'Déclaré par l’utilisateur (persona fictif)', method: 'Règles converties en contraintes vérifiables par l’agent Profil', limits: 'Le Pacte reflète les préférences déclarées, qui peuvent évoluer' }
+    ];
+    if (p.piece4) pieceList.push(p.piece4);
+    if (p.piece5) pieceList.push(p.piece5);
+    const pieces = pieceList.map((pc) => { const o = s.open === pc.id; return Object.assign({}, pc, tg(pc.tag), { open: o, toggle: open(pc.id), chev: o ? '▲' : '▼', bg: o ? '#F4F3EF' : '#FFFFFF', border: o ? '#15171C' : '#E2E0DA' }); });
+
+    const questions = p.questions.map((q, i) => { const a = s.asked.indexOf(i) >= 0; return { q: q.q, asked: a, bg: a ? '#F1F0EC' : '#FFFFFF', ask: () => { if (this.state.asked.indexOf(i) < 0) this.setState({ asked: this.state.asked.concat([i]) }); } }; });
+    const answers = s.asked.map((i) => p.questions[i]);
+
+    const summary = [
+      { k: 'Chute maximale', v: f(opt.dd), color: ddOk ? green : red },
+      { k: 'Rendement annualisé', v: f(opt.cagr), color: ink },
+      { k: 'Rejeu de 2022', v: f(opt.y22), color: ink },
+      { k: 'Conformité au Pacte', v: isNone ? 'Aucun changement' : (hasConflict ? conflicts.length + ' conflit(s)' : 'Conforme'), color: hasConflict ? red : green }
+    ];
+    const vtxt = { keep: 'Décision maintenue', amend: 'Pacte ajusté par l’utilisateur' };
+    const journal = s.verdict ? (vtxt[s.verdict] + ' : « ' + opt.label + ' » · ' + (hasConflict ? 'maintenue malgré ' + conflicts.length + ' conflit(s) signalé(s) par le Greffier.' : 'conforme au Pacte.') + (s.verdict === 'amend' ? ' La modification du Pacte est datée et visible dans l’historique.' : '')) : '';
+
+    return {
+      accent, p: Object.assign({}, p, { pieceCount: pieceList.length }), opt, personaTabs, steps, alloc, positions, kpis, compare, size, maxK, stepK: cfg.step, onSize, presets, fundings, hasFundings: fundings.length > 0, stepNote: cfg.step === 5 ? ', ici 5 %' : '', okW, curW, sizeLabel, sizeSub, maxOkLabel, sizeLegend, overLimit: size > maxOk,
+      isDash: s.step === 'dash', isTicket: s.step === 'ticket', isTrial: s.step === 'trial', isVerdict: s.step === 'verdict',
+      isNone, hasConflict, noConflictChange: !isNone && !hasConflict, conflictText: conflicts.join(' '),
+      trialBg: isNone ? '#A9ACB3' : (hasConflict ? '#B4410F' : accent),
+      toTicket: go('ticket'), startTrial: go('trial'), skipToVerdict: go('verdict'), toVerdict: go('verdict'), replay: () => this.runTrace(),
+      trace, waiting: n < 4, showProc: n >= 5, showAvoc: n >= 6, showGreffe: done,
+      proc, avoc, checks: checksV, pieces, questions, answers, summary,
+      noDecision: !s.verdict, hasDecision: !!s.verdict, journal,
+      keep: () => this.setState({ verdict: 'keep' }), amend: () => this.setState({ verdict: 'amend' }), modify: () => this.setState({ step: 'ticket', verdict: null }),
+      restart: () => this.setState({ step: 'dash', verdict: null, trace: 0, asked: [], open: null })
+    };
+  }
+}
+
+const PROPS = { accent: '#1E3A8A', traceSpeed: 550 };
+const app = new Component(PROPS);
+window.__app = app;
+const TPL = document.getElementById('tpl').content;
+const EVT = { onClick: 'click', onChange: 'input' };
+function lookup(path, scope){ path = path.trim(); if (path === 'true') return true; if (path === 'false') return false; if (/^-?\d+(\.\d+)?$/.test(path)) return Number(path); const parts = path.split('.'); let v = scope; for (const p of parts) { if (v == null) return undefined; v = v[p]; } return v; }
+function interp(str, scope){ const m = str.match(/^\s*\{\{([^}]+)\}\}\s*$/); if (m) return lookup(m[1], scope); return str.replace(/\{\{([^}]+)\}\}/g, (_, p) => { const v = lookup(p, scope); return v == null ? '' : String(v); }); }
+function addListeners(el, types){ el._types = el._types || new Set(); types.forEach((t) => { if (!el._types.has(t)) { el._types.add(t); el.addEventListener(t, (e) => { const h = el._h && el._h[t]; if (h) h(e); }); } }); }
+function build(node, scope){
+  const out = [];
+  node.childNodes.forEach((n) => {
+    if (n.nodeType === 3) { out.push(document.createTextNode(interp(n.nodeValue, scope))); return; }
+    if (n.nodeType !== 1) return;
+    if (n.tagName === 'TEMPLATE' && n.dataset.sc === 'if') { if (lookup(n.getAttribute('value').replace(/[{}]/g, ''), scope)) out.push(...build(n.content, scope)); return; }
+    if (n.tagName === 'TEMPLATE' && n.dataset.sc === 'for') { const list = lookup(n.getAttribute('list').replace(/[{}]/g, ''), scope) || []; const as = n.getAttribute('as'); list.forEach((item, i) => { const sc = Object.create(scope); sc[as] = item; sc.$index = i; out.push(...build(n.content, sc)); }); return; }
+    const el = document.createElement(n.tagName.toLowerCase());
+    el._h = {};
+    for (const a of n.attributes) {
+      if (a.name.startsWith('hint-')) continue;
+      const evName = Object.keys(EVT).find((k) => k.toLowerCase() === a.name);
+      if (evName) { el._h[EVT[evName]] = interp(a.value, scope); continue; }
+      const v = interp(a.value, scope);
+      if (a.name === 'disabled') { if (v === true || v === 'true') el.setAttribute('disabled', ''); continue; }
+      if (a.name === 'value' && n.tagName === 'INPUT') { el._value = String(v); el.setAttribute('value', String(v)); continue; }
+      el.setAttribute(a.name, v == null ? '' : String(v));
+    }
+    addListeners(el, Object.keys(el._h));
+    build(n, scope).forEach((c) => el.appendChild(c));
+    out.push(el);
+  });
+  return out;
+}
+function syncAttrs(o, n){ for (const a of [...o.attributes]) if (!n.hasAttribute(a.name)) o.removeAttribute(a.name); for (const a of n.attributes) if (o.getAttribute(a.name) !== a.value) o.setAttribute(a.name, a.value); }
+function patch(el, kids){
+  const old = [...el.childNodes];
+  kids.forEach((n, i) => {
+    const o = old[i];
+    if (!o) { el.appendChild(n); return; }
+    if (o.nodeType !== n.nodeType || o.nodeName !== n.nodeName) { el.replaceChild(n, o); return; }
+    if (n.nodeType === 3) { if (o.nodeValue !== n.nodeValue) o.nodeValue = n.nodeValue; return; }
+    syncAttrs(o, n); o._h = n._h; addListeners(o, Object.keys(n._h || {}));
+    if (o.tagName === 'INPUT' && n._value !== undefined && o.value !== n._value) o.value = n._value;
+    patch(o, [...n.childNodes]);
+  });
+  for (let i = old.length - 1; i >= kids.length; i--) el.removeChild(old[i]);
+}
+let queued = false;
+function scheduleRender(){ if (queued) return; queued = true; Promise.resolve().then(() => { queued = false; renderNow(); }); }
+function renderNow(){ patch(document.getElementById('root'), build(TPL, app.renderVals())); }
+window.renderNow = renderNow;
+renderNow();
+
+</script>
+</body>
+</html>

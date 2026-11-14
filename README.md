@@ -30,7 +30,7 @@ Pour appeler Bedrock (une fois par poste) :
 ```powershell
 winget install Amazon.AWSCLI            # puis ouvrir un nouveau terminal
 aws login                               # région us-east-1 ; ne crée aucune clé
-.venv\Scripts\python -m pytest -m bedrock   # 3 vrais appels Bedrock (payants)
+.venv\Scripts\python -m pytest -m bedrock   # vrais appels Bedrock (payants, quelques cents)
 ```
 
 Valider un contrat JSON (`-X utf8` est nécessaire sous Windows pour afficher ✓ et ✗) :
@@ -61,6 +61,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `pipeline/indicateurs.py` | Outil 1 `indicateurs_actif` (pièce d'un titre) et fonctions de calcul pures : rendement annualisé, volatilité, pire baisse, rendement 2022, temps de récupération | [006](docs/journal/006-indicateurs-actif.md) |
 | `pipeline/correlations.py` | Outil 3 `calculer_correlations` (pièce : corrélation de chaque paire de titres) et `calculer_matrice_correlations` (calcul pur) | [016](docs/journal/016-diversification.md) |
 | `pipeline/llm.py` | Client Bedrock commun : `appeler_llm` (texte ou JSON validé), `converser_avec_outils` (*tool use*) | [007](docs/journal/007-client-llm-bedrock.md) |
+| `pipeline/debat.py` | Procureur et Avocat : `debattre` (les deux en parallèle), `corriger_argument` (mode correction) | [011](docs/journal/011-procureur-avocat.md) |
 | `pipeline/agent_profil.py` | Agent Profil (phase 1) : `lancer_agent_profil` charge et valide le Pacte, puis transforme la demande en `decision` du contrat. Demande ambiguë → contrôle `a_verifier` | [008](docs/journal/008-agent-profil.md) |
 | `pipeline/univers.py` | `charger_univers` : les titres connus du système (liste de dictionnaires, pour les prompts) | [008](docs/journal/008-agent-profil.md) |
 | `contrat/schema_sortie.json` | Schéma JSON de la sortie du pipeline | [002](docs/journal/002-contrat-json.md) |

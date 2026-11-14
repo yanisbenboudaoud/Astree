@@ -30,7 +30,7 @@ Pour appeler Bedrock (une fois par poste) :
 ```powershell
 winget install Amazon.AWSCLI            # puis ouvrir un nouveau terminal
 aws login                               # région us-east-1 ; ne crée aucune clé
-.venv\Scripts\python -m pytest -m bedrock   # 3 vrais appels Bedrock (payants)
+.venv\Scripts\python -m pytest -m bedrock   # vrais appels Bedrock (payants, quelques cents)
 ```
 
 Valider un contrat JSON (`-X utf8` est nécessaire sous Windows pour afficher ✓ et ✗) :
@@ -59,6 +59,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `alphaforge_starter/` | Données de départ fournies (prix, USD/CAD, macro, univers d'actifs). Ne pas modifier | — |
 | `pipeline/donnees.py` | Socle de données : `charger_prix` (prix `adj_close` sur le calendrier américain), `charger_univers` | [004](docs/journal/004-charger-donnees.md) |
 | `pipeline/llm.py` | Client Bedrock commun : `appeler_llm` (texte ou JSON validé), `converser_avec_outils` (*tool use*) | [007](docs/journal/007-client-llm-bedrock.md) |
+| `pipeline/debat.py` | Procureur et Avocat : `debattre` (les deux en parallèle), `corriger_argument` (mode correction) | [011](docs/journal/011-procureur-avocat.md) |
 | `contrat/schema_sortie.json` | Schéma JSON de la sortie du pipeline | [002](docs/journal/002-contrat-json.md) |
 | `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md) |
 | `personas/*.json` | Profils de test et leur Pacte, au format générique | [003](docs/journal/003-pacte-generique.md) |

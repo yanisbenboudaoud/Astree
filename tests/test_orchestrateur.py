@@ -251,7 +251,7 @@ def test_juger_decision_enchaine_profil_et_orchestrateur(monkeypatch):
     assert contrat["decision"]["ticker"] == "TSLA"
     assert [p["id"] for p in contrat["pieces"]] == ["P1", "P2", "P3"]
     assert contrat["pieces"][0]["outil"] == "charger_pacte"
-    assert [e["etape"] for e in contrat["trace"]] == ["agent_profil"] * 3 + ["orchestrateur"] * 2
+    assert [e["etape"] for e in contrat["trace"]] == ["agent_profil"] * 3 + ["orchestrateur"] * 2 + ["greffier"]
     assert contrat["comparaison"]["actuel"]["pire_baisse"] == pytest.approx(-0.0776, abs=5e-5)
     assert contrat["comparaison"]["apres"]["pire_baisse"] == pytest.approx(-0.2897, abs=5e-5)
     assert contrat["hypotheses"][0] == "Période : 2021-11-12 au 2026-11-12"
@@ -259,6 +259,33 @@ def test_juger_decision_enchaine_profil_et_orchestrateur(monkeypatch):
     assert contrat["verdict"] is None and contrat["avertissement"] == AVERTISSEMENT
     for piece in contrat["pieces"]:
         valider_piece(piece)
+
+
+def test_greffier_controle_chaque_regle_du_pacte(monkeypatch):
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
+    contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla", converser=FauxModele())
+    controles = {c["regle"]: c for c in contrat["controles"]}
+    # Mêmes contrôles que docs/exemples/contrat_robert.json pour les règles calculables.
+    assert controles["pire_baisse_max"]["statut"] == "violation"
+    assert controles["pire_baisse_max"]["message"] == "Pire baisse −29,0 % au-delà du seuil −12,0 %"
+    assert controles["pire_baisse_max"]["pieces"] == ["P2", "P1"]  # simulation d'office, puis Pacte
+    assert controles["plafond_crypto"]["statut"] == "conforme"
+    assert controles["preserver_capital"]["statut"] == "a_verifier"
+    assert controles["entreprises_etablies"]["statut"] == "a_verifier"
+    assert controles["biais_survivant"]["statut"] == "a_verifier"
+    etape = contrat["trace"][-1]
+    assert etape["etape"] == "greffier" and etape["outil"] == "verifier_pacte"
+    assert etape["sortie"] == "1 violation, 1 conforme, 2 à vérifier"
+
+
+def test_greffier_lit_la_simulation_demandee_par_le_modele(monkeypatch):
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
+    modele = FauxModele([demande("indicateurs_actif", ticker="TSLA"),
+                         demande("simuler_portefeuille", **SIMULATION_DECISION)])
+    contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla", converser=modele)
+    controle = next(c for c in contrat["controles"] if c["regle"] == "pire_baisse_max")
+    assert controle["pieces"] == ["P3", "P1"]  # la simulation du modèle, pas une copie d'office
+    assert len([p for p in contrat["pieces"] if p["outil"] == "simuler_portefeuille"]) == 1
 
 
 def test_juger_decision_reallocation_sans_planter(monkeypatch):
@@ -276,7 +303,10 @@ def test_juger_decision_reallocation_sans_planter(monkeypatch):
     monkeypatch.setattr(tribunal, "lancer_agent_profil", lambda *args: ProfilReallocation)
     contrat = juger_decision("amira", "Je réalloue 20 % vers le bitcoin", converser=FauxModele())
     assert "comparaison" not in contrat
-    assert contrat["trace"][-1]["raison"] == RAISON_INDISPONIBLE
+    assert contrat["trace"][-2]["raison"] == RAISON_INDISPONIBLE
+    # Sans simulation, aucune règle n'est jugée conforme par défaut.
+    regles = [c for c in contrat["controles"] if c["regle"] != "biais_survivant"]
+    assert regles and all(c["statut"] == "a_verifier" for c in regles)
 
 
 def test_juger_decision_sans_decision_ne_calcule_rien(monkeypatch):

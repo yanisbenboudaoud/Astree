@@ -297,3 +297,10 @@ La maquette de référence est dans `docs/maquette/` (lien Figma + prototype int
 - **Aucun nom de persona dans le code** : la logique lit les règles du Pacte. Les noms des profils de test n'apparaissent que dans les fichiers `personas/` et dans les tests.
 - Une fonction = une responsabilité. Nommer clairement (`calculer_volatilite_annuelle`, pas `calc_v`).
 - Chaque membre doit **comprendre le code qu'il garde** : si Claude génère du code, demandez-lui de l'expliquer avant de le garder.
+
+## 11. Pull requests et issues
+
+- Chaque PR qui termine une issue écrit **`Closes #N`** dans sa description (une ligne par issue). GitHub ferme alors l'issue **automatiquement quand la PR est fusionnée dans `main`**. Le modèle `.github/pull_request_template.md` le rappelle.
+- Une PR qui ne fait qu'avancer une issue écrit **`Avance #N`** : l'issue reste ouverte.
+- Une PR fermée **sans fusion** ne ferme aucune issue : le travail n'est pas arrivé dans `main`.
+- Aucune mention de Claude dans les commits ni dans les PR.

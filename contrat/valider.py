@@ -15,7 +15,7 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 
 CHEMIN_SCHEMA = Path(__file__).with_name("schema_sortie.json")
-CONTROLES_SYSTEME = {"verifier_chiffres", "performance_passee", "biais_survivant"}
+CONTROLES_SYSTEME = {"verifier_chiffres", "performance_passee", "biais_survivant", "interpretation_demande"}
 TOLERANCE_SOMME_POIDS = 1e-6
 
 

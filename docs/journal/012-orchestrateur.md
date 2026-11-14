@@ -1,6 +1,6 @@
 # #12 — Orchestrateur du Tribunal, trace et sortie JSON validée
 
-- **Issue** : #12 · **PR** : #40, #43, #45 · **Statut** : en cours
+- **Issue** : #12 · **PR** : #40, #43, #45, à venir · **Statut** : terminée (V1 de bout en bout)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
@@ -49,7 +49,17 @@ Les tests vérifient la numérotation des pièces, le paramètre `raison` ajout�
 
 **Greffier, vrai appel** : pour « 30 % en TSLA » et le profil prudent, les contrôles sont ceux de `contrat_robert.json` : `pire_baisse_max` en violation (« Pire baisse −29,0 % au-delà du seuil −12,0 % »), `plafond_crypto` conforme, les deux règles qualitatives à vérifier.
 
+**Critère de fin de #12 atteint** (2026-11-14, vrais appels Bedrock, après la fiche [021](021-taille-max-compatible.md) qui a branché `taille_max_compatible`) : la même décision, « Je veux mettre 30 % de mon portefeuille en Tesla », jugée pour deux profils, donne deux procès différents, et les deux contrats passent `valider_contrat` (schéma et renvois).
+
+| | Profil prudent (`robert`) | Profil audacieux (`amira`) |
+|---|---|---|
+| `pire_baisse_max` | violation : −29,0 % au-delà du seuil −12,0 % | conforme : −42,6 % dans la limite du seuil −45,0 % |
+| `taille_max_compatible` | 0,09 | 0,30 |
+| `verifier_chiffres` | 32/32 chiffres, 7 arguments | 31/31 chiffres, 7 arguments |
+
+Dans les deux cas, l'orchestrateur a choisi les mêmes outils (simulation complète, rejeu 2022, taille maximale, indicateurs de TSLA) : c'est le Pacte qui change le verdict des contrôles et les arguments.
+
 ## Limites et suite
-- **Reste de #12** : `taille_max_compatible` (#21), puis la validation du contrat complet par `contrat/schema_sortie.json`. D'ici là, le contrat renvoyé est partiel et ne passe pas le schéma.
+- **Non fait dans #12, à reprendre dans une issue dédiée** : le champ `duree` de la trace et le **contre-interrogatoire** (question libre → orchestrateur → nouvelles pièces → débat → Greffier), dont le format de réponse reste à définir avec l'équipe interface.
 - **Réallocations (#16)** : l'Agent Profil peut maintenant renvoyer une décision `reallocation`, mais `simuler_portefeuille` ne sait pas encore la simuler. L'orchestrateur instruit quand même le dossier ; la trace indique « Pièce obligatoire indisponible », `comparaison` est absente et chaque règle du Pacte est `a_verifier` (jamais « conforme » par défaut). L'outil 3 `calculer_correlations` (#16) n'est pas encore dans la liste blanche.
-- **Champ `duree` de la trace** : demandé par l'issue, mais refusé par le schéma du contrat (`additionalProperties: false`). À ajouter au schéma avec l'accord de l'équipe.
+- **Champ `duree` de la trace** : refusé par le schéma du contrat (`additionalProperties: false`) ; à ajouter au schéma avec l'accord de l'équipe avant de le remplir.

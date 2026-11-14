@@ -285,7 +285,7 @@ La maquette de référence est dans `docs/maquette/` (lien Figma + prototype int
 
 - Prototype et dépôt de code avec un **README** (dépendances, sources, configuration, démarrage).
 - **Vidéo** d'environ 5 minutes, idéalement avec **la même décision** jugée pour deux profils contrastés (ex. : profil prudent vs profil audacieux), pour montrer que le système s'adapte au Pacte et non à un persona codé en dur.
-- **Documentation technique** : méthodes, sources, traitements, mécanisme d'explicabilité avec un exemple relié à la trace, validations et limites.
+- **Documentation technique** : méthodes, sources, traitements, mécanisme d'explicabilité avec un exemple relié à la trace, validations et limites. Elle part de `docs/CHOIX_CONCEPTION.md` (le pourquoi) et du journal `docs/journal/` (ce qui a été construit, issue par issue).
 - **One pager**.
 
 ## 10. Conventions de code
@@ -304,3 +304,12 @@ La maquette de référence est dans `docs/maquette/` (lien Figma + prototype int
 - Une PR qui ne fait qu'avancer une issue écrit **`Avance #N`** : l'issue reste ouverte.
 - Une PR fermée **sans fusion** ne ferme aucune issue : le travail n'est pas arrivé dans `main`.
 - Aucune mention de Claude dans les commits ni dans les PR.
+
+### Journal de construction (obligatoire)
+
+Pour que n'importe qui puisse s'y retrouver dans le dépôt, chaque issue laisse une trace de ce qui a été construit.
+
+- **Chaque PR qui termine ou avance une issue** ajoute ou met à jour la fiche `docs/journal/NNN-titre-court.md` (NNN = numéro de l'issue sur 3 chiffres, ex. : `007-client-llm-bedrock.md`). Le modèle et les règles sont dans `docs/journal/README.md`.
+- La fiche est écrite **dans la même PR que le code**, avant de l'ouvrir. Elle décrit ce qui existe vraiment : fichiers, fonctions publiques, comment l'utiliser, comment le vérifier, choix faits en cours de route, limites.
+- Une PR qui ajoute, déplace ou supprime un fichier ou un dossier important met aussi à jour la **carte du dépôt** dans `README.md`.
+- Une PR sans issue qui ne touche que la configuration ou la documentation n'a pas de fiche. Si elle construit du code, on crée d'abord l'issue.

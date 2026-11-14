@@ -1,6 +1,6 @@
 # #10 — Greffier : outils 5 (verifier_pacte) et 6 (verifier_chiffres)
 
-- **Issue** : #10 · **PR** : #PR_A_RENSEIGNER · **Statut** : terminée
+- **Issue** : #10 · **PR** : #42 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

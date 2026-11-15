@@ -1,6 +1,6 @@
 # #88 — Graphique de valeur du portefeuille interactif
 
-- **Issue** : #88 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #88 · **PR** : #89 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

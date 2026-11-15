@@ -1,6 +1,6 @@
 # #121 — Limites des données sur chaque écran
 
-- **Issue** : #121 · **PR** : #PR · **Statut** : terminée
+- **Issue** : #121 · **PR** : #122 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

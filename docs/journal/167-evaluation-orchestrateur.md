@@ -1,6 +1,6 @@
 # #167 — L'orchestrateur et le débat mesurés : les preuves changent avec la décision et le Pacte
 
-- **Issue** : #167 · **PR** : à venir · **Statut** : terminée (sans le plan de procès facultatif)
+- **Issue** : #167 · **PR** : #175 · **Statut** : terminée (sans le plan de procès facultatif)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

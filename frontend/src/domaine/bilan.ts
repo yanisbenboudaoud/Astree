@@ -92,9 +92,8 @@ export function expliquerControle(c: Controle, contrat: ContratTribunal): Contro
 
 export interface Bilan {
   ton: 'violation' | 'a_juger' | 'conforme';
+  /** Le compte des règles enfreintes ; l'explication de chacune reste sous sa règle. */
   verdict: string;
-  /** La phrase qui explique le verdict : la première règle enfreinte, s'il y en a une. */
-  explication?: string;
   controles: ControleExplique[];
   comptes: Record<Groupe, number>;
 }
@@ -110,7 +109,6 @@ export function bilanGreffier(controles: Controle[], contrat: ContratTribunal): 
     return {
       ton: 'violation',
       verdict: enfreintes.length > 1 ? `${enfreintes.length} règles de votre Pacte sont enfreintes` : '1 règle de votre Pacte est enfreinte',
-      explication: enfreintes[0].detail,
       controles: expliques,
       comptes,
     };

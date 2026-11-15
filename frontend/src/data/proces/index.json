@@ -3,10 +3,10 @@
   "proces": [
     {"procesId": "2026-11-15-fcb6ce39f184", "profil": "robert", "note": "30 % en TSLA ; points de bascule (#61) ; 7 sources, archives des verdicts en P6 (#111) ; part en USD (#112) ; frais des FNB 682 $ → 478 $ par an (#114)"},
     {"procesId": "2026-11-15-032ec3367b19", "profil": "robert", "note": "25 % en TSLA : un argument renvoyé par le Greffier puis corrigé ; frais cités par l'Avocat, 682 $ → 512 $ (#114)"},
-    {"procesId": "2026-11-15-f59548b2fdd9", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 % ; points de bascule (#61) ; frais cités par l'Avocat, 37 $ → 18 $ (#114)"},
+    {"procesId": "2026-11-15-5ba5343b2165", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 % ; points de bascule (#61) ; tech et crypto 92,3 % par transparence des FNB, cité par le Procureur (#116)"},
     {"procesId": "2026-11-15-c7c4bcc1736b", "profil": "mateo", "note": "10 % en XOM ; documents ESG parmi les 8 sources (#111, #114)"},
     {"procesId": "2026-11-15-3da0fd68f5e4", "profil": "robert", "note": "30 % en TSLA, Pacte vécu (pire baisse mesurée : −10,2 %) ; points de bascule (#61)", "calibrage": true},
-    {"procesId": "2026-11-15-1b59a098a64c", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, Pacte vécu (−40,6 %) ; points de bascule (#61) ; frais cités par l'Avocat (#114)", "calibrage": true},
+    {"procesId": "2026-11-15-30993c3a1ebf", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, Pacte vécu (−40,6 %) ; points de bascule (#61) ; tech et crypto 92,3 % par transparence des FNB (#116)", "calibrage": true},
     {"procesId": "2026-11-15-b04a4cbd233e", "profil": "mateo", "note": "10 % en XOM, Pacte vécu (−15,1 %) ; les 9 sources possibles (#111, #114)", "calibrage": true}
   ]
 }

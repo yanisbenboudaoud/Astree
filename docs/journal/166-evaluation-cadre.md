@@ -1,6 +1,6 @@
 # #166 — Trompez le Greffier, côté cadre : conseils et promesses bloqués, arguments légitimes admis
 
-- **Issue** : #166 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #166 · **PR** : #176 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

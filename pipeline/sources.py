@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from pipeline import calibrage, documents, jurisprudence, points_de_bascule, simulation, taille_max
+from pipeline import calibrage, composition, documents, jurisprudence, points_de_bascule, simulation, taille_max
 from pipeline.donnees import date_extraction
 from pipeline.macro import FICHIER_MACRO
 from pipeline.questionnaire import NOM_OUTIL_PIECE as OUTIL_QUESTIONNAIRE
@@ -56,6 +56,8 @@ SOURCES = {
                      "Le pouvoir d'achat : inflation, rendement réel, taux sans risque, ratio de Sharpe"),
     "documents": _Source("Documents publics sur les critères ESG, choisis et lus par l'équipe", "JSON (texte)",
                          "Les critères non financiers du Pacte, comme les controverses ESG"),
+    "composition": _Source("Composition des FNB, relevée sur les pages des émetteurs", "JSON (répartitions)",
+                           "La part de chaque catégorie dans un FNB : plafonds du Pacte calculés par transparence"),
     "jurisprudence": _Source("Archives des verdicts de ce profil", "JSON",
                              "Les procès passés de ce profil et les verdicts rendus"),
 }
@@ -72,6 +74,7 @@ SOURCES_PAR_OUTIL = {
     points_de_bascule.NOM_OUTIL: ("prix", "change", "univers"),
     documents.NOM_OUTIL: ("documents",),
     jurisprudence.NOM_OUTIL: ("jurisprudence",),
+    composition.NOM_OUTIL: ("composition", "univers"),
 }
 
 # Sources des règles du Pacte, selon leur type.
@@ -111,8 +114,12 @@ def sources_du_proces(contrat: dict[str, Any], anciennes: list[dict[str, Any]] |
 
     controles_par_source: dict[str, list[str]] = {cle: [] for cle in SOURCES}
     types = {regle["id"]: regle["type"] for regle in contrat.get("pacte", {}).get("regles", [])}
+    ids_composition = {piece["id"] for piece in contrat["pieces"] if piece.get("outil") == composition.NOM_OUTIL}
     for controle in contrat.get("controles", []):
-        for cle in SOURCES_PAR_TYPE_DE_REGLE.get(types.get(controle["regle"]), ()):
+        cles = list(SOURCES_PAR_TYPE_DE_REGLE.get(types.get(controle["regle"]), ()))
+        if ids_composition & set(controle.get("pieces", [])):  # plafond calculé par transparence (#116)
+            cles.append("composition")
+        for cle in cles:
             if controle["regle"] not in controles_par_source[cle]:
                 controles_par_source[cle].append(controle["regle"])
 
@@ -160,6 +167,7 @@ def _fichier(cle: str, contrat: dict[str, Any]) -> str | None:
         "univers": "assets_universe.csv",
         "macro": FICHIER_MACRO,
         "documents": "donnees_externes/documents_esg.json",
+        "composition": "donnees_externes/composition_fnb.json",
         "jurisprudence": f"verdicts/{persona}/ (S3)",
     }.get(cle)
 
@@ -172,6 +180,8 @@ def _date(cle: str, contrat: dict[str, Any]) -> str:
                    if piece.get("outil") in (OUTIL_QUESTIONNAIRE, calibrage.NOM_OUTIL))
     if cle == "documents":
         return documents.charger_corpus()["date_constitution"]
+    if cle == "composition":
+        return composition.charger_compositions()["date_constitution"]
     if cle == "jurisprudence":  # les archives sont lues le jour du procès
         return datetime.now(timezone.utc).date().isoformat()
     return date_extraction({"prix": "prices_daily.csv", "change": "fx_usdcad_daily.csv",

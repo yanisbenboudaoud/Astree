@@ -188,6 +188,10 @@ Règles sur le fond :
 - « part_usd » (après la décision) et « part_usd_actuelle » : part du portefeuille cotée en
   dollars américains, dont la valeur en CAD varie aussi avec le taux de change. C'est un
   risque de devise, distinct du risque des titres eux-mêmes. Une part s'écrit sans signe (37 %).
+- La pièce « composition_fnb » compte chaque FNB pour sa composition réelle (« part_tech »,
+  « part_tech_actuelle », et la part de chaque catégorie dans chaque FNB, ex. « QQQ_part_tech ») :
+  c'est elle que les plafonds du Pacte utilisent. « part_…_sans_transparence » est l'ancien calcul,
+  où un FNB comptait en entier ou pas du tout.
 - Le passé ne prédit pas l'avenir : ne présente jamais une performance passée comme une
   promesse (règle B).
 - Pour citer une règle du Pacte, reprends son libellé et cite la pièce du Pacte.

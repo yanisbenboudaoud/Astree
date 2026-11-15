@@ -41,6 +41,8 @@ from pipeline.agent_profil import charger_profil, lancer_agent_profil
 from pipeline.cadre_simulation import controle_cadre_simulation
 from pipeline.calibrage import ResultatCalibrage, calibrer
 from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
+from pipeline.composition import NOM_OUTIL as OUTIL_COMPOSITION
+from pipeline.composition import piece_composition
 from pipeline.debat import corriger_argument, debattre
 from pipeline.greffier import controle_biais_survivant, controle_performance_passee, verifier_pacte
 from pipeline.donnees import HYPOTHESES_DONNEES, seances_americaines
@@ -61,6 +63,9 @@ from pipeline.simulation import poids_apres_decision, simuler_portefeuille
 ID_PIECE_PACTE = "P1"  # le Pacte est la première pièce ; l'orchestrateur numérote la suite
 ID_PIECE_CALIBRAGE = "P2"  # réponses du Pacte vécu, quand il y en a (#68)
 RAISON_POINTS_DE_BASCULE = f"{RAISON_D_OFFICE} : une règle calculable du Pacte est en violation"
+RAISON_COMPOSITION = f"{RAISON_D_OFFICE} : le portefeuille contient des FNB, lus selon leur composition publiée"
+HYPOTHESE_COMPOSITION = ("Composition des FNB relevée sur les pages des émetteurs à une date donnée, "
+                         "appliquée à toute la période")
 
 AVERTISSEMENT = (
     "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé."
@@ -203,6 +208,7 @@ def juger_decision(
     contrat["taille_max_compatible"] = recherche.taille_max
     contrat["pieces"] += instruction.pieces
     contrat["trace"] += instruction.trace
+    verser_composition(profil.profil, profil.decision, contrat, signaler_etape)
     contrat["points_de_bascule"] = verser_points_de_bascule(recherche, profil.decision, contrat, signaler_etape)
 
     # Débat : Procureur et Avocat en parallèle, sur les mêmes pièces.
@@ -240,10 +246,38 @@ def juger_decision(
                              *hypotheses_proces(vecu.seuil if vecu else None)]
     if any("taux_sans_risque_moyen" in piece["valeurs"] for piece in contrat["pieces"]):
         contrat["hypotheses"].append(HYPOTHESE_TAUX_SANS_RISQUE)
+    if any(piece.get("outil") == OUTIL_COMPOSITION for piece in contrat["pieces"]):
+        contrat["hypotheses"].append(HYPOTHESE_COMPOSITION)
     if vecu is not None:
         contrat["limites"].append(LIMITE_PACTE_VECU)
     contrat["sources"] = sources_du_proces(contrat)
     return contrat
+
+
+def verser_composition(
+    profil: dict[str, Any],
+    decision: dict[str, Any],
+    contrat: dict[str, Any],
+    signaler_etape: Callable[[dict[str, Any]], None] | None = None,
+) -> None:
+    """Verse d'office la pièce de composition des FNB (#116), quand le portefeuille en contient.
+
+    Les plafonds du Greffier sont calculés par transparence : la pièce montre la composition
+    utilisée et la part de chaque catégorie, pour que les agents puissent la citer et que le
+    contrôle s'y réfère. Sans FNB à lire : ni pièce ni étape de trace.
+    """
+    id_piece = f"P{prochain_numero(contrat['pieces'])}"
+    piece = piece_composition(id_piece, profil["portefeuille"], decision, profil["pacte"]["regles"])
+    if piece is None:
+        return
+    contrat["pieces"].append(piece)
+    tracer(contrat["trace"], signaler_etape, {
+        "etape": "orchestrateur",
+        "outil": OUTIL_COMPOSITION,
+        "raison": RAISON_COMPOSITION,
+        "entree": {"fonds": piece["valeurs"]["fonds_lus"]},
+        "sortie": id_piece,
+    })
 
 
 def verser_points_de_bascule(

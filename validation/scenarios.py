@@ -26,6 +26,7 @@ import pandas as pd
 
 from pipeline import categories as module_categories
 from pipeline import macro
+from pipeline.composition import part_des_categories
 from pipeline.calibrage import RESTE, VEND, calibrer, episodes_de_baisse, prochaine_question
 from pipeline.chiffres import trier_arguments
 from pipeline.donnees import ErreurDonnees
@@ -315,6 +316,9 @@ def scenarios_hypotheses() -> list[Resultat]:
     groupe = "3. Changer une hypothèse"
     resultats = []
     nvda = position("NVDA", 0.30)
+    # Part tech + crypto après la décision, FNB par transparence (#116) : 66,1 % (65 % en classement direct).
+    part_apres = part_des_categories(poids_apres_decision(profil("amira")["portefeuille"], nvda),
+                                     ["tech", "crypto"]).part
 
     # Plafond « tech + crypto » du profil audacieux (hypothèse de #23 : 75 %).
     for maximum in PLAFONDS_TECH_CRYPTO:
@@ -322,7 +326,7 @@ def scenarios_hypotheses() -> list[Resultat]:
         regle(modifie, "pas_exclusivement_tech")["max"] = maximum
         jugement = juger(modifie, nvda)
         controle = jugement.controles["pas_exclusivement_tech"]
-        attendu = "violation" if maximum < 0.65 else "conforme"  # part tech + crypto après : 65 %
+        attendu = "violation" if maximum < part_apres else "conforme"
         resultats.append(Resultat(
             groupe, f"Profil audacieux + 30 % NVDA, plafond tech + crypto {pourcent(maximum)}", attendu,
             f"{controle['message']} ; taille max {pourcent(jugement.taille_max)}",
@@ -335,9 +339,9 @@ def scenarios_hypotheses() -> list[Resultat]:
     with categories_modifiees(lambda c: c["tech"]["ajouts"].remove("QQQ")):
         sans_qqq = juger(amira, nvda).controles["pas_exclusivement_tech"]
     resultats.append(Resultat(
-        groupe, "QQQ retiré de la catégorie tech (profil audacieux + 30 % NVDA)",
-        "part tech + crypto en baisse de la part de QQQ ; toujours conforme",
-        f"avant : {reference} | après : {sans_qqq['message']}", sans_qqq["statut"] == "conforme",
+        groupe, "QQQ retiré des ajouts de la catégorie tech (profil audacieux + 30 % NVDA)",
+        "sans effet : par transparence, QQQ compte pour sa part réelle de technologie, quel que soit son classement (#116)",
+        f"avant : {reference} | après : {sans_qqq['message']}", sans_qqq["message"] == reference,
     ))
 
     tsla = position("TSLA", 0.60)

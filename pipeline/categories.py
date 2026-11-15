@@ -46,6 +46,19 @@ def noms_categories() -> frozenset[str]:
     return frozenset(charger_categories())
 
 
+def nom_categories(noms: list[str]) -> str:
+    """["tech", "crypto"] → « Technologie et cryptoactifs » (libellés de config/categories.json).
+
+    Un libellé seul est repris tel quel : « États-Unis », « Placements hors du Canada » (#112).
+    """
+    definitions = charger_categories()
+    libelles = [definitions[nom]["libelle"] for nom in noms]
+    if len(libelles) == 1:
+        return libelles[0]
+    texte = ", ".join(libelles[:-1]) + " et " + libelles[-1]
+    return texte[0].upper() + texte[1:].lower()
+
+
 def categories_du_titre(ticker: str) -> frozenset[str]:
     """Catégories d'un titre de l'univers (ensemble vide s'il n'est dans aucune).
 

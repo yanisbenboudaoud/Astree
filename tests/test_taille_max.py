@@ -8,6 +8,7 @@ import pytest
 
 from pipeline import taille_max
 from pipeline.agent_profil import chemin_profil
+from pipeline.composition import part_des_categories
 from pipeline.orchestrateur import outils_du_profil
 from pipeline.pacte import charger_pacte
 from pipeline.simulation import ErreurSimulation
@@ -89,7 +90,11 @@ def test_plafond_limitant():
     assert valeurs["regle_limitante"] == "plafond_crypto"
     assert valeurs["part_crypto_a_taille_max"] == pytest.approx(0.15 * 0.89 + 0.11)
     assert valeurs["part_crypto_a_taille_suivante"] == pytest.approx(0.15 * 0.88 + 0.12)
-    assert valeurs["part_tech_crypto_a_taille_max"] == pytest.approx(0.5 * 0.89 + 0.11)
+    # Tech et crypto, FNB par transparence (#116) : QQQ, SPY et XIU.TO comptent pour leur part réelle de
+    # technologie, comme le Greffier ; la part de départ n'est donc plus 0,5 (QQQ entier, SPY à zéro).
+    depart = part_des_categories({l["ticker"]: l["poids"] for l in AUDACIEUX["portefeuille"]}, ["tech", "crypto"]).part
+    assert depart == pytest.approx(0.5153, abs=1e-4)
+    assert valeurs["part_tech_crypto_a_taille_max"] == pytest.approx(depart * 0.89 + 0.11, abs=1e-6)
 
 
 def test_taille_demandee_deja_compatible():

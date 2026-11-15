@@ -1216,9 +1216,9 @@
     ],
     "max": 0.75,
     "statut": "conforme",
-    "message": "Technologie et cryptoactifs : 50,0 % du portefeuille après la décision, dans la limite du plafond de 75,0 %",
-    "valeur": 0.5,
-    "utilisation": 0.666667
+    "message": "Technologie et cryptoactifs : 51,5 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), dans la limite du plafond de 75,0 %",
+    "valeur": 0.51528,
+    "utilisation": 0.68704
    }
   ]
  },

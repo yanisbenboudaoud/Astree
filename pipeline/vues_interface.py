@@ -27,9 +27,9 @@ from pipeline.calibrage import (
     questions_valeurs,
     reponses_demo,
 )
-from pipeline.categories import TitreHorsUnivers, categories_du_titre
+from pipeline.categories import categories_du_titre
 from pipeline.correlations import calculer_matrice_correlations
-from pipeline import macro
+from pipeline import composition, macro
 from pipeline.donnees import ErreurDonnees, charger_donnees, charger_univers
 from pipeline.greffier import verifier_pacte
 from pipeline.indicateurs import (
@@ -119,14 +119,8 @@ def seuil_pire_baisse(regles: list[dict[str, Any]]) -> float | None:
 
 
 def part_des_categories(poids: dict[str, float], categories: list[str]) -> float:
-    part = 0.0
-    for ticker, poids_titre in poids.items():
-        try:
-            if categories_du_titre(ticker) & set(categories):
-                part += poids_titre
-        except TitreHorsUnivers:
-            pass
-    return part
+    """Part calculée comme le Greffier : FNB par transparence (#116), titres hors univers ignorés."""
+    return composition.part_des_categories(poids, categories).part
 
 
 def juger(regles: list[dict[str, Any]], poids: dict[str, float], chute_max: float) -> dict[str, Any]:

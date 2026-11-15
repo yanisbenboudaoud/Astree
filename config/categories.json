@@ -1,7 +1,7 @@
 {
-  "description": "Catégories d'actifs utilisées par les règles de type « plafond » des Pactes. Un seul fichier pour tous les profils. Un titre appartient à une catégorie si sa classe d'actifs (asset_class), son secteur (sector) ou son marché de cotation (market) dans assets_universe.csv figure dans la définition, ou s'il est listé dans « ajouts » ; un titre listé dans « retraits » n'y appartient jamais. Un titre absent de l'univers n'est jamais classé au hasard : le Greffier rend « a_verifier ».",
+  "description": "Catégories d'actifs utilisées par les règles de type « plafond » des Pactes. Un seul fichier pour tous les profils. Un titre appartient à une catégorie si sa classe d'actifs (asset_class), son secteur (sector) ou son marché de cotation (market) dans assets_universe.csv figure dans la définition, ou s'il est listé dans « ajouts » ; un titre listé dans « retraits » n'y appartient jamais. Un titre absent de l'univers n'est jamais classé au hasard : le Greffier rend « a_verifier ». Par transparence (#116) : la part d'une catégorie dans un FNB vient de sa composition publiée (donnees_externes/composition_fnb.json), lue selon le bloc « transparence » de la catégorie ; un FNB dont la composition ne permet pas de la calculer garde son classement direct, et le Greffier le signale.",
   "etiquette": "hypothese",
-  "source": "alphaforge_starter/assets_universe.csv (champs asset_class, sector et market)",
+  "source": "alphaforge_starter/assets_universe.csv (champs asset_class, sector et market) ; donnees_externes/composition_fnb.json (composition des FNB)",
   "categories": {
     "crypto": {
       "libelle": "Cryptoactifs",
@@ -19,7 +19,27 @@
       "marches": [],
       "ajouts": ["GOOGL", "AMZN", "QQQ"],
       "retraits": [],
-      "justification": "Hypothèse de l'équipe : secteur GICS « Information Technology », plus GOOGL et AMZN (classés ailleurs par le GICS, mais à activité largement technologique) et QQQ (FNB Nasdaq-100 à forte pondération tech, compté en entier par simplicité)."
+      "transparence": {
+        "dimension": "secteurs",
+        "par_classification": {
+          "GICS": {
+            "secteurs": ["Information Technology"],
+            "titres": ["GOOGL", "GOOG", "AMZN"]
+          },
+          "ICB": {
+            "secteurs": ["Technology"],
+            "titres": ["AMZN"]
+          },
+          "obligations_d_etat": {
+            "secteurs": []
+          },
+          "or_physique": {
+            "secteurs": []
+          }
+        },
+        "justification": "Comme pour un titre détenu en direct : secteur Information Technology plus Alphabet (ses deux classes d'actions, GOOGL et GOOG) et Amazon. En ICB, Technology contient déjà Alphabet (et Meta, que le GICS classe ailleurs) : seul Amazon est ajouté. Les classifications obligataires n'isolent pas la technologie : ces FNB gardent le classement direct."
+      },
+      "justification": "Hypothèse de l'équipe : secteur GICS « Information Technology », plus GOOGL et AMZN (classés ailleurs par le GICS, mais à activité largement technologique) et QQQ (FNB Nasdaq-100 à forte pondération tech, compté en entier en classement direct ; par transparence, seule sa part réelle de technologie compte, #116)."
     },
     "energie_fossile": {
       "libelle": "Énergies fossiles",
@@ -28,7 +48,28 @@
       "marches": [],
       "ajouts": [],
       "retraits": [],
-      "justification": "Secteur GICS « Energy » du fichier d'univers (questionnaire, #84) : XOM (pétrole et gaz intégrés), CNQ.TO (production de pétrole et de gaz) et ENB.TO (transport de pétrole et de gaz par pipelines). Hypothèse de l'équipe : le transport est compté avec la production. Les fonds larges (SPY, XIU.TO…) ne sont pas comptés, même s'ils détiennent des titres de l'énergie."
+      "transparence": {
+        "dimension": "secteurs",
+        "par_classification": {
+          "GICS": {
+            "secteurs": ["Energy"]
+          },
+          "ICB": {
+            "secteurs": ["Energy"]
+          },
+          "obligations_canada": {
+            "secteurs": ["Energy"]
+          },
+          "obligations_d_etat": {
+            "secteurs": []
+          },
+          "or_physique": {
+            "secteurs": []
+          }
+        },
+        "justification": "Secteur Energy de chaque classification, y compris les obligations de sociétés de l'énergie des fonds obligataires canadiens. Hypothèse de l'équipe : Energy est compté en entier comme fossile (l'ICB y range aussi quelques sociétés d'énergies renouvelables). AGG mêle l'énergie aux autres sociétés (Industrial) : il garde le classement direct."
+      },
+      "justification": "Secteur GICS « Energy » du fichier d'univers (questionnaire, #84) : XOM (pétrole et gaz intégrés), CNQ.TO (production de pétrole et de gaz) et ENB.TO (transport de pétrole et de gaz par pipelines). Hypothèse de l'équipe : le transport est compté avec la production. Les fonds larges (SPY, XIU.TO…) ne sont pas dans la catégorie en classement direct ; leur part d'énergie compte par transparence (#116)."
     },
     "canada": {
       "libelle": "Canada",
@@ -37,6 +78,11 @@
       "marches": ["TSX"],
       "ajouts": [],
       "retraits": [],
+      "transparence": {
+        "dimension": "pays",
+        "pays": ["Canada"],
+        "justification": "Part du FNB placée au Canada, selon sa répartition par pays publiée."
+      },
       "justification": "Diversification géographique (#112). Titres cotés à la Bourse de Toronto (market « TSX ») : 10 actions canadiennes et 3 FNB qui ne détiennent que des titres canadiens (XIU.TO, XBB.TO, ZST.TO). Hypothèse de l'équipe : la place de cotation donne la région. C'est vrai pour cet univers, pas pour tous les FNB : un FNB coté à Toronto qui détient des actions américaines (ex. : XSP, 98 % États-Unis, absent de l'univers) serait mis dans « retraits » ici et dans les « ajouts » de etats_unis."
     },
     "etats_unis": {
@@ -46,6 +92,11 @@
       "marches": ["NASDAQ", "NYSE", "NYSE Arca", "Cboe BZX"],
       "ajouts": [],
       "retraits": ["GLD"],
+      "transparence": {
+        "dimension": "pays",
+        "pays": ["United States"],
+        "justification": "Part du FNB placée aux États-Unis, selon sa répartition par pays publiée."
+      },
       "justification": "Diversification géographique (#112). Titres cotés aux États-Unis : 10 actions américaines, FNB d'actions (SPY, QQQ, ESGV) et d'obligations (AGG, TLT) qui ne détiennent que des titres américains. GLD est retiré : coté à New York, il détient de l'or physique, qui n'a pas de pays. Les cryptoactifs (market « Crypto (24/7) ») n'ont pas de pays non plus. Hypothèse de l'équipe : la région est celle de la cotation et du siège, pas celle des revenus (une entreprise américaine vend dans le monde entier)."
     },
     "hors_canada": {
@@ -55,6 +106,11 @@
       "marches": ["NASDAQ", "NYSE", "NYSE Arca", "Cboe BZX", "Crypto (24/7)"],
       "ajouts": [],
       "retraits": [],
+      "transparence": {
+        "dimension": "pays",
+        "pays_sauf": ["Canada"],
+        "justification": "Tout ce qui n'est pas au Canada dans la répartition par pays publiée, liquidités et or compris."
+      },
       "justification": "Diversification géographique (#112) : tout ce qui n'est pas coté à Toronto, y compris l'or (GLD) et les cryptoactifs, qui n'ont pas de pays mais ne sont pas des placements canadiens. Sert à la question « part maximale hors du Canada » du questionnaire. Dans cet univers, ce sont aussi exactement les titres cotés en USD (champ currency) : leur valeur en CAD varie avec le taux de change USD/CAD."
     }
   }

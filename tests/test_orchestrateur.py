@@ -432,6 +432,18 @@ def test_juger_decision_reallocation_contrat_complet(monkeypatch):
     assert point["regle"] == "plafond_crypto" and point["taille_max"] == 0.11
     assert point["seuil_suffisant"] == pytest.approx(0.15 * 0.8 + 0.2)
     assert point["message"] == "Conforme jusqu'à 11 % réalloués, ou avec un plafond de 32,0 % au lieu de 25,0 %"
+    # #116 : plafond tech + crypto calculé par transparence, pièce versée d'office avant le débat et citée.
+    composition = next(p for p in contrat["pieces"] if p["outil"] == "composition_fnb")
+    etape = next(e for e in contrat["trace"] if e["outil"] == "composition_fnb")
+    assert etape == {"etape": "orchestrateur", "outil": "composition_fnb", "raison": tribunal.RAISON_COMPOSITION,
+                     "entree": {"fonds": ["GLD", "QQQ", "SPY", "XBB.TO", "XIU.TO"]}, "sortie": composition["id"]}
+    tech = next(c for c in contrat["controles"] if c["regle"] == "pas_exclusivement_tech")
+    assert tech["pieces"][0] == composition["id"] and "par transparence : GLD, QQQ, SPY, XIU.TO" in tech["message"]
+    crypto = next(c for c in contrat["controles"] if c["regle"] == "plafond_crypto")
+    assert composition["id"] not in crypto["pieces"]  # la crypto se lit en classement direct
+    source = next(s for s in contrat["sources"] if s.get("fichier") == "donnees_externes/composition_fnb.json")
+    assert source["controles"] == ["pas_exclusivement_tech"] and source["pieces"][0]["id"] == composition["id"]
+    assert tribunal.HYPOTHESE_COMPOSITION in contrat["hypotheses"]
     assert valider_contrat(contrat) == []
 
 

@@ -113,7 +113,9 @@ def test_plafond_sur_plusieurs_categories_additionne_les_parts():
         poids={"BTC-USD": 0.3, "NVDA": 0.3, "QQQ": 0.2, "SPY": 0.2},
     )
     assert controle["statut"] == "violation"
-    assert controle["message"].startswith("Technologie et cryptoactifs : 80,0 %")
+    # BTC 30 % + NVDA 30 % + QQQ 20 % × 69,1 % + SPY 20 % × 44,98 % de technologie par transparence (#116).
+    assert controle["message"].startswith(
+        "Technologie et cryptoactifs : 82,8 % du portefeuille après la décision (par transparence : QQQ, SPY)")
 
 
 def test_exclusion_respectee():
@@ -159,7 +161,10 @@ def test_plafond_etats_unis_depasse_violation():
     poids = poids_apres_decision(profil["portefeuille"], {**TSLA_30, "ticker": "SPY", "taille": 0.40})
     controle = verifier_pacte([PLAFOND_ETATS_UNIS], poids, None, "P3")[0]
     assert controle["statut"] == "violation"
-    assert controle["message"] == "États-Unis : 46,0 % du portefeuille après la décision, au-delà du plafond de 40,0 %"
+    # #116 : ZST.TO publie sa répartition par pays (Canada) ; SPY, XBB.TO et XIU.TO non : classement direct, signalé.
+    assert controle["message"] == (
+        "États-Unis : 46,0 % du portefeuille après la décision (par transparence : ZST.TO ; "
+        "classement direct : SPY, XBB.TO, XIU.TO), au-delà du plafond de 40,0 %")
 
 
 def test_plafond_etats_unis_respecte_conforme():

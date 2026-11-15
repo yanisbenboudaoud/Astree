@@ -2155,9 +2155,9 @@
         ],
         "max": 0.5,
         "statut": "conforme",
-        "message": "Technologie : 0,0 % du portefeuille après la décision, dans la limite du plafond de 50,0 %",
-        "valeur": 0.0,
-        "utilisation": 0.0
+        "message": "Technologie : 14,6 % du portefeuille après la décision (par transparence : SPY, XIU.TO ; classement direct : XBB.TO, ZST.TO), dans la limite du plafond de 50,0 %",
+        "valeur": 0.146085,
+        "utilisation": 0.29217
        },
        {
         "id": "plafond_hors_canada",
@@ -2168,7 +2168,7 @@
         ],
         "max": 0.5,
         "statut": "conforme",
-        "message": "Placements hors du Canada : 25,0 % du portefeuille après la décision, dans la limite du plafond de 50,0 %",
+        "message": "Placements hors du Canada : 25,0 % du portefeuille après la décision (par transparence : ZST.TO ; classement direct : SPY, XBB.TO, XIU.TO), dans la limite du plafond de 50,0 %",
         "valeur": 0.25,
         "utilisation": 0.5
        },
@@ -2180,9 +2180,9 @@
          "energie_fossile"
         ],
         "max": 0.0,
-        "statut": "conforme",
-        "message": "Énergies fossiles : 0,0 % du portefeuille après la décision, exclusion respectée",
-        "valeur": 0.0,
+        "statut": "violation",
+        "message": "Énergies fossiles : 9,6 % du portefeuille après la décision (par transparence : SPY, XBB.TO, XIU.TO, ZST.TO), alors que cette catégorie est exclue",
+        "valeur": 0.096305,
         "utilisation": null
        },
        {

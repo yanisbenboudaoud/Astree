@@ -14,7 +14,9 @@ from __future__ import annotations
 import re
 from typing import Any, Callable
 
-from pipeline.categories import TitreHorsUnivers, categories_du_titre, charger_categories
+from pipeline.categories import nom_categories
+from pipeline.composition import NOM_OUTIL as OUTIL_COMPOSITION
+from pipeline.composition import PartCategories, part_des_categories
 from pipeline.simulation import formater_pourcentage
 
 # Écart toléré sur une part de portefeuille (arrondis des poids).
@@ -91,26 +93,25 @@ def controler_plafond(regle: dict[str, Any], contexte: dict[str, Any]) -> dict[s
     """``violation`` si la part des titres de ces catégories dépasse ``max`` (0 = exclusion).
 
     Un titre hors de l'univers rend ``a_verifier`` : sa catégorie n'est jamais devinée.
+    Un FNB compte pour sa part réelle de la catégorie, selon sa composition publiée
+    (``pipeline.composition``, #116) ; sans composition utilisable, il garde son classement
+    direct, et le message le dit. Le contrôle cite alors la pièce de composition du dossier.
     """
-    categories = set(regle["categories"])
+    resultat = part_des_categories(contexte["poids_apres"], regle["categories"])
     pieces = [contexte["id_piece_pacte"]]
-    part, hors_univers = 0.0, []
-    for ticker, poids in contexte["poids_apres"].items():
-        try:
-            if categories_du_titre(ticker) & categories:
-                part += poids
-        except TitreHorsUnivers:
-            hors_univers.append(ticker)
-
     nom = nom_categories(regle["categories"])
-    if hors_univers:
+    if resultat.hors_univers:
         return _controle(
             "a_verifier", regle,
-            f"{nom} : part inconnue, titre absent de l'univers ({', '.join(sorted(hors_univers))})",
+            f"{nom} : part inconnue, titre absent de l'univers ({', '.join(resultat.hors_univers)})",
             pieces,
         )
 
-    texte = f"{nom} : {_part(part)} du portefeuille après la décision"
+    part = resultat.part
+    piece_composition = _derniere_piece(contexte["pieces"], OUTIL_COMPOSITION) if resultat.par_transparence else None
+    if piece_composition is not None:
+        pieces = [piece_composition["id"], *pieces]
+    texte = f"{nom} : {_part(part)} du portefeuille après la décision{_precision_transparence(resultat)}"
     maximum = regle["max"]
     if part > maximum + TOLERANCE_PART:
         limite = "alors que cette catégorie est exclue" if maximum == 0 else f"au-delà du plafond de {_part(maximum)}"
@@ -186,14 +187,20 @@ def _part(valeur: float) -> str:
     return f"{valeur * 100:.1f}".replace(".", ",") + " %"
 
 
-def nom_categories(noms: list[str]) -> str:
-    """["tech", "crypto"] → « Technologie et cryptoactifs » (libellés de config/categories.json).
+def _precision_transparence(resultat: PartCategories) -> str:
+    """« (par transparence : QQQ, SPY ; classement direct : XBB.TO) », ou rien sans FNB concerné.
 
-    Un libellé seul est repris tel quel : « États-Unis », « Placements hors du Canada » (#112).
+    Classement direct : la composition publiée ne permet pas le calcul (répartition absente,
+    ou classification qui n'isole pas la catégorie) ; le FNB compte en entier ou pas du tout.
     """
-    definitions = charger_categories()
-    libelles = [definitions[nom]["libelle"] for nom in noms]
-    if len(libelles) == 1:
-        return libelles[0]
-    texte = ", ".join(libelles[:-1]) + " et " + libelles[-1]
-    return texte[0].upper() + texte[1:].lower()
+    morceaux = []
+    if resultat.par_transparence:
+        morceaux.append(f"par transparence : {', '.join(resultat.par_transparence)}")
+    if resultat.classement_direct:
+        morceaux.append(f"classement direct : {', '.join(resultat.classement_direct)}")
+    return f" ({' ; '.join(morceaux)})" if morceaux else ""
+
+
+def _derniere_piece(pieces: list[dict[str, Any]], outil: str) -> dict[str, Any] | None:
+    """La pièce la plus récente produite par un outil (contre-interrogatoire : la plus à jour)."""
+    return next((piece for piece in reversed(pieces) if piece.get("outil") == outil), None)

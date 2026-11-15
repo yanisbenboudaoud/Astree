@@ -63,14 +63,16 @@ def test_profil_audacieux_panier_crypto_tech_un_point_par_regle_violee():
     points = par_regle(AUDACIEUX, decision)
     assert list(points) == ["pire_baisse_max", "plafond_crypto", "pas_exclusivement_tech"]
     # Chaque règle a sa propre taille : la plus petite est la taille maximale de toutes les règles (28 %).
+    # Technologie et crypto : QQQ compte pour sa part réelle de technologie (#116), d'où 55 % et non 50 %.
     assert {regle: point.taille_max for regle, point in points.items()} == {
-        "pire_baisse_max": 0.36, "plafond_crypto": 0.28, "pas_exclusivement_tech": 0.5}
+        "pire_baisse_max": 0.36, "plafond_crypto": 0.28, "pas_exclusivement_tech": 0.55}
     assert recherche(AUDACIEUX, decision).taille_max == 0.28
     # −0,6185554 simulé : arrondi du côté permissif à −0,618556 (au plus proche, −0,618555 ne suffirait pas).
     assert points["pire_baisse_max"].seuil_suffisant == -0.618556
-    # Tout réallouer : 0,5 de crypto dans le panier, et le portefeuille devient 100 % tech et crypto.
+    # Tout réallouer : 0,5 de crypto dans le panier ; tech et crypto : tout le panier sauf la part
+    # non technologique de QQQ (20 % du panier × 69,1 % de tech par transparence, #116).
     assert points["plafond_crypto"].seuil_suffisant == pytest.approx(0.5)
-    assert points["pas_exclusivement_tech"].seuil_suffisant == pytest.approx(1.0)
+    assert points["pas_exclusivement_tech"].seuil_suffisant == pytest.approx(0.8 + 0.2 * 0.691, abs=1e-6)
     messages = [champ["message"] for champ in pour_contrat(recherche(AUDACIEUX, decision), decision, "P6")]
     assert messages[1] == "Conforme jusqu'à 28 % réalloués, ou avec un plafond de 50,0 % au lieu de 25,0 %"
 
@@ -184,12 +186,12 @@ def test_piece_conforme_au_contrat_et_valeurs_alignees():
     valeurs = piece["valeurs"]
     assert valeurs["regles_en_violation"] == ["pire_baisse_max", "plafond_crypto", "pas_exclusivement_tech"]
     assert valeurs["seuils_du_pacte"] == [-0.45, 0.25, 0.75]
-    assert valeurs["tailles_max_par_regle"] == [0.36, 0.28, 0.5]
+    assert valeurs["tailles_max_par_regle"] == [0.36, 0.28, 0.55]  # QQQ par transparence (#116)
     assert valeurs["taille_demandee"] == 1.0 and valeurs["taille_max_toutes_regles"] == 0.28
     assert piece["etiquette"] == "fictif" and piece["outil"] == "points_de_bascule"
     assert piece["valeur_affichee"] == (
         "Pire baisse : 36 % max ou seuil −61,9 % · Cryptoactifs : 28 % max ou plafond 50,0 % · "
-        "Technologie et cryptoactifs : 50 % max ou plafond 100,0 %")
+        "Technologie et cryptoactifs : 55 % max ou plafond 93,8 %")  # QQQ par transparence (#116)
 
 
 def test_champ_du_contrat_conforme_au_schema():

@@ -237,6 +237,30 @@ Les personas de l'énoncé deviennent des **profils de test**. Le code ne teste 
 
 ---
 
+## Choix 15 — Le procès-verbal : le procès devient un dossier de décision
+
+**Décision.** Chaque procès peut être exporté en **procès-verbal** imprimable (`pipeline/proces_verbal.py`, #57) : la décision, le Pacte et sa date de signature, la comparaison avant et après, les contrôles du Greffier, les arguments (acceptés et rejetés), les pièces (source, traitement, limites), la trace et le verdict de l'utilisateur. La page est produite **par Python, à partir du contrat JSON seulement** : aucun texte n'est ajouté par un LLM.
+
+**Pourquoi.** Le procès contient déjà tout ce qu'un dossier de décision doit garder. L'exporter rend la décision **vérifiable après coup**, par l'investisseur lui-même ou par une personne qui l'accompagne, sans refaire le procès.
+
+**Le cadre canadien, à présenter avec prudence.** Ce qui suit est notre lecture des sources ci-dessous ; ce n'est pas un avis juridique, et le texte officiel des règles reste à vérifier.
+- Les courtiers en placement membres de l'OCRI suivent les *Règles visant les courtiers en placement et règles partiellement consolidées* (Règles CPPC). Pour les comptes **avec conseils**, le courtier doit déterminer la **convenance** d'une opération au profil du client. Les documents de l'OCRI trouvés renvoient à l'article 3402 pour la convenance envers un client de détail, mais nous n'avons pas pu en lire le texte (accès refusé au site de l'OCRI) : **numéro et libellé à vérifier**.
+- Pour les comptes **d'exécution d'ordres sans conseils** (courtage en ligne, comme le courtage direct), l'obligation de convenance ne s'applique pas et les **recommandations sont interdites**. Selon BLG (17 avril 2026), la note d'orientation de l'OCRI publiée le 12 mars 2026, qui remplace la note 3400-21-003, permet des « ressources factuelles et informatives ainsi que des aides à la décision, à condition que celles-ci ne soutiennent pas une décision de placement précise », et demande d'éviter toute « impression de personnalisation ou de recommandation ».
+- **Conséquence pour Astrée.** Astrée ne recommande rien : l'utilisateur apporte sa propre décision et ses propres règles, et c'est lui qui rend le verdict. Mais un procès porte bien sur **une décision précise** : savoir si un tel outil est admissible comme aide à la décision dans un compte sans conseils est une **question ouverte, à valider avec une équipe de conformité**. Le pitch ne doit donc pas dire qu'Astrée est conforme.
+
+**Angle business (pitch).** Deux usages possibles, à formuler comme des pistes :
+- avec un conseiller (compte avec conseils) : le procès-verbal pourrait servir de **pièce du dossier de convenance**, sans remplacer la détermination du conseiller ;
+- en courtage en ligne : le procès-verbal est le **journal de décision de l'investisseur**, qui garde la trace de ce qu'il savait, de ses propres règles et de son choix.
+
+Phrase pour le one pager : « Chaque décision jugée par Astrée devient un procès-verbal vérifiable : les règles que l'investisseur s'est fixées, les preuves calculées, les arguments vérifiés et son propre verdict. »
+
+**Sources.**
+- BLG, « DIY avec l'EOSC, mais lisez d'abord les lignes directrices mises à jour de l'OCRI », 17 avril 2026 : https://www.blg.com/fr/insights/2026/04/diy-with-oeo-but-first-read-the-updated-ciro-guidance (lu le 2026-11-14).
+- OCRI, note d'orientation sur les services et activités d'exécution d'ordres sans conseils (2026) : https://www.ciro.ca/news-room/publications/guidance-order-execution-only-account-services-and-activities (**non lu** : accès refusé, à vérifier dans un navigateur).
+- OCRI, lignes directrices sur la connaissance du client et la convenance : https://www.ciro.ca/node/11662 (**non lu** : accès refusé, à vérifier).
+
+---
+
 ## Limites connues de cette conception
 
 - **Les seuils des Pactes sont des hypothèses** choisies par l'équipe, pas des recommandations réglementaires.

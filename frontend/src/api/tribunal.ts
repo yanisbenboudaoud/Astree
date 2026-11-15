@@ -7,6 +7,8 @@
  * - Dans les deux modes, « Trompez le Greffier » appelle `POST /verifier` (Python seul, sans
  *   Bedrock) sur le procès affiché, dès que VITE_API_URL est défini.
  * - En mode direct, une question libre appelle `POST /question` (contre-interrogatoire, #55).
+ * Le procès-verbal (#57) est produit par Python : `POST /proces-verbal` en mode direct,
+ * pages précalculées de public/proces-verbaux/<id>.html en démonstration.
  */
 import indexProces from '../data/proces/index.json';
 import type { ContratTribunal, DecisionContrat, EchangeContrat, PieceContrat, VerdictContrat } from './contrat';
@@ -202,4 +204,31 @@ export async function archiverVerdict(procesId: string | undefined, verdict: Ver
     body: JSON.stringify({ id: procesId, verdict }),
   });
   if (!reponse.ok) throw new Error(await lireErreur(reponse));
+}
+
+/**
+ * Ouvre le procès-verbal du procès dans un nouvel onglet (page imprimable, produite par Python).
+ * La fenêtre est ouverte tout de suite, avant l'appel réseau, pour ne pas être bloquée
+ * par le navigateur comme fenêtre surgissante.
+ */
+export async function ouvrirProcesVerbal(procesId: string | undefined): Promise<void> {
+  if (!procesId) throw new Error('Ce procès n’a pas d’identifiant : il n’a pas été archivé.');
+  if (!MODE_DIRECT) {
+    window.open(`${import.meta.env.BASE_URL}proces-verbaux/${procesId}.html`, '_blank', 'noopener');
+    return;
+  }
+  const fenetre = window.open('', '_blank');
+  try {
+    const reponse = await fetch(`${URL_API}/proces-verbal`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: procesId }),
+    });
+    if (!reponse.ok) throw new Error(await lireErreur(reponse));
+    const page = new Blob([await reponse.text()], { type: 'text/html' });
+    if (fenetre) fenetre.location.href = URL.createObjectURL(page);
+  } catch (erreur) {
+    fenetre?.close();
+    throw erreur;
+  }
 }

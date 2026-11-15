@@ -92,6 +92,8 @@
   padding-top: 20px;
   border-top: 1px solid var(--trait-fin);
 }
+.export { display: flex; align-items: center; flex-wrap: wrap; gap: 0 4px; margin: 0; }
+.lienExport { text-decoration: underline; text-underline-offset: 3px; }
 .signature { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .raison { text-align: right; margin-top: -20px; }
 

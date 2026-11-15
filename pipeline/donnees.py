@@ -134,6 +134,24 @@ def seances_americaines() -> pd.DatetimeIndex:
     return prix.dropna(how="all").index
 
 
+def charger_adj_close_cotation(ticker: str) -> pd.Series:
+    """adj_close d'un titre dans sa devise de cotation, à ses seules séances (#168).
+
+    Contrairement à ``charger_prix``, aucun alignement sur les séances américaines ni
+    aucun report : chaque date est une séance où Yahoo publie un prix pour ce titre.
+    Sert à comparer nos rendements à ceux que publie l'émetteur, sur son propre calendrier.
+
+    Raises:
+        ErreurDonnees: titre absent de prices_daily.csv.
+    """
+    prix = _prix_bruts()
+    if ticker not in prix.columns:
+        raise ErreurDonnees(f"« {ticker} » absent de prices_daily.csv")
+    serie = prix[ticker].dropna().copy()
+    serie.name = ticker
+    return serie
+
+
 def charger_prix(tickers: list[str]) -> pd.DataFrame:
     """Prix adj_close des titres demandés, alignés sur les séances américaines.
 

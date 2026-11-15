@@ -65,7 +65,7 @@
   font-weight: 600;
   font-size: 64px;
   line-height: 68px;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 .uniteTaille { margin-left: 4px; font-size: 36px; letter-spacing: -0.02em; color: var(--encre-500); }

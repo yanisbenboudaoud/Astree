@@ -33,11 +33,11 @@ a { color: var(--accent-bleu); }
   outline-offset: 2px;
 }
 
-/* Styles typographiques de l'annexe A.2 : une seule famille, titres serrés et gras, chiffres en chasse fixe. */
-.t-affiche { font-family: var(--police-titre); font-weight: 600; font-size: 56px; line-height: 62px; letter-spacing: -0.03em; }
-.t-h1 { font-family: var(--police-titre); font-weight: 600; font-size: 40px; line-height: 46px; letter-spacing: -0.025em; }
-.t-h2 { font-family: var(--police-titre); font-weight: 600; font-size: 26px; line-height: 32px; letter-spacing: -0.02em; }
-.t-panneau { font-family: var(--police-titre); font-weight: 600; font-size: 21px; line-height: 28px; letter-spacing: -0.015em; }
+/* Styles typographiques de l'annexe A.2 : titres et grands chiffres en serif, texte en linéale, chiffres en chasse fixe. */
+.t-affiche { font-family: var(--police-titre); font-weight: 600; font-size: 56px; line-height: 62px; letter-spacing: -0.015em; }
+.t-h1 { font-family: var(--police-titre); font-weight: 600; font-size: 40px; line-height: 46px; letter-spacing: -0.01em; }
+.t-h2 { font-family: var(--police-titre); font-weight: 600; font-size: 26px; line-height: 32px; letter-spacing: -0.005em; }
+.t-panneau { font-family: var(--police-titre); font-weight: 600; font-size: 21px; line-height: 28px; letter-spacing: 0; }
 .t-citation { font-family: var(--police-titre); font-style: italic; font-weight: 400; font-size: 18px; line-height: 28px; color: var(--encre-700); }
 .t-intertitre { font-family: var(--police-texte); font-weight: 600; font-size: 17px; line-height: 24px; letter-spacing: -0.005em; }
 .t-corps { font-family: var(--police-texte); font-weight: 400; font-size: 17px; line-height: 26px; }
@@ -45,7 +45,7 @@ a { color: var(--accent-bleu); }
 .t-petit { font-family: var(--police-texte); font-weight: 400; font-size: 15px; line-height: 21px; }
 .t-petit-fort { font-family: var(--police-texte); font-weight: 600; font-size: 15px; line-height: 21px; }
 .t-etiquette { font-family: var(--police-texte); font-weight: 600; font-size: 13px; line-height: 18px; letter-spacing: 0.01em; }
-.t-chiffre-moyen { font-family: var(--police-titre); font-weight: 600; font-size: 30px; line-height: 36px; letter-spacing: -0.03em; }
+.t-chiffre-moyen { font-family: var(--police-titre); font-weight: 600; font-size: 30px; line-height: 36px; letter-spacing: -0.01em; }
 .t-tableau { font-family: var(--police-mono); font-weight: 400; font-size: 15px; line-height: 22px; }
 .t-tableau-fort { font-family: var(--police-mono); font-weight: 600; font-size: 15px; line-height: 22px; }
 .t-trace { font-family: var(--police-code); font-weight: 400; font-size: 13px; line-height: 18px; }

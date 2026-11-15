@@ -1,6 +1,6 @@
 # #55 — Contre-interrogatoire : question libre de l'utilisateur
 
-- **Issue** : #55 · **PR** : #72, #74, à venir · **Statut** : terminée
+- **Issue** : #55 · **PR** : #72, #74, #80 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

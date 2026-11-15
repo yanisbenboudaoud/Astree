@@ -23,7 +23,13 @@ Une refonte du style seulement, sans changer le parcours ni les données. Le sty
 - **Graphiques** :
   - `GraphiqueValeur.tsx` : ajout d'un `<linearGradient id="degrade-valeur">` pour l'aire ;
   - `Graphiques.module.css` : courbe de valeur et courbe « avec la décision » en indigo, « Actuel » en gris, limite du Pacte et pire baisse en rouge, repères en pointillés légers, bulle de lecture avec ombre.
-- **Portefeuille** (`ecrans/Portefeuille.tsx`) : la barre de répartition prend les couleurs `--categorie-*` (`TEINTES`) au lieu des nuances d'encre, avec des segments arrondis et des puces rondes dans la légende.
+- **Positions** (`ecrans/Portefeuille.tsx`, `Positions`) : la barre de répartition prend les couleurs `--categorie-*` (`TEINTES`) au lieu des nuances d'encre. La liste devient un tableau regroupé par classe d'actifs :
+  - chaque groupe a un en-tête avec son sous-total en dollars et en part ;
+  - chaque titre a un monogramme rond teinté de la couleur du groupe et une barre de poids ;
+  - survoler un groupe estompe les autres ;
+  - le total du portefeuille est affiché à côté du titre de la section ;
+  - `Monogramme` accepte maintenant une `className`.
+  - La couleur du groupe passe par la variable CSS `--cat`, posée en ligne sur chaque bloc.
 - **Carte « Votre Pacte » et journal** (`ecrans/Portefeuille.tsx`, `Portefeuille.module.css`) : la carte est recomposée.
   - En-tête : « Signé le … » et un état en point coloré au lieu de la pastille.
   - Chiffre clé (`RegleCle`) : la valeur de la règle la plus proche de sa limite en grand (« −15,1 % / −20 % »), une jauge arrondie et ses deux bornes écrites.

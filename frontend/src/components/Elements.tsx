@@ -7,9 +7,9 @@ import { Bouton } from './Bouton';
 import styles from './Elements.module.css';
 
 /** Carré de 36 px avec le ticker court. Pas de logos d'entreprises. */
-export function Monogramme({ ticker }: { ticker: string }) {
+export function Monogramme({ ticker, className }: { ticker: string; className?: string }) {
   return (
-    <span className={styles.monogramme} aria-hidden="true">
+    <span className={`${styles.monogramme} ${className ?? ''}`} aria-hidden="true">
       {tickerCourt(ticker)}
     </span>
   );

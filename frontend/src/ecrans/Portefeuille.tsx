@@ -1,5 +1,5 @@
 /** Écran Portefeuille (annexe D.2), avec la recherche (D.3) et la confirmation après signature (C.6). */
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { EntreeJournal, Profil, ReglePacte } from '../api/types';
 import { configUi, donneesCalibrage, nomTitre, rechercheUi } from '../api/donnees';
@@ -92,47 +92,87 @@ function Indicateurs({ profil }: { profil: Profil }) {
   );
 }
 
+/**
+ * Positions regroupées par classe d'actifs (#105) : barre de répartition, puis un bloc par groupe
+ * (sous-total en dollars et en part) et ses titres, chacun avec une barre de poids à l'échelle de la plus grosse ligne.
+ * Survoler un groupe (barre, légende ou bloc) met ses lignes en avant ; l'information reste écrite, la couleur ne la porte jamais seule.
+ */
 function Positions({ profil }: { profil: Profil }) {
+  const [survol, setSurvol] = useState<string | null>(null);
   const teintes = profil.groupes.length <= 3 ? TEINTES_COURTES : TEINTES;
   const teinte = (groupe: string) => teintes[profil.groupes.findIndex((g) => g.libelle === groupe) % teintes.length];
+  const total = profil.positions.reduce((somme, p) => somme + p.valeur, 0);
+  const poidsMax = Math.max(...profil.positions.map((p) => p.poids));
+  const blocs = profil.groupes.map((g) => {
+    const lignes = profil.positions.filter((p) => p.groupe === g.libelle).sort((a, b) => b.poids - a.poids);
+    return { ...g, lignes, valeur: lignes.reduce((somme, p) => somme + p.valeur, 0) };
+  });
+  const couleur = (groupe: string) => ({ '--cat': teinte(groupe) }) as CSSProperties;
+  const attenue = (groupe: string) => (survol !== null && survol !== groupe ? styles.attenue : '');
+  const suivre = (groupe: string) => ({ onMouseEnter: () => setSurvol(groupe), onMouseLeave: () => setSurvol(null) });
   return (
     <Section
       id="titre-positions"
       titre="Vos positions"
       droite={(
         <span className={styles.groupeDroite}>
-          <span className="t-petit c-500">{compte(profil.positions.length, 'titre')}</span>
+          <span className="t-petit c-500">{compte(profil.positions.length, 'titre')} · {dollars(total)}</span>
           <Provenance type="Fictif" />
         </span>
       )}
     >
       <div className={styles.repartition} aria-hidden="true">
-        {profil.groupes.map((g) => (
-          <span key={g.libelle} style={{ flexGrow: g.poids, background: teinte(g.libelle) }} />
+        {blocs.map((g) => (
+          <span key={g.libelle} className={attenue(g.libelle)} style={{ flexGrow: g.poids, ...couleur(g.libelle) }} {...suivre(g.libelle)} />
         ))}
       </div>
       <ul className={styles.legende} aria-label="Répartition par groupe">
-        {profil.groupes.map((g) => (
-          <li key={g.libelle}>
-            <span className={styles.carre} style={{ background: teinte(g.libelle) }} aria-hidden="true" />
+        {blocs.map((g) => (
+          <li key={g.libelle} className={attenue(g.libelle)} style={couleur(g.libelle)} {...suivre(g.libelle)}>
+            <span className={styles.carre} aria-hidden="true" />
             <span className="t-petit c-700">{g.libelle}</span>
             <span className="t-tableau-fort">{part(g.poids)}</span>
           </li>
         ))}
       </ul>
-      <ul className={styles.liste}>
-        {profil.positions.map((p) => (
-          <li key={p.ticker} className={styles.ligne}>
-            <Monogramme ticker={p.ticker} />
-            <span className={styles.nom}>
-              <span className="t-corps">{nomTitre(p.ticker)}</span>
-              <span className="t-petit c-500">{p.ticker} · {p.groupe}</span>
-            </span>
-            <span className={`t-tableau ${styles.montantLigne}`}>{dollars(p.valeur)}</span>
-            <span className={`t-tableau-fort ${styles.poids}`}>{part(p.poids)}</span>
-          </li>
+      <div className={styles.tableauPositions} role="table" aria-label="Positions par groupe">
+        <div className={`t-etiquette c-500 ${styles.colonnes}`} role="row">
+          <span role="columnheader">Titre</span>
+          <span role="columnheader" className={styles.colonnePoids}>Poids</span>
+          <span role="columnheader" className={styles.montantLigne}>Valeur</span>
+          <span role="columnheader" className={styles.poids}>Part</span>
+        </div>
+        {blocs.map((g) => (
+          <div key={g.libelle} role="rowgroup" className={`${styles.groupe} ${attenue(g.libelle)}`} style={couleur(g.libelle)} {...suivre(g.libelle)}>
+            <div className={styles.enteteGroupe} role="row">
+              <span role="rowheader" className={styles.nomGroupe}>
+                <span className={styles.carre} aria-hidden="true" />
+                <span className="t-petit-fort">{g.libelle}</span>
+                <span className="t-petit c-500">{compte(g.lignes.length, 'titre')}</span>
+              </span>
+              <span role="cell" className={styles.colonnePoids} />
+              <span role="cell" className={`t-tableau-fort ${styles.montantLigne}`}>{dollars(g.valeur)}</span>
+              <span role="cell" className={`t-tableau-fort ${styles.poids}`}>{part(g.poids)}</span>
+            </div>
+            {g.lignes.map((p) => (
+              <div key={p.ticker} className={styles.ligne} role="row">
+                <span role="cell" className={styles.titreLigne}>
+                  <Monogramme ticker={p.ticker} className={styles.monoTeinte} />
+                  <span className={styles.nom}>
+                    <span className="t-corps">{nomTitre(p.ticker)}</span>
+                    <span className="t-petit c-500">{p.ticker}</span>
+                  </span>
+                </span>
+                <span role="cell" className={styles.colonnePoids}>
+                  <span className={styles.barrePoids} aria-hidden="true"><span style={{ width: `${(p.poids / poidsMax) * 100}%` }} /></span>
+                </span>
+                <span role="cell" className={`t-tableau ${styles.montantLigne}`}>{dollars(p.valeur)}</span>
+                <span role="cell" className={`t-tableau-fort ${styles.poids}`}>{part(p.poids)}</span>
+              </div>
+            ))}
+          </div>
         ))}
-      </ul>
+      </div>
     </Section>
   );
 }

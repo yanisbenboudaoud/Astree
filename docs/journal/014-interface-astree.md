@@ -1,6 +1,6 @@
 # #14 — Interface Astrée : les écrans de la maquette, branchés sur le Tribunal
 
-- **Issue** : #14 · **PR** : à venir · **Statut** : en cours (mode direct à brancher côté AWS)
+- **Issue** : #14 · **PR** : #62 · **Statut** : en cours (mode direct à brancher côté AWS)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

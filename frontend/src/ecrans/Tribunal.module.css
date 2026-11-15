@@ -169,7 +169,7 @@
   color: var(--encre-900);
   font-size: 13px;
   line-height: 18px;
-  transition: background-color var(--transition), border-color var(--transition), transform var(--transition);
+  transition: border-color var(--transition), transform var(--transition);
 }
 .suggestion:hover:not(:disabled) { border-color: var(--encre-900); background: var(--fond-creux); }
 .suggestion:active:not(:disabled) { transform: translateY(1px); }

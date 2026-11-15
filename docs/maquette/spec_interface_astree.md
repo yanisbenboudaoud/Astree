@@ -65,7 +65,7 @@ La maquette de référence est dans Figma (page « V2 · Prototype simplifié »
   - Espace insécable fine avant `%` et `$`, vrai signe moins `−` (U+2212), guillemets « … ».
   - Dates : `12 nov. 2026`.
 - **Accessibilité WCAG 2.2 AA.** Contrastes ≥ 4,5:1 (la palette fournie les respecte), focus visible partout, navigation complète au clavier. La couleur n'est jamais le seul signal (toujours une icône ou un mot en plus). Respecte `prefers-reduced-motion`.
-- **Pas d'ombres décoratives, pas de dégradés, pas d'émojis.** La hiérarchie passe par la typographie, les filets et l'espace.
+- **Pas d'ombres décoratives, pas de dégradés, pas d'émojis.** La hiérarchie passe par la typographie, les filets et l'espace. Seules exceptions (#103) : l'ombre de survol des éléments cliquables et celle de la liste flottante de recherche (annexe A.3), qui signalent un état ; les hachures de la zone hors limite (D.4) sont un motif, pas un dégradé.
 
 ---
 
@@ -82,8 +82,9 @@ La maquette de référence est dans Figma (page « V2 · Prototype simplifié »
   --encre-700:#3F3A31;     /* texte secondaire (9,8:1) */
   --encre-500:#675F52;     /* texte tertiaire (5,4:1) */
   --encre-300:#A39A89;     /* décoratif uniquement (jamais pour du texte) */
-  --trait-fin:#D9D2C3;     /* filets */
-  --trait-moyen:#BDB4A2;   /* bordures de contrôles */
+  --encre-200:#BDB4A2;     /* décoratif uniquement : teintes de la barre de répartition (#103) */
+  --trait-fin:#CBC3B2;     /* filets et bords de cartes, décoratifs (1,5:1 sur le papier) */
+  --trait-moyen:#8A8171;   /* bords qui montrent un état ou un contrôle : pastilles, champs, boutons (3,3:1, #103) */
   --accent-bleu:#1E3A5C;   /* liens, sélection, focus */
   --accent-bleu-teinte:#DCE4EE;
   --statut-violation:#A1281D; --statut-violation-teinte:#F5DDD8;
@@ -100,6 +101,7 @@ La maquette de référence est dans Figma (page « V2 · Prototype simplifié »
 - Prune et pétrole sont réservés aux deux camps (Procureur, Avocat).
 - Le bleu est réservé à la sélection, au focus et aux liens.
 - Les gains et pertes s'écrivent en encre, avec un signe et ▲/▼ (pas en vert ou rouge).
+- Un trait qui porte une information (bord de contrôle, pastille d'étape à venir, courbe « Actuel ») atteint au moins 3:1 sur le papier et sur les cartes (WCAG 1.4.11) : `--trait-moyen` ou plus foncé, jamais `--trait-fin`, `--encre-200` ni `--encre-300` (#103).
 
 ### A.2 Typographie (Google Fonts)
 
@@ -129,11 +131,15 @@ Polices :
 ### A.3 Espacement, grille, formes
 
 - **Espacements :** multiples de 4 (4, 8, 12, 16, 20, 24, 32, 40, 44, 48, 56).
-- **Gabarit desktop :** 1440 px de large, conteneur de **1184 px** centré (marges de 128 px) pour l'Entrée, le Portefeuille et le Tribunal.
-- **Colonne étroite :** **776 px** centrée pour la Décision et le Verdict.
-- **Portefeuille :** colonne principale de 776 px + gouttière de 32 + colonne latérale de 376.
+- **Gabarit desktop (paysage, #103) :** 1440 px de large, conteneur large de **1344 px** centré (`--conteneur-large`), marges de **48 px** dès 1024 px (`--marge-page` ; 24 px en dessous, 16 px sous 600 px). Il sert à l'Entrée, au Portefeuille, à la Décision, au chargement du Tribunal, au Tribunal et au Verdict.
+- **Colonne étroite :** **776 px** centrée pour les formulaires et les messages : Pacte vécu, Construire mon Pacte, messages d'erreur du Tribunal.
+- **Portefeuille :** bandeau de recherche sur toute la largeur ; dessous, colonne principale fluide (928 px à 1440) + gouttière de 40 + colonne latérale de 376.
+- **Décision :** deux colonnes 5 : 7 (réglage | effet sur le Pacte), gouttière de 48.
+- **Chargement du Tribunal et Verdict :** deux colonnes 7 : 5, gouttière de 48 ; la colonne de droite reste fixe au défilement.
 - **Tribunal :** deux colonnes égales (Procureur | Avocat) séparées de 32 px.
-- **Rayons :** 2 à 4 px (pastilles de question 17 px, menu de profil 20 px). Aucune ombre.
+- En dessous de 1024 px, toutes ces grilles s'empilent sur une colonne.
+- **Rayons :** 2 à 4 px (pastilles de question 17 px, menu de profil 20 px). Pas d'ombre au repos : seules les cartes et boutons cliquables prennent `--ombre-survol` (`0 2px 10px` encre à 10 %) au survol, et la liste flottante de recherche a une ombre portée.
+- **Retours visuels (#103) :** au survol, un élément cliquable se détache (bord plus foncé, ombre de survol ou fond `--fond-creux`) ; à l'appui, il s'enfonce de 1 px (`translateY(1px)`). Durée commune : `--transition` (120 ms, `ease-out`). Les transitions portent seulement sur `transform`, `box-shadow` et `border-color`, jamais sur `color` ni sur le `background-color` d'un élément qui contient du texte : axe-core mesure le contraste pendant le fondu et échoue sur l'état intermédiaire. Avec `prefers-reduced-motion`, transitions et animations deviennent instantanées (`base.css`).
 - **Sections :** chaque section commence par un filet `1.5px solid var(--encre-900)` en haut, avec 18–20 px d'espace au-dessus du titre (Titre/Panneau).
 - **Cartes :** réservées aux éléments interactifs ou sélectionnables : fond `--fond-carte`, bordure `1px --trait-fin`, rayon 4.
 - **Responsive :** au minimum un desktop entre 1280 et 1440 px. En dessous de 1024 px, empile les colonnes (sans régression du parcours).
@@ -143,16 +149,16 @@ Polices :
 | Composant | Spécification |
 |---|---|
 | **Bandeau de simulation** | Hauteur 28, fond `--encre-900`, texte Petit `--inverse-texte` centré, icône fiole 13 px. |
-| **En-tête** | Barre de 64 px, filet bas `--trait-fin`, padding horizontal 128. Gauche : logo (carré encre de 26 px avec une balance dessinée en traits papier) et « Astrée » en Titre/Panneau. Centre : étapes de la procédure **uniquement pendant une décision**. Droite : « Aide » (icône ?) et **menu de profil** (pastille ronde à bordure `--trait-moyen` : avatar encre de 28 px avec l'initiale, prénom, chevron). Le menu propose « Changer de profil », qui ramène à l'Entrée. **Pas de sélecteur de profil permanent.** |
+| **En-tête** | Barre de 64 px, filet bas `--trait-fin`, padding horizontal `--marge-page` (48 px dès 1024 px, #103). Gauche : logo (carré encre de 26 px avec une balance dessinée en traits papier) et « Astrée » en Titre/Panneau. Centre : étapes de la procédure **uniquement pendant une décision**. Droite : « Aide » (icône ?) et **menu de profil** (pastille ronde à bordure `--trait-moyen` : avatar encre de 28 px avec l'initiale, prénom, chevron). Le menu propose « Changer de profil », qui ramène à l'Entrée. **Pas de sélecteur de profil permanent.** |
 | **Étapes de la procédure** | Décision → Tribunal → Verdict. Pastille de 26 px : *faite* = contour encre + ✓ ; *courante* = fond encre + numéro papier ; *à venir* = contour `--trait-moyen` + numéro `--encre-500`. Les étapes sont reliées par des traits de 24 px. Attribut `aria-current="step"` sur l'étape courante. |
 | **Provenance** | Trois variantes, toujours avec le mot. **Fait** : fond `--fond-creux`, bordure pleine, glyphe ● plein. **Hypothèse** : bordure tirets `3/2`, glyphe ◐ demi-plein. **Fictif** : bordure pointillés, glyphe ○ vide. Texte en Étiquette, padding 2/8, rayon 2. |
 | **Statut** | Violation (icône 🚫 dessinée, rouge), À vérifier (triangle ⚠ dessiné, ocre), Conforme (✓, vert). Fond de la teinte correspondante, texte en Étiquette de la couleur pleine. |
-| **Bouton** | Hauteur 44 (grande) ou 36 (compacte). *Primaire* : fond encre, texte papier, flèche →. *Secondaire* : fond carte, bordure 1,5 encre. *Tertiaire* : lien bleu souligné. **Un seul primaire par écran.** Le focus est un anneau bleu de 2 px décalé de 2 px. |
-| **Pièce** | Pastille « 📄 P4 » : icône document de 12 px + code en Mono 12, bordure `--trait-moyen`, fond carte. C'est un bouton qui ouvre le tiroir de la pièce. |
+| **Bouton** | Hauteur 44 (grande) ou 36 (compacte). *Primaire* : fond encre, texte papier, flèche →. *Secondaire* : fond carte, bordure 1,5 encre. *Tertiaire* : lien bleu souligné. **Un seul primaire par écran.** Le focus est un anneau bleu de 2 px décalé de 2 px. Survol (#103) : le primaire passe en `--encre-700` avec l'ombre de survol et sa flèche avance de 3 px ; le tertiaire prend un fond `--accent-bleu-teinte` et se souligne. Appui : enfoncement de 1 px. Désactivé : ni ombre, ni mouvement. |
+| **Pièce** | Pastille « 📄 P4 » : icône document de 12 px + code en Mono 12, bordure `--trait-moyen`, fond carte. C'est un bouton qui ouvre le tiroir de la pièce. Au survol : bord encre et fond `--fond-creux`. |
 | **Monogramme** | Carré de 36 px, rayon 4, fond `--fond-creux`, ticker court en Mono 12 (sans `.TO` ni `-USD`). **Pas de logos d'entreprises.** |
 | **Jauge** | Piste de 6 px `--fond-creux`, remplissage `--encre-700`, repère de limite de 2×12 px en encre. |
 | **Message** | Barre gauche de 4 px, fond teinte, icône de 22 px, titre en Intertitre de la couleur pleine, corps encre, bouton de correction en secondaire compact. Variantes : Violation et À vérifier. |
-| **Champ** | Hauteur 44 à 48, fond carte, bordure `--encre-500`. Au focus : bordure 2 px `--accent-bleu`. Libellé visible au-dessus quand il y a la place ; sinon `aria-label` et texte indicatif avec exemple. |
+| **Champ** | Hauteur 44 à 48 (56 pour la recherche du Portefeuille, D.3), fond carte, bordure `--encre-500`. Au focus : bordure 2 px `--accent-bleu`. Libellé visible au-dessus quand il y a la place ; sinon `aria-label` et texte indicatif avec exemple. |
 
 ---
 
@@ -184,9 +190,9 @@ Ces règles reproduisent nos chiffres au dixième près. Les valeurs attendues s
 ### C.1 Écran d'entrée
 
 - **Étiquette :** « Démonstration ».
-- **Titre (H1) :** « Avec quel profil voulez-vous explorer Astrée ? »
-- **Sous-titre :** « Chaque profil a son portefeuille, son Pacte et une décision à soumettre au Tribunal. Vous pourrez changer de profil à tout moment depuis le menu en haut à droite. »
-- **Trois cartes cliquables** (carte entière + bouton secondaire « Entrer comme … »), dans cet ordre :
+- **Titre (H1) :** « Testez une décision d'investissement avant de la prendre. » (#103 : le titre dit ce que fait Astrée, au lieu de « Avec quel profil voulez-vous explorer Astrée ? »)
+- **Sous-titre :** « Cherchez un titre et choisissez une taille : un Procureur et un Avocat en débattent face aux règles de votre Pacte, et c'est vous qui rendez le verdict. Choisissez un profil pour commencer ; vous pourrez en changer à tout moment depuis le menu en haut à droite. »
+- **Trois cartes cliquables** (carte entière + bouton secondaire « Entrer comme … »), dans cet ordre. Au survol, la carte se soulève de 2 px (bord encre, ombre de survol) ; à l'appui, elle redescend.
 
 | Profil | Âge · métier | Risque | Horizon | Décision à tester | Question en italique |
 |---|---|---|---|---|---|
@@ -487,7 +493,7 @@ Rappel en haut de l'écran : statut À vérifier + « Controverse ESG non établ
    Quand elle est choisie, elle affiche : « À fournir : la méthodologie d'exclusion d'ESGV ou un rapport de durabilité d'Exxon Mobil, avec sa date. » + bouton « Joindre une source maintenant ».
 3. **Renoncer.**
 
-**Éléments communs au Verdict :**
+**Éléments communs au Verdict** (mise en page : annexe D.6 bis) :
 - Lien « Ou ajuster votre Pacte avant de décider ».
 - Barre d'actions : « Retour au Tribunal » (tertiaire) à gauche ; à droite, « Rien n'est exécuté : le verdict est archivé. » + « Signer le verdict » (primaire).
 
@@ -520,47 +526,66 @@ L'état est conservé par profil dans un store : taille choisie, panier, répons
 
 ### D.2 Portefeuille
 
-- **En-tête de page :**
-  - « Bonjour {prénom}. » en H1 ;
-  - ✓ vert + phrase de statut.
+La recherche est la fonction principale de l'écran : elle passe en tête, sur toute la largeur (#103).
+
+- **En-tête de page :** « Bonjour {prénom}. » en H1, suivi sur la même ligne (renvoi à la ligne si la place manque) de ✓ vert + phrase de statut.
+- **Bandeau de recherche** (D.3), juste sous l'en-tête, sur toute la largeur du conteneur : à gauche la recherche, à droite les **3 étapes du parcours** (`EtapesParcours`), séparées par un filet vertical clair :
+  1. **Décision** : « Choisissez un titre et une taille : l'effet sur votre Pacte s'affiche aussitôt. »
+  2. **Tribunal** : « Un Procureur et un Avocat (IA) plaident à partir de pièces calculées ; le Greffier vérifie chaque chiffre. »
+  3. **Verdict** : « Vous décidez. Rien n'est acheté : le verdict est archivé. »
+
+  Pastilles numérotées de 26 px à contour papier ; la première est pleine. Sous 1024 px, les étapes passent sous la recherche.
 - **Colonne principale :**
-  - Valeur : « Valeur du portefeuille », montant en Titre/Affiche + Fictif, ligne « ▲ 233 034 $ (+55,9 %) depuis le 12 nov. 2021 », mention « Sur 5 ans ».
+  - Valeur : « Valeur du portefeuille », montant en Newsreader 44 / 48 (36 / 40 sous 600 px) + Fictif, ligne « ▲ 233 034 $ (+55,9 %) depuis le 12 nov. 2021 », mention « Sur 5 ans ».
   - Graphique de valeur : courbe encre de 1,75 px, aire à 6 % d'opacité, axe en k$ à droite, pastille encre de la valeur actuelle au bout de la courbe, point le plus bas marqué avec son libellé, années en abscisse. **Pas de bascule ni de choix de période** (simplification voulue).
-  - 3 indicateurs séparés par des filets verticaux.
+  - 3 indicateurs **compacts** séparés par des filets verticaux : libellé au-dessus, puis chiffre (Newsreader 24 / 28) et contexte sur la même ligne (« par an sur 5 ans », jauge de 72 px + « 65 % de votre limite de −12 % », « annualisée »).
   - Ligne de provenance : Fait + « Calculé sur les prix réels du 12 nov. 2021 au 12 nov. 2026, en CAD. »
   - « Vos positions » : barre de répartition par groupe, légende à pastilles, puis la liste. Chaque ligne affiche monogramme, nom, « ticker · groupe », valeur et poids. Pas de colonnes rendement ou volatilité par titre.
-- **Colonne latérale :**
-  - Carte encre de recherche : titre H2, aide, champ de recherche.
+- **Colonne latérale** (la recherche n'y est plus) :
   - Carte « Votre Pacte » : statut Conforme, règle clé avec jauge, détail + « 4 règles respectées », lien « Voir les 4 règles ».
   - « Journal des décisions » : 2 entrées + « Tout voir ».
+- **Sous 1024 px :** la colonne latérale passe sous la colonne principale ; le bandeau de recherche reste en tête.
 
 ### D.3 Recherche (combobox ARIA)
 
+- **Bandeau (#103)** (`components/Recherche.tsx`) : bloc encre (`--encre-900`, texte papier) en haut du Portefeuille, padding 32 / 36, rayon 4 ; grille « recherche | complément de 360 px », gouttière de 48. De haut en bas :
+  - surtitre en Étiquette majuscule « Étape 1 · Décision » ;
+  - titre-question (un H2 au style Titre/H1) tiré de `profils_ui.json` : « Quelle décision voulez-vous tester ? » (mode titre) ou « Quel panier voulez-vous tester ? » (mode panier) ; mêmes textes par défaut pour un profil sans textes propres ;
+  - le choix du mode, aligné à droite du titre ;
+  - l'aide, puis, en mode panier, les pastilles du panier ;
+  - le champ de **56 px** (texte 17 px, icône loupe de 20 px), halo papier au survol, bord bleu de 2 px au focus ;
+  - les **titres suggérés en un clic**, précédés de « Essayer : » (mode titre : un clic ouvre la Décision) ou « Ajouter : » (mode panier : un clic ajoute au panier ; un titre déjà ajouté est désactivé avec ✓). Pastilles de 32 px : nom + ticker court en Mono. La liste vient de `suggestionsDe` : les titres de la décision de démonstration du profil, puis TSLA, NVDA, XOM, BTC-USD, sans doublon, 5 au plus ;
+  - en mode panier, « Instruire le panier (N titres) » à partir de 2 titres.
 - **Filtrage :** sur les 31 actifs de `assets_universe.csv`, par début de mot dans le nom ou par début de ticker, insensible aux accents et à la casse.
 - **Résultats :**
-  - liste de suggestions sous le champ, en couche flottante avec bordure `--encre-700` ;
+  - liste de suggestions sous le champ, en couche flottante (fond carte, texte encre) avec bordure `--encre-700` et ombre portée, au-dessus du reste de la page ;
   - en-tête « N résultat(s) pour « … » » ;
   - chaque ligne : monogramme, nom avec la partie tapée en gras, « TICKER · classe · bourse · devise · secteur », volatilité annualisée en CAD à droite ;
   - la ligne active a un fond `--fond-creux` et une barre bleue de 3 px à gauche.
 - **Clavier :** ↑ ↓ pour parcourir, Entrée pour ouvrir l'instruction, Échap pour fermer. Rappelle ces touches dans le pied de la liste.
-- **Choix du mode :** sous le titre, deux boutons « Un titre » / « Un panier » (`aria-pressed`), pour tout profil. Le mode prévu pour le profil dans `profils_ui.json` (ou un panier déjà commencé) est le mode de départ ; un profil sans textes propres reçoit des textes génériques.
+- **Choix du mode :** à droite du titre du bandeau (dessous si la place manque), deux boutons « Un titre » / « Un panier » (`aria-pressed`), pour tout profil. Le mode prévu pour le profil dans `profils_ui.json` (ou un panier déjà commencé) est le mode de départ ; un profil sans textes propres reçoit des textes génériques.
 - **Particularités par profil :**
   - **Mateo :** chaque action affiche un statut À vérifier + « Aucune donnée ESG ». ESGV affiche « Fonds filtré ESG ».
   - **Amira (mode panier) :**
-    - le bouton « + Ajouter » ajoute le titre à une rangée de pastilles « Dans votre panier · N titres », chacune retirable avec ×, au-dessus du champ ;
+    - le bouton « + Ajouter » (ou une suggestion) ajoute le titre à une rangée de pastilles « Dans votre panier · N titres », chacune retirable avec ×, au-dessus du champ ;
     - à partir de 2 titres, « Instruire le panier (N titres) » ouvre la Décision ;
     - les crypto sont permises pour Amira mais signalées selon son Pacte.
   - **Robert :** les crypto sont signalées « Exclu par votre Pacte (§4) » ; on peut quand même instruire, et le Tribunal le relèvera.
 
 ### D.4 Décision
 
-- **Mise en page :** colonne de 776 px. Lien « ← Portefeuille », étiquette « Instruction d'une décision », H1, ligne de fiche avec étiquette Fait.
+- **Mise en page (paysage, #103) :** conteneur large. Lien « ← Portefeuille », étiquette « Instruction d'une décision », H1, ligne de fiche avec étiquette Fait. Dessous, une grille à zones de deux colonnes 5 : 7 :
+  - à gauche, de haut en bas : le réglage (taille ou panier), les messages, les actions ;
+  - à droite : « Effet sur votre Pacte », fixe au défilement (`position: sticky`).
+
+  Tant que l'aperçu n'est pas calculé (chargement, panier non précalculé), la grille garde une seule colonne de 776 px. Sous 1024 px, tout s'empile : réglage, effet, messages, actions.
 - **Taille (Robert, Mateo) :**
   - grand pourcentage, en rouge s'il dépasse le maximum conforme ;
   - montant « ≈ X $ sur Y $ » + Fictif ;
   - raccourcis ; celui du maximum conforme porte un ✓ vert et le libellé « max. conforme » ;
   - curseur 0–50 % (`input type=range` accessible, `aria-valuetext="30 %, hors limite du Pacte"`), avec un repère « Limite du Pacte · X % » ;
-  - bande de zones sous la piste : vert jusqu'au maximum conforme, teinte rouge au-delà ;
+  - la piste se remplit en encre jusqu'à la poignée, **en rouge** quand la taille dépasse le maximum conforme (#103) ; la poignée prend un halo au survol et grossit pendant le glissement ;
+  - bande de zones sous la piste : vert jusqu'au maximum conforme, **hachures rouges** au-delà (rayures `--statut-violation` sur `--statut-violation-teinte`, bord rouge : la teinte seule était à 1,1:1 sur le papier) ;
   - légende des zones ;
   - ligne « Financement simulé : réduction proportionnelle de vos positions. » (sans bouton : la démonstration ne précalcule que ce financement, #96).
 - **Panier (Amira) :**
@@ -568,8 +593,13 @@ L'état est conservé par profil dans un store : taille choisie, panier, répons
   - « Ajouter un titre » ;
   - « Total 100 % », avec une erreur claire si le total ≠ 100 %.
 - **« Effet sur votre Pacte » :**
-  - cartes de comparaison « avant → après » avec la limite et le statut ; la bordure est rouge en cas de violation ;
-  - puis le graphique de recul comparé : ligne actuelle `--encre-300`, ligne avec la décision `--encre-900`, ligne pointillée de la limite du Pacte, zone sous la limite en `--statut-violation` à 22 % d'opacité, point le plus bas annoté, annotation « N séances sous votre limite » si applicable ;
+  - un **tableau compact** (#103, à la place des grandes cartes « avant → après ») : colonnes Indicateur, Actuel, « Avec 30 % de TSLA » (ou « Avec le panier »), Limite du Pacte, Statut. Une ligne par indicateur (`effetsSurLePacte`, `domaine/decision.ts`), avec une précision sous le libellé :
+    - chaque plafond du Pacte concerné (« part du portefeuille », limite « max. 25 % » ou « exclu ») ;
+    - chute maximale (« pire baisse depuis un sommet », limite du Pacte) ;
+    - rendement annualisé (« par an sur 5 ans »), volatilité (« annualisée »), rendement en 2022 (« rejeu de l'année de crise ») : sans limite, la cellule affiche « — » ;
+    - une ligne en violation a un fond `--statut-violation-teinte`, une barre rouge de 3 px à gauche et son chiffre « avec la décision » en rouge ;
+    - le chiffre « avec la décision » s'éclaire brièvement en `--accent-bleu-teinte` quand le curseur le change ;
+  - puis le graphique de recul comparé : ligne actuelle `--trait-moyen` (3,3:1 ; `--encre-300` n'atteignait que 2,4:1), ligne avec la décision `--encre-900`, ligne pointillée de la limite du Pacte, zone sous la limite en `--statut-violation` à 22 % d'opacité, point le plus bas annoté, annotation « N séances sous votre limite » si applicable ;
   - légende, puis provenance « Rejeu sur les prix réels, en CAD. Le passé ne prédit pas l'avenir. »
 - **Message :** violation ou avertissement ESG, avec bouton de correction. « Ramener à 9 % » règle le curseur.
 - **Actions :** « Annuler » (tertiaire) et « Soumettre au Tribunal » (primaire).
@@ -580,10 +610,14 @@ L'état est conservé par profil dans un store : taille choisie, panier, répons
 - Après « Soumettre au Tribunal », affiche un état de chargement qui déroule la trace d'exécution étape par étape (pastilles ✓ qui apparaissent).
 - Utilise les durées réelles si le backend les fournit ; sinon environ 300 ms par étape, sans animation si `prefers-reduced-motion`.
 - En cas d'erreur : message clair + « Réessayer », sans perdre la décision.
+- **Mise en page (paysage, #103) :** conteneur large, deux colonnes 7 : 5.
+  - À gauche, « Le Tribunal instruit le dossier » et ses phases. Pastille *à venir* : contour 1,5 px `--encre-500`, nom en `--encre-700`, détail en `--encre-500` ; *en cours* : contour encre de 2 px, pulsé ; *faite* : pleine encre avec ✓ papier.
+  - À droite, la carte **« Le dossier »** (`DossierInstruit`, `components/ChargementTribunal.tsx`), fixe au défilement : « Décision jugée » (libellé de la décision) ; « Règles de votre Pacte » (§1, §2… et libellés) ; « Pièces versées au dossier · N », où chaque pièce (code encadré + nom de l'outil) apparaît quand une étape réelle la produit, avec, avant la première, « Aucune pièce pour l'instant : chaque outil appelé en versera une. ».
+  - Les messages d'erreur du Tribunal restent dans la colonne étroite.
 
 ### D.6 Tribunal
 
-- **Mise en page :** conteneur de 1184 px. Lien « ← Décision », étiquette d'audience, H1 « {Prénom} c. « … » », sous-titre en Titre/Citation.
+- **Mise en page :** conteneur large (1344 px, #103). Lien « ← Décision », étiquette d'audience, H1 « {Prénom} c. « … » », sous-titre en Titre/Citation.
 - **Bilan du Greffier :** en premier, dans une carte : compteurs par statut, constat principal, lien « Voir les N contrôles », qui déplie la liste triée par gravité, avec les pièces citées.
 - **Débat :**
   - deux colonnes avec un filet de 3 px de la couleur du camp, titre « Procureur » ou « Avocat » dans cette couleur, puis « contre la décision » ou « pour la décision » ;
@@ -604,6 +638,16 @@ L'état est conservé par profil dans un store : taille choisie, panier, répons
   - la réponse s'affiche sous la forme rôle + provenance + pièce + texte, avec une barre gauche de la couleur du rôle ;
   - les réponses ne citent que des pièces du dossier ; un nouveau calcul crée une nouvelle pièce, par exemple P5.
 - **Actions :** « Retour à la décision » et « Rendre mon verdict ».
+
+### D.6 bis Verdict
+
+Contenus par profil : annexe C.6.
+
+- **Mise en page (paysage, #103) :** conteneur large. Lien « ← Tribunal », étiquette « Verdict », H1 « Quelle est votre décision ? », rappel (statut + constat). Dessous, deux colonnes 7 : 5 :
+  - à gauche : les options (cartes radio), le lien « Ou ajuster votre Pacte avant de décider », puis la barre d'actions (« Retour au Tribunal » ; « Rien n'est exécuté : le verdict est archivé. » + « Signer le verdict ») et, s'il y a lieu, la raison pour laquelle la signature est désactivée ;
+  - à droite, fixe au défilement : « Ce qui changerait la réponse » (points de bascule, avec les liens vers leurs pièces) et la carte **« Procès-verbal »** : « Tout le dossier du procès (pièces, contrôles, arguments, trace), en page imprimable. » + bouton secondaire compact « Exporter le procès-verbal » ; en cas d'échec, un message Violation avec « Réessayer ».
+- **Options :** au survol, la carte prend un bord `--encre-500` et l'ombre de survol ; l'option choisie garde son bord encre de 1,5 px.
+- **Sous 1024 px :** la colonne de droite passe en premier, puis les options, puis les actions.
 
 ### D.7 Types (contrat avec le backend)
 

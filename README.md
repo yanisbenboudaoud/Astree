@@ -1,5 +1,7 @@
 # AlphaForge AI - le Tribunal des décisions d'investissement
 
+[![Tests](https://github.com/yanisbenboudaoud/Datathon2026/actions/workflows/tests.yml/badge.svg)](https://github.com/yanisbenboudaoud/Datathon2026/actions/workflows/tests.yml)
+
 Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % de mon portefeuille en Tesla »). Des agents Amazon Bedrock en font le **procès** à partir de pièces calculées en Python : un Procureur argumente contre, un Avocat pour, un Greffier vérifie le Pacte de l'investisseur et chaque chiffre cité. L'utilisateur rend le verdict.
 
 > Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
@@ -129,6 +131,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `frontend/` | Interface « Astrée » (React + TypeScript + Vite) : les écrans de la maquette V2, la couche `src/api/` (procès enregistrés ou Lambda en direct, drapeau `VITE_USE_MOCKS`), `e2e/verifier.mjs` (démonstration), `e2e/direct.mjs` (vrais procès sur la Lambda) et `e2e/greffier.mjs` (« Trompez le Greffier »). Écran « Revivez 4 jours » du Pacte vécu (`src/ecrans/Calibrage.tsx`) ; écran « Construire mon Pacte » du questionnaire (`src/ecrans/ConstruireMonPacte.tsx`, `src/api/questionnaire.ts`). Écran « Le Tribunal instruit le dossier » avec la vraie progression du procès (`src/components/ChargementTribunal.tsx`, `src/domaine/progression.ts`). Mode d'emploi : [`frontend/README.md`](frontend/README.md) | [014](docs/journal/014-interface-astree.md), [068](docs/journal/068-pacte-vecu.md), [069](docs/journal/069-trompez-le-greffier.md), [090](docs/journal/090-progression-en-direct.md), [086](docs/journal/086-construire-mon-pacte.md) |
 | `scripts/build_ui_series.py` | Précalcule les données chiffrées de l'interface (`frontend/src/data/generated/`) avec les fonctions du pipeline : profils, courbes, tailles de 0 à 50 %, compositions du panier, jours de marché du Pacte vécu, questions du questionnaire et exemple de démonstration ; les calculs eux-mêmes sont dans `pipeline/vues_interface.py` | [014](docs/journal/014-interface-astree.md), [068](docs/journal/068-pacte-vecu.md), [086](docs/journal/086-construire-mon-pacte.md) |
 | `pyproject.toml` | Configuration de pytest | [007](docs/journal/007-client-llm-bedrock.md) |
+| `.github/workflows/tests.yml` | Intégration continue, à chaque push et chaque PR : `pytest -q` (Python 3.14), `npm ci`, `npm test` et `npm run build` dans `frontend/`, et `python -m contrat.valider` sur les exemples et les procès enregistrés ; aucun secret AWS | [169](docs/journal/169-integration-continue.md) |
 | `.github/pull_request_template.md` | Modèle de PR : `Closes #N`, fiche du journal, carte du dépôt | [000](docs/journal/000-fondations.md) |
 
 ## Données

@@ -131,3 +131,53 @@ def test_s3_indisponible_500(monkeypatch):
     monkeypatch.delenv("BUCKET_PROJET", raising=False)
     statut, corps = appeler("/profil", CORPS)
     assert statut == 500 and corps["erreur"] == "Archive S3 indisponible"
+
+
+# --- Aperçu, vues de l'interface et /table (#86) ---------------------------------------------
+
+
+def test_apercu_ne_range_rien(local):
+    statut, corps = appeler("/profil", {**CORPS, "apercu": True, "modifications": {"pire_baisse_max": -0.15}})
+    assert statut == 200 and "id" not in corps and "vues" not in corps
+    regle = next(r for r in corps["profil"]["pacte"]["regles"] if r["id"] == "pire_baisse_max")
+    assert regle["seuil"] == -0.15
+    assert not local.exists()
+
+
+def test_apercu_invalide_400():
+    statut, corps = appeler("/profil", {**CORPS, "apercu": "oui"})
+    assert statut == 400 and "apercu" in corps["erreur"]
+
+
+def test_profil_signe_renvoie_les_vues_de_l_interface():
+    statut, corps = appeler("/profil", CORPS)
+    assert statut == 201
+    vues = corps["vues"]
+    assert vues["profil"]["id"] == corps["id"] and vues["calibrage"]["profil"] == corps["id"]
+    assert vues["profil"]["capital"] == CORPS["capital"]
+    assert vues["profil"]["serieValeur"][-1][1] == CORPS["capital"]  # la courbe finit au capital
+    assert len(vues["calibrage"]["episodes"]) > 0
+
+
+def test_table_d_un_titre_pour_un_profil_cree():
+    identifiant = appeler("/profil", CORPS)[1]["id"]
+    statut, table = appeler("/table", {"profil": identifiant, "ticker": "TSLA"})
+    assert statut == 200
+    assert table["profil"] == identifiant and table["ticker"] == "TSLA"
+    assert [entree["taille"] for entree in table["tailles"]] == list(range(51))
+
+
+@pytest.mark.parametrize("corps, statut_attendu", [
+    ({"profil": "investisseur_absent", "ticker": "TSLA"}, 404),
+    ({"profil": "../robert", "ticker": "TSLA"}, 400),
+    ({"profil": "robert", "ticker": "INCONNU"}, 400),
+])
+def test_table_refusee(corps, statut_attendu):
+    assert appeler("/table", corps)[0] == statut_attendu
+
+
+def test_table_identique_a_celle_precalculee_pour_l_interface():
+    """La Lambda et scripts/build_ui_series.py produisent la même table (pipeline.vues_interface)."""
+    precalculee = json.loads((RACINE / "frontend" / "src" / "data" / "generated" / "decisions" / "robert" / "TSLA.json")
+                             .read_text(encoding="utf-8"))
+    assert appeler("/table", {"profil": "robert", "ticker": "TSLA"})[1] == precalculee

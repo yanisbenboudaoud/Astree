@@ -4,6 +4,7 @@ import { donneesCalibrage, profil as profilDe } from './api/donnees';
 import { profilAvecCalibrage } from './domaine/calibrage';
 import { useEtatProfil } from './state/store';
 import { Entree } from './ecrans/Entree';
+import { ConstruireMonPacte } from './ecrans/ConstruireMonPacte';
 import { Portefeuille } from './ecrans/Portefeuille';
 import { Calibrage } from './ecrans/Calibrage';
 import { Decision } from './ecrans/Decision';
@@ -24,6 +25,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<Entree />} />
+      <Route path="/construire" element={<ConstruireMonPacte />} />
       <Route path="/:profil/portefeuille" element={<AvecProfil ecran={Portefeuille} />} />
       <Route path="/:profil/pacte-vecu" element={<AvecProfil ecran={Calibrage} />} />
       <Route path="/:profil/decision" element={<AvecProfil ecran={Decision} />} />

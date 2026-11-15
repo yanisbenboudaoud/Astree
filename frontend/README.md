@@ -35,6 +35,8 @@ npm run dev          # http://localhost:5173
 | Curseur de taille (0 à 50 %, pas de 1 point) | idem | `src/data/generated/decisions/<profil>/<ticker>.json` : une table par titre de l'univers |
 | Panier (pas de 5 points) | idem | `src/data/generated/paniers/<profil>.json` : chaque composition du panier de démonstration |
 | Pacte vécu (#68) : jours de baisse, questions, réponses de démonstration | idem, avec `pipeline.calibrage` | `src/data/generated/calibrage/<profil>.json` |
+| Questionnaire (#84, #86) : questions, cartes de portefeuilles, exemple de démonstration | `config/questionnaire.json`, avec `pipeline.questionnaire` | `src/data/generated/questionnaire.json` (et `decisions/investisseur_exemple/`) |
+| Profil créé par le questionnaire, en direct | la Lambda, avec `pipeline.vues_interface` (mêmes fonctions que le script) | `POST /profil` (vues renvoyées à la signature), `POST /table` (une table de décision par titre) |
 | Arguments, contrôles, pièces, trace | le Tribunal (Bedrock + Python) | procès enregistrés dans `src/data/proces/`, ou Lambda en direct |
 | Libellés français, textes de démonstration | écrits à la main | `src/data/libelles.json`, `src/data/profils_ui.json` |
 
@@ -73,6 +75,13 @@ Le même adaptateur (`src/api/adaptateur.ts`) traduit le contrat dans les deux m
 
 - **Mode direct** : les réponses partent avec `POST /tribunal` (`calibrage.reponses`) ; la Lambda recalcule tout en Python.
 - **Mode démonstration** : seul un procès enregistré avec exactement les mêmes réponses (`"calibrage": true` dans `index.json`) peut être rejoué ; sinon, l'écran le dit. Le bouton « Utiliser les réponses de démonstration » applique celles du profil (étiquette Fictif). Pour enregistrer un tel procès sur la Lambda : `deploiement/tester_function_url.py <profil> "<demande>" --calibrage-demo --sortie …`, puis copier le contrat sous son identifiant dans `src/data/proces/`.
+
+## Construire mon Pacte (#86)
+
+Écran `/construire` (carte « Construire mon Pacte » de l'entrée) : 16 questions, une par écran et par sections (horizon, capacité, tolérance, expérience, préférences), puis le portefeuille (titres de l'univers, poids totalisant 100 %, capital fictif), puis l'aperçu du Pacte : chaque règle dit quelle réponse l'a produite, les contradictions et réponses manquantes sont « à vérifier ». Après la signature, le profil créé s'ouvre sur « Revivez 4 jours », puis Portefeuille, Décision et Tribunal comme un profil de démonstration. Le brouillon est gardé dans sessionStorage.
+
+- **Mode direct** : `POST /profil` avec `apercu: true` pour l'aperçu (rien n'est rangé ; on peut y choisir un autre seuil, « Choisi par vous »), puis sans pour signer : la Lambda range le profil dans S3 et renvoie ses vues (écrans Portefeuille et « Revivez 4 jours ») ; l'écran Décision demande ses tables à `POST /table`. La Lambda doit être redéployée avec ces routes, et l'interface servie sur `http://localhost:5173` (CORS).
+- **Mode démonstration** : le barème ne tourne pas dans le navigateur. Seul l'exemple préenregistré (`docs/exemples/reponses_questionnaire.json`, bouton « Remplir comme un profil de test », étiquette Fictif) devient un Pacte, calculé d'avance par `scripts/build_ui_series.py` ; toute autre saisie affiche « Pacte non disponible en démonstration ». Aucun procès n'est enregistré pour ce profil : le Tribunal le dit.
 
 ## Organisation
 

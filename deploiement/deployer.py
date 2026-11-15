@@ -61,7 +61,7 @@ CONFIGURATION = {
 ORIGINES_INTERFACE = ["http://localhost:5173"]
 STATEMENT_URL = "function-url-publique"
 STATEMENT_INVOCATION = "function-url-publique-invocation"
-ROUTES = "/tribunal, /progression, /verdict, /question, /verifier, /proces-verbal, /questionnaire, /profil"  # lambda_tribunal.ROUTES
+ROUTES = "/tribunal, /progression, /verdict, /question, /verifier, /proces-verbal, /questionnaire, /profil, /table"  # lambda_tribunal.ROUTES
 CONFIANCE_LAMBDA = {
     "Version": "2012-10-17",
     "Statement": [{"Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"},

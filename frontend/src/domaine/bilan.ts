@@ -7,6 +7,7 @@
 import type { ContratTribunal, RegleContrat } from '../api/contrat';
 import type { Controle } from '../api/types';
 import { dollars, pourcent, seuil } from '../lib/format';
+import { epreuveDuControle, type Epreuve } from './bulletin';
 
 export type Groupe = 'enfreint' | 'a_juger' | 'verifie';
 
@@ -17,6 +18,8 @@ export interface ControleExplique {
   regle: string;
   paragraphe?: number;
   pieces: string[];
+  /** Taux mesuré de ce contrôle quand on a essayé de le tromper (bulletin du Greffier, #172). */
+  epreuve?: Epreuve;
 }
 
 export const GROUPES: { id: Groupe; titre: string; aide: string }[] = [
@@ -77,7 +80,8 @@ function expliquerRegle(c: Controle, regle: RegleContrat, contrat: ContratTribun
 }
 
 export function expliquerControle(c: Controle, contrat: ContratTribunal): ControleExplique {
-  const base = { groupe: GROUPE_DU_STATUT[c.statut], regle: c.regle, paragraphe: c.paragraphe, pieces: c.pieces };
+  const epreuve = epreuveDuControle(c.regle) ?? undefined;
+  const base = { groupe: GROUPE_DU_STATUT[c.statut], regle: c.regle, paragraphe: c.paragraphe, pieces: c.pieces, ...(epreuve && { epreuve }) };
   const regle = contrat.pacte.regles.find((r) => r.id === c.regle);
   if (regle) return { ...base, ...expliquerRegle(c, regle, contrat) };
   if (c.regle === 'verifier_chiffres') {

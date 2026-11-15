@@ -141,6 +141,16 @@ def _evaluations_sans_jeu() -> dict[str, Callable[[list[str]], tuple[str, str]]]
     return {"orchestrateur": evaluation_orchestrateur.executer}
 
 
+def _ranger_au_bulletin(nom: str, jeu: dict[str, Any], resultats: list[ResultatCas]) -> None:
+    """Range la mesure dans le bulletin du Greffier affiché par l'interface (#172)."""
+    from validation import bulletin
+    mesures = {"chiffres": bulletin.mesure_chiffres, "cadre": bulletin.mesure_cadre}
+    if jeu["evaluation"] in mesures:
+        cle, mesure = mesures[jeu["evaluation"]](nom, jeu, resultats)
+        bulletin.ranger_mesure(cle, mesure)
+        print(f"Bulletin du Greffier : « {cle} » → {bulletin.CHEMIN_BULLETIN.relative_to(RACINE)}")
+
+
 def main(arguments: list[str]) -> int:
     if not arguments:
         print("Usage : python -m validation.evaluation <jeu>   (ex. : chiffres, cadre, orchestrateur [--local])")
@@ -154,12 +164,13 @@ def main(arguments: list[str]) -> int:
     if options:
         print(f"Options inconnues pour le jeu « {nom} » : {' '.join(options)}")
         return 2
-    _, resultats, texte = evaluer_jeu(nom)
+    jeu, resultats, texte = evaluer_jeu(nom)
     chemin = chemin_rapport(nom)
     chemin.parent.mkdir(parents=True, exist_ok=True)
     chemin.write_text(texte, encoding="utf-8")
     rates = [r for r in resultats if not r.ok]
     print(f"{len(resultats) - len(rates)}/{len(resultats)} cas conformes à l'attendu → {chemin.relative_to(RACINE)}")
+    _ranger_au_bulletin(nom, jeu, resultats)
     for r in rates:
         print(f"RATÉ  {r.id} ({r.famille}) : {r.detail}")
     return 0

@@ -183,6 +183,7 @@ def piece_simulation(
     portefeuille: list[dict[str, Any]],
     decision: dict[str, Any],
     periode: str = "complete",
+    capital: float | None = None,
 ) -> dict[str, Any]:
     """Pièce du contrat produite par l'outil, étiquette « fictif ».
 
@@ -192,6 +193,9 @@ def piece_simulation(
         periode: ``complete`` (toute la période d'analyse : pire baisse,
             rendement annualisé et volatilité, avant et après) ou ``2022``
             (rejeu de l'année de crise : rendement 2022 avant et après).
+        capital: capital fictif du profil, en CAD. S'il est connu, la pièce ajoute
+            les comparaisons concrètes (``comparaisons_periode_complete`` et
+            ``comparaisons_2022``) : les agents ne calculent rien, ils citent ces valeurs.
 
     Returns:
         La pièce au format du contrat : ``valeurs`` brutes (arrondies à
@@ -200,10 +204,62 @@ def piece_simulation(
     """
     actuel, apres = _deux_simulations(portefeuille, decision)
     if periode == "complete":
-        return _piece_periode_complete(id_piece, actuel, apres, decision)
+        piece = _piece_periode_complete(id_piece, actuel, apres, decision)
+        if capital:
+            piece["valeurs"].update(comparaisons_periode_complete(piece["valeurs"], capital))
+        return piece
     if periode == "2022":
-        return _piece_rejeu_2022(id_piece, actuel, apres, decision)
+        piece = _piece_rejeu_2022(id_piece, actuel, apres, decision)
+        if capital:
+            piece["valeurs"].update(comparaisons_2022(piece["valeurs"], capital))
+        return piece
     raise ErreurSimulation(f"Période « {periode} » inconnue : « complete » ou « 2022 » attendue")
+
+
+def comparaisons_periode_complete(valeurs: dict[str, float], capital: float) -> dict[str, float]:
+    """Comparaisons prêtes à citer, calculées ici pour que l'agent n'en dérive aucune (section 4 ter, règle 6).
+
+    Une perte en dollars se comprend mieux qu'un pourcentage : « au pire moment, 33 660 $
+    perdus sur 180 000 $, contre 27 180 $ sans la décision ». Les pertes et les écarts sont
+    positifs (valeur absolue) : le texte dit lui-même dans quel sens va la comparaison.
+    Les montants sont arrondis au dollar : des centimes n'apprendraient rien au lecteur.
+
+    Returns:
+        ``capital`` ; ``perte_au_pire_moment_cad`` et ``perte_au_pire_moment_cad_actuelle``
+        (capital × pire baisse, en dollars) et leur écart ; l'écart de pire baisse et de
+        rendement annuel en points de pourcentage ; ``rapport_volatilite`` (après / avant).
+    """
+    perte_apres = capital * abs(valeurs["pire_baisse"])
+    perte_actuelle = capital * abs(valeurs["pire_baisse_actuelle"])
+    comparaisons = {
+        "capital": round(capital),
+        "perte_au_pire_moment_cad": round(perte_apres),
+        "perte_au_pire_moment_cad_actuelle": round(perte_actuelle),
+        "ecart_perte_au_pire_moment_cad": round(abs(perte_apres - perte_actuelle)),
+        "ecart_pire_baisse_points": round(abs(valeurs["pire_baisse"] - valeurs["pire_baisse_actuelle"]) * 100, 4),
+        "ecart_rendement_annuel_points": round(
+            abs(valeurs["rendement_annuel"] - valeurs["rendement_annuel_actuel"]) * 100, 4),
+    }
+    if valeurs["volatilite_annuelle_actuelle"] > 0:
+        comparaisons["rapport_volatilite"] = round(
+            valeurs["volatilite_annuelle"] / valeurs["volatilite_annuelle_actuelle"], 4)
+    return comparaisons
+
+
+def comparaisons_2022(valeurs: dict[str, Any], capital: float) -> dict[str, float]:
+    """Le rejeu de 2022 en dollars : résultat de l'année sur le capital, avec et sans la décision.
+
+    Les résultats gardent leur signe (une perte est négative) ; l'écart est positif.
+    """
+    apres = capital * valeurs["rendement_2022_apres"]
+    actuel = capital * valeurs["rendement_2022_actuel"]
+    return {
+        "capital": round(capital),
+        "resultat_2022_cad_apres": round(apres),
+        "resultat_2022_cad_actuel": round(actuel),
+        "ecart_2022_cad": round(abs(apres - actuel)),
+        "ecart_2022_points": round(abs(valeurs["rendement_2022_apres"] - valeurs["rendement_2022_actuel"]) * 100, 4),
+    }
 
 
 def decision_simulee(decision: dict[str, Any]) -> tuple[str, dict[str, float]]:

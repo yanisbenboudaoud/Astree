@@ -23,7 +23,40 @@ Une refonte du style seulement, sans changer le parcours ni les données. Le sty
 - **Graphiques** :
   - `GraphiqueValeur.tsx` : ajout d'un `<linearGradient id="degrade-valeur">` pour l'aire ;
   - `Graphiques.module.css` : courbe de valeur et courbe « avec la décision » en indigo, « Actuel » en gris, limite du Pacte et pire baisse en rouge, repères en pointillés légers, bulle de lecture avec ombre.
-- **Portefeuille** (`ecrans/Portefeuille.tsx`) : la barre de répartition prend les couleurs `--categorie-*` (`TEINTES`) au lieu des nuances d'encre, avec des segments arrondis et des puces rondes dans la légende.
+- **Positions** (`ecrans/Portefeuille.tsx`, `Positions`) : la barre de répartition prend les couleurs `--categorie-*` (`TEINTES`) au lieu des nuances d'encre. La liste devient un tableau regroupé par classe d'actifs :
+  - chaque groupe a un en-tête avec son sous-total en dollars et en part ;
+  - chaque titre a un monogramme rond teinté de la couleur du groupe et une barre de poids ;
+  - survoler un groupe estompe les autres ;
+  - le total du portefeuille est affiché à côté du titre de la section ;
+  - `Monogramme` accepte maintenant une `className`.
+  - La couleur du groupe passe par la variable CSS `--cat`, posée en ligne sur chaque bloc.
+- **Carte « Votre Pacte » et journal** (`ecrans/Portefeuille.tsx`, `Portefeuille.module.css`) : la carte est recomposée.
+  - En-tête : « Signé le … » et un état en point coloré au lieu de la pastille.
+  - Chiffre clé (`RegleCle`) : la valeur de la règle la plus proche de sa limite en grand (« −15,1 % / −20 % »), une jauge arrondie et ses deux bornes écrites.
+  - Les règles sont **toujours visibles**, avec leur statut écrit (Respectée, Enfreinte, À juger), au lieu du bouton « Voir les N règles ».
+  - Le Pacte vécu (`PacteVecu`) devient un pied de carte cliquable, au lieu d'un encadré gris imbriqué.
+  - Le journal devient une frise verticale : un point coloré par statut et le statut en toutes lettres (« Conforme au Pacte »), au lieu des seules coches.
+- **Écran Décision** (`ecrans/Decision.tsx`, `Decision.module.css`) :
+  - bloc Taille recomposé : grand chiffre, état écrit avec un point coloré (« Compatible avec votre Pacte jusqu'à 11 % »), **une seule piste** qui porte les zones (vert pâle, hachures rouges), le remplissage et le repère du maximum, poignée blanche ombrée, « max. 11 % » sous la piste ;
+  - tailles rapides en contrôle segmenté, avec une pastille « max. » ; la légende des zones et la bande sous la piste sont retirées ;
+  - tableau des effets : la colonne de la décision ressort sur fond gris très clair, et le statut devient une icône après la limite (plus de colonne Statut) ;
+  - `Message` (`components/Elements`) : fond teinte arrondi sans bordure ;
+  - `GraphiqueRecul` **refait** (styles dans `GraphiqueRecul.module.css`, retirés de `Graphiques.module.css`) :
+    - une phrase de lecture en tête donne la conclusion (limite franchie pendant N séances et quand, ou jamais franchie) ; « 1 séance » est désormais au singulier ;
+    - la légende est intégrée à l'en-tête ;
+    - une bande verticale marque la période sous la limite, et les deux pires moments (aujourd'hui et avec la décision) sont annotés ;
+    - lecture comparative au survol et au clavier : une bulle avec les deux valeurs à la même date, lues telles quelles dans les séries ;
+    - nouvelle prop `creuxActuel` ; tests dans `src/test/graphiqueRecul.test.tsx` (phrase au singulier, limite jamais franchie, lecture au clavier) ;
+  - les guillemets « » des messages ESG (`domaine/decision.ts`) sont collés au texte par des espaces insécables, pour ne plus rester seuls en fin de ligne.
+- **Moins de texte** (règle « Sobriété du texte » ajoutée à l'annexe A de la spec). Ce qui a été retiré :
+  - **Entrée** : surtitre « Démonstration », questions en italique des cartes ; sous-titre et bloc « Construire mon Pacte » raccourcis.
+  - **Portefeuille** : phrase de statut quand tout est conforme, surtitre « Étape 1 · Décision », aide visible du champ (gardée pour les lecteurs d'écran), les 3 étapes du parcours (`EtapesParcours` supprimé), « Sur 5 ans », contextes des indicateurs, bornes de la jauge du Pacte, phrase du Pacte vécu, statut écrit du journal (gardé pour les lecteurs d'écran).
+  - **Décision** : surtitre, fiche du titre raccourcie (`ficheTitre(ticker)`), précisions sous les indicateurs (`effetsSurLePacte`), période en tête du tableau (déplacée dans la provenance), phrase « Au-delà… ». La phrase du graphique de recul devient « Sous votre limite de −12 % pendant 278 séances, entre févr. 2022 et mai 2025. », et seul le pire moment avec la décision est annoté (prop `creuxActuel` retirée).
+  - **Tribunal** : sous-titre de l'audience, « instruction terminée », explications des replis, consigne de « Trompez le Greffier » raccourcie.
+  - **Verdict** : surtitre, description du procès-verbal, sous-titres des options sans information (`domaine/verdict.ts`).
+- **Correctif : décision sur un titre pour un profil en mode panier.** Amira est en mode panier, et `scripts/build_ui_series.py` ne lui générait que la table du panier. Choisir « Un titre » (#99) laissait donc l'écran Décision sur « Chargement de la simulation… » indéfiniment.
+  - Le script génère maintenant les tables d'une position pour **tous** les profils (`decisions/amira/`, 31 titres).
+  - `ecrans/Decision.tsx` affiche « Simulation indisponible : aucune simulation précalculée pour ce titre et ce profil » quand une table manque, au lieu d'attendre.
 - **Entrée** : initiale en bleu dans un rond, cartes et panneau « Construire mon Pacte » plus aérés.
 - **Spec** (`docs/maquette/spec_interface_astree.md`) : annexe A (couleurs, règle d'usage des données, typographie, rayons, ombres, sections, composants) et passages de D.2 et D.3 qui décrivaient l'ancien style.
 
@@ -31,7 +64,7 @@ Une refonte du style seulement, sans changer le parcours ni les données. Le sty
 Rien à changer : `npm run dev` depuis `frontend/`. Pour changer une couleur, modifier le jeton dans `tokens.css` ; aucun composant n'écrit de couleur en dur.
 
 ## Comment vérifier
-- Depuis `frontend/` : `npx tsc --noEmit` passe. `npm test` donne 79 tests sur 81 : les 2 échecs de `domaine.test.ts` (« Tribunal occupé ») existaient déjà sur `main` avant ce changement et ne touchent pas au style.
+- Depuis `frontend/` : `npx tsc --noEmit` passe. `npm test` donne 82 tests sur 84 : les 2 échecs de `domaine.test.ts` (« Tribunal occupé ») existaient déjà sur `main` avant ce changement et ne touchent pas au style.
 - `npm run verifier` : 23 écrans vérifiés par axe-core (contrastes compris), aucun débordement à 1440 et 1280 px. Lancé sur le serveur de démonstration (port 5175), il ne signale que des erreurs CORS vers la Lambda : seul `http://localhost:5173` est autorisé (#14).
 - Captures de Robert à 1440 px. Avant : celles de la fiche 103. Après :
 

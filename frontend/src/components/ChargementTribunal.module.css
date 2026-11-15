@@ -52,7 +52,7 @@
 .textePhase { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding-top: 3px; }
 .activite { display: flex; align-items: center; gap: 8px; }
 
-.etapes { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.etapes { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
 .etape {
   display: grid;
   grid-template-columns: 16px 1fr;
@@ -60,13 +60,26 @@
   align-items: start;
   animation: apparition 0.25s ease-out;
 }
-.etape code { overflow-wrap: anywhere; }
-.iconeEtape { display: inline-flex; padding-top: 2px; color: var(--encre-900); }
+.texteEtape { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ligneEtape { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.raison {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.iconeEtape { display: inline-flex; padding-top: 5px; color: var(--encre-900); }
 .iconeSignalement { color: var(--statut-verifier); }
 @keyframes apparition {
   from { opacity: 0; transform: translateY(-3px); }
   to { opacity: 1; transform: none; }
 }
+
+.technique { border-top: 1px solid var(--trait-fin); padding-top: 16px; }
+.technique summary { cursor: pointer; color: var(--encre-500); }
+.technique summary:hover { color: var(--encre-900); }
+.listeTechnique { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+.listeTechnique code { overflow-wrap: anywhere; }
 
 .avis { padding: 10px 14px; border-left: 4px solid var(--statut-verifier); background: var(--statut-verifier-teinte); }
 
@@ -86,18 +99,21 @@
 .reglesDossier { display: flex; flex-direction: column; gap: 6px; }
 .reglesDossier li { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: baseline; }
 .piecesDossier { display: flex; flex-direction: column; gap: 6px; }
-.pieceDossier { display: flex; align-items: center; gap: 10px; animation: apparition 0.25s ease-out; }
+.pieceDossier { display: flex; align-items: baseline; gap: 10px; animation: apparition 0.25s ease-out; }
 .codePiece {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  padding: 2px 6px;
-  border: 1px solid var(--encre-900);
-  border-radius: var(--rayon-petit);
+  flex: none;
+  min-width: 30px;
+  padding: 1px 7px;
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-creux);
+  color: var(--encre-700);
   font-family: var(--police-mono);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
 }
 @media (max-width: 1023px) {
   .dossier { position: static; }

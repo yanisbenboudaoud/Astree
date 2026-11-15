@@ -1,12 +1,12 @@
 {
   "description": "Procès réellement tenus par la Lambda du Tribunal (POST /tribunal, Bedrock us.anthropic.claude-sonnet-5-5) et archivés dans S3 (traces/<date>/<id>.json), copiés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct, seulement pour la décision qu'ils ont jugée. Leur identifiant permet à « Trompez le Greffier » (POST /verifier) de les relire dans S3. Chaque contrat passe python -m contrat.valider. Les entrées « calibrage » sont tenues avec les réponses préenregistrées du Pacte vécu (#68 : deploiement/tester_function_url.py … --calibrage-demo) ; elles ne sont rejouées qu'avec exactement ces réponses.",
   "proces": [
-    {"procesId": "2026-11-15-648546b5401b", "profil": "robert", "note": "30 % en TSLA ; points de bascule (#61)"},
-    {"procesId": "2026-11-15-5944335b5a5c", "profil": "robert", "note": "25 % en TSLA : un argument du Procureur renvoyé par le Greffier puis corrigé"},
-    {"procesId": "2026-11-15-46e0edfd53b7", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 % ; points de bascule (#61)"},
-    {"procesId": "2026-11-14-51c84bd19c16", "profil": "mateo", "note": "10 % en XOM"},
-    {"procesId": "2026-11-15-9ef77e91e564", "profil": "robert", "note": "30 % en TSLA, Pacte vécu (pire baisse mesurée : −10,2 %) ; points de bascule (#61)", "calibrage": true},
-    {"procesId": "2026-11-15-8675e97ab622", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, Pacte vécu (−40,6 %) ; points de bascule (#61)", "calibrage": true},
-    {"procesId": "2026-11-15-651ad5c7f489", "profil": "mateo", "note": "10 % en XOM, Pacte vécu (−15,1 %)", "calibrage": true}
+    {"procesId": "2026-11-15-936f0f5659e5", "profil": "robert", "note": "30 % en TSLA ; points de bascule (#61)"},
+    {"procesId": "2026-11-15-c1600201b123", "profil": "robert", "note": "25 % en TSLA : deux arguments renvoyés par le Greffier puis corrigés"},
+    {"procesId": "2026-11-15-27349f8e56c6", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 % ; points de bascule (#61)"},
+    {"procesId": "2026-11-15-6d8845d00f9f", "profil": "mateo", "note": "10 % en XOM"},
+    {"procesId": "2026-11-15-dfa3739ea663", "profil": "robert", "note": "30 % en TSLA, Pacte vécu (pire baisse mesurée : −10,2 %) ; points de bascule (#61)", "calibrage": true},
+    {"procesId": "2026-11-15-728fbb7a628e", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, Pacte vécu (−40,6 %) ; points de bascule (#61)", "calibrage": true},
+    {"procesId": "2026-11-15-3b72df224c77", "profil": "mateo", "note": "10 % en XOM, Pacte vécu (−15,1 %)", "calibrage": true}
   ]
 }

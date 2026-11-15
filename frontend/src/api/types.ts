@@ -41,6 +41,9 @@ export interface Controle {
 
 export interface EtapeTrace {
   role: string;
+  /** Ce que fait l'étape, en langage courant (« Simuler votre portefeuille avec 10 % en XOM »). */
+  titre: string;
+  /** L'appel technique tel que tracé (outil et paramètres), montré dans le détail technique. */
   appel: string;
   etat: 'ok' | 'signalement';
   /** Phase du procès où l'étape a lieu (#90). */

@@ -15,11 +15,12 @@ import styles from './Graphiques.module.css';
 interface ProprietesGraphiqueValeur {
   serie: [string, number][];
   pointBas: { date: string; valeur: number; recul: number };
+  hauteurTrace?: number;
 }
 
-const HAUTEUR = 236;
 const HAUT_TRACE = 8;
-const HAUTEUR_TRACE = 200;
+/** Hauteur par défaut du tracé ; l'axe des années ajoute 28 px dessous. */
+const HAUTEUR_TRACE_DEFAUT = 200;
 const MARGE_DROITE = 76;
 const LARGEUR_BULLE = 128;
 /** Saut de Page ↑ / Page ↓ : environ un trimestre de points hebdomadaires. */
@@ -37,7 +38,9 @@ export function indiceLePlusProche(abscisses: number[], cible: number): number {
   return Math.abs(abscisses[haut] - cible) < Math.abs(abscisses[bas] - cible) ? haut : bas;
 }
 
-export function GraphiqueValeur({ serie, pointBas }: ProprietesGraphiqueValeur) {
+export function GraphiqueValeur({ serie, pointBas, hauteurTrace = HAUTEUR_TRACE_DEFAUT }: ProprietesGraphiqueValeur) {
+  const HAUTEUR_TRACE = hauteurTrace;
+  const HAUTEUR = HAUT_TRACE + hauteurTrace + 28;
   const [ref, largeur] = useLargeur<HTMLDivElement>(776);
   const [actif, setActif] = useState<number | null>(null);
   const largeurTrace = largeur - MARGE_DROITE;

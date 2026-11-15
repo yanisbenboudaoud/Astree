@@ -33,10 +33,9 @@ function secondes(ms: number): string {
   return String(ms / 1000).replace('.', ',');
 }
 
-/** « Orchestrateur » n'est pas répété sous sa phase ; « Procureur », « Pacte vécu »… le sont. */
-function texteEtape(etape: EtapeTrace, libellePhase: string): string {
-  const role = etape.role === libellePhase ? '' : `${etape.role} · `;
-  return `${role}${etape.appel}${etape.sortie ? ` → ${etape.sortie}` : ''}`;
+/** Trace technique : « Orchestrateur · simuler_portefeuille(…) → P3 ». */
+function texteTechnique(etape: EtapeTrace): string {
+  return `${etape.role} · ${etape.appel}${etape.sortie ? ` → ${etape.sortie}` : ''}`;
 }
 
 export function ChargementTribunal({ mode, phase, etapes, termine, activite, avis, debut, dureeEtapeMs = 500 }: PropsChargement) {
@@ -55,7 +54,7 @@ export function ChargementTribunal({ mode, phase, etapes, termine, activite, avi
   else if (mode === 'relecture') {
     introduction = `Relecture d'un procès enregistré, réellement tenu par les agents Bedrock : une étape toutes les ${secondes(dureeEtapeMs)} s.`;
   } else {
-    introduction = `Les agents travaillent en direct : chaque étape s'affiche au moment où elle a lieu. Un procès dure souvent 20 à 40 secondes${ecoule ? ` (${ecoule} s)` : ''}.`;
+    introduction = `Les agents travaillent en direct. Un procès dure de 20 à 40 secondes${ecoule ? ` (${ecoule} s)` : ''}.`;
   }
   let annonce = 'Procès accepté : démarrage des agents';
   if (termine) annonce = 'Instruction terminée';
@@ -64,7 +63,7 @@ export function ChargementTribunal({ mode, phase, etapes, termine, activite, avi
   return (
     <section className={styles.chargement} aria-labelledby="titre-chargement" aria-busy={!termine}>
       <h1 className="t-h1" id="titre-chargement">Le Tribunal instruit le dossier</h1>
-      <p className="t-citation c-700">{introduction}</p>
+      <p className="t-corps c-700">{introduction}</p>
       <p className="visuellement-cache" aria-live="polite">{annonce}</p>
       <ol className={styles.phases}>
         {PHASES.map((p) => {
@@ -79,8 +78,8 @@ export function ChargementTribunal({ mode, phase, etapes, termine, activite, avi
               </span>
               <div className={styles.textePhase}>
                 <p>
-                  <span className={`t-petit-fort ${attenue ? 'c-700' : ''}`}>{p.libelle}</span>
-                  <span className={`t-petit ${attenue || 'c-700'}`}> · {p.detail}</span>
+                  <span className={`t-intertitre ${attenue ? 'c-700' : ''}`}>{p.libelle}</span>
+                  <span className={`t-corps ${attenue || 'c-500'}`}> · {p.detail}</span>
                   <span className="visuellement-cache"> ({LIBELLES_ETAT[etat]})</span>
                 </p>
                 {etat === 'en_cours' && activite && (
@@ -93,9 +92,12 @@ export function ChargementTribunal({ mode, phase, etapes, termine, activite, avi
                         <span className={`${styles.iconeEtape} ${e.etat === 'signalement' ? styles.iconeSignalement : ''}`} aria-hidden="true">
                           <Icone nom={e.etat === 'signalement' ? 'alerte' : 'check'} taille={14} />
                         </span>
-                        <span>
-                          <code className="t-trace c-700">{texteEtape(e, p.libelle)}</code>
-                          {e.raison && <span className="t-petit c-700"> · {e.raison}</span>}
+                        <span className={styles.texteEtape}>
+                          <span className={styles.ligneEtape}>
+                            <span className="t-corps">{e.titre}</span>
+                            {e.sortie && <span className={styles.codePiece} title="Pièce versée au dossier">{e.sortie}</span>}
+                          </span>
+                          {e.raison && <span className={`t-petit c-500 ${styles.raison}`}>{e.raison}</span>}
                           {e.etat === 'signalement' && <span className="visuellement-cache"> (signalement)</span>}
                         </span>
                       </li>
@@ -109,6 +111,14 @@ export function ChargementTribunal({ mode, phase, etapes, termine, activite, avi
         })}
       </ol>
       {avis && !termine && <p className={`t-petit ${styles.avis}`} role="status">{avis}</p>}
+      {etapes.length > 0 && (
+        <details className={styles.technique}>
+          <summary className="t-petit-fort">Trace technique · {etapes.length} appels</summary>
+          <ol className={styles.listeTechnique}>
+            {etapes.map((e, i) => <li key={i}><code className="t-trace c-700">{texteTechnique(e)}</code></li>)}
+          </ol>
+        </details>
+      )}
     </section>
   );
 }
@@ -147,7 +157,7 @@ export function DossierInstruit({ decision, regles, etapes }: { decision: string
             {pieces.map((e) => (
               <li key={e.sortie} className={styles.pieceDossier}>
                 <span className={styles.codePiece}>{e.sortie}</span>
-                <code className="t-trace c-700">{e.appel.split('(')[0]}</code>
+                <span className="t-petit">{e.titre}</span>
               </li>
             ))}
           </ul>

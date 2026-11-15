@@ -1,17 +1,17 @@
 /** Écran Portefeuille (annexe D.2), avec la recherche (D.3) et la confirmation après signature (C.6). */
-import { useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import type { EntreeJournal, Profil } from '../api/types';
+import { useState, type CSSProperties } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import type { EntreeJournal, Profil, ReglePacte } from '../api/types';
 import { configUi, donneesCalibrage, nomTitre, rechercheUi } from '../api/donnees';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { GraphiqueValeur } from '../components/graphiques/GraphiqueValeur';
 import { Recherche } from '../components/Recherche';
 import { Bouton } from '../components/Bouton';
-import { IconeStatut, Provenance, Statut } from '../components/Etiquettes';
-import { Jauge, Monogramme, Section } from '../components/Elements';
+import { Provenance } from '../components/Etiquettes';
+import { Monogramme, Section } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { compte, date, dollars, jourMois, part, pourcent, seuil as seuilTexte } from '../lib/format';
-import { bilanPacte, regleCle, seuilPireBaisse, statutUi, valeurRegle } from '../domaine/pacte';
+import { bilanPacte, regleCle, seuilPireBaisse } from '../domaine/pacte';
 import { regleMesuree } from '../domaine/calibrage';
 import { useEtatProfil } from '../state/store';
 import styles from './Portefeuille.module.css';
@@ -31,175 +31,213 @@ function suggestionsDe(profil: Profil): string[] {
   return [...new Set([...tickers, ...SUGGESTIONS_PAR_DEFAUT])].slice(0, NOMBRE_SUGGESTIONS);
 }
 
-/** Les 3 étapes du parcours, à droite de la recherche : ce qui se passe après avoir choisi un titre. */
-function EtapesParcours() {
-  const etapes = [
-    { titre: 'Décision', texte: "Choisissez un titre et une taille : l'effet sur votre Pacte s'affiche aussitôt." },
-    { titre: 'Tribunal', texte: 'Un Procureur et un Avocat (IA) plaident à partir de pièces calculées ; le Greffier vérifie chaque chiffre.' },
-    { titre: 'Verdict', texte: "Vous décidez. Rien n'est acheté : le verdict est archivé." },
-  ];
-  return (
-    <ol className={styles.etapesParcours} aria-label="Comment Astrée juge une décision">
-      {etapes.map((e, i) => (
-        <li key={e.titre}>
-          <span className={styles.numeroEtape} aria-hidden="true">{i + 1}</span>
-          <span className={styles.texteEtape}>
-            <span className="t-petit-fort">{e.titre}</span>
-            <span className="t-petit">{e.texte}</span>
-          </span>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 /** Indicateurs compacts (#103) : libellé au-dessus, chiffre et contexte sur la même ligne. */
 function Indicateurs({ profil }: { profil: Profil }) {
   const seuil = seuilPireBaisse(profil);
-  const annees = Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10);
-  const utilisation = seuil ? profil.actuel.chuteMax / seuil : null;
   return (
     <dl className={styles.indicateurs}>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Rendement annualisé</dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.rendement, { signe: true })}</span>
-          <span className="t-petit c-500">par an sur {annees} ans</span>
         </dd>
       </div>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Chute maximale</dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.chuteMax)}</span>
-          {seuil !== undefined && utilisation !== null && (
-            <>
-              <span className={styles.jaugeIndicateur}>
-                <Jauge valeur={utilisation} libelle={`Chute maximale : ${pourcent(utilisation, { decimales: 0 })} de la limite de votre Pacte`} />
-              </span>
-              <span className="t-petit c-500">{pourcent(utilisation, { decimales: 0 })} de votre limite de {seuilTexte(seuil)}</span>
-            </>
-          )}
+          {seuil !== undefined && <span className="t-petit c-500">limite {seuilTexte(seuil)}</span>}
         </dd>
       </div>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Volatilité</dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.volatilite)}</span>
-          <span className="t-petit c-500">annualisée</span>
         </dd>
       </div>
     </dl>
   );
 }
 
+/**
+ * Positions regroupées par classe d'actifs (#105) : barre de répartition, puis un bloc par groupe
+ * (sous-total en dollars et en part) et ses titres, chacun avec une barre de poids à l'échelle de la plus grosse ligne.
+ * Survoler un groupe (barre, légende ou bloc) met ses lignes en avant ; l'information reste écrite, la couleur ne la porte jamais seule.
+ */
 function Positions({ profil }: { profil: Profil }) {
+  const [survol, setSurvol] = useState<string | null>(null);
   const teintes = profil.groupes.length <= 3 ? TEINTES_COURTES : TEINTES;
   const teinte = (groupe: string) => teintes[profil.groupes.findIndex((g) => g.libelle === groupe) % teintes.length];
+  const total = profil.positions.reduce((somme, p) => somme + p.valeur, 0);
+  const poidsMax = Math.max(...profil.positions.map((p) => p.poids));
+  const blocs = profil.groupes.map((g) => {
+    const lignes = profil.positions.filter((p) => p.groupe === g.libelle).sort((a, b) => b.poids - a.poids);
+    return { ...g, lignes, valeur: lignes.reduce((somme, p) => somme + p.valeur, 0) };
+  });
+  const couleur = (groupe: string) => ({ '--cat': teinte(groupe) }) as CSSProperties;
+  const attenue = (groupe: string) => (survol !== null && survol !== groupe ? styles.attenue : '');
+  const suivre = (groupe: string) => ({ onMouseEnter: () => setSurvol(groupe), onMouseLeave: () => setSurvol(null) });
   return (
     <Section
       id="titre-positions"
       titre="Vos positions"
       droite={(
         <span className={styles.groupeDroite}>
-          <span className="t-petit c-500">{compte(profil.positions.length, 'titre')}</span>
+          <span className="t-petit c-500">{compte(profil.positions.length, 'titre')} · {dollars(total)}</span>
           <Provenance type="Fictif" />
         </span>
       )}
     >
       <div className={styles.repartition} aria-hidden="true">
-        {profil.groupes.map((g) => (
-          <span key={g.libelle} style={{ flexGrow: g.poids, background: teinte(g.libelle) }} />
+        {blocs.map((g) => (
+          <span key={g.libelle} className={attenue(g.libelle)} style={{ flexGrow: g.poids, ...couleur(g.libelle) }} {...suivre(g.libelle)} />
         ))}
       </div>
       <ul className={styles.legende} aria-label="Répartition par groupe">
-        {profil.groupes.map((g) => (
-          <li key={g.libelle}>
-            <span className={styles.carre} style={{ background: teinte(g.libelle) }} aria-hidden="true" />
+        {blocs.map((g) => (
+          <li key={g.libelle} className={attenue(g.libelle)} style={couleur(g.libelle)} {...suivre(g.libelle)}>
+            <span className={styles.carre} aria-hidden="true" />
             <span className="t-petit c-700">{g.libelle}</span>
             <span className="t-tableau-fort">{part(g.poids)}</span>
           </li>
         ))}
       </ul>
-      <ul className={styles.liste}>
-        {profil.positions.map((p) => (
-          <li key={p.ticker} className={styles.ligne}>
-            <Monogramme ticker={p.ticker} />
-            <span className={styles.nom}>
-              <span className="t-corps">{nomTitre(p.ticker)}</span>
-              <span className="t-petit c-500">{p.ticker} · {p.groupe}</span>
-            </span>
-            <span className={`t-tableau ${styles.montantLigne}`}>{dollars(p.valeur)}</span>
-            <span className={`t-tableau-fort ${styles.poids}`}>{part(p.poids)}</span>
-          </li>
+      <div className={styles.tableauPositions} role="table" aria-label="Positions par groupe">
+        <div className={`t-etiquette c-500 ${styles.colonnes}`} role="row">
+          <span role="columnheader">Titre</span>
+          <span role="columnheader" className={styles.colonnePoids}>Poids</span>
+          <span role="columnheader" className={styles.montantLigne}>Valeur</span>
+          <span role="columnheader" className={styles.poids}>Part</span>
+        </div>
+        {blocs.map((g) => (
+          <div key={g.libelle} role="rowgroup" className={`${styles.groupe} ${attenue(g.libelle)}`} style={couleur(g.libelle)} {...suivre(g.libelle)}>
+            <div className={styles.enteteGroupe} role="row">
+              <span role="rowheader" className={styles.nomGroupe}>
+                <span className={styles.carre} aria-hidden="true" />
+                <span className="t-petit-fort">{g.libelle}</span>
+                <span className="t-petit c-500">{compte(g.lignes.length, 'titre')}</span>
+              </span>
+              <span role="cell" className={styles.colonnePoids} />
+              <span role="cell" className={`t-tableau-fort ${styles.montantLigne}`}>{dollars(g.valeur)}</span>
+              <span role="cell" className={`t-tableau-fort ${styles.poids}`}>{part(g.poids)}</span>
+            </div>
+            {g.lignes.map((p) => (
+              <div key={p.ticker} className={styles.ligne} role="row">
+                <span role="cell" className={styles.titreLigne}>
+                  <Monogramme ticker={p.ticker} className={styles.monoTeinte} />
+                  <span className={styles.nom}>
+                    <span className="t-corps">{nomTitre(p.ticker)}</span>
+                    <span className="t-petit c-500">{p.ticker}</span>
+                  </span>
+                </span>
+                <span role="cell" className={styles.colonnePoids}>
+                  <span className={styles.barrePoids} aria-hidden="true"><span style={{ width: `${(p.poids / poidsMax) * 100}%` }} /></span>
+                </span>
+                <span role="cell" className={`t-tableau ${styles.montantLigne}`}>{dollars(p.valeur)}</span>
+                <span role="cell" className={`t-tableau-fort ${styles.poids}`}>{part(p.poids)}</span>
+              </div>
+            ))}
+          </div>
         ))}
-      </ul>
+      </div>
     </Section>
   );
 }
 
+/** Ligne du bas de la carte du Pacte : la limite de pire baisse est-elle supposée ou mesurée (Pacte vécu, #68) ? */
 function PacteVecu({ profil }: { profil: Profil }) {
   const mesuree = regleMesuree(profil);
   if (!donneesCalibrage(profil.id)) return null;
   return (
-    <div className={styles.pacteVecu}>
-      {mesuree ? (
-        <p className="t-petit c-700">{mesuree.provenance}.</p>
-      ) : (
-        <p className="t-petit c-700">Votre limite de pire baisse est une hypothèse. Revivez de vrais jours de marché pour la mesurer.</p>
-      )}
-      <Bouton variante="tertiaire" compact fleche={false} vers={`/${profil.id}/pacte-vecu`}>
-        {mesuree ? 'Revoir mes réponses' : 'Revivez 4 jours de marché'}
-      </Bouton>
+    <Link className={styles.pacteVecu} to={`/${profil.id}/pacte-vecu`}>
+      <span className={styles.textePacteVecu}>
+        <span className="t-petit-fort">{mesuree ? 'Limite mesurée' : 'Limite supposée'}</span>
+        {mesuree && <span className="t-petit c-500">{mesuree.provenance}.</span>}
+      </span>
+      <span className={`t-petit-fort ${styles.actionPacteVecu}`}>
+        {mesuree ? 'Revoir' : 'La mesurer'}
+        <Icone nom="fleche-droite" taille={14} />
+      </span>
+    </Link>
+  );
+}
+
+/** Le chiffre clé du Pacte : la valeur actuelle de la règle la plus proche de sa limite, et sa jauge. */
+function RegleCle({ regle }: { regle: ReglePacte }) {
+  const baisse = regle.type === 'pire_baisse_max';
+  const limite = baisse ? regle.seuil : regle.max;
+  const valeur = regle.valeur ?? 0;
+  const utilisation = regle.utilisation ?? 0;
+  const enViolation = regle.statut === 'violation';
+  return (
+    <div className={styles.regleCle}>
+      <p className="t-petit c-500">{baisse ? 'Pire baisse observée' : regle.libelle}</p>
+      <p className={styles.chiffreCle}>
+        <span className={enViolation ? styles.chiffreViolation : undefined}>{baisse ? pourcent(valeur) : part(valeur)}</span>
+        {limite !== undefined && <span className={styles.limiteCle}>/ {baisse ? seuilTexte(limite) : part(limite)}</span>}
+      </p>
+      <span
+        className={`${styles.jaugePacte} ${enViolation ? styles.jaugeViolation : ''}`}
+        role="meter"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(utilisation * 100)}
+        aria-label={`${regle.libelle} : ${pourcent(utilisation, { decimales: 0 })} de la limite utilisée`}
+      >
+        <span style={{ width: `${Math.min(1, Math.max(0, utilisation)) * 100}%` }} />
+      </span>
     </div>
   );
 }
 
+const STATUT_REGLE: Record<ReglePacte['statut'], string> = { conforme: 'Respectée', violation: 'Enfreinte', a_verifier: 'À juger' };
+const COULEUR_STATUT: Record<ReglePacte['statut'], string> = { conforme: styles.couleurConforme, violation: styles.couleurViolation, a_verifier: styles.couleurVerifier };
+
 function CartePacte({ profil }: { profil: Profil }) {
-  const [ouvert, setOuvert] = useState(false);
   const cle = regleCle(profil);
   const bilan = bilanPacte(profil);
   const regles = profil.pacte.regles;
-  const detail = [cle ? valeurRegle(cle) : null, `${compte(bilan.verifiees, 'règle vérifiée', 'règles vérifiées')}`, bilan.aJuger ? `${bilan.aJuger} à juger par vous` : null]
-    .filter(Boolean).join(' · ');
   return (
     <section className={styles.cartePacte} aria-labelledby="titre-pacte">
       <div className={styles.entetePacte}>
-        <h2 className="t-panneau" id="titre-pacte">Votre Pacte</h2>
-        <Statut type={bilan.statut} />
-      </div>
-      {cle && (
-        <div className={styles.regleCle}>
-          <p className="t-corps-fort">{cle.libelle}</p>
-          <Jauge valeur={cle.utilisation ?? 0} libelle={`${cle.libelle} : ${pourcent(cle.utilisation ?? 0, { decimales: 0 })} de la limite utilisée`} />
+        <div className={styles.titrePacte}>
+          <h2 className="t-panneau" id="titre-pacte">Votre Pacte</h2>
+          <p className="t-petit c-500">Signé le {date(profil.pacte.dateSignature)}</p>
         </div>
-      )}
-      <p className="t-petit c-500">{detail}</p>
-      <PacteVecu profil={profil} />
-      <Bouton variante="tertiaire" compact fleche={false} aria-expanded={ouvert} aria-controls="regles-pacte" onClick={() => setOuvert((o) => !o)} className={styles.voirRegles}>
-        {ouvert ? 'Masquer les règles' : `Voir les ${regles.length} règles`}
-      </Bouton>
-      <ol id="regles-pacte" className={styles.regles} hidden={!ouvert}>
+        <span className={`t-petit-fort ${styles.etatPacte} ${bilan.violations ? styles.etatViolation : styles.etatConforme}`}>
+          <span className={styles.point} aria-hidden="true" />
+          {bilan.violations ? compte(bilan.violations, 'règle enfreinte', 'règles enfreintes') : 'Respecté'}
+        </span>
+      </div>
+      {cle && <RegleCle regle={cle} />}
+      <ol className={styles.regles} aria-label="Règles du Pacte">
         {regles.map((r, i) => (
           <li key={r.id}>
-            <span className="t-trace c-500">§{i + 1}</span>
-            <span className="t-petit">
-              {r.libelle}
-              {r.provenance && <span className="c-500"> · {r.provenance}</span>}
+            <span className={`t-petit c-500 ${styles.numeroRegle}`}>§{i + 1}</span>
+            <span className={styles.texteRegle}>
+              <span className="t-petit">{r.libelle}</span>
+              {r.provenance && <span className="t-petit c-500">{r.provenance}</span>}
             </span>
-            <IconeStatut type={statutUi(r.statut)} taille={14} />
+            <span className={`t-etiquette ${styles.statutRegle} ${COULEUR_STATUT[r.statut]}`}>{STATUT_REGLE[r.statut]}</span>
           </li>
         ))}
-        <li className="t-petit c-500">Signé le {date(profil.pacte.dateSignature)}. Les règles sans calcul possible sont à juger par vous.</li>
       </ol>
+      <PacteVecu profil={profil} />
     </section>
   );
 }
+
+const LIBELLE_JOURNAL: Record<EntreeJournal['statut'], string> = {
+  conforme: 'Conforme au Pacte',
+  violation: 'En conflit avec le Pacte',
+  a_verifier: 'À vérifier',
+};
 
 function Journal({ entrees }: { entrees: EntreeJournal[] }) {
   const [tout, setTout] = useState(false);
   const visibles = tout ? entrees : entrees.slice(0, 3);
   return (
-    <section className={`section ${styles.journal}`} aria-labelledby="titre-journal">
+    <section className={styles.journal} aria-labelledby="titre-journal">
       <div className={styles.enteteJournal}>
         <h2 className="t-panneau" id="titre-journal">Journal des décisions</h2>
         {entrees.length > 3 && (
@@ -208,15 +246,18 @@ function Journal({ entrees }: { entrees: EntreeJournal[] }) {
           </Bouton>
         )}
       </div>
-      <ul>
+      <ol className={styles.frise}>
         {visibles.map((e) => (
-          <li key={`${e.date}-${e.texte}`} className={`${styles.entree} ${e.nouveau ? styles.entreeNouvelle : ''}`}>
-            <span className={`t-trace c-500 ${styles.dateJournal}`}>{jourMois(e.date)}</span>
-            <span className="t-corps">{e.texte}</span>
-            <IconeStatut type={statutUi(e.statut)} />
+          <li key={`${e.date}-${e.texte}`} className={`${styles.entree} ${COULEUR_STATUT[e.statut]} ${e.nouveau ? styles.entreeNouvelle : ''}`}>
+            <span className={styles.point} aria-hidden="true" />
+            <span className={styles.texteEntree}>
+              <span className="t-corps">{e.texte}</span>
+              <span className="visuellement-cache">{LIBELLE_JOURNAL[e.statut]}</span>
+            </span>
+            <time className="t-petit c-500" dateTime={e.date}>{jourMois(e.date)}</time>
           </li>
         ))}
-      </ul>
+      </ol>
     </section>
   );
 }
@@ -279,16 +320,13 @@ export function Portefeuille({ profil }: { profil: Profil }) {
 
         <div className={styles.titre}>
           <h1 className="t-h1">Bonjour {profil.nom}.</h1>
-          <p className={styles.statut}>
-            <span className={bilan.violations ? styles.iconeViolation : styles.iconeConforme}>
-              <Icone nom={bilan.violations ? 'interdit' : 'check'} taille={18} />
-            </span>
-            <span className="t-corps c-700">
-              {bilan.violations
-                ? `Votre portefeuille enfreint ${compte(bilan.violations, 'règle')} de votre Pacte.`
-                : 'Votre portefeuille respecte les règles mesurables de votre Pacte.'}
-            </span>
-          </p>
+          {/* Seulement s'il y a un problème : la carte du Pacte dit déjà « Respecté ». */}
+          {bilan.violations > 0 && (
+            <p className={styles.statut}>
+              <span className={styles.iconeViolation}><Icone nom="interdit" taille={18} /></span>
+              <span className="t-corps c-700">Votre portefeuille enfreint {compte(bilan.violations, 'règle')} de votre Pacte.</span>
+            </p>
+          )}
         </div>
 
         <Recherche
@@ -304,7 +342,6 @@ export function Portefeuille({ profil }: { profil: Profil }) {
           onInstruirePanier={instruirePanier}
           focusInitial={focusRecherche}
           suggestions={suggestionsDe(profil)}
-          complement={<EtapesParcours />}
         />
 
         <div className={styles.grille}>
@@ -327,7 +364,6 @@ export function Portefeuille({ profil }: { profil: Profil }) {
                     <span className="t-petit c-500">depuis le {date(profil.debut)}</span>
                   </p>
                 </div>
-                <p className="t-petit-fort c-500">Sur {Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10)} ans</p>
               </div>
               <GraphiqueValeur
                 serie={profil.serieValeur}
@@ -336,7 +372,7 @@ export function Portefeuille({ profil }: { profil: Profil }) {
               <Indicateurs profil={profil} />
               <p className={styles.provenance}>
                 <Provenance type="Fait" />
-                <span className="t-petit c-500">Calculé sur les prix réels du {date(profil.debut)} au {date(profil.fin)}, en CAD.</span>
+                <span className="t-petit c-500">Prix réels, en CAD</span>
               </p>
             </section>
             <Positions profil={profil} />

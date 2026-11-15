@@ -12,10 +12,10 @@ export type EtatPhase = 'faite' | 'en_cours' | 'a_venir';
 
 /** Ordre fixe imposé par Python (pipeline/progression.py, PHASES). */
 export const PHASES: { id: PhaseProces; libelle: string; detail: string }[] = [
-  { id: 'agent_profil', libelle: 'Agent Profil', detail: 'lecture de la demande et du Pacte' },
-  { id: 'orchestrateur', libelle: 'Orchestrateur', detail: 'choix des outils, chaque résultat devient une pièce' },
-  { id: 'debat', libelle: 'Procureur et Avocat', detail: 'plaidoiries en parallèle, à partir des pièces' },
-  { id: 'greffier', libelle: 'Greffier', detail: 'contrôle du Pacte, des chiffres et du cadre' },
+  { id: 'agent_profil', libelle: 'Agent Profil', detail: 'lit votre demande et votre Pacte' },
+  { id: 'orchestrateur', libelle: 'Orchestrateur', detail: 'choisit les calculs ; chaque résultat devient une pièce' },
+  { id: 'debat', libelle: 'Procureur et Avocat', detail: 'plaident contre et pour, pièces à l’appui' },
+  { id: 'greffier', libelle: 'Greffier', detail: 'vérifie le Pacte, les chiffres et le cadre' },
 ];
 
 export function estPhase(valeur: unknown): valeur is PhaseProces {

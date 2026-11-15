@@ -108,9 +108,11 @@ Style épuré (refonte #105, inspirée des applications de placement grand publi
 - Rouge, ambre et vert sont réservés aux statuts du Greffier.
 - Framboise et sarcelle sont réservés aux deux camps (Procureur, Avocat).
 - Le bleu est réservé à la sélection, au focus et aux liens.
-- L'indigo `--donnee-principale` porte les données (courbes, jauges) ; le gris `--donnee-secondaire` l'état actuel ; la limite du Pacte et la pire baisse sont tracées en rouge (#105). Les couleurs de catégorie servent seulement à la barre de répartition, dont la légende donne le libellé et le pourcentage.
+- L'indigo `--donnee-principale` porte les données (courbes, jauges) ; le gris `--donnee-secondaire` l'état actuel ; la limite du Pacte et la pire baisse sont tracées en rouge (#105). Les couleurs de catégorie servent seulement aux positions (barre de répartition, monogrammes, barres de poids) ; le libellé et le pourcentage sont toujours écrits à côté.
 - Les gains et pertes s'écrivent en encre, avec un signe et ▲/▼ (pas en vert ou rouge).
 - Un trait qui porte une information (bord de contrôle, pastille d'étape à venir, courbe « Actuel ») atteint au moins 3:1 sur le papier et sur les cartes (WCAG 1.4.11) : `--trait-moyen` ou plus foncé, jamais `--trait-fin`, `--encre-200` ni `--encre-300` (#103).
+
+**Sobriété du texte (#105).** Chaque phrase affichée doit apprendre quelque chose qu'aucun autre élément visible ne dit déjà. On retire les surtitres qui répètent les étapes, les sous-titres qui reformulent un chiffre, les précisions évidentes (« annualisée », « par an sur 5 ans ») et les modes d'emploi. Restent toujours : le bandeau de simulation, les étiquettes Fait / Hypothèse / Fictif, la source et la période des calculs, « Le passé ne prédit pas l'avenir », et tout texte utile aux lecteurs d'écran (gardé en `visuellement-cache`).
 
 ### A.2 Typographie (Google Fonts)
 
@@ -199,9 +201,8 @@ Ces règles reproduisent nos chiffres au dixième près. Les valeurs attendues s
 
 ### C.1 Écran d'entrée
 
-- **Étiquette :** « Démonstration ».
 - **Titre (H1) :** « Testez une décision d'investissement avant de la prendre. » (#103 : le titre dit ce que fait Astrée, au lieu de « Avec quel profil voulez-vous explorer Astrée ? »)
-- **Sous-titre :** « Cherchez un titre et choisissez une taille : un Procureur et un Avocat en débattent face aux règles de votre Pacte, et c'est vous qui rendez le verdict. Choisissez un profil pour commencer ; vous pourrez en changer à tout moment depuis le menu en haut à droite. »
+- **Sous-titre (#105) :** « Un Procureur et un Avocat en débattent face à vos règles. Vous rendez le verdict. » Les cartes ne portent plus la question en italique ; le bloc « Votre propre Pacte » dit seulement « 15 questions, environ 5 minutes. » ; le pied : « Profils fictifs, prix réels du … au … ».
 - **Trois cartes cliquables** (carte entière + bouton secondaire « Entrer comme … »), dans cet ordre. Au survol, la carte se soulève de 2 px (bord encre, ombre de survol) ; à l'appui, elle redescend.
 
 | Profil | Âge · métier | Risque | Horizon | Décision à tester | Question en italique |
@@ -341,7 +342,7 @@ Ces règles reproduisent nos chiffres au dixième près. Les valeurs attendues s
 **Règles communes à toutes les audiences :**
 - Chaque argument a une provenance (Fait, Hypothèse ou Fictif) et cite au moins une pièce.
 - **Encadré « Limite que l'Avocat reconnaît »** (fond ocre) sous les arguments de l'Avocat, pour les 3 profils : « Biais du survivant : l'univers a été choisi en 2026 parmi des titres devenus gros. Les rendements passés cités ici sont donc flattés. »
-- **Sous-titre de toutes les audiences :** « Le Tribunal présente les deux côtés. C'est vous qui rendez le verdict. »
+- **Pas de sous-titre** sous le titre de l'audience (#105).
 
 #### Robert
 
@@ -538,31 +539,25 @@ L'état est conservé par profil dans un store : taille choisie, panier, répons
 
 La recherche est la fonction principale de l'écran : elle passe en tête, sur toute la largeur (#103).
 
-- **En-tête de page :** « Bonjour {prénom}. » en H1, suivi sur la même ligne (renvoi à la ligne si la place manque) de ✓ vert + phrase de statut.
-- **Bandeau de recherche** (D.3), juste sous l'en-tête, sur toute la largeur du conteneur : à gauche la recherche, à droite les **3 étapes du parcours** (`EtapesParcours`), séparées par un filet vertical clair :
-  1. **Décision** : « Choisissez un titre et une taille : l'effet sur votre Pacte s'affiche aussitôt. »
-  2. **Tribunal** : « Un Procureur et un Avocat (IA) plaident à partir de pièces calculées ; le Greffier vérifie chaque chiffre. »
-  3. **Verdict** : « Vous décidez. Rien n'est acheté : le verdict est archivé. »
-
-  Pastilles numérotées de 26 px à contour papier ; la première est pleine. Sous 1024 px, les étapes passent sous la recherche.
+- **En-tête de page :** « Bonjour {prénom}. » en H1. La phrase de statut n'apparaît que si le portefeuille enfreint une règle (#105) : la carte du Pacte dit déjà « Respecté ».
+- **Bandeau de recherche** (D.3), juste sous l'en-tête, sur toute la largeur du conteneur, sur une seule colonne (#105 : les 3 étapes du parcours sont retirées, l'en-tête de la Décision les montre déjà).
 - **Colonne principale :**
   - Valeur : « Valeur du portefeuille », montant en Inter 600 48 / 52 (36 / 40 sous 600 px) + Fictif, ligne « ▲ 233 034 $ (+55,9 %) depuis le 12 nov. 2021 », mention « Sur 5 ans ».
   - Graphique de valeur : courbe `--donnee-principale` de 2,25 px, aire en dégradé de la même couleur (22 % en haut, transparente en bas, #105), axe en k$ à droite, pastille `--donnee-principale` de la valeur actuelle au bout de la courbe, point le plus bas marqué avec son libellé, années en abscisse. **Pas de bascule ni de choix de période** (simplification voulue).
   - 3 indicateurs **compacts** séparés par des filets verticaux : libellé au-dessus, puis chiffre (Inter 600 24 / 28) et contexte sur la même ligne (« par an sur 5 ans », jauge de 72 px + « 65 % de votre limite de −12 % », « annualisée »).
   - Ligne de provenance : Fait + « Calculé sur les prix réels du 12 nov. 2021 au 12 nov. 2026, en CAD. »
-  - « Vos positions » : barre de répartition par groupe, légende à pastilles, puis la liste. Chaque ligne affiche monogramme, nom, « ticker · groupe », valeur et poids. Pas de colonnes rendement ou volatilité par titre.
+  - « Vos positions » (#105) : à droite du titre, « N titres · total $ » et Fictif. Barre de répartition de 12 px et légende à pastilles, puis un tableau (en-têtes Titre, Poids, Valeur, Part) **regroupé par classe d'actifs**. Chaque groupe a une ligne d'en-tête (pastille, nom, nombre de titres, sous-total en dollars et en part), puis ses titres du plus gros au plus petit : monogramme rond teinté de la couleur du groupe, nom et ticker, barre de poids à l'échelle de la plus grosse ligne, valeur, part. Survoler un groupe (barre, légende ou bloc) estompe les autres (opacité seulement). Sous 600 px, la colonne Poids disparaît. Pas de colonnes rendement ou volatilité par titre.
 - **Colonne latérale** (la recherche n'y est plus) :
-  - Carte « Votre Pacte » : statut Conforme, règle clé avec jauge, détail + « 4 règles respectées », lien « Voir les 4 règles ».
-  - « Journal des décisions » : 2 entrées + « Tout voir ».
+  - Carte « Votre Pacte » (#105) : titre et « Signé le … », état à droite (point vert « Respecté » ou point rouge « N règles enfreintes ») ; chiffre clé de la règle la plus proche de sa limite (« Pire baisse observée −15,1 % / −20 % », 36 px), jauge arrondie avec « 76 % de la limite utilisée » et « Limite −20 % » ; **toutes les règles visibles** (§n, libellé, provenance éventuelle, statut écrit en couleur : Respectée, Enfreinte, À juger) ; pied de carte cliquable vers le Pacte vécu (« Limite supposée · Mesurez-la sur 4 vrais jours de marché · Commencer → », ou « Limite mesurée · … · Revoir »).
+  - « Journal des décisions » (#105) : frise verticale, un point coloré par statut, texte de la décision, statut en toutes lettres (« Conforme au Pacte », « En conflit avec le Pacte », « À vérifier »), date à droite ; 3 entrées puis « Tout voir ».
 - **Sous 1024 px :** la colonne latérale passe sous la colonne principale ; le bandeau de recherche reste en tête.
 
 ### D.3 Recherche (combobox ARIA)
 
-- **Bandeau (#103)** (`components/Recherche.tsx`) : panneau clair (`--fond-sourdine`, bordure `--trait-fin`, texte encre, #105) en haut du Portefeuille, padding 32 / 36, rayon 16 ; grille « recherche | complément de 360 px », gouttière de 48. De haut en bas :
-  - surtitre en Étiquette majuscule « Étape 1 · Décision » ;
+- **Bandeau (#103)** (`components/Recherche.tsx`) : panneau clair (`--fond-sourdine`, bordure `--trait-fin`, texte encre, #105) en haut du Portefeuille, padding 32 / 36, rayon 16 ; une colonne (une deuxième de 360 px seulement si un complément est passé). De haut en bas :
   - titre-question (un H2 au style Titre/H1) tiré de `profils_ui.json` : « Quelle décision voulez-vous tester ? » (mode titre) ou « Quel panier voulez-vous tester ? » (mode panier) ; mêmes textes par défaut pour un profil sans textes propres ;
   - le choix du mode, aligné à droite du titre ;
-  - l'aide, puis, en mode panier, les pastilles du panier ;
+  - l'aide, masquée à l'écran et gardée pour les lecteurs d'écran (description du champ, #105), puis, en mode panier, les pastilles du panier ;
   - le champ de **56 px** en pilule (texte 17 px, icône loupe de 20 px), bord encre et ombre de survol au survol, bord bleu de 2 px et halo `--accent-bleu-teinte` au focus ;
   - les **titres suggérés en un clic**, précédés de « Essayer : » (mode titre : un clic ouvre la Décision) ou « Ajouter : » (mode panier : un clic ajoute au panier ; un titre déjà ajouté est désactivé avec ✓). Pastilles de 32 px : nom + ticker court en Mono. La liste vient de `suggestionsDe` : les titres de la décision de démonstration du profil, puis TSLA, NVDA, XOM, BTC-USD, sans doublon, 5 au plus ;
   - en mode panier, « Instruire le panier (N titres) » (bouton primaire) à partir de 2 titres.
@@ -584,34 +579,36 @@ La recherche est la fonction principale de l'écran : elle passe en tête, sur t
 
 ### D.4 Décision
 
-- **Mise en page (paysage, #103) :** conteneur large. Lien « ← Portefeuille », étiquette « Instruction d'une décision », H1, ligne de fiche avec étiquette Fait. Dessous, une grille à zones de deux colonnes 5 : 7 :
+- **Mise en page (paysage, #103) :** conteneur large. Lien « ← Portefeuille », H1, ligne de fiche avec étiquette Fait (« TSLA · NASDAQ · volatilité 59 % · pire chute −70,9 % », #105). Dessous, une grille à zones de deux colonnes 5 : 7 :
   - à gauche, de haut en bas : le réglage (taille ou panier), les messages, les actions ;
   - à droite : « Effet sur votre Pacte », fixe au défilement (`position: sticky`).
 
   Tant que l'aperçu n'est pas calculé (chargement, panier non précalculé), la grille garde une seule colonne de 776 px. Sous 1024 px, tout s'empile : réglage, effet, messages, actions.
-- **Taille (Robert, Mateo) :**
-  - grand pourcentage, en rouge s'il dépasse le maximum conforme ;
-  - montant « ≈ X $ sur Y $ » + Fictif ;
-  - raccourcis ; celui du maximum conforme porte un ✓ vert et le libellé « max. conforme » ;
-  - curseur 0–50 % (`input type=range` accessible, `aria-valuetext="30 %, hors limite du Pacte"`), avec un repère « Limite du Pacte · X % » ;
-  - la piste se remplit en encre jusqu'à la poignée, **en rouge** quand la taille dépasse le maximum conforme (#103) ; la poignée prend un halo au survol et grossit pendant le glissement ;
-  - bande de zones sous la piste : vert jusqu'au maximum conforme, **hachures rouges** au-delà (rayures `--statut-violation` sur `--statut-violation-teinte`, bord rouge : la teinte seule était à 1,1:1 sur le papier) ;
-  - légende des zones ;
-  - ligne « Financement simulé : réduction proportionnelle de vos positions. » (sans bouton : la démonstration ne précalcule que ce financement, #96).
+- **Taille (tout profil qui teste un titre, #105) :**
+  - en-tête de section avec Fictif à droite ; grand pourcentage (Inter 600, 64 px, signe % plus petit en `--encre-500`), en rouge s'il dépasse le maximum conforme ; montant « ≈ X $ sur Y $ » dessous ;
+  - **état écrit** avec un point coloré : « Compatible avec votre Pacte jusqu'à X % » (vert) ou « Au-delà de votre limite : compatible jusqu'à X % » (rouge) ;
+  - curseur 0–50 % (`input type=range` accessible, `aria-valuetext="30 %, hors limite du Pacte"`), poignée blanche ronde de 24 px avec ombre. **Une seule piste** de 8 px : zones compatibles en `--statut-conforme-teinte`, zones hors limite hachurées en rouge pâle, remplissage encre jusqu'à la poignée (**rouge** au-delà du maximum conforme, #103), repère vertical de 2 px au maximum conforme ;
+  - graduations 0 à 50 % sous la piste, et « max. X % » en gras au maximum conforme (la graduation trop proche s'efface) ;
+  - raccourcis en **contrôle segmenté** (fond `--fond-creux`, option choisie en blanc avec ombre) ; celui du maximum conforme porte une pastille verte « max. » ;
+  - une ligne grise : « Au-delà, la chute observée dépasse −X % ou une autre règle mesurable est enfreinte. Financement simulé : réduction proportionnelle de vos positions. » (sans bouton : la démonstration ne précalcule que ce financement, #96).
 - **Panier (Amira) :**
   - une ligne par titre : monogramme, nom, classe, pas-à-pas « − 25 % + » (pas de 5 %), bouton retirer ;
   - « Ajouter un titre » ;
   - « Total 100 % », avec une erreur claire si le total ≠ 100 %.
 - **« Effet sur votre Pacte » :**
-  - un **tableau compact** (#103, à la place des grandes cartes « avant → après ») : colonnes Indicateur, Actuel, « Avec 30 % de TSLA » (ou « Avec le panier »), Limite du Pacte, Statut. Une ligne par indicateur (`effetsSurLePacte`, `domaine/decision.ts`), avec une précision sous le libellé :
+  - un **tableau compact** (#103, à la place des grandes cartes « avant → après ») : colonnes Indicateur, Actuel, « Avec 30 % de TSLA » (ou « Avec le panier », colonne sur fond `--fond-sourdine`), Limite du Pacte suivie de l'icône de statut (#105, plus de colonne Statut séparée). Une ligne par indicateur (`effetsSurLePacte`, `domaine/decision.ts`), avec une précision sous le libellé :
     - chaque plafond du Pacte concerné (« part du portefeuille », limite « max. 25 % » ou « exclu ») ;
     - chute maximale (« pire baisse depuis un sommet », limite du Pacte) ;
     - rendement annualisé (« par an sur 5 ans »), volatilité (« annualisée »), rendement en 2022 (« rejeu de l'année de crise ») : sans limite, la cellule affiche « — » ;
-    - une ligne en violation a un fond `--statut-violation-teinte`, une barre rouge de 3 px à gauche et son chiffre « avec la décision » en rouge ;
+    - une ligne en violation a une barre rouge de 3 px à gauche, sa cellule « avec la décision » sur `--statut-violation-teinte` et son chiffre en rouge ;
     - le chiffre « avec la décision » s'éclaire brièvement en `--accent-bleu-teinte` quand le curseur le change ;
-  - puis le graphique de recul comparé : ligne actuelle `--trait-moyen` (3,3:1 ; `--encre-300` n'atteignait que 2,4:1), ligne avec la décision `--encre-900`, ligne pointillée de la limite du Pacte, zone sous la limite en `--statut-violation` à 22 % d'opacité, point le plus bas annoté, annotation « N séances sous votre limite » si applicable ;
-  - légende, puis provenance « Rejeu sur les prix réels, en CAD. Le passé ne prédit pas l'avenir. »
-- **Message :** violation ou avertissement ESG, avec bouton de correction. « Ramener à 9 % » règle le curseur.
+  - puis le graphique de recul comparé (`GraphiqueRecul`, refait en #105), en trois temps :
+    - en-tête « Baisse depuis le dernier sommet » avec la légende à droite (Actuel, la décision, Votre limite) ;
+    - **une phrase de lecture** sur fond teinte avec un point coloré, qui donne la conclusion : « Avec 12 % de TSLA, le portefeuille serait passé sous votre limite de −20 % pendant 1 séance, en déc. 2022, avec un creux à −20,3 %. » (rouge), « … ne serait jamais passé sous votre limite de −20 %. Pire baisse : … » (vert), ou une phrase neutre sans limite ou avec un seuil mesuré par le Pacte vécu (séances comptées avec l'ancien seuil, donc non citées) ;
+    - le graphique : ligne actuelle `--donnee-secondaire` de 1,25 px, ligne de la décision `--donnee-principale` de 2 px avec une aire en dégradé, limite en pointillé rouge étiquetée « Votre limite · −20 % » à droite, **bande verticale rouge pâle** sur la période passée sous la limite, zone sous la limite en rouge à 25 %, les **deux pires moments** marqués (point de la décision, rouge s'il franchit la limite, avec « −20,3 % · déc. 2022 » ; point gris d'aujourd'hui avec « Actuel −15,1 % », sur une deuxième ligne si les deux sont proches), étiquettes détourées de blanc ;
+    - **lecture comparative** au survol, au toucher ou au clavier (← →, Page ↑ ↓, Début, Fin, Échap) : repère vertical, un point sur chaque courbe et une bulle « Semaine du … · Actuel −14,5 % · Avec la décision −17,6 % » (valeur en rouge sous la limite), annoncée aux lecteurs d'écran ;
+  - puis provenance « Rejeu sur les prix réels, en CAD. Le passé ne prédit pas l'avenir. »
+- **Message :** violation ou avertissement ESG, sur fond teinte arrondi sans bordure (#105), avec bouton de correction. « Ramener à 9 % » règle le curseur.
 - **Actions :** « Annuler » (tertiaire) et « Soumettre au Tribunal » (primaire).
 - **Mise à jour en direct :** tout l'écran se recalcule quand la taille ou le panier change, à partir des tables précalculées.
 
@@ -655,7 +652,7 @@ Contenus par profil : annexe C.6.
 
 - **Mise en page (paysage, #103) :** conteneur large. Lien « ← Tribunal », étiquette « Verdict », H1 « Quelle est votre décision ? », rappel (statut + constat). Dessous, deux colonnes 7 : 5 :
   - à gauche : les options (cartes radio), le lien « Ou ajuster votre Pacte avant de décider », puis la barre d'actions (« Retour au Tribunal » ; « Rien n'est exécuté : le verdict est archivé. » + « Signer le verdict ») et, s'il y a lieu, la raison pour laquelle la signature est désactivée ;
-  - à droite, fixe au défilement : « Ce qui changerait la réponse » (points de bascule, avec les liens vers leurs pièces) et la carte **« Procès-verbal »** : « Tout le dossier du procès (pièces, contrôles, arguments, trace), en page imprimable. » + bouton secondaire compact « Exporter le procès-verbal » ; en cas d'échec, un message Violation avec « Réessayer ».
+  - à droite, fixe au défilement : « Ce qui changerait la réponse » (points de bascule, avec les liens vers leurs pièces) et la carte **« Procès-verbal »**, réduite au bouton secondaire compact « Exporter le procès-verbal » (#105) ; en cas d'échec, un message Violation avec « Réessayer ».
 - **Options :** au survol, la carte prend un bord `--encre-500` et l'ombre de survol ; l'option choisie garde son bord encre de 1,5 px.
 - **Sous 1024 px :** la colonne de droite passe en premier, puis les options, puis les actions.
 

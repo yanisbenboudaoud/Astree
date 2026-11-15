@@ -93,7 +93,6 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
   const pireBaisse = regles.find((r) => r.type === 'pire_baisse_max');
   effets.push({
     libelle: 'Chute maximale',
-    detail: 'pire baisse depuis un sommet',
     avant: pourcent(profil.actuel.chuteMax),
     apres: pourcent(entree.chuteMax),
     limite: pireBaisse ? seuilTexte(pireBaisse.seuil ?? 0) : undefined,
@@ -102,19 +101,16 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
   });
   effets.push({
     libelle: 'Rendement annualisé',
-    detail: `par an sur ${Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10)} ans`,
     avant: pourcent(profil.actuel.rendement, { signe: true }),
     apres: pourcent(entree.rendement, { signe: true }),
   });
   effets.push({
-    libelle: 'Volatilité',
-    detail: 'annualisée',
+    libelle: 'Volatilité annuelle',
     avant: pourcent(profil.actuel.volatilite),
     apres: pourcent(entree.volatilite),
   });
   effets.push({
     libelle: 'Rendement en 2022',
-    detail: "rejeu de l'année de crise",
     avant: pourcent(profil.actuel.rejeu2022, { signe: true }),
     apres: pourcent(entree.rejeu2022, { signe: true }),
   });
@@ -171,7 +167,8 @@ export function messagesDecision(
       messages.push({
         type: 'Violation',
         titre,
-        corps: `${corps} ${position ? SUITE : `${SUITE.slice(0, -1)} et cherchera la plus grande part réallouable compatible.`}`,
+        corps,
+        aide: position ? SUITE : `${SUITE.slice(0, -1)} et cherchera la plus grande part réallouable compatible.`,
         correction,
       });
     }
@@ -188,15 +185,16 @@ export function messagesDecision(
       messages.push({
         type: 'Violation',
         titre: `Vos valeurs : en conflit avec votre Pacte (§${numero})`,
-        corps: `Une source du dossier documente une controverse pour ${nomTitre(t)} : ${doc!.valeurAffichee.replace(/^[^:]+:\s*/, '')}. Votre Pacte pose la règle « ${regle.libelle} ». ${SUITE}`,
+        corps: `Une source du dossier documente une controverse pour ${nomTitre(t)} : ${doc!.valeurAffichee.replace(/^[^:]+:\s*/, '')}. Votre Pacte pose la règle «\u00a0${regle.libelle}\u00a0».`,
+        aide: SUITE,
         source: `${doc!.titre} · consultée le ${date(doc!.dateConsultation)}`,
       });
     } else if (sansSource.length) {
       const noms = sansSource.map((d) => nomTitre(d.t)).join(', ');
       messages.push({
         type: 'À vérifier',
-        titre: `Vos valeurs : à vérifier (Pacte §${numero})`,
-        corps: `Le dossier ne contient aucune source sur ${noms} pour la règle « ${regle.libelle} ». Sans source documentée, le Greffier ne pourra pas conclure.`,
+        titre: `Vos valeurs : aucune source au dossier (Pacte §${numero})`,
+        corps: `Le dossier ne contient aucune source sur ${noms} pour la règle «\u00a0${regle.libelle}\u00a0». Sans source documentée, le Greffier ne pourra pas conclure.`,
         aide: 'Vous pouvez continuer : le Tribunal signalera la lacune.',
       });
     }
@@ -204,10 +202,9 @@ export function messagesDecision(
   return messages;
 }
 
-/** Fiche d'un titre : « TSLA · action · NASDAQ · USD — volatilité ≈ 59 %, pire chute −70,9 % sur 5 ans, en CAD ». */
-export function ficheTitre(ticker: string, debut: string, fin: string): string {
+/** Fiche d'un titre : « TSLA · NASDAQ · volatilité 59 % · pire chute −70,9 % ». */
+export function ficheTitre(ticker: string): string {
   const t = titreDe(ticker);
   if (!t) return ticker;
-  const annees = Math.round((Date.parse(fin) - Date.parse(debut)) / 3.15576e10);
-  return `${t.ticker} · ${t.classe} · ${t.bourse} · ${t.devise} — volatilité ≈ ${pourcent(t.volatilite, { decimales: 0 })}, pire chute ${pourcent(t.chuteMax)} sur ${annees} ans, en CAD`;
+  return `${t.ticker} · ${t.bourse} · volatilité ${pourcent(t.volatilite, { decimales: 0 })} · pire chute ${pourcent(t.chuteMax)}`;
 }

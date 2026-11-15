@@ -20,12 +20,9 @@ export function Entree() {
     <Gabarit>
       <div className={styles.corps}>
         <div className={styles.titre}>
-          <p className="t-etiquette c-500">Démonstration</p>
           <h1 className="t-h1">Testez une décision d'investissement avant de la prendre.</h1>
-          <p className={`t-corps c-700 ${styles.sousTitre}`}>
-            Cherchez un titre et choisissez une taille : un Procureur et un Avocat en débattent face aux règles de votre
-            Pacte, et c'est vous qui rendez le verdict. Choisissez un profil pour commencer ; vous pourrez en changer à tout
-            moment depuis le menu en haut à droite.
+          <p className={`t-corps c-500 ${styles.sousTitre}`}>
+            Un Procureur et un Avocat en débattent face à vos règles. Vous rendez le verdict.
           </p>
         </div>
 
@@ -56,9 +53,8 @@ export function Entree() {
                 </dl>
                 {config.decisionATester && (
                   <div className={styles.decision}>
-                    <p className="t-petit c-700">Décision à tester</p>
+                    <p className="t-petit c-500">Décision à tester</p>
                     <p className="t-corps-fort">{config.decisionATester}</p>
-                    {config.question && <p className="t-citation c-700">{config.question}</p>}
                   </div>
                 )}
                 <Bouton variante="secondaire" fleche className={styles.entrer} onClick={(e) => { e.stopPropagation(); entrer(); }}>
@@ -71,13 +67,8 @@ export function Entree() {
 
         <section className={styles.construire} aria-labelledby="titre-construire">
           <div className={styles.texteConstruire}>
-            <p className="t-etiquette c-500">Votre profil</p>
-            <h2 className="t-h2" id="titre-construire">Construire mon Pacte</h2>
-            <p className="t-corps c-700">
-              Environ 5 minutes : {QUESTIONS.length} questions sur votre horizon, ce que vous pouvez vous permettre de perdre, ce que vous
-              êtes prêt à accepter et vos préférences, puis votre portefeuille. Le Tribunal en tire vos règles, que vous
-              relisez et signez.
-            </p>
+            <h2 className="t-h2" id="titre-construire">Votre propre Pacte</h2>
+            <p className="t-corps c-500">{QUESTIONS.length} questions, environ 5 minutes.</p>
             {crees.length > 0 && (
               <p className="t-petit c-700">
                 Reprendre :{' '}
@@ -93,8 +84,7 @@ export function Entree() {
         <p className={`t-petit c-700 ${styles.pied}`}>
           <Provenance type="Fictif" />
           <span>
-            Profils fictifs tirés de l'énoncé PolyFinances 2026. Portefeuilles simulés sur des prix réels
-            {debut && fin ? ` du ${date(debut)} au ${date(fin)}.` : '.'}
+            Profils fictifs, prix réels{debut && fin ? ` du ${date(debut)} au ${date(fin)}` : ''}.
           </span>
         </p>
       </div>

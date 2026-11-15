@@ -8,22 +8,60 @@
 }
 .titre { display: flex; flex-direction: column; gap: 8px; }
 
-.progression { display: flex; align-items: center; gap: 12px; }
-.points { display: flex; gap: 6px; }
-.point {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1.5px solid var(--encre-500);
+/* Paysage : présentation et fil des jours à gauche (fixe au défilement), question à droite. */
+.corpsLarge { max-width: calc(var(--conteneur-large) + 2 * var(--marge-page)); gap: 24px; }
+.grille {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  gap: 32px 56px;
+  align-items: start;
 }
-.pointFait { background: var(--encre-900); border-color: var(--encre-900); }
-.pointCourant { border-color: var(--encre-900); box-shadow: 0 0 0 3px var(--accent-bleu-teinte); }
+.colonne { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.principal { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.regle { padding: 12px 14px; background: var(--fond-sourdine); border-radius: var(--rayon-moyen); }
+
+.etapes { position: relative; display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.etapes::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 11px;
+  width: 2px;
+  background: var(--trait-fin);
+}
+.etape { position: relative; display: flex; align-items: center; gap: 12px; min-height: 24px; }
+.pastille {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--encre-200);
+  background: var(--fond-papier);
+  color: var(--encre-500);
+  font-size: 12px;
+  font-weight: 600;
+}
+.etapeFaite .pastille { background: var(--encre-900); border-color: var(--encre-900); color: var(--inverse-texte); }
+.etapeCourante .pastille { border-color: var(--encre-900); color: var(--encre-900); box-shadow: 0 0 0 4px var(--accent-bleu-teinte); }
+.texteEtape { display: flex; flex-direction: column; }
+
+/* Une colonne : titre, puis la question, puis le fil des jours. */
+@media (max-width: 960px) {
+  .grille { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .colonne { display: contents; }
+  .principal { order: 1; }
+  .etapes, .regle, .aide { order: 2; }
+}
 
 .carte {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 24px;
+  padding: 28px 32px;
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
   border-radius: var(--rayon);

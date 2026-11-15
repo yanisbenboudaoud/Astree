@@ -43,11 +43,12 @@
   --categorie-5: #5cb85c;
   --categorie-6: #ef7b6c;
 
-  --police-titre: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --police-texte: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Police du système sur Apple (SF Pro), Geist ailleurs : tirets et signe moins plus serrés qu'Inter. */
+  --police-titre: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Geist', 'Segoe UI', system-ui, sans-serif;
+  --police-texte: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Geist', 'Segoe UI', system-ui, sans-serif;
   /* Chiffres : la même famille, en chasse fixe (tabular-nums) ; la trace garde une vraie police à chasse fixe. */
-  --police-mono: 'Inter', system-ui, sans-serif;
-  --police-code: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+  --police-mono: var(--police-texte);
+  --police-code: ui-monospace, 'SF Mono', 'Geist Mono', 'Cascadia Mono', monospace;
 
   /* Paysage (#103) : 1344 px = 1440 px − 2 × 48 px de marge. */
   --conteneur-large: 1344px;

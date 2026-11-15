@@ -36,17 +36,49 @@ function mouvementReduit(): boolean {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
 
-function CarteArgument({ argument, numero, surligne, onOuvrir }: { argument: Argument; numero: number; surligne: boolean; onOuvrir: (code: string, el: HTMLElement) => void }) {
+/**
+ * Première phrase d'un argument, pour la ligne repliée. Une phrase finit sur « . », « ! » ou « ? »
+ * suivi d'une majuscule : « déc. 2021 » ou « −15,1 % » ne coupent pas.
+ */
+/** Espaces insécables dans « 188 291 $ » et « −29,0 % » : un montant n'est jamais coupé en fin de ligne. */
+export function sansCoupure(texte: string): string {
+  return texte.replace(/(\d) (?=\d{3}(?!\d))/g, '$1\u202f').replace(/(\d) (?=[$%])/g, '$1\u00a0');
+}
+
+export function accroche(texte: string): { tete: string; suite: string } {
+  const fin = texte.search(/[.!?»](?=\s+[A-ZÀÂÉÈÊÎÔÛÇ«])/);
+  if (fin < 0) return { tete: texte, suite: '' };
+  return { tete: texte.slice(0, fin + 1), suite: texte.slice(fin + 1).trim() };
+}
+
+function CarteArgument({ argument, numero, surligne, ouvertAuDepart, onOuvrir }: {
+  argument: Argument;
+  numero: number;
+  surligne: boolean;
+  ouvertAuDepart: boolean;
+  onOuvrir: (code: string, el: HTMLElement) => void;
+}) {
+  const [ouvert, setOuvert] = useState(ouvertAuDepart);
+  const deplie = ouvert || surligne;
+  const { tete, suite } = accroche(sansCoupure(argument.texte));
+  const id = `argument-${argument.camp}-${numero}`;
   return (
-    <li className={`${styles.argument} ${surligne ? styles.argumentSurligne : ''}`}>
-      <p className="t-corps">
-        <span className="visuellement-cache">{argument.camp}, argument {numero} : </span>
-        {argument.texte}
-      </p>
-      <p className={styles.provenanceArgument}>
-        <Provenance type={argument.provenance} />
-        {argument.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={onOuvrir} />)}
-      </p>
+    <li className={`${styles.argument} ${deplie ? styles.argumentOuvert : ''} ${surligne ? styles.argumentSurligne : ''}`}>
+      <button type="button" className={styles.teteArgument} aria-expanded={deplie} aria-controls={id} onClick={() => setOuvert((o) => !o)}>
+        <span className={styles.numeroArgument} aria-hidden="true">{numero}</span>
+        <span className={`t-corps ${styles.accroche}`}>
+          <span className="visuellement-cache">{argument.camp}, argument {numero} : </span>
+          {tete}
+        </span>
+        <Icone nom={deplie ? 'chevron-haut' : 'chevron-bas'} taille={16} />
+      </button>
+      <div id={id} hidden={!deplie} className={styles.corpsArgument}>
+        {suite && <p className="t-corps c-700">{suite}</p>}
+        <p className={styles.provenanceArgument}>
+          <Provenance type={argument.provenance} />
+          {argument.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={onOuvrir} />)}
+        </p>
+      </div>
     </li>
   );
 }
@@ -58,25 +90,21 @@ function Camp({ camp, args, surlignes, onOuvrir, limite }: {
   onOuvrir: (code: string, el: HTMLElement) => void;
   limite?: string;
 }) {
-  const [tout, setTout] = useState(false);
-  const visibles = tout ? args : args.slice(0, 3);
   const id = `camp-${camp}`;
   return (
     <section className={`${styles.camp} ${camp === 'Procureur' ? styles.procureur : styles.avocat}`} aria-labelledby={id}>
       <div className={styles.enteteCamp}>
         <h2 className="t-panneau" id={id}>{camp}</h2>
-        <p className="t-petit c-700">{camp === 'Procureur' ? 'contre la décision' : 'pour la décision'}</p>
+        <p className="t-petit c-500">
+          {camp === 'Procureur' ? 'contre la décision' : 'pour la décision'} · {args.length} argument{args.length > 1 ? 's' : ''}
+        </p>
       </div>
       <ol className={styles.arguments}>
-        {visibles.map((a, i) => (
-          <CarteArgument key={a.texte} argument={a} numero={i + 1} surligne={surlignes.has(`${camp}-${i + 1}`)} onOuvrir={onOuvrir} />
+        {args.map((a, i) => (
+          <CarteArgument key={a.texte} argument={a} numero={i + 1} ouvertAuDepart={i === 0}
+            surligne={surlignes.has(`${camp}-${i + 1}`)} onOuvrir={onOuvrir} />
         ))}
       </ol>
-      {args.length > 3 && (
-        <Bouton variante="tertiaire" compact fleche={false} aria-expanded={tout} onClick={() => setTout((t) => !t)}>
-          {tout ? 'Réduire' : `Voir ${args.length - 3} autre${args.length - 3 > 1 ? 's' : ''} argument${args.length - 3 > 1 ? 's' : ''}`}
-        </Bouton>
-      )}
       {limite && (
         <p className={styles.limite}>
           <Icone nom="alerte" taille={16} />
@@ -410,22 +438,21 @@ export function Tribunal({ profil }: { profil: Profil }) {
           <LienRetour vers={`/${profil.id}/decision`}>Décision</LienRetour>
           <div className={styles.titre}>
             <p className="t-etiquette c-500">
-              Audience n° {resultat.audience} · instruction terminée
+              Audience n° {resultat.audience}
               {manquantes ? ` · ${manquantes} donnée${manquantes > 1 ? 's' : ''} manquante${manquantes > 1 ? 's' : ''}` : ''}
               {MODE_DIRECT ? '' : ' · procès enregistré'}
             </p>
             <h1 className="t-h1">{resultat.titre}</h1>
-            <p className="t-citation c-700">Le Tribunal présente les deux côtés. C'est vous qui rendez le verdict.</p>
           </div>
 
           <section className={styles.bilan} aria-labelledby="titre-bilan">
             <div className={styles.resume}>
               <div className={styles.comptes}>
                 <h2 className="t-intertitre" id="titre-bilan">Bilan du Greffier</h2>
-                {comptes.map(({ statut, n }) => (
+                {comptes.filter(({ n }) => n > 0).map(({ statut, n }) => (
                   <span key={statut} className={styles.compte}>
-                    <span className={`t-tableau-fort ${n ? '' : 'c-500'}`}>{n}</span>
-                    <Statut type={statut} attenue={!n} />
+                    <span className="t-tableau-fort">{n}</span>
+                    <Statut type={statut} />
                   </span>
                 ))}
               </div>
@@ -492,7 +519,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
           <TrompezLeGreffier resultat={resultat} pieces={pieces} />
 
           <div className={styles.replis}>
-            <Repli id="repli-trace" titre="Comment le Tribunal a travaillé" sousTitre={`${resultat.trace.length} étapes tracées : profil, outils choisis par l'orchestrateur, plaidoiries, contrôle`}>
+            <Repli id="repli-trace" titre="Comment le Tribunal a travaillé" sousTitre={`${resultat.trace.length} étapes`}>
               <ol className={styles.chronologie}>
                 {resultat.trace.map((e, i) => (
                   <li key={i} className={styles.etapeChrono}>
@@ -500,8 +527,9 @@ export function Tribunal({ profil }: { profil: Profil }) {
                       <Icone nom={e.etat === 'signalement' ? 'alerte' : 'check'} taille={14} />
                     </span>
                     <span className={styles.texteChrono}>
-                      <span className="t-petit-fort">{e.role}{e.etat === 'signalement' && <span className="visuellement-cache"> (signalement)</span>}</span>
-                      <code className="t-trace c-700">{e.appel}</code>
+                      <span className="t-petit c-500">{e.role}{e.etat === 'signalement' && <span className="visuellement-cache"> (signalement)</span>}</span>
+                      <span className="t-corps-fort">{e.titre}</span>
+                      <code className="t-trace c-500">{e.appel}</code>
                       {e.raison && <span className="t-petit c-700">Raison : {e.raison}</span>}
                     </span>
                     {e.sortie && <PastillePiece code={e.sortie} onOuvrir={ouvrirPiece} />}
@@ -509,7 +537,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
                 ))}
               </ol>
             </Repli>
-            <Repli id="repli-pieces" titre="Pièces à conviction" sousTitre={`${pieces.length} pièces : source, traitement et limites de chaque chiffre`}>
+            <Repli id="repli-pieces" titre="Pièces à conviction" sousTitre={`${pieces.length} pièces`}>
               <ul className={styles.listePieces}>
                 {pieces.map((p) => (
                   <li key={p.code} className={styles.lignePiece}>

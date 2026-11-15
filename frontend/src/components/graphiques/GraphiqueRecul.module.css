@@ -1,0 +1,78 @@
+/* Recul comparé (#105) : en-tête (titre + légende), phrase de lecture, graphique interactif. */
+.graphique { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+
+.entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.titre { color: var(--encre-900); }
+.legende { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; color: var(--encre-700); font-size: 13px; line-height: 18px; }
+.legende li { display: inline-flex; align-items: center; gap: 6px; }
+.traitActuel { width: 16px; height: 2px; border-radius: 2px; background: var(--donnee-secondaire); }
+.traitDecision { width: 16px; height: 3px; border-radius: 2px; background: var(--donnee-principale); }
+.traitLimite { width: 16px; border-top: 1.5px dashed var(--statut-violation); }
+
+/* La conclusion d'abord : un point coloré et une phrase. La couleur ne porte jamais seule le sens. */
+.conclusion {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--rayon-moyen);
+  background: var(--fond-sourdine);
+  color: var(--encre-900);
+}
+.pastille { flex: none; width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: var(--encre-500); }
+.franchie { background: var(--statut-violation-teinte); }
+.franchie .pastille { background: var(--statut-violation); }
+.respectee { background: var(--statut-conforme-teinte); }
+.respectee .pastille { background: var(--statut-conforme); }
+
+.svg { display: block; overflow: visible; touch-action: pan-y; cursor: crosshair; }
+.svg:focus-visible { outline: 2px solid var(--accent-bleu); outline-offset: 4px; border-radius: var(--rayon-petit); }
+
+.repere { stroke: var(--trait-fin); stroke-width: 1; stroke-dasharray: 2 4; }
+.zero { stroke: var(--encre-300); stroke-width: 1; }
+.axe { fill: var(--encre-500); font-family: var(--police-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.degradeHaut { stop-color: var(--donnee-principale); stop-opacity: 0.03; }
+.degradeBas { stop-color: var(--donnee-principale); stop-opacity: 0.22; }
+.bandeSousLimite { fill: var(--statut-violation); fill-opacity: 0.06; }
+.zoneSousLimite { fill: var(--statut-violation); fill-opacity: 0.25; }
+.courbeActuel { fill: none; stroke: var(--donnee-secondaire); stroke-width: 1.25; stroke-linejoin: round; stroke-linecap: round; }
+.courbeDecision { fill: none; stroke: var(--donnee-principale); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.limite { stroke: var(--statut-violation); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.etiquetteLimite {
+  fill: var(--statut-violation);
+  font-family: var(--police-texte);
+  font-size: 12px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--fond-papier);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.pointCreux { fill: var(--donnee-principale); stroke: var(--fond-papier); stroke-width: 2; }
+.pointCreuxFranchi { fill: var(--statut-violation); stroke: var(--fond-papier); stroke-width: 2; }
+/* Étiquettes détourées de blanc : lisibles même posées sur une courbe ou une aire. */
+.etiquetteCreux,
+.etiquetteCreuxFranchi {
+  font-family: var(--police-texte);
+  font-size: 12px;
+  paint-order: stroke;
+  stroke: var(--fond-papier);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.etiquetteCreux { fill: var(--encre-900); font-weight: 600; }
+.etiquetteCreuxFranchi { fill: var(--statut-violation); font-weight: 600; }
+
+/* Lecture au survol ou au clavier : repère, un point par courbe, bulle comparative. */
+.repereLecture { stroke: var(--encre-300); stroke-width: 1; }
+.pointLectureActuel { fill: var(--fond-papier); stroke: var(--donnee-secondaire); stroke-width: 2; }
+.pointLectureDecision { fill: var(--donnee-principale); stroke: var(--fond-papier); stroke-width: 2.5; }
+.bulle { fill: var(--fond-carte); stroke: var(--trait-fin); stroke-width: 1; filter: drop-shadow(0 6px 16px rgb(17 17 17 / 0.12)); }
+.bulleDate { fill: var(--encre-500); font-family: var(--police-texte); font-size: 12px; }
+.bulleLibelle { fill: var(--encre-700); font-family: var(--police-texte); font-size: 12.5px; }
+.bulleValeur { fill: var(--encre-900); font-family: var(--police-mono); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.bulleValeurFranchie { fill: var(--statut-violation); }
+.puceActuel { fill: var(--donnee-secondaire); }
+.puceDecision { fill: var(--donnee-principale); }

@@ -3,8 +3,8 @@
  * chargement, et relecture d'un procès enregistré en mode démonstration.
  */
 import { render, screen, within } from '@testing-library/react';
-import contratRobert from '../data/proces/2026-11-15-648546b5401b.json';
-import contratAmira from '../data/proces/2026-11-15-46e0edfd53b7.json';
+import contratRobert from '../data/proces/2026-11-15-936f0f5659e5.json';
+import contratAmira from '../data/proces/2026-11-15-27349f8e56c6.json';
 import type { ContratTribunal, EtapeTraceContrat, ProgressionContrat } from '../api/contrat';
 import type { ProgressionTribunal } from '../api/types';
 import { etapeTrace } from '../api/adaptateur';
@@ -111,9 +111,12 @@ describe('écran « Le Tribunal instruit le dossier »', () => {
     expect(phases.map((li) => li.getAttribute('data-etat'))).toEqual(['faite', 'en_cours', 'a_venir', 'a_venir']);
     expect(phases[1]).toHaveAttribute('aria-current', 'step');
     const orchestrateur = within(phases[1]);
-    expect(orchestrateur.getByText(/simuler_portefeuille\(.*\) → P2/)).toBeInTheDocument();
+    expect(orchestrateur.getByText(/^Simuler votre portefeuille avec 30\s%\sen TSLA$/)).toBeInTheDocument();
     expect(orchestrateur.getByText(/Pièce obligatoire ajoutée d'office/)).toBeInTheDocument();
-    expect(orchestrateur.getByText(/indicateurs_actif\(ticker: TSLA\) → P3/)).toBeInTheDocument();
+    expect(orchestrateur.getByText('Mesurer le risque de TSLA seul')).toBeInTheDocument();
+    expect(orchestrateur.getByText('P3')).toBeInTheDocument();
+    // L'appel technique reste lisible dans la trace repliée.
+    expect(screen.getByText(/Orchestrateur · indicateurs_actif\(ticker: TSLA\) → P3/)).toBeInTheDocument();
     expect(orchestrateur.getByText("L'orchestrateur choisit les preuves à rassembler (Bedrock)…")).toBeInTheDocument();
     expect(screen.getByText('Phase en cours : Orchestrateur')).toBeInTheDocument(); // annoncé aux lecteurs d'écran
   });

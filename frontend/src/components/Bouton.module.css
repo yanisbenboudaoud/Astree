@@ -17,7 +17,7 @@
 .bouton svg { transition: transform var(--transition); }
 .bouton:active:not(:disabled):not([aria-disabled='true']) { transform: translateY(1px); }
 .grand { height: 48px; font-size: 15px; line-height: 22px; padding: 0 24px; }
-.compact { height: 36px; font-size: 13px; line-height: 18px; padding: 0 16px; }
+.compact { height: 36px; font-size: 14px; line-height: 18px; padding: 0 16px; }
 
 .primaire { background: var(--encre-900); color: var(--inverse-texte); }
 .primaire:hover { background: #2b2b2b; box-shadow: var(--ombre-survol); }

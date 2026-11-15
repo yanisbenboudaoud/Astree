@@ -114,7 +114,6 @@ export function Recherche({ profil, mode, titre, aide, placeholder, panier, onIn
       <div className={styles.principal}>
         <div className={styles.enteteBandeau}>
           <div className={styles.titres}>
-            <p className={`t-etiquette ${styles.surtitre}`}>Étape 1 · Décision</p>
             <h2 id={idTitre} className={`t-h1 ${styles.titreBandeau}`}>{titre}</h2>
           </div>
           {onMode && (
@@ -133,7 +132,8 @@ export function Recherche({ profil, mode, titre, aide, placeholder, panier, onIn
             </div>
           )}
         </div>
-        <p id={idAide} className={`t-corps ${styles.aide}`}>{aide}</p>
+        {/* L'aide reste pour les lecteurs d'écran (description du champ) ; à l'écran, le titre suffit. */}
+        <p id={idAide} className="visuellement-cache">{aide}</p>
 
         {enPanier && panier.length > 0 && (
           <div className={styles.panier}>

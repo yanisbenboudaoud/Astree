@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": [
     "id", "nom", "etiquette", "profil_risque", "horizon_ans",
-    "capital_fictif_cad", "portefeuille", "decision_demo", "pacte"
+    "capital_fictif_cad", "portefeuille", "pacte"
   ],
   "properties": {
     "id": {
@@ -36,7 +36,7 @@
       "minItems": 1,
       "items": {"$ref": "#/$defs/ligne_portefeuille"}
     },
-    "decision_demo": {"$ref": "#/$defs/decision"},
+    "decision_demo": {"description": "Facultatif : décision de démonstration des profils de test. Un profil créé par le questionnaire (#84) n'en a pas.", "$ref": "#/$defs/decision"},
     "pacte": {"$ref": "#/$defs/pacte"},
     "calibrage_demo": {"$ref": "#/$defs/calibrage_demo"}
   },

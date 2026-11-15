@@ -149,7 +149,8 @@ def erreurs_coherence(profil: dict, nom_fichier: str | None = None) -> list[str]
         erreurs.append(f"horizon_ans : le minimum {minimum} dépasse le maximum {maximum}")
 
     erreurs += _erreurs_lignes(profil["portefeuille"], "portefeuille")
-    erreurs += _erreurs_decision(profil["decision_demo"], profil["portefeuille"])
+    if "decision_demo" in profil:  # facultative : absente d'un profil créé par le questionnaire (#84)
+        erreurs += _erreurs_decision(profil["decision_demo"], profil["portefeuille"])
     erreurs += _erreurs_regles(profil["pacte"]["regles"])
     return erreurs
 

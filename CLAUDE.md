@@ -70,7 +70,7 @@ Chaque profil a un **Pacte** : ses règles, déclarées à l'avance, converties 
 
 Les seuils sont des **hypothèses** de l'équipe, pas des recommandations réglementaires. Exception : la **pire baisse** peut être **mesurée** par le Pacte vécu (#68) : l'utilisateur revit de vrais jours de baisse, sans la suite, et répond « je reste » ou « je vends » ; le seuil devient la baisse réelle du dernier jour où il est resté (`pipeline/calibrage.py`, paramètres dans `config/calibrage.json`).
 
-**Format d'un fichier profil** : `id`, `nom`, `etiquette` (`fictif`), `profil_risque`, `horizon_ans`, `capital_fictif_cad`, `portefeuille` (liste `ticker` + `poids`), `decision_demo`, `pacte` et, facultatif, `calibrage_demo` (réponses préenregistrées du Pacte vécu, étiquette `fictif`, pour une démo reproductible). Le `pacte` contient `date_signature` et une liste `regles`. Chaque règle a :
+**Format d'un fichier profil** : `id`, `nom`, `etiquette` (`fictif`), `profil_risque`, `horizon_ans`, `capital_fictif_cad`, `portefeuille` (liste `ticker` + `poids`), `pacte` et, facultatifs, `decision_demo` (décision de démonstration des profils de test) et `calibrage_demo` (réponses préenregistrées du Pacte vécu, étiquette `fictif`, pour une démo reproductible). Le `pacte` contient `date_signature` et une liste `regles`. Chaque règle a :
 - `id` : identifiant unique, repris dans `controles[].regle` du contrat ;
 - `type` : un des types du tableau ci-dessous ;
 - les paramètres de son type ;
@@ -84,9 +84,11 @@ Les seuils sont des **hypothèses** de l'équipe, pas des recommandations régle
 | `critere_documentaire` | `critere` (ex. : `controverse_esg_importante`) | `violation` ou `conforme` selon une pièce `documentaire` ; `a_verifier` (« source manquante ») sans pièce |
 | `qualitative` | aucun | toujours `a_verifier` : règle déclarée, non mesurable par calcul, à juger par l'utilisateur |
 
-Les **catégories** (`tech`, `crypto`…) sont définies une seule fois, pour tous les profils, dans `config/categories.json`, à partir des champs `asset_class` et `sector` de `assets_universe.csv` (plus des ajouts justifiés). Un titre absent de l'univers n'est jamais classé au hasard : le contrôle rend `a_verifier`.
+Les **catégories** (`tech`, `crypto`, `energie_fossile`) sont définies une seule fois, pour tous les profils, dans `config/categories.json`, à partir des champs `asset_class` et `sector` de `assets_universe.csv` (plus des ajouts justifiés). Un titre absent de l'univers n'est jamais classé au hasard : le contrôle rend `a_verifier`.
 
 Ajouter un profil = un fichier JSON. Ajouter un type de règle = une fonction dans le Greffier + une ligne dans ce tableau.
+
+Un Pacte peut aussi venir du **questionnaire investisseur** (#84) : 16 questions (`config/questionnaire.json`) sur l'horizon, la capacité à encaisser une baisse, la tolérance, l'expérience et les préférences. Python, sans LLM, transforme les réponses en fichier profil valide (`pipeline/questionnaire.py`, `python -m pipeline.questionnaire <reponses.json>`). Seuil de pire baisse = le plus prudent entre la **tolérance déclarée** (pire baisse réelle du portefeuille choisi parmi des cartes calculées) et le **plafond de capacité** (horizon, retraits, coussin, part de l'épargne, revenu). Une réponse manquante ne crée aucune règle et donne un contrôle `a_verifier`. Le barème est une hypothèse de l'équipe ; le Pacte vécu peut ensuite mesurer le seuil.
 
 | Profil de test | Règles du Pacte |
 |---|---|

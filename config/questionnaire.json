@@ -1,0 +1,212 @@
+{
+  "description": "Questionnaire investisseur (#84) : questions, choix et barèmes qui transforment les réponses en un fichier profil (même format que personas/). Inspiré de la connaissance du client (KYC) : objectifs, horizon, situation financière, tolérance au risque, connaissances. Changer une question ou un barème ne demande aucun code.",
+  "etiquette": "hypothese",
+  "justification": "Barèmes choisis par l'équipe, pas une méthode réglementaire. Trois idées : la tolérance (vouloir accepter une baisse) et la capacité (pouvoir se la permettre) sont mesurées séparément et le seuil retenu est le plus prudent des deux ; on parle en dollars et en situations ; le comportement passé (2022) pèse plus que le comportement imaginé.",
+  "capital_reference_cad": 100000,
+
+  "questions": [
+    {
+      "id": "horizon", "nom_court": "Horizon", "section": "Objectif et horizon", "type": "choix", "obligatoire": true,
+      "libelle": "Dans combien de temps pensez-vous retirer une part importante (plus du quart) de cet argent ?",
+      "alimente": "horizon_ans ; plafond de capacité",
+      "choix": [
+        {"id": "moins_3", "libelle": "Moins de 3 ans", "horizon_ans": [0, 3]},
+        {"id": "3_5", "libelle": "3 à 5 ans", "horizon_ans": [3, 5]},
+        {"id": "5_10", "libelle": "5 à 10 ans", "horizon_ans": [5, 10]},
+        {"id": "10_15", "libelle": "10 à 15 ans", "horizon_ans": [10, 15]},
+        {"id": "plus_15", "libelle": "Plus de 15 ans", "horizon_ans": [15, null]}
+      ]
+    },
+    {
+      "id": "objectif", "nom_court": "Objectif", "section": "Objectif et horizon", "type": "choix",
+      "libelle": "À quoi servira surtout cet argent ?",
+      "alimente": "règle qualitative (l'objectif, en clair)",
+      "choix": [
+        {"id": "retraite", "libelle": "Retraite", "regle": "Préparer ma retraite"},
+        {"id": "projet", "libelle": "Un projet précis (maison, études…)", "regle": "Financer un projet précis"},
+        {"id": "croissance", "libelle": "Faire croître mon patrimoine", "regle": "Faire croître mon patrimoine"},
+        {"id": "revenu", "libelle": "Me verser un revenu régulier", "regle": "Me verser un revenu régulier"}
+      ]
+    },
+    {
+      "id": "retraits", "nom_court": "Retraits annuels", "section": "Objectif et horizon", "type": "choix",
+      "libelle": "Prévoyez-vous retirer de l'argent chaque année ?",
+      "alimente": "plafond de capacité",
+      "choix": [
+        {"id": "non", "libelle": "Non"},
+        {"id": "peu", "libelle": "Un peu (moins de 4 % par an)"},
+        {"id": "beaucoup", "libelle": "Beaucoup (4 % ou plus)"}
+      ]
+    },
+    {
+      "id": "coussin", "nom_court": "Coussin de sécurité", "section": "Capacité : pouvez-vous vous permettre une baisse ?", "type": "choix",
+      "libelle": "Si vous perdiez votre revenu demain, combien de mois pourriez-vous payer vos dépenses sans toucher à ce portefeuille ?",
+      "alimente": "plafond de capacité",
+      "choix": [
+        {"id": "moins_3", "libelle": "Moins de 3 mois"},
+        {"id": "3_6", "libelle": "3 à 6 mois"},
+        {"id": "6_12", "libelle": "6 à 12 mois"},
+        {"id": "plus_12", "libelle": "Plus de 12 mois"}
+      ]
+    },
+    {
+      "id": "part_patrimoine", "nom_court": "Part de l'épargne", "section": "Capacité : pouvez-vous vous permettre une baisse ?", "type": "choix",
+      "libelle": "Quelle part de votre épargne totale ce portefeuille représente-t-il ?",
+      "alimente": "plafond de capacité",
+      "choix": [
+        {"id": "moins_quart", "libelle": "Moins du quart"},
+        {"id": "quart_moitie", "libelle": "Du quart à la moitié"},
+        {"id": "moitie_trois_quarts", "libelle": "De la moitié aux trois quarts"},
+        {"id": "presque_tout", "libelle": "Presque tout"}
+      ]
+    },
+    {
+      "id": "revenu", "nom_court": "Revenu", "section": "Capacité : pouvez-vous vous permettre une baisse ?", "type": "choix",
+      "libelle": "Pour les 5 prochaines années, votre revenu est plutôt :",
+      "alimente": "plafond de capacité",
+      "choix": [
+        {"id": "tres_stable", "libelle": "Très stable"},
+        {"id": "assez_stable", "libelle": "Assez stable"},
+        {"id": "incertain", "libelle": "Incertain"},
+        {"id": "sans_revenu", "libelle": "Je n'ai plus de revenu de travail"}
+      ]
+    },
+    {
+      "id": "fourchettes", "nom_court": "Portefeuille choisi", "section": "Tolérance : voulez-vous accepter une baisse ?", "type": "cartes",
+      "libelle": "Voici des portefeuilles réels et ce qu'ils ont vécu sur la période, pour 100 000 $ placés. Lequel auriez-vous choisi ?",
+      "alimente": "seuil déclaré de pire_baisse_max",
+      "justification": "Cinq portefeuilles de l'univers, du plus prudent au plus audacieux. XBB.TO seul n'est pas proposé : en 2022, les obligations ont baissé plus qu'un portefeuille 60/40, ce qui brouillerait l'ordre. Tous les chiffres affichés sont calculés par pipeline.questionnaire.cartes_fourchettes (mêmes calculs que simuler_portefeuille).",
+      "cartes": [
+        {"id": "tres_prudent", "libelle": "Obligations à très court terme", "portefeuille": [{"ticker": "ZST.TO", "poids": 1.0}]},
+        {"id": "equilibre", "libelle": "60 % obligations, 40 % actions canadiennes", "portefeuille": [{"ticker": "XBB.TO", "poids": 0.6}, {"ticker": "XIU.TO", "poids": 0.4}]},
+        {"id": "actions", "libelle": "Actions américaines (S&P 500)", "portefeuille": [{"ticker": "SPY", "poids": 1.0}]},
+        {"id": "croissance", "libelle": "Actions technologiques (Nasdaq-100)", "portefeuille": [{"ticker": "QQQ", "poids": 1.0}]},
+        {"id": "audacieux", "libelle": "Croissance et cryptoactifs : 50 % Nasdaq-100, 25 % Bitcoin, 25 % actions canadiennes", "portefeuille": [{"ticker": "QQQ", "poids": 0.5}, {"ticker": "BTC-USD", "poids": 0.25}, {"ticker": "XIU.TO", "poids": 0.25}]}
+      ]
+    },
+    {
+      "id": "reaction", "nom_court": "Réaction à une baisse", "section": "Tolérance : voulez-vous accepter une baisse ?", "type": "choix",
+      "libelle": "Votre portefeuille de 100 000 $ vaut 82 000 $ trois mois plus tard. Que faites-vous ?",
+      "alimente": "resserre le seuil déclaré si vous vendez (sauf si votre vécu de 2022 dit le contraire)",
+      "choix": [
+        {"id": "vend_tout", "libelle": "Je vends tout", "vend": true},
+        {"id": "vend_partie", "libelle": "J'en vends une partie", "vend": true},
+        {"id": "rien", "libelle": "Je ne touche à rien", "vend": false},
+        {"id": "rachete", "libelle": "J'en rachète", "vend": false}
+      ]
+    },
+    {
+      "id": "vecu_2022", "nom_court": "Vécu de 2022", "section": "Tolérance : voulez-vous accepter une baisse ?", "type": "choix",
+      "libelle": "En 2022, les actions et les obligations ont baissé en même temps. Qu'avez-vous fait ?",
+      "alimente": "pèse plus que la réaction imaginée quand vous investissiez déjà",
+      "choix": [
+        {"id": "pas_investi", "libelle": "Je n'investissais pas", "investissait": false},
+        {"id": "vendu", "libelle": "J'ai vendu", "investissait": true, "vend": true},
+        {"id": "rien", "libelle": "Je n'ai rien changé", "investissait": true, "vend": false},
+        {"id": "rachete", "libelle": "J'ai racheté", "investissait": true, "vend": false}
+      ]
+    },
+    {
+      "id": "regard_proches", "nom_court": "Regard des proches", "section": "Tolérance : voulez-vous accepter une baisse ?", "type": "choix",
+      "libelle": "Comment vos proches décriraient-ils votre rapport au risque ?",
+      "alimente": "contrôle de cohérence (#85)",
+      "choix": [
+        {"id": "tres_prudent", "libelle": "Très prudent"},
+        {"id": "prudent", "libelle": "Prudent"},
+        {"id": "risques_reflechis", "libelle": "Prêt à prendre des risques réfléchis"},
+        {"id": "joueur", "libelle": "Joueur"}
+      ]
+    },
+    {
+      "id": "experience", "nom_court": "Expérience", "section": "Connaissances et expérience", "type": "choix_multiples",
+      "libelle": "Dans quoi avez-vous déjà investi ?",
+      "alimente": "contrôle à vérifier si une décision porte sur un type de titre jamais utilisé (controle_experience)",
+      "justification": "« classes » relie chaque choix aux champs asset_class de assets_universe.csv. Un type jamais détenu ne bloque rien : le contrôle le signale.",
+      "choix": [
+        {"id": "depots", "libelle": "Dépôts, CPG"},
+        {"id": "fonds", "libelle": "Fonds ou FNB", "classes": ["etf_equity", "etf_bond", "etf_commodity"]},
+        {"id": "actions", "libelle": "Actions individuelles", "classes": ["equity"]},
+        {"id": "crypto", "libelle": "Cryptoactifs", "classes": ["crypto"]},
+        {"id": "levier", "libelle": "Produits à effet de levier ou options"},
+        {"id": "rien", "libelle": "Rien encore"}
+      ]
+    },
+    {
+      "id": "quiz_baisse", "nom_court": "Quiz sur la baisse", "section": "Connaissances et expérience", "type": "choix",
+      "libelle": "Un placement perd 50 %. De combien doit-il monter pour revenir à son point de départ ?",
+      "alimente": "contrôle à vérifier : la règle de pire baisse est-elle bien comprise ? (aucune pénalité)",
+      "choix": [
+        {"id": "50", "libelle": "50 %", "juste": false},
+        {"id": "100", "libelle": "100 %", "juste": true},
+        {"id": "ne_sais_pas", "libelle": "Je ne sais pas", "juste": false}
+      ]
+    },
+    {
+      "id": "crypto", "nom_court": "Cryptoactifs", "section": "Préférences et limites", "type": "choix",
+      "libelle": "Quelle place pour les cryptoactifs dans votre portefeuille ?",
+      "alimente": "règle plafond sur la catégorie crypto",
+      "choix": [
+        {"id": "aucune", "libelle": "Aucune", "max": 0.0},
+        {"id": "5", "libelle": "Au plus 5 %", "max": 0.05},
+        {"id": "10", "libelle": "Au plus 10 %", "max": 0.10},
+        {"id": "25", "libelle": "Au plus 25 %", "max": 0.25}
+      ]
+    },
+    {
+      "id": "concentration", "nom_court": "Concentration", "section": "Préférences et limites", "type": "choix",
+      "libelle": "Quelle part maximale accepteriez-vous dans un seul secteur, comme la technologie ?",
+      "alimente": "règle plafond sur la catégorie tech (aucune règle sans limite)",
+      "choix": [
+        {"id": "quart", "libelle": "Un quart", "max": 0.25},
+        {"id": "moitie", "libelle": "La moitié", "max": 0.50},
+        {"id": "trois_quarts", "libelle": "Les trois quarts", "max": 0.75},
+        {"id": "sans_limite", "libelle": "Pas de limite", "max": null}
+      ]
+    },
+    {
+      "id": "exclusions", "nom_court": "Exclusions", "section": "Préférences et limites", "type": "choix_multiples",
+      "libelle": "Y a-t-il des titres que vous ne voulez pas détenir ?",
+      "alimente": "exclusion d'une catégorie (plafond à 0) ou critère documentaire",
+      "choix": [
+        {"id": "energies_fossiles", "libelle": "Énergies fossiles", "categorie": "energie_fossile"},
+        {"id": "controverses_esg", "libelle": "Entreprises à controverse ESG importante", "critere": "controverse_esg_importante"},
+        {"id": "aucune", "libelle": "Aucune"}
+      ]
+    },
+    {
+      "id": "regle_perso", "nom_court": "Règle personnelle", "section": "Préférences et limites", "type": "texte", "longueur_max": 120,
+      "libelle": "Une règle personnelle à ajouter, en vos mots ? (facultatif)",
+      "alimente": "règle qualitative, texte repris tel quel (aucun LLM)"
+    }
+  ],
+
+  "bareme": {
+    "capacite": {
+      "justification": "Plafond de capacité : la baisse que la situation permet d'encaisser. Chaque réponse donne un plafond (null = aucune contrainte) ; le facteur le plus contraignant l'emporte. Valeurs choisies par l'équipe, à discuter.",
+      "plafonds": {
+        "horizon": {"moins_3": -0.10, "3_5": -0.15, "5_10": -0.25, "10_15": -0.35, "plus_15": -0.50},
+        "retraits": {"non": null, "peu": -0.35, "beaucoup": -0.15},
+        "coussin": {"moins_3": -0.10, "3_6": -0.20, "6_12": -0.40, "plus_12": null},
+        "part_patrimoine": {"moins_quart": null, "quart_moitie": -0.40, "moitie_trois_quarts": -0.25, "presque_tout": -0.15},
+        "revenu": {"tres_stable": null, "assez_stable": -0.40, "incertain": -0.20, "sans_revenu": -0.15}
+      }
+    },
+    "tolerance": {
+      "justification": "Tolérance déclarée : la pire baisse réelle du portefeuille de la carte choisie. Elle est resserrée d'un cran si la personne vend : la baisse acceptée est réduite d'un quart. Quand la personne investissait en 2022, son vécu décide ; sinon, sa réaction imaginée décide.",
+      "cran_resserrement": 0.25
+    },
+    "arrondi": {
+      "justification": "Le seuil retenu est arrondi au dixième de point, vers le plus prudent (−13,24 % devient −13,2 %).",
+      "decimales_pourcentage": 1
+    },
+    "profil_risque": {
+      "justification": "Profil de risque déduit du seuil retenu, par tranches (seuil supérieur ou égal à la borne).",
+      "tranches": [
+        {"seuil_min": -0.10, "profil": "faible"},
+        {"seuil_min": -0.16, "profil": "faible_a_modere"},
+        {"seuil_min": -0.30, "profil": "modere"},
+        {"seuil_min": -1.0, "profil": "eleve"}
+      ]
+    }
+  }
+}

@@ -56,57 +56,62 @@
 .controle:last-child { border-bottom: 0; }
 .piecesControle { display: inline-flex; gap: 6px; }
 
-.debat { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; align-items: start; }
-.camp { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 3px solid; min-width: 0; }
-.procureur { border-color: var(--camp-procureur); }
-.procureur h2 { color: var(--camp-procureur); }
-.avocat { border-color: var(--camp-avocat); }
-.avocat h2 { color: var(--camp-avocat); }
-.enteteCamp { display: flex; align-items: baseline; gap: 10px; }
-.arguments {
-  display: flex;
-  flex-direction: column;
+.debat { display: flex; flex-direction: column; gap: 16px; }
+.enteteDebat { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+.legendeDebat { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; font-size: 14px; font-weight: 600; }
+.legendeProcureur, .legendeAvocat { display: inline-flex; align-items: center; gap: 8px; }
+.legendeProcureur { color: var(--camp-procureur); }
+.legendeAvocat { color: var(--camp-avocat); }
+.legendeProcureur::before, .legendeAvocat::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: currentColor; }
+
+.points { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.point { display: flex; flex-direction: column; gap: 12px; padding: 20px 0; border-top: 1px solid var(--trait-fin); }
+.question { color: var(--encre-900); }
+.faceAFace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.colonneDebat { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.silence {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--encre-200);
+  border-radius: var(--rayon-moyen);
+}
+
+.argument {
+  --ton: var(--camp-procureur);
+  --ton-teinte: var(--camp-procureur-teinte);
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
-  border-radius: var(--rayon);
+  border-left: 3px solid var(--ton);
+  border-radius: var(--rayon-moyen);
   overflow: hidden;
 }
-.argument { border-top: 1px solid var(--trait-fin); }
-.argument:first-child { border-top: 0; }
+.argumentAvocat { --ton: var(--camp-avocat); --ton-teinte: var(--camp-avocat-teinte); }
 .teteArgument {
   display: grid;
-  grid-template-columns: 24px 1fr 16px;
+  grid-template-columns: 1fr 16px;
   gap: 12px;
   align-items: start;
   width: 100%;
-  padding: 16px 18px;
+  padding: 14px 16px;
   border: 0;
   background: none;
   text-align: left;
 }
 .teteArgument:hover { background: var(--fond-sourdine); }
-.teteArgument > svg { margin-top: 5px; color: var(--encre-500); }
-.numeroArgument {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--fond-creux);
-  color: var(--encre-700);
-  font-size: 13px;
-  font-weight: 600;
-}
-.procureur .argumentOuvert .numeroArgument { background: var(--camp-procureur-teinte); color: var(--camp-procureur); }
-.avocat .argumentOuvert .numeroArgument { background: var(--camp-avocat-teinte); color: var(--camp-avocat); }
-/* Replié : une ligne et demie au plus ; ouvert : la phrase entière, en gras. */
+.teteArgument > svg { margin-top: 3px; color: var(--encre-500); }
+.texteTete { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.campArgument { color: var(--ton); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+/* Replié : deux lignes au plus ; ouvert : la phrase entière, en gras. */
 .accroche { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .argumentOuvert .accroche { display: block; font-weight: 600; }
-.corpsArgument { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 18px 54px; }
+.corpsArgument { display: flex; flex-direction: column; gap: 12px; padding: 0 16px 16px; }
 .corpsArgument[hidden] { display: none; }
-.argumentSurligne { box-shadow: inset 3px 0 0 var(--accent-bleu); background: var(--accent-bleu-teinte); }
-.provenanceArgument { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.argumentSurligne { background: var(--accent-bleu-teinte); box-shadow: 0 0 0 2px var(--accent-bleu); }
+
+@media (max-width: 760px) {
+  .faceAFace { grid-template-columns: minmax(0, 1fr); }
+}
+
 .limite {
   display: flex;
   align-items: flex-start;

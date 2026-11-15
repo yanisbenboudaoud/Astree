@@ -21,6 +21,7 @@ import { date } from '../lib/format';
 import { libelleDecision } from '../domaine/decision';
 import { resultatCalibrage } from '../domaine/calibrage';
 import { phaseEnRelecture } from '../domaine/progression';
+import { accroche, regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
 import { donneesCalibrage } from '../api/donnees';
 import { questionsSuggerees, repondre, type QuestionSuggeree } from '../domaine/questions';
 import { useEtatProfil } from '../state/store';
@@ -36,19 +37,9 @@ function mouvementReduit(): boolean {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
 
-/**
- * Première phrase d'un argument, pour la ligne repliée. Une phrase finit sur « . », « ! » ou « ? »
- * suivi d'une majuscule : « déc. 2021 » ou « −15,1 % » ne coupent pas.
- */
 /** Espaces insécables dans « 188 291 $ » et « −29,0 % » : un montant n'est jamais coupé en fin de ligne. */
 export function sansCoupure(texte: string): string {
   return texte.replace(/(\d) (?=\d{3}(?!\d))/g, '$1\u202f').replace(/(\d) (?=[$%])/g, '$1\u00a0');
-}
-
-export function accroche(texte: string): { tete: string; suite: string } {
-  const fin = texte.search(/[.!?»](?=\s+[A-ZÀÂÉÈÊÎÔÛÇ«])/);
-  if (fin < 0) return { tete: texte, suite: '' };
-  return { tete: texte.slice(0, fin + 1), suite: texte.slice(fin + 1).trim() };
 }
 
 function CarteArgument({ argument, numero, surligne, ouvertAuDepart, onOuvrir }: {
@@ -62,13 +53,16 @@ function CarteArgument({ argument, numero, surligne, ouvertAuDepart, onOuvrir }:
   const deplie = ouvert || surligne;
   const { tete, suite } = accroche(sansCoupure(argument.texte));
   const id = `argument-${argument.camp}-${numero}`;
+  const procureur = argument.camp === 'Procureur';
   return (
-    <li className={`${styles.argument} ${deplie ? styles.argumentOuvert : ''} ${surligne ? styles.argumentSurligne : ''}`}>
+    <div className={`${styles.argument} ${procureur ? styles.argumentProcureur : styles.argumentAvocat} ${deplie ? styles.argumentOuvert : ''} ${surligne ? styles.argumentSurligne : ''}`}>
       <button type="button" className={styles.teteArgument} aria-expanded={deplie} aria-controls={id} onClick={() => setOuvert((o) => !o)}>
-        <span className={styles.numeroArgument} aria-hidden="true">{numero}</span>
-        <span className={`t-corps ${styles.accroche}`}>
-          <span className="visuellement-cache">{argument.camp}, argument {numero} : </span>
-          {tete}
+        <span className={styles.texteTete}>
+          <span className={styles.campArgument}>{procureur ? 'Procureur · contre' : 'Avocat · pour'}</span>
+          <span className={`t-corps ${styles.accroche}`}>
+            <span className="visuellement-cache">{argument.camp}, argument {numero} : </span>
+            {tete}
+          </span>
         </span>
         <Icone nom={deplie ? 'chevron-haut' : 'chevron-bas'} taille={16} />
       </button>
@@ -79,30 +73,47 @@ function CarteArgument({ argument, numero, surligne, ouvertAuDepart, onOuvrir }:
           {argument.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={onOuvrir} />)}
         </p>
       </div>
-    </li>
+    </div>
   );
 }
 
-function Camp({ camp, args, surlignes, onOuvrir, limite }: {
-  camp: 'Procureur' | 'Avocat';
-  args: Argument[];
+/** Le débat point par point : une question, le Procureur à gauche, l'Avocat à droite. */
+function Debat({ procureur, avocat, surlignes, onOuvrir, limite }: {
+  procureur: Argument[];
+  avocat: Argument[];
   surlignes: Set<string>;
   onOuvrir: (code: string, el: HTMLElement) => void;
   limite?: string;
 }) {
-  const id = `camp-${camp}`;
+  const points = regrouperDebat(procureur, avocat);
+  const colonne = (camp: 'Procureur' | 'Avocat', args: ArgumentNumerote[], premier: boolean) => (
+    <div className={styles.colonneDebat}>
+      {args.length ? args.map(({ argument, numero }, i) => (
+        <CarteArgument key={argument.texte} argument={argument} numero={numero} ouvertAuDepart={premier && i === 0}
+          surligne={surlignes.has(`${camp}-${numero}`)} onOuvrir={onOuvrir} />
+      )) : (
+        <p className={`t-petit c-500 ${styles.silence}`}>{camp === 'Procureur' ? 'Le Procureur' : 'L’Avocat'} ne dit rien sur ce point.</p>
+      )}
+    </div>
+  );
   return (
-    <section className={`${styles.camp} ${camp === 'Procureur' ? styles.procureur : styles.avocat}`} aria-labelledby={id}>
-      <div className={styles.enteteCamp}>
-        <h2 className="t-panneau" id={id}>{camp}</h2>
-        <p className="t-petit c-500">
-          {camp === 'Procureur' ? 'contre la décision' : 'pour la décision'} · {args.length} argument{args.length > 1 ? 's' : ''}
+    <section className={styles.debat} aria-labelledby="titre-debat">
+      <div className={styles.enteteDebat}>
+        <h2 className="t-panneau" id="titre-debat">Le débat, point par point</h2>
+        <p className={styles.legendeDebat}>
+          <span className={styles.legendeProcureur}>Procureur · contre la décision · {procureur.length}</span>
+          <span className={styles.legendeAvocat}>Avocat · pour la décision · {avocat.length}</span>
         </p>
       </div>
-      <ol className={styles.arguments}>
-        {args.map((a, i) => (
-          <CarteArgument key={a.texte} argument={a} numero={i + 1} ouvertAuDepart={i === 0}
-            surligne={surlignes.has(`${camp}-${i + 1}`)} onOuvrir={onOuvrir} />
+      <ol className={styles.points}>
+        {points.map((point, i) => (
+          <li key={point.theme} className={styles.point}>
+            <h3 className={`t-intertitre ${styles.question}`}>{point.question}</h3>
+            <div className={styles.faceAFace}>
+              {colonne('Procureur', point.procureur, i === 0)}
+              {colonne('Avocat', point.avocat, i === 0)}
+            </div>
+          </li>
         ))}
       </ol>
       {limite && (
@@ -481,10 +492,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
             </ol>
           </section>
 
-          <div className={styles.debat}>
-            <Camp camp="Procureur" args={procureur} surlignes={surlignes} onOuvrir={ouvrirPiece} />
-            <Camp camp="Avocat" args={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} limite={resultat.limiteAvocat} />
-          </div>
+          <Debat procureur={procureur} avocat={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} limite={resultat.limiteAvocat} />
 
           {(resultat.argumentsRejetes.length > 0 || resultat.corrections.length > 0) && (
             <section className={styles.rejetes} aria-labelledby="titre-rejetes">

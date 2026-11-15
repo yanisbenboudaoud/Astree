@@ -24,6 +24,7 @@ import { resultatCalibrage } from '../domaine/calibrage';
 import { phaseEnRelecture } from '../domaine/progression';
 import { LIBELLES_COURTS, accroche, regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
 import { GROUPES, bilanGreffier, type Groupe } from '../domaine/bilan';
+import { sourcesAffichees } from '../domaine/sources';
 import { donneesCalibrage } from '../api/donnees';
 import { questionsSuggerees, repondre, type QuestionSuggeree } from '../domaine/questions';
 import { useEtatProfil } from '../state/store';
@@ -390,6 +391,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
     ...etat.piecesQuestions,
   ], [resultat, etat.echanges, etat.piecesQuestions]);
   const echanges = useMemo(() => [...(resultat?.echanges ?? []), ...etat.echanges], [resultat, etat.echanges]);
+  const sources = useMemo(() => sourcesAffichees(resultat?.sources ?? []), [resultat]);
 
   // Réveille la Lambda dès l'ouverture : la première vérification n'attend pas un démarrage à froid.
   useEffect(() => reveillerLambda(resultat?.procesId), [resultat?.procesId]);
@@ -679,6 +681,40 @@ export function Tribunal({ profil }: { profil: Profil }) {
                 ))}
               </ul>
             </Repli>
+            {sources.length > 0 && (
+              <Repli id="repli-sources" titre="D'où viennent les données" sousTitre={`${sources.length} sources`}>
+                <ul className={styles.listeSources}>
+                  {sources.map((s) => (
+                    <li key={s.nom} className={styles.source}>
+                      <span className="t-corps-fort">{s.nom}</span>
+                      {s.details && <span className="t-petit c-500">{s.details}</span>}
+                      {s.usage && <span className="t-petit c-700">{s.usage}</span>}
+                      {(s.expliquees.length > 0 || s.regles.length > 0) && (
+                        <ul className={styles.utilisations} aria-label={`Pourquoi ${s.nom} a servi`}>
+                          {s.expliquees.map((p) => (
+                            <li key={p.code} className={styles.utilisation}>
+                              <PastillePiece code={p.code} onOuvrir={ouvrirPiece} />
+                              <span className="t-petit c-700">{p.raison}</span>
+                            </li>
+                          ))}
+                          {s.regles.map((r) => (
+                            <li key={r} className={styles.utilisation}>
+                              <span className="t-petit c-700">Contrôle de la règle « {r} »</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {s.autres.length > 0 && (
+                        <p className={styles.autresPieces}>
+                          <span className="t-petit c-500">{s.expliquees.length > 0 ? 'Aussi dans' : 'Dans'}</span>
+                          {s.autres.map((p) => <PastillePiece key={p.code} code={p.code} onOuvrir={ouvrirPiece} />)}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Repli>
+            )}
           </div>
 
           <section className={styles.questions} aria-labelledby="titre-questions">

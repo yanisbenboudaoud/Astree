@@ -4,8 +4,10 @@ from pathlib import Path
 import jsonschema
 import pytest
 
+from pipeline import macro
 from pipeline.donnees import ErreurDonnees
 from pipeline.simulation import (
+    LIMITES_MACRO,
     ErreurSimulation,
     decrire_simuler_portefeuille,
     formater_pourcentage,
@@ -214,13 +216,23 @@ def comparer_a_la_maquette(piece, attendue, titre):
     assert valeurs == attendue["valeurs"]
 
 
-def test_piece_periode_complete_reproduit_p1():
+@pytest.fixture
+def sans_macro(monkeypatch):
+    """Données macro indisponibles (fichier absent du bucket, par exemple)."""
+    def absent():
+        raise ErreurDonnees("macro_rates.csv absent")
+    monkeypatch.setattr(macro, "_series", absent)
+
+
+def test_piece_periode_complete_reproduit_p1(sans_macro):
+    # Sans données macro, la pièce est exactement celle de la maquette : la pièce
+    # obligatoire du procès ne dépend pas de macro_rates.csv (#111).
     piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
     valider_piece(piece)
     comparer_a_la_maquette(piece, PIECES["P1"], "Simulation du portefeuille avec 30 % en TSLA")
 
 
-def test_piece_rejeu_2022_reproduit_p2():
+def test_piece_rejeu_2022_reproduit_p2(sans_macro):
     piece = piece_simulation("P2", PORTEFEUILLE, DECISION, periode="2022")
     valider_piece(piece)
     comparer_a_la_maquette(piece, PIECES["P2"], "Rejeu de 2022 avec 30 % en TSLA")
@@ -336,3 +348,63 @@ def test_une_comparaison_en_dollars_passe_le_greffier():
     # Un montant inventé reste rejeté.
     faux = f"Au pire moment, votre portefeuille aurait perdu {_montant(v['perte_au_pire_moment_cad'] + 5000)} $."
     assert verifier_argument({"texte": faux, "pieces": ["P1"]}, dossier).introuvables
+
+
+# --- Données macro : inflation, rendement réel, taux, ratio de Sharpe (#111) -------------
+
+
+def test_macro_de_la_periode_complete():
+    piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
+    valider_piece(piece)
+    v = piece["valeurs"]
+    # IPC du Canada de septembre 2021 à septembre 2026 (dernier mois publié), cinq années entières.
+    assert v["inflation_annuelle"] == pytest.approx(0.0354, abs=1e-4)
+    assert v["rendement_reel_annuel"] == pytest.approx((1 + v["rendement_annuel"]) / (1 + v["inflation_annuelle"]) - 1, abs=1e-6)
+    assert v["rendement_reel_annuel_actuel"] == pytest.approx(
+        (1 + v["rendement_annuel_actuel"]) / (1 + v["inflation_annuelle"]) - 1, abs=1e-6)
+    # Le ratio de Sharpe se refait avec les valeurs de la pièce.
+    assert v["ratio_sharpe"] == pytest.approx((v["rendement_annuel"] - v["taux_sans_risque_moyen"]) / v["volatilite_annuelle"], abs=1e-5)
+    assert round(v["ratio_sharpe"], 2) == 0.46
+    assert round(v["ratio_sharpe_actuel"], 2) == 1.09
+    assert "Banque du Canada, API Valet" in piece["source"]
+    assert "2021-09 à 2026-09" in piece["traitement"]
+    assert piece["limites"].endswith(LIMITES_MACRO)
+
+
+def test_macro_du_rejeu_2022():
+    piece = piece_simulation("P2", PORTEFEUILLE, DECISION, periode="2022")
+    valider_piece(piece)
+    v = piece["valeurs"]
+    assert v["inflation_2022"] == pytest.approx(0.063)  # IPC de décembre 2022, sur 12 mois
+    assert round(v["rendement_reel_2022_actuel"], 3) == -0.084
+    assert round(v["rendement_reel_2022_apres"], 3) == -0.282
+    assert (v["taux_directeur_debut_2022"], v["taux_directeur_fin_2022"]) == (0.0025, 0.0425)
+    assert (v["obligation_10_ans_debut_2022"], v["obligation_10_ans_fin_2022"]) == (0.0142, 0.033)
+    assert v["taux_directeur_debut_2022"] < v["taux_directeur_moyen_2022"] < v["taux_directeur_fin_2022"]
+    assert "IPC du Canada de 2021-12 à 2022-12" in piece["traitement"]
+
+
+def test_sans_donnees_macro_la_piece_reste_valide(sans_macro, capsys):
+    piece = piece_simulation("P2", PORTEFEUILLE, DECISION, periode="2022")
+    valider_piece(piece)
+    assert "inflation_2022" not in piece["valeurs"]
+    assert "Banque du Canada, API Valet" not in piece["source"]
+    assert "Données macro non ajoutées à P2" in capsys.readouterr().out
+
+
+def test_un_rendement_reel_cite_passe_le_greffier():
+    from pipeline.chiffres import verifier_argument
+
+    piece = piece_simulation("P2", PORTEFEUILLE, DECISION, periode="2022")
+    v = piece["valeurs"]
+    dossier = {"decision": DECISION, "pieces": [piece], "periode": ["2021-11-12", "2026-11-12"]}
+    texte = (
+        f"En 2022, avec une inflation de {formater_pourcentage(v['inflation_2022'])}, votre portefeuille a fait "
+        f"{formater_pourcentage(v['rendement_reel_2022_actuel'])} après inflation, et "
+        f"{formater_pourcentage(v['rendement_reel_2022_apres'])} avec 30 % en TSLA. Le taux directeur est "
+        "passé de +0,25 % à +4,25 %."
+    )
+    assert verifier_argument({"texte": texte, "pieces": ["P2"]}, dossier).introuvables == []
+    # Le rendement réel calculé par l'agent par simple soustraction (−2,6 − 6,3) est rejeté.
+    faux = "En 2022, votre portefeuille a fait −8,9 % après inflation."
+    assert verifier_argument({"texte": faux, "pieces": ["P2"]}, dossier).introuvables

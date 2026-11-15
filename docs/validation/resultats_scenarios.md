@@ -4,7 +4,7 @@ Fichier généré par `python -m validation` (issue #15) : ne pas le modifier à
 Partie calculée du procès (Pacte, simulation, Greffier, taille maximale) sur les données du dépôt,
 sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèle et les vrais outils.
 
-**Bilan : 46 réussis, 0 en échec, 0 en attente.**
+**Bilan : 50 réussis, 0 en échec, 0 en attente.**
 
 ## 1. Même décision, profils différents
 
@@ -91,6 +91,15 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Reste jusqu'à −20,0 % | seuil ≥ −20,0 % ; violation | seuil −16,0 % en 4 questions ; violation | ✅ |
 | Reste jusqu'à −32,0 % | seuil ≥ −32,0 % ; conforme | seuil −31,4 % en 4 questions ; conforme | ✅ |
 | Reste jusqu'à −60,0 % | seuil ≥ −60,0 % ; conforme | seuil −50,5 % en 4 questions ; conforme | ✅ |
+
+## 10. Pouvoir d'achat et taux (profil prudent, 30 % TSLA)
+
+| Scénario | Attendu | Obtenu | |
+|---|---|---|---|
+| Rendement réel 2022 du portefeuille actuel (relation de Fisher) | (1 + rendement) ÷ (1 + inflation) − 1, plus bas que le rendement en dollars | −2,6 % en dollars, inflation 6,3 %, −8,4 % réel | ✅ |
+| Contexte de 2022 : taux directeur de la Banque du Canada | en hausse sur l'année (début < moyenne < fin) | 0,2 % → 4,2 %, moyenne 1,9 % | ✅ |
+| Ratio de Sharpe avant et après la décision | plus bas après : rendement plus élevé, mais risque beaucoup plus fort | 1,09 → 0,46 | ✅ |
+| Données macro indisponibles (fichier absent du bucket) | la pièce obligatoire reste produite, sans valeurs macro | pièce sans inflation ni ratio de Sharpe | ✅ |
 
 ## Graphique : taille maximale compatible selon le seuil
 

@@ -68,6 +68,7 @@ LIBELLES = {
     "pieces_citees": "Pièces citées",
     "raison": "Motif du rejet",
     "extrait_le": "extrait le",
+    "controle_de": "Contrôle de la règle",
 }
 
 VERDICTS = {
@@ -91,6 +92,7 @@ COLONNES = {
     "etape": "Étape", "outil": "Outil", "entree": "Entrée", "sortie": "Sortie",
     "type": "Type", "etiquette": "Étiquette", "valeur": "Valeur affichée",
     "valeurs": "Valeurs brutes", "source": "Source", "traitement": "Traitement",
+    "utilisee_par": "Utilisée par (et pourquoi)",
 }
 
 STYLE = """
@@ -302,8 +304,30 @@ def _trace(trace: list[dict[str, Any]]) -> str:
 
 
 def _sources(sources: list[dict[str, Any]]) -> str:
-    elements = [f"{s['nom']} ({s['fichier']}), {LIBELLES['extrait_le']} {s['date_extraction']}" for s in sources]
-    return f"<h2>{LIBELLES['sources']}</h2>{_liste(elements)}"
+    """Chaque source, son usage et les pièces qui l'utilisent, avec la raison donnée (#111)."""
+    if not sources:
+        return f"<h2>{LIBELLES['sources']}</h2><p>{LIBELLES['aucun']}</p>"
+    lignes = []
+    for s in sources:
+        description = _t(s["nom"])
+        details = ", ".join(_t(d) for d in (s.get("fichier"), s.get("format")) if d)
+        if details:
+            description += f" ({details})"
+        description += f", {LIBELLES['extrait_le']} {_t(s['date_extraction'])}"
+        if s.get("usage"):
+            description += f"<br><span class=\"discret\">{_t(s['usage'])}</span>"
+        utilisations = [
+            f"<li>{_t(u['id'])}" + (f" : {_t(u['raison'])}" if u.get("raison") else "") + "</li>"
+            for u in s.get("pieces", [])
+        ]
+        utilisations += [f"<li>{LIBELLES['controle_de']} « {_t(r)} »</li>" for r in s.get("controles", [])]
+        utilisee = f"<ul>{''.join(utilisations)}</ul>" if utilisations else "—"
+        lignes.append(f"<tr><td>{description}</td><td>{utilisee}</td></tr>")
+    return (
+        f"<h2>{LIBELLES['sources']}</h2>"
+        f"<table><thead><tr><th>{COLONNES['source']}</th><th>{COLONNES['utilisee_par']}</th></tr></thead>"
+        f"<tbody>{''.join(lignes)}</tbody></table>"
+    )
 
 
 # --- Page complète --------------------------------------------------------------

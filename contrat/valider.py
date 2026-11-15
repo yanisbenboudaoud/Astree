@@ -90,6 +90,23 @@ def erreurs_renvois(contrat):
             erreurs.append(f"decision/panier : les poids totalisent {somme}, pas 1")
 
     erreurs += erreurs_contre_interrogatoire(contrat, pieces_connues)
+    erreurs += erreurs_sources(contrat, pieces_connues, regles_controlees)
+    return erreurs
+
+
+def erreurs_sources(contrat, pieces_connues, regles_controlees):
+    """Renvois des sources (#111) : pièces existantes, règles contrôlées, chaque source utilisée une fois."""
+    erreurs = []
+    noms = [source["nom"] for source in contrat["sources"]]
+    if len(noms) != len(set(noms)):
+        erreurs.append("sources : source en double")
+    for i, source in enumerate(contrat["sources"]):
+        for utilisation in source.get("pieces", []):
+            if utilisation["id"] not in pieces_connues:
+                erreurs.append(f"sources/{i} : pièce {utilisation['id']} inexistante")
+        for regle in source.get("controles", []):
+            if regle not in regles_controlees:
+                erreurs.append(f"sources/{i} : la règle « {regle} » n'a aucun contrôle")
     return erreurs
 
 

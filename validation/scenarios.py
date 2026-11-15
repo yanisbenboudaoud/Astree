@@ -25,6 +25,7 @@ from unittest import mock
 from pipeline import categories as module_categories
 from pipeline.calibrage import RESTE, VEND, calibrer, episodes_de_baisse, prochaine_question
 from pipeline.chiffres import trier_arguments
+from pipeline.donnees import ErreurDonnees
 from pipeline.greffier import verifier_pacte
 from pipeline.indicateurs import calculer_pire_baisse, calculer_volatilite_annuelle
 from pipeline.llm import DemandeOutil, TourOutils
@@ -552,6 +553,43 @@ def scenarios_pacte_vecu() -> list[Resultat]:
     return resultats
 
 
+# --- 10. Pouvoir d'achat et taux (données macro, #111) ------------------------------------
+
+def scenarios_macro() -> list[Resultat]:
+    """Inflation, rendement réel et ratio de Sharpe ajoutés aux pièces de simulation."""
+    groupe = "10. Pouvoir d'achat et taux (profil prudent, 30 % TSLA)"
+    portefeuille, decision = profil("robert")["portefeuille"], position("TSLA", 0.30)
+    rejeu = piece_simulation("P3", portefeuille, decision, periode="2022")["valeurs"]
+    complete = piece_simulation("P2", portefeuille, decision)["valeurs"]
+    fisher = (1 + rejeu["rendement_2022_actuel"]) / (1 + rejeu["inflation_2022"]) - 1
+    resultats = [
+        Resultat(groupe, "Rendement réel 2022 du portefeuille actuel (relation de Fisher)",
+                 "(1 + rendement) ÷ (1 + inflation) − 1, plus bas que le rendement en dollars",
+                 f"{pourcent(rejeu['rendement_2022_actuel'])} en dollars, inflation {pourcent(rejeu['inflation_2022'])}, "
+                 f"{pourcent(rejeu['rendement_reel_2022_actuel'])} réel",
+                 round(fisher, 6) == rejeu["rendement_reel_2022_actuel"]
+                 and rejeu["rendement_reel_2022_actuel"] < rejeu["rendement_2022_actuel"]),
+        Resultat(groupe, "Contexte de 2022 : taux directeur de la Banque du Canada",
+                 "en hausse sur l'année (début < moyenne < fin)",
+                 f"{pourcent(rejeu['taux_directeur_debut_2022'])} → {pourcent(rejeu['taux_directeur_fin_2022'])}, "
+                 f"moyenne {pourcent(rejeu['taux_directeur_moyen_2022'])}",
+                 rejeu["taux_directeur_debut_2022"] < rejeu["taux_directeur_moyen_2022"] < rejeu["taux_directeur_fin_2022"]),
+        Resultat(groupe, "Ratio de Sharpe avant et après la décision",
+                 "plus bas après : rendement plus élevé, mais risque beaucoup plus fort",
+                 f"{complete['ratio_sharpe_actuel']:.2f} → {complete['ratio_sharpe']:.2f}".replace(".", ","),
+                 complete["ratio_sharpe"] < complete["ratio_sharpe_actuel"]),
+    ]
+    with mock.patch("pipeline.macro._series", side_effect=ErreurDonnees("macro_rates.csv absent")):
+        sans = piece_simulation("P2", portefeuille, decision)
+    resultats.append(Resultat(
+        groupe, "Données macro indisponibles (fichier absent du bucket)",
+        "la pièce obligatoire reste produite, sans valeurs macro",
+        "pièce sans inflation ni ratio de Sharpe" if "inflation_annuelle" not in sans["valeurs"] else "valeurs macro présentes",
+        "inflation_annuelle" not in sans["valeurs"] and sans["valeurs"]["pire_baisse"] == complete["pire_baisse"],
+    ))
+    return resultats
+
+
 GROUPES = [
     scenarios_profils,
     scenarios_seuil,
@@ -561,6 +599,7 @@ GROUPES = [
     scenarios_orchestrateur,
     scenarios_profil_invente,
     scenarios_pacte_vecu,
+    scenarios_macro,
 ]
 
 

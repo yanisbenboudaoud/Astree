@@ -183,6 +183,8 @@ Règles sur le fond :
   Pacte et les pièces font foi.
 - Ne compare un chiffre qu'à un seuil du même indicateur : une pire baisse à la règle de
   pire baisse ; un rendement sur une année n'est pas une pire baisse.
+- Un rendement réel (après inflation) se compare à un autre rendement réel : écris toujours
+  « après inflation » ou « réel » pour ne pas le confondre avec le rendement en dollars.
 - Le passé ne prédit pas l'avenir : ne présente jamais une performance passée comme une
   promesse (règle B).
 - Pour citer une règle du Pacte, reprends son libellé et cite la pièce du Pacte.

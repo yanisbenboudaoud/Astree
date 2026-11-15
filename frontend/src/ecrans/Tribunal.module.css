@@ -365,6 +365,18 @@
   border-bottom: 1px solid var(--trait-fin);
 }
 
+.listeSources { display: flex; flex-direction: column; }
+.source {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--trait-fin);
+}
+.utilisations { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.utilisation { display: flex; align-items: flex-start; gap: 10px; }
+.autresPieces { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 0; }
+
 .questions { display: flex; flex-direction: column; gap: 12px; }
 .suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
 .suggestion {

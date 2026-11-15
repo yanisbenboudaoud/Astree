@@ -305,6 +305,12 @@ def test_juger_decision_enchaine_profil_et_orchestrateur(monkeypatch):
     assert contrat["comparaison"]["apres"]["pire_baisse"] == pytest.approx(-0.2897, abs=5e-5)
     assert contrat["hypotheses"][0] == "Période : 2021-11-12 au 2026-11-12"
     assert "Montants convertis en CAD" in contrat["hypotheses"]
+    # #111 : les sources réellement utilisées, données macro comprises, et l'hypothèse du taux sans risque.
+    noms = [s["nom"] for s in contrat["sources"]]
+    assert noms == ["Pacte de l'investisseur", "Yahoo Finance via yfinance (prix ajustés)",
+                    "Banque du Canada, API Valet : change USD/CAD", "Univers d'actifs des organisateurs du datathon",
+                    "Banque du Canada, API Valet : IPC, taux directeur, obligation à 10 ans"]
+    assert "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période" in contrat["hypotheses"]
     assert contrat["verdict"] is None and contrat["avertissement"] == AVERTISSEMENT
     for piece in contrat["pieces"]:
         valider_piece(piece)

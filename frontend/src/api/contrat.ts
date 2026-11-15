@@ -136,11 +136,26 @@ export interface ContratTribunal {
   arguments_rejetes: ArgumentRejeteContrat[];
   verdict: 'maintenu' | 'modifie' | 'pacte_ajuste' | null;
   hypotheses: string[];
-  sources: { nom: string; fichier?: string; date_extraction?: string }[];
+  sources: SourceContrat[];
   limites: string[];
   trace: EtapeTraceContrat[];
   avertissement: string;
   contre_interrogatoire?: EchangeContrat[];
+}
+
+/**
+ * Une source du procès (#111). Les procès enregistrés avant #111 n'ont que `nom`, `fichier`
+ * et `date_extraction` ; depuis, chaque source dit à quoi elle sert et quelles pièces
+ * l'utilisent, avec la raison de l'orchestrateur (ou d'office).
+ */
+export interface SourceContrat {
+  nom: string;
+  fichier?: string;
+  date_extraction?: string;
+  format?: string;
+  usage?: string;
+  pieces?: { id: string; raison?: string }[];
+  controles?: string[];
 }
 
 export type VerdictContrat = 'maintenu' | 'modifie' | 'pacte_ajuste';

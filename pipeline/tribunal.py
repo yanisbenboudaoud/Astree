@@ -43,7 +43,9 @@ from pipeline.calibrage import ResultatCalibrage, calibrer
 from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
 from pipeline.debat import corriger_argument, debattre
 from pipeline.greffier import controle_biais_survivant, controle_performance_passee, verifier_pacte
-from pipeline.donnees import HYPOTHESES_DONNEES, date_extraction, seances_americaines
+from pipeline.donnees import HYPOTHESES_DONNEES, seances_americaines
+from pipeline.macro import HYPOTHESE_TAUX_SANS_RISQUE
+from pipeline.sources import sources_du_proces
 from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.llm import converser_avec_outils
 from pipeline.orchestrateur import RAISON_D_OFFICE, instruire_dossier
@@ -181,12 +183,13 @@ def juger_decision(
         "controles": controles_initiaux,
         "verdict": None,
         "hypotheses": [],
-        "sources": sources(),
+        "sources": [],  # rempli à la fin, d'après ce que le procès a réellement utilisé (#111)
         "limites": list(LIMITES),
         "trace": list(profil.trace),
         "avertissement": AVERTISSEMENT,
     }
     if profil.decision is None:
+        contrat["sources"] = sources_du_proces(contrat)
         return contrat
 
     commencer("orchestrateur")
@@ -235,8 +238,11 @@ def juger_decision(
                              *([performance] if performance else []), controle_biais_survivant()]
     contrat["hypotheses"] = [periode_analyse(), *HYPOTHESES_DONNEES, *profil.hypotheses,
                              *hypotheses_proces(vecu.seuil if vecu else None)]
+    if any("taux_sans_risque_moyen" in piece["valeurs"] for piece in contrat["pieces"]):
+        contrat["hypotheses"].append(HYPOTHESE_TAUX_SANS_RISQUE)
     if vecu is not None:
         contrat["limites"].append(LIMITE_PACTE_VECU)
+    contrat["sources"] = sources_du_proces(contrat)
     return contrat
 
 
@@ -367,11 +373,3 @@ def periode_analyse() -> str:
     debut, fin = bornes_periode()
     return f"Période : {debut} au {fin}"
 
-
-def sources() -> list[dict[str, str]]:
-    return [
-        {"nom": "Yahoo Finance via yfinance", "fichier": "prices_daily.csv",
-         "date_extraction": date_extraction("prices_daily.csv")},
-        {"nom": "Banque du Canada (API Valet)", "fichier": "fx_usdcad_daily.csv",
-         "date_extraction": date_extraction("fx_usdcad_daily.csv")},
-    ]

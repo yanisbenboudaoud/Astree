@@ -32,13 +32,13 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 
 | Scénario | Attendu | Obtenu | |
 |---|---|---|---|
-| Profil audacieux + 30 % NVDA, plafond tech + crypto 50,0 % | violation | Technologie et cryptoactifs : 65,0 % du portefeuille après la décision, au-delà du plafond de 50,0 % ; taille max 0,0 % | ✅ |
-| Profil audacieux + 30 % NVDA, plafond tech + crypto 60,0 % | violation | Technologie et cryptoactifs : 65,0 % du portefeuille après la décision, au-delà du plafond de 60,0 % ; taille max 20,0 % | ✅ |
-| Profil audacieux + 30 % NVDA, plafond tech + crypto 65,0 % | conforme | Technologie et cryptoactifs : 65,0 % du portefeuille après la décision, dans la limite du plafond de 65,0 % ; taille max 30,0 % | ✅ |
-| Profil audacieux + 30 % NVDA, plafond tech + crypto 75,0 % | conforme | Technologie et cryptoactifs : 65,0 % du portefeuille après la décision, dans la limite du plafond de 75,0 % ; taille max 30,0 % | ✅ |
-| Profil audacieux + 30 % NVDA, plafond tech + crypto 90,0 % | conforme | Technologie et cryptoactifs : 65,0 % du portefeuille après la décision, dans la limite du plafond de 90,0 % ; taille max 30,0 % | ✅ |
-| QQQ retiré de la catégorie tech (profil audacieux + 30 % NVDA) | part tech + crypto en baisse de la part de QQQ ; toujours conforme | avant : Technologie et cryptoactifs : 65,0 % du portefeuille après la décision, dans la limite du plafond de 75,0 % \| après : Technologie et cryptoactifs : 51,0 % du portefeuille après la décision, dans la limite du plafond de 75,0 % | ✅ |
-| TSLA ajouté à la catégorie tech (profil audacieux + 60 % TSLA) | conforme sans TSLA en tech ; violation avec | avant : conforme (Technologie et cryptoactifs : 20,0 % du portefeuille après la décision, dans la limite du plafond de 75,0 %) \| après : violation (Technologie et cryptoactifs : 80,0 % du portefeuille après la décision, au-delà du plafond de 75,0 %) | ✅ |
+| Profil audacieux + 30 % NVDA, plafond tech + crypto 50,0 % | violation | Technologie et cryptoactifs : 66,1 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), au-delà du plafond de 50,0 % ; taille max aucune | ✅ |
+| Profil audacieux + 30 % NVDA, plafond tech + crypto 60,0 % | violation | Technologie et cryptoactifs : 66,1 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), au-delà du plafond de 60,0 % ; taille max 17,0 % | ✅ |
+| Profil audacieux + 30 % NVDA, plafond tech + crypto 65,0 % | violation | Technologie et cryptoactifs : 66,1 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), au-delà du plafond de 65,0 % ; taille max 27,0 % | ✅ |
+| Profil audacieux + 30 % NVDA, plafond tech + crypto 75,0 % | conforme | Technologie et cryptoactifs : 66,1 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), dans la limite du plafond de 75,0 % ; taille max 30,0 % | ✅ |
+| Profil audacieux + 30 % NVDA, plafond tech + crypto 90,0 % | conforme | Technologie et cryptoactifs : 66,1 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), dans la limite du plafond de 90,0 % ; taille max 30,0 % | ✅ |
+| QQQ retiré des ajouts de la catégorie tech (profil audacieux + 30 % NVDA) | sans effet : par transparence, QQQ compte pour sa part réelle de technologie, quel que soit son classement (#116) | avant : Technologie et cryptoactifs : 66,1 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), dans la limite du plafond de 75,0 % \| après : Technologie et cryptoactifs : 66,1 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), dans la limite du plafond de 75,0 % | ✅ |
+| TSLA ajouté à la catégorie tech (profil audacieux + 60 % TSLA) | conforme sans TSLA en tech ; violation avec | avant : conforme (Technologie et cryptoactifs : 20,6 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), dans la limite du plafond de 75,0 %) \| après : violation (Technologie et cryptoactifs : 80,6 % du portefeuille après la décision (par transparence : GLD, QQQ, SPY, XIU.TO ; classement direct : XBB.TO), au-delà du plafond de 75,0 %) | ✅ |
 
 ## 4. Changer la période (profil prudent, 30 % TSLA)
 
@@ -79,7 +79,7 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 
 | Scénario | Attendu | Obtenu | |
 |---|---|---|---|
-| 25 % NVDA financés depuis SPY | un contrôle par règle ; plafond tech (20 %) en violation | violations : pire_baisse_max, plafond_tech ; pire baisse −27,9 % ; taille max 19,0 % ; pire_baisse_max : violation, plafond_tech : violation, sans_crypto : conforme, local : a_verifier | ✅ |
+| 25 % NVDA financés depuis SPY | un contrôle par règle ; plafond tech (20 %) en violation | violations : pire_baisse_max, plafond_tech ; pire baisse −27,9 % ; taille max aucune ; pire_baisse_max : violation, plafond_tech : violation, sans_crypto : conforme, local : a_verifier | ✅ |
 
 ## 9. Pacte vécu (profil prudent, 30 % TSLA)
 

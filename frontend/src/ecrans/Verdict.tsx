@@ -10,7 +10,8 @@ import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { Statut } from '../components/Etiquettes';
 import { LienRetour, Message } from '../components/Elements';
-import { OPTION_PACTE, archivage, optionsVerdict, pointsDeBascule, statutDecision, type OptionVerdict } from '../domaine/verdict';
+import { pourcent, seuil as seuilTexte } from '../lib/format';
+import { archivage, optionsVerdict, statutDecision, type OptionVerdict } from '../domaine/verdict';
 import { useEtatProfil } from '../state/store';
 import { useTables } from '../state/useTables';
 import { LimitesDonnees } from '../components/Limites';
@@ -20,6 +21,35 @@ const LONGUEUR_MAX = 280;
 
 function aujourdhui(): string {
   return new Date().toLocaleDateString('en-CA');
+}
+
+/** Échelle commune des jauges : la plus forte baisse ou le plus bas seuil de l'écran, avec une marge. */
+function echelleJauges(options: OptionVerdict[]): number {
+  const valeurs = options.flatMap((o) => [o.pireBaisse, o.seuil, o.ancienSeuil]).filter((v): v is number => v !== undefined);
+  return Math.max(0.05, ...valeurs.map(Math.abs)) * 1.1;
+}
+
+/**
+ * La pire baisse de l'option face au seuil du Pacte : on voit si elle le dépasse sans lire les chiffres.
+ * Décorative (aria-hidden) : les mêmes nombres sont écrits dans la carte.
+ */
+function JaugeBaisse({ valeur, seuil, ancienSeuil, echelle }: { valeur: number; seuil: number; ancienSeuil?: number; echelle: number }) {
+  const position = (v: number) => `${Math.min(100, (Math.abs(v) / echelle) * 100)}%`;
+  const depasse = valeur < seuil - 1e-9;
+  return (
+    <span className={styles.jauge} aria-hidden="true">
+      <span className={styles.piste}>
+        <span className={`${styles.barre} ${depasse ? styles.depasse : ''}`} style={{ width: position(valeur) }} />
+        <span className={styles.repere} style={{ left: position(seuil) }} />
+      </span>
+      <span className={styles.legendeJauge}>
+        <span className={styles.marqueSeuil} />
+        <span className="t-petit c-500">
+          {ancienSeuil !== undefined ? `Seuil ajusté ${pourcent(seuil)} (au lieu de ${seuilTexte(ancienSeuil)})` : `Seuil du Pacte ${seuilTexte(seuil)}`}
+        </span>
+      </span>
+    </span>
+  );
 }
 
 export function Verdict({ profil }: { profil: Profil }) {
@@ -34,16 +64,16 @@ export function Verdict({ profil }: { profil: Profil }) {
   const idRaison = useId();
   const idJustification = useId();
   const idCompteur = useId();
-  const idBascule = useId();
+  const idArchive = useId();
 
   if (!decision || tribunal.statut !== 'pret' || !tribunal.resultat) return <Navigate to={`/${profil.id}/tribunal`} replace />;
   const resultat = tribunal.resultat;
   const options = optionsVerdict({ profil, resultat, decision, table: tablePosition, entreeDecision: entree });
-  const toutes = [...options, OPTION_PACTE];
-  const choisie: OptionVerdict | undefined = toutes.find((o) => o.id === verdict.option);
+  const choisie: OptionVerdict | undefined = options.find((o) => o.id === verdict.option);
   const statut = statutDecision(profil, resultat);
   const violations = resultat.controles.filter((c) => c.paragraphe !== undefined && c.statut === 'Violation').length;
-  const bascules = pointsDeBascule(resultat);
+  const echelle = echelleJauges(options);
+  const dateLongue = new Date().toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const raisonBlocage = !choisie
     ? 'Choisissez une option pour signer le verdict.'
@@ -94,6 +124,21 @@ export function Verdict({ profil }: { profil: Profil }) {
               {option.statut && <Statut type={option.statut} />}
             </span>
             {option.sousTitre && <span className="t-petit c-700">{option.sousTitre}</span>}
+            {option.ajustements && option.ajustements.length > 0 && (
+              <span className={styles.ajustements}>
+                {option.ajustements.map((a) => (
+                  <span key={a.regle} className={`t-petit-fort ${styles.ajustement}`} data-ajustement={a.regle}>
+                    {a.texte}
+                    {a.pieces.map((code) => (
+                      <span key={code} className="t-petit">
+                        {' '}
+                        <Link to={`/${profil.id}/tribunal?piece=${code}`} className={styles.lienPiece} aria-label={`Ouvrir la pièce ${code}`}>{code}</Link>
+                      </span>
+                    ))}
+                  </span>
+                ))}
+              </span>
+            )}
             {option.mesures.length > 0 && (
               <span className={styles.mesures}>
                 {option.mesures.map((m) => (
@@ -103,6 +148,9 @@ export function Verdict({ profil }: { profil: Profil }) {
                   </span>
                 ))}
               </span>
+            )}
+            {option.pireBaisse !== undefined && option.seuil !== undefined && (
+              <JaugeBaisse valeur={option.pireBaisse} seuil={option.seuil} ancienSeuil={option.ancienSeuil} echelle={echelle} />
             )}
           </span>
         </label>
@@ -148,32 +196,21 @@ export function Verdict({ profil }: { profil: Profil }) {
           </p>
         </div>
 
-        {/* Paysage (#103) : les choix à gauche ; ce qui changerait la réponse et l'export à droite, fixes au défilement. */}
+        {/* Paysage (#103) : les choix à gauche ; ce que la signature archive et les limites à droite, fixes au défilement. */}
         <div className={styles.grille}>
           <div className={styles.cote}>
-            {bascules.length > 0 && (
-              <section className={styles.bascule} aria-labelledby={idBascule}>
-                <h2 id={idBascule} className="t-etiquette c-500">Ce qui changerait la réponse</h2>
-                <ul>
-                  {bascules.map((p) => (
-                    <li key={p.regle} className={styles.point}>
-                      <span className="t-petit-fort">{p.paragraphe ? `§${p.paragraphe} · ` : ''}{p.libelle}</span>
-                      <span className="t-petit c-700">
-                        {p.message}
-                        {p.pieces.map((code) => (
-                          <span key={code}>
-                            {' '}
-                            <Link to={`/${profil.id}/tribunal?piece=${code}`} className={styles.lienPiece} aria-label={`Ouvrir la pièce ${code}`}>{code}</Link>
-                          </span>
-                        ))}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-            <LimitesDonnees ecran="verdict" titre="Avant de signer : ce que le procès ne dit pas" variante="panneau" />
-            <div className={styles.blocExport}>
+            <section className={styles.blocArchive} aria-labelledby={idArchive}>
+              <h2 id={idArchive} className="t-etiquette c-500">Ce que la signature archive</h2>
+              <ul className={styles.listeArchive}>
+                <li className="t-petit">
+                  <span className="t-petit-fort">{choisie ? choisie.titre : 'Votre choix'}</span>, daté du {dateLongue}
+                </li>
+                <li className="t-petit">
+                  Les {resultat.contrat.pieces.length} pièces et les {resultat.contrat.controles.length} contrôles du procès
+                </li>
+                {choisie?.engagement && <li className="t-petit">Votre justification du maintien malgré {violations > 1 ? 'les violations' : 'la violation'}</li>}
+              </ul>
+              <p className="t-petit c-700">Rien n'est exécuté : aucune transaction, seulement une archive.</p>
               <Bouton variante="secondaire" compact fleche={false} className={styles.lienExport} onClick={exporterProcesVerbal}>
                 Exporter le procès-verbal
               </Bouton>
@@ -182,23 +219,15 @@ export function Verdict({ profil }: { profil: Profil }) {
                   <p>{erreurExport}</p>
                 </Message>
               )}
-            </div>
+            </section>
+            <LimitesDonnees ecran="verdict" titre="Avant de signer : ce que le procès ne dit pas" variante="panneau" ouvertParDefaut={false} />
           </div>
 
           <div className={styles.choix}>
             <fieldset className={styles.options}>
               <legend className="visuellement-cache">Votre décision sur « {resultat.titre} »</legend>
-              <ul>
-                {options.map(carte)}
-                {verdict.option === 'pacte' && carte(OPTION_PACTE)}
-              </ul>
+              <ul>{options.map(carte)}</ul>
             </fieldset>
-
-            {verdict.option !== 'pacte' && (
-              <Bouton variante="tertiaire" compact fleche={false} className={styles.lienPacte} onClick={() => modifierVerdict({ option: 'pacte' })}>
-                Ou ajuster votre Pacte avant de décider
-              </Bouton>
-            )}
 
             {erreur && (
               <Message type="Violation" titre="Le verdict n'a pas pu être archivé" correction={{ libelle: 'Réessayer', onClick: signerVerdict }}>
@@ -209,20 +238,16 @@ export function Verdict({ profil }: { profil: Profil }) {
 
           <div className={styles.suite}>
             <div className={styles.actions}>
-              <Bouton variante="tertiaire" fleche={false} vers={`/${profil.id}/tribunal`}>Retour au Tribunal</Bouton>
-              <div className={styles.signature}>
-                <p className="t-petit c-700">Rien n'est exécuté : le verdict est archivé.</p>
-                <Bouton
-                  variante="primaire"
-                  onClick={signerVerdict}
-                  aria-disabled={Boolean(raisonBlocage) || envoi || undefined}
-                  aria-describedby={raisonBlocage ? idRaison : undefined}
-                >
-                  {envoi ? 'Archivage…' : 'Signer le verdict'}
-                </Bouton>
-              </div>
+              {raisonBlocage && <p id={idRaison} className={`t-petit c-700 ${styles.raison}`}>{raisonBlocage}</p>}
+              <Bouton
+                variante="primaire"
+                onClick={signerVerdict}
+                aria-disabled={Boolean(raisonBlocage) || envoi || undefined}
+                aria-describedby={raisonBlocage ? idRaison : undefined}
+              >
+                {envoi ? 'Archivage…' : 'Signer le verdict'}
+              </Bouton>
             </div>
-            {raisonBlocage && <p id={idRaison} className={`t-petit c-700 ${styles.raison}`}>{raisonBlocage}</p>}
           </div>
         </div>
       </div>

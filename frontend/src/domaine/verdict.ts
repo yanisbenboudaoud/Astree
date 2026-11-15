@@ -17,6 +17,14 @@ export interface OptionVerdict {
   sousTitre: string;
   statut?: Statut;
   mesures: { libelle: string; valeur: string }[];
+  /** Pire baisse simulée de l'option (brute), pour la placer face au seuil du Pacte. */
+  pireBaisse?: number;
+  /** Seuil de pire baisse qui s'appliquerait avec cette option (le seuil ajusté pour « pacte »). */
+  seuil?: number;
+  /** Seuil actuel du Pacte, quand l'option le change. */
+  ancienSeuil?: number;
+  /** Option « pacte » : les règles à changer pour que la décision soit conforme (#61). */
+  ajustements?: { regle: string; texte: string; pieces: string[] }[];
   /** Justification et case à cocher obligatoires avant de signer (annexe C.6). */
   engagement?: string;
   noteSiChoisie?: string;
@@ -47,7 +55,7 @@ function phraseEngagement(profil: Profil, ctx: ContexteVerdict, idRegle: string)
   const apres = ctx.resultat.contrat.comparaison.apres;
   if (!regle) return 'une règle de mon Pacte est enfreinte';
   if (regle.type === 'pire_baisse_max') {
-    return `la pire chute observée (${pourcent(apres.pire_baisse)}) dépasse ma limite de ${seuilTexte(regle.seuil ?? 0)}`;
+    return `la pire baisse observée (${pourcent(apres.pire_baisse)}) dépasse ma limite de ${seuilTexte(regle.seuil ?? 0)}`;
   }
   if (regle.type === 'plafond') {
     const nom = libelleCategories(regle.categories ?? []).toLowerCase();
@@ -68,9 +76,11 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
   const libelle = libelleDecision(decision);
   const panier = decision.type === 'panier';
   const apres = contrat.comparaison.apres;
+  const actuel = contrat.comparaison.actuel;
+  const seuil = contrat.pacte.regles.find((r) => r.type === 'pire_baisse_max')?.seuil;
 
   const mesuresMaintien = [
-    { libelle: 'Chute max.', valeur: pourcent(apres.pire_baisse) },
+    { libelle: 'Pire baisse', valeur: pourcent(apres.pire_baisse) },
     { libelle: 'Rendement', valeur: `${pourcent(apres.rendement_annuel, { signe: true })}/an` },
   ];
   if (panier && ctx.entreeDecision) {
@@ -79,18 +89,15 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
     }
   }
 
-  const paragraphes = violations.map((v) => `§${v.paragraphe}`).join(', ');
   const options: OptionVerdict[] = [{
     id: 'maintenir',
     verdict: 'maintenu',
     titre: panier ? 'Garder le panier tel quel' : `Maintenir ${libelle}`,
-    sousTitre: violations.length === 0
-      ? ''
-      : violations.length === 1
-        ? `Vous passez outre la violation de votre Pacte (${paragraphes}).`
-        : `Vous passez outre ${violations.length} violations de votre Pacte (${paragraphes}).`,
+    sousTitre: 'La décision telle que jugée par le Tribunal.',
     statut,
     mesures: mesuresMaintien,
+    pireBaisse: apres.pire_baisse,
+    seuil,
     engagement: violations.length
       ? `Je comprends que ${violations.map((v) => phraseEngagement(profil, ctx, v.regle)).join(' et que ')}, et que cette justification sera archivée.`
       : undefined,
@@ -111,18 +118,21 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
         id: 'ramener',
         verdict: 'modifie',
         titre: `Ramener la position à ${points} %`,
-        sousTitre: '',
+        sousTitre: 'La plus grande taille compatible avec les règles chiffrées de votre Pacte.',
         statut: statutRamene,
         mesures: [
-          { libelle: 'Chute max.', valeur: pourcent(entree.chuteMax) },
+          { libelle: 'Pire baisse', valeur: pourcent(entree.chuteMax) },
           { libelle: 'Rendement', valeur: `${pourcent(entree.rendement, { signe: true })}/an` },
         ],
+        pireBaisse: entree.chuteMax,
+        seuil,
         taille: points,
       });
     } else if (panier) {
       const piece = contrat.pieces.find((p) => p.outil === 'taille_max_compatible');
       const v = piece?.valeurs ?? {};
-      const mesures = typeof v.pire_baisse_a_taille_max === 'number' ? [{ libelle: 'Chute max.', valeur: pourcent(v.pire_baisse_a_taille_max) }] : [];
+      const pireBaisse = typeof v.pire_baisse_a_taille_max === 'number' ? v.pire_baisse_a_taille_max : undefined;
+      const mesures = pireBaisse !== undefined ? [{ libelle: 'Pire baisse', valeur: pourcent(pireBaisse) }] : [];
       for (const regle of profil.pacte.regles.filter((r) => r.type === 'plafond' && r.max !== 0).slice(0, 1)) {
         const valeur = v[`part_${(regle.categories ?? []).join('_')}_a_taille_max`];
         if (typeof valeur === 'number') mesures.push({ libelle: libelleCategories(regle.categories ?? []), valeur: pourcent(valeur) });
@@ -135,9 +145,11 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
         id: 'ramener',
         verdict: 'modifie',
         titre: `Réallouer seulement ${points} %`,
-        sousTitre: 'Le reste du portefeuille ne bouge pas.',
+        sousTitre: 'La plus grande part compatible avec les règles chiffrées de votre Pacte ; le reste ne bouge pas.',
         statut: statutRamene,
         mesures,
+        pireBaisse,
+        seuil,
         noteSiChoisie: paire
           ? `Calculée par le Tribunal (${piece?.id}). Les titres du panier restent corrélés : ${paire[0].slice(12).replace('_', '/')} à ${correlation(paire[1] as number)} (${corr!.id}), la poche se comporte presque comme un seul actif.`
           : undefined,
@@ -150,19 +162,57 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
     id: 'renoncer',
     verdict: 'modifie',
     titre: panier ? 'Garder mon portefeuille actuel' : 'Renoncer',
-    sousTitre: '',
-    mesures: [],
+    sousTitre: 'Votre portefeuille actuel, sans la décision.',
+    // Taille compatible connue : à 0 %, les règles chiffrées sont respectées ; null : même 0 % les viole.
+    statut: tm === null ? 'Violation' : 'Conforme',
+    mesures: [
+      { libelle: 'Pire baisse', valeur: pourcent(actuel.pire_baisse) },
+      { libelle: 'Rendement', valeur: `${pourcent(actuel.rendement_annuel, { signe: true })}/an` },
+    ],
+    pireBaisse: actuel.pire_baisse,
+    seuil,
   });
+
+  options.push(optionPacte(ctx, mesuresMaintien, seuil));
   return options;
 }
 
-export const OPTION_PACTE: OptionVerdict = {
-  id: 'pacte',
-  verdict: 'pacte_ajuste',
-  titre: 'Ajuster votre Pacte avant de décider',
-  sousTitre: 'Le verdict archive votre intention ; la décision sera rejugée avec le Pacte modifié.',
-  mesures: [],
-};
+/**
+ * « Ajuster mon Pacte » (verdict `pacte_ajuste`) : garder la décision et changer la règle.
+ * Les nouveaux seuils sont ceux des points de bascule (#61), calculés par Python.
+ */
+function optionPacte(ctx: ContexteVerdict, mesures: OptionVerdict['mesures'], seuil: number | undefined): OptionVerdict {
+  const { profil, resultat } = ctx;
+  const regles = resultat.contrat.pacte.regles;
+  const bascules = resultat.contrat.points_de_bascule ?? [];
+  const ajustements = bascules.map((p) => {
+    const regle = regles.find((r) => r.id === p.regle);
+    const numero = paragraphe(regles, p.regle);
+    const nom = p.type === 'pire_baisse_max' ? 'Pire baisse tolérée' : `Plafond ${libelleCategories(regle?.categories ?? []).toLowerCase()}`;
+    const avant = p.type === 'pire_baisse_max' ? seuilTexte(p.seuil_actuel) : part(p.seuil_actuel);
+    const apres = p.type === 'pire_baisse_max' ? pourcent(p.seuil_suffisant) : part(p.seuil_suffisant);
+    return { regle: p.regle, texte: `${numero ? `§${numero} · ` : ''}${nom} : ${apres} au lieu de ${avant}`, pieces: p.pieces };
+  });
+  const violations = controlesDuPacte(resultat).filter((c) => c.statut === 'Violation');
+  const couvertes = new Set(bascules.map((p) => p.regle));
+  const restantes = violations.filter((v) => !couvertes.has(v.regle));
+  const baisse = bascules.find((p) => p.type === 'pire_baisse_max');
+  return {
+    id: 'pacte',
+    verdict: 'pacte_ajuste',
+    titre: 'Ajuster mon Pacte',
+    sousTitre: ajustements.length
+      ? 'Garder la décision et changer la règle. La décision serait conforme avec :'
+      : 'Garder la décision et modifier une règle de votre Pacte.',
+    statut: violations.length === 0 ? statutDecision(profil, resultat) : restantes.length ? 'Violation' : 'Conforme',
+    mesures,
+    pireBaisse: resultat.contrat.comparaison.apres.pire_baisse,
+    seuil: baisse ? baisse.seuil_suffisant : seuil,
+    ancienSeuil: baisse ? baisse.seuil_actuel : undefined,
+    ajustements,
+    noteSiChoisie: 'Le verdict archive votre intention ; la décision sera rejugée avec le Pacte modifié.',
+  };
+}
 
 export interface Archivage {
   resume: string;

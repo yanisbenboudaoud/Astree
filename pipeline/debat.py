@@ -192,6 +192,10 @@ Règles sur le fond :
   risque de devise, distinct du risque des titres eux-mêmes. Une part s'écrit sans signe (37 %).
 - Les frais de gestion des FNB sont déjà prélevés dans les rendements des pièces : ne les
   retranche jamais d'un rendement ; cite leur coût annuel tel que la pièce le donne.
+- La pièce « composition_fnb » compte chaque FNB pour sa composition réelle (« part_tech »,
+  « part_tech_actuelle », et la part de chaque catégorie dans chaque FNB, ex. « QQQ_part_tech ») :
+  c'est elle que les plafonds du Pacte utilisent. « part_…_sans_transparence » est l'ancien calcul,
+  où un FNB comptait en entier ou pas du tout.
 - Le passé ne prédit pas l'avenir : ne présente jamais une performance passée comme une
   promesse (règle B).
 - Pour citer une règle du Pacte, reprends son libellé et cite la pièce du Pacte.

@@ -1,0 +1,287 @@
+{
+ "description": "Rendements totaux par année civile publiés par les émetteurs des FNB de l'univers d'actifs (issue #168), relevés par l'équipe sur la fiche ou la page officielle de chaque émetteur. Ils servent de source indépendante pour valider les rendements que le pipeline calcule à partir de adj_close (Yahoo Finance via yfinance, alphaforge_starter/prices_daily.csv). Rien n'est estimé : une année ou une base non publiée est absente.",
+ "date_releve": "2026-11-15",
+ "conditions_utilisation": "Chiffres publics publiés par les émetteurs dans leurs fiches et documents réglementaires, repris avec leur source à des fins éducatives et non commerciales. Aucun document n'est reproduit.",
+ "seuil_acceptation": {
+  "ecart_max_points": 0.25,
+  "fixe_le": "2026-11-15",
+  "fixe_avant_calcul": true,
+  "regle": "Pour chaque FNB et chaque année, l'écart absolu entre notre rendement (adj_close, devise de cotation, dernière séance de l'année précédente → dernière séance de l'année) et le rendement publié par l'émetteur doit être d'au plus 0,25 point de pourcentage. Base de comparaison : le cours de marché si l'émetteur le publie (adj_close est un cours), sinon la valeur liquidative, sinon le rendement du fonds publié sans base précisée. Un écart au-delà du seuil est expliqué dans le rapport, jamais retouché.",
+  "justification": "Hypothèse de l'équipe, écrite avant tout calcul. Les deux séries mesurent le même rendement total (cours et distributions réinvesties) ; les écarts attendus sont petits : arrondi publié (0,01 point), réinvestissement d'une distribution au cours de la veille de la date ex chez Yahoo plutôt qu'à la date ex, et, si seule la valeur liquidative est publiée, la prime ou l'escompte du cours sur la valeur liquidative aux deux fins d'année (quelques centièmes de point pour des FNB aussi liquides). Le seuil reste plus petit qu'une distribution mensuelle d'un FNB obligataire de l'univers (environ 0,3 % du prix) : une distribution oubliée par Yahoo dépasserait le seuil et serait donc vue."
+ },
+ "fnb": [
+  {
+   "ticker": "XIU.TO",
+   "emetteur": "BlackRock Canada (iShares)",
+   "devise": "CAD",
+   "decimales_publiees": 2,
+   "base_publiee": "Rendement « Fund » sans base précisée (la fiche ne publie aucun rendement au cours de marché)",
+   "rendements": [
+    {
+     "annee": 2022,
+     "fonds_base_non_precisee": -0.0636,
+     "document": "Fiche du fonds (octobre 2026), « CALENDAR YEAR PERFORMANCE (% CAD) », données au 31 octobre 2026",
+     "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xiu-ishares-s-p-tsx-60-index-etf-fund-fact-sheet-en-ca.pdf",
+     "citation": "2021 2022 2023 2024 2025 / Fund 27.90 -6.36 11.82 20.77 28.89"
+    },
+    {
+     "annee": 2023,
+     "fonds_base_non_precisee": 0.1182,
+     "document": "Fiche du fonds (octobre 2026), « CALENDAR YEAR PERFORMANCE (% CAD) », données au 31 octobre 2026",
+     "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xiu-ishares-s-p-tsx-60-index-etf-fund-fact-sheet-en-ca.pdf",
+     "citation": "2021 2022 2023 2024 2025 / Fund 27.90 -6.36 11.82 20.77 28.89"
+    },
+    {
+     "annee": 2024,
+     "fonds_base_non_precisee": 0.2077,
+     "document": "Fiche du fonds (octobre 2026), « CALENDAR YEAR PERFORMANCE (% CAD) », données au 31 octobre 2026",
+     "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xiu-ishares-s-p-tsx-60-index-etf-fund-fact-sheet-en-ca.pdf",
+     "citation": "2021 2022 2023 2024 2025 / Fund 27.90 -6.36 11.82 20.77 28.89"
+    },
+    {
+     "annee": 2025,
+     "fonds_base_non_precisee": 0.2889,
+     "document": "Fiche du fonds (octobre 2026), « CALENDAR YEAR PERFORMANCE (% CAD) », données au 31 octobre 2026",
+     "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xiu-ishares-s-p-tsx-60-index-etf-fund-fact-sheet-en-ca.pdf",
+     "citation": "2021 2022 2023 2024 2025 / Fund 27.90 -6.36 11.82 20.77 28.89"
+    }
+   ]
+  },
+  {
+   "ticker": "XBB.TO",
+   "emetteur": "BlackRock Canada (iShares)",
+   "devise": "CAD",
+   "decimales_publiees": 2,
+   "base_publiee": "Rendement « Fund » sans base précisée (la fiche ne publie aucun rendement au cours de marché)",
+   "rendements": [
+    {
+     "annee": 2022,
+     "fonds_base_non_precisee": -0.1178,
+     "document": "Fiche du fonds (octobre 2026), « CALENDAR YEAR PERFORMANCE (% CAD) », données au 31 octobre 2026",
+     "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf",
+     "citation": "2021 2022 2023 2024 2025 / Fund -2.65 -11.78 6.61 4.12 2.57"
+    },
+    {
+     "annee": 2023,
+     "fonds_base_non_precisee": 0.0661,
+     "document": "Fiche du fonds (octobre 2026), « CALENDAR YEAR PERFORMANCE (% CAD) », données au 31 octobre 2026",
+     "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf",
+     "citation": "2021 2022 2023 2024 2025 / Fund -2.65 -11.78 6.61 4.12 2.57"
+    },
+    {
+     "annee": 2024,
+     "fonds_base_non_precisee": 0.0412,
+     "document": "Fiche du fonds (octobre 2026), « CALENDAR YEAR PERFORMANCE (% CAD) », données au 31 octobre 2026",
+     "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf",
+     "citation": "2021 2022 2023 2024 2025 / Fund -2.65 -11.78 6.61 4.12 2.57"
+    },
+    {
+     "annee": 2025,
+     "fonds_base_non_precisee": 0.0257,
+     "document": "Fiche du fonds (octobre 2026), « CALENDAR YEAR PERFORMANCE (% CAD) », données au 31 octobre 2026",
+     "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf",
+     "citation": "2021 2022 2023 2024 2025 / Fund -2.65 -11.78 6.61 4.12 2.57"
+    }
+   ]
+  },
+  {
+   "ticker": "ZST.TO",
+   "emetteur": "BMO Gestion mondiale d'actifs",
+   "devise": "CAD",
+   "decimales_publiees": 1,
+   "base_publiee": "Valeur liquidative (« Returns are calculated using the ETF's net asset value (NAV) »), après frais, parts en CAD",
+   "rendements": [
+    {
+     "annee": 2022,
+     "valeur_liquidative": 0.012,
+     "document": "Aperçu du FNB (ETF Facts), parts en CAD, 23 janvier 2026, « Year-by-year returns »",
+     "url": "https://fundfacts.bmo.com/EtfEnglish/BMO_Ultra_Short-Term_Bond_ETF-EN-CAD_Units.pdf",
+     "citation": "2016 … 2025 / 1.8 1.4 2.0 2.4 1.8 0.2 1.2 5.3 5.3 3.1"
+    },
+    {
+     "annee": 2023,
+     "valeur_liquidative": 0.053,
+     "document": "Aperçu du FNB (ETF Facts), parts en CAD, 23 janvier 2026, « Year-by-year returns »",
+     "url": "https://fundfacts.bmo.com/EtfEnglish/BMO_Ultra_Short-Term_Bond_ETF-EN-CAD_Units.pdf",
+     "citation": "2016 … 2025 / 1.8 1.4 2.0 2.4 1.8 0.2 1.2 5.3 5.3 3.1"
+    },
+    {
+     "annee": 2024,
+     "valeur_liquidative": 0.053,
+     "document": "Aperçu du FNB (ETF Facts), parts en CAD, 23 janvier 2026, « Year-by-year returns »",
+     "url": "https://fundfacts.bmo.com/EtfEnglish/BMO_Ultra_Short-Term_Bond_ETF-EN-CAD_Units.pdf",
+     "citation": "2016 … 2025 / 1.8 1.4 2.0 2.4 1.8 0.2 1.2 5.3 5.3 3.1"
+    },
+    {
+     "annee": 2025,
+     "valeur_liquidative": 0.031,
+     "document": "Aperçu du FNB (ETF Facts), parts en CAD, 23 janvier 2026, « Year-by-year returns »",
+     "url": "https://fundfacts.bmo.com/EtfEnglish/BMO_Ultra_Short-Term_Bond_ETF-EN-CAD_Units.pdf",
+     "citation": "2016 … 2025 / 1.8 1.4 2.0 2.4 1.8 0.2 1.2 5.3 5.3 3.1"
+    }
+   ]
+  },
+  {
+   "ticker": "AGG",
+   "emetteur": "BlackRock (iShares)",
+   "devise": "USD",
+   "decimales_publiees": 2,
+   "base_publiee": "Valeur liquidative et cours de marché (« market price returns are calculated using the closing price »)",
+   "rendements": [
+    {
+     "annee": 2022,
+     "valeur_liquidative": -0.1306,
+     "cours": -0.1303,
+     "document": "Fiche du fonds (Fact Sheet as of September 30, 2026), « CALENDAR YEAR PERFORMANCE (%) »",
+     "url": "https://www.ishares.com/us/literature/fact-sheet/agg-ishares-core-u-s-aggregate-bond-etf-fund-fact-sheet-en-us.pdf",
+     "citation": "2021 2022 2023 2024 2025 / NAV -1.67 -13.06 5.58 1.37 7.19 / Market Price -1.77 -13.03 5.65 1.31 7.19"
+    },
+    {
+     "annee": 2023,
+     "valeur_liquidative": 0.0558,
+     "cours": 0.0565,
+     "document": "Fiche du fonds (Fact Sheet as of September 30, 2026), « CALENDAR YEAR PERFORMANCE (%) »",
+     "url": "https://www.ishares.com/us/literature/fact-sheet/agg-ishares-core-u-s-aggregate-bond-etf-fund-fact-sheet-en-us.pdf",
+     "citation": "2021 2022 2023 2024 2025 / NAV -1.67 -13.06 5.58 1.37 7.19 / Market Price -1.77 -13.03 5.65 1.31 7.19"
+    },
+    {
+     "annee": 2024,
+     "valeur_liquidative": 0.0137,
+     "cours": 0.0131,
+     "document": "Fiche du fonds (Fact Sheet as of September 30, 2026), « CALENDAR YEAR PERFORMANCE (%) »",
+     "url": "https://www.ishares.com/us/literature/fact-sheet/agg-ishares-core-u-s-aggregate-bond-etf-fund-fact-sheet-en-us.pdf",
+     "citation": "2021 2022 2023 2024 2025 / NAV -1.67 -13.06 5.58 1.37 7.19 / Market Price -1.77 -13.03 5.65 1.31 7.19"
+    },
+    {
+     "annee": 2025,
+     "valeur_liquidative": 0.0719,
+     "cours": 0.0719,
+     "document": "Fiche du fonds (Fact Sheet as of September 30, 2026), « CALENDAR YEAR PERFORMANCE (%) »",
+     "url": "https://www.ishares.com/us/literature/fact-sheet/agg-ishares-core-u-s-aggregate-bond-etf-fund-fact-sheet-en-us.pdf",
+     "citation": "2021 2022 2023 2024 2025 / NAV -1.67 -13.06 5.58 1.37 7.19 / Market Price -1.77 -13.03 5.65 1.31 7.19"
+    }
+   ]
+  },
+  {
+   "ticker": "TLT",
+   "emetteur": "BlackRock (iShares)",
+   "devise": "USD",
+   "decimales_publiees": 2,
+   "base_publiee": "Valeur liquidative et cours de marché (« market price returns are calculated using the closing price »)",
+   "rendements": [
+    {
+     "annee": 2022,
+     "valeur_liquidative": -0.3141,
+     "cours": -0.3125,
+     "document": "Fiche du fonds (Fact Sheet as of September 30, 2026), « CALENDAR YEAR PERFORMANCE (%) »",
+     "url": "https://www.ishares.com/us/literature/fact-sheet/tlt-ishares-20-year-treasury-bond-etf-fund-fact-sheet-en-us.pdf",
+     "citation": "2021 2022 2023 2024 2025 / NAV -4.76 -31.41 2.96 -7.84 4.17 / Market Price -4.60 -31.25 2.77 -8.06 4.25"
+    },
+    {
+     "annee": 2023,
+     "valeur_liquidative": 0.0296,
+     "cours": 0.0277,
+     "document": "Fiche du fonds (Fact Sheet as of September 30, 2026), « CALENDAR YEAR PERFORMANCE (%) »",
+     "url": "https://www.ishares.com/us/literature/fact-sheet/tlt-ishares-20-year-treasury-bond-etf-fund-fact-sheet-en-us.pdf",
+     "citation": "2021 2022 2023 2024 2025 / NAV -4.76 -31.41 2.96 -7.84 4.17 / Market Price -4.60 -31.25 2.77 -8.06 4.25"
+    },
+    {
+     "annee": 2024,
+     "valeur_liquidative": -0.0784,
+     "cours": -0.0806,
+     "document": "Fiche du fonds (Fact Sheet as of September 30, 2026), « CALENDAR YEAR PERFORMANCE (%) »",
+     "url": "https://www.ishares.com/us/literature/fact-sheet/tlt-ishares-20-year-treasury-bond-etf-fund-fact-sheet-en-us.pdf",
+     "citation": "2021 2022 2023 2024 2025 / NAV -4.76 -31.41 2.96 -7.84 4.17 / Market Price -4.60 -31.25 2.77 -8.06 4.25"
+    },
+    {
+     "annee": 2025,
+     "valeur_liquidative": 0.0417,
+     "cours": 0.0425,
+     "document": "Fiche du fonds (Fact Sheet as of September 30, 2026), « CALENDAR YEAR PERFORMANCE (%) »",
+     "url": "https://www.ishares.com/us/literature/fact-sheet/tlt-ishares-20-year-treasury-bond-etf-fund-fact-sheet-en-us.pdf",
+     "citation": "2021 2022 2023 2024 2025 / NAV -4.76 -31.41 2.96 -7.84 4.17 / Market Price -4.60 -31.25 2.77 -8.06 4.25"
+    }
+   ]
+  },
+  {
+   "ticker": "SPY",
+   "emetteur": "State Street Global Advisors (SPDR)",
+   "devise": "USD",
+   "decimales_publiees": 2,
+   "base_publiee": "Valeur liquidative (« net asset value per Unit ('NAV') ») : rendement sur un an au 31 décembre, colonne « Past One Year », ligne « Return Before Taxes » du prospectus de l'année suivante",
+   "rendements": [
+    {
+     "annee": 2022,
+     "valeur_liquidative": -0.1817,
+     "document": "Prospectus (formulaire 485BPOS) du 27 janvier 2023, « Average Annual Total Returns (for periods ending December 31, 2022) »",
+     "url": "https://www.sec.gov/Archives/edgar/data/884394/000119312523017786/d449477d485bpos.htm",
+     "citation": "Return Before Taxes – 18.17 % (Past One Year)"
+    },
+    {
+     "annee": 2023,
+     "valeur_liquidative": 0.2612,
+     "document": "Prospectus (formulaire 485BPOS) du 26 janvier 2024, « Average Annual Total Returns (for periods ending December 31, 2023) »",
+     "url": "https://www.sec.gov/Archives/edgar/data/884394/000119312524016801/d109104d485bpos.htm",
+     "citation": "Return Before Taxes 26.1 2% (Past One Year ; chaque nombre du tableau est coupé à la même place dans le texte du dépôt : 15.5 2%, 11.8 9%)"
+    },
+    {
+     "annee": 2024,
+     "valeur_liquidative": 0.2487,
+     "document": "Prospectus (formulaire 485BPOS) du 27 janvier 2025, « Average Annual Total Returns (for periods ending December 31, 2024) »",
+     "url": "https://www.sec.gov/Archives/edgar/data/884394/000119312525013181/d875286d485bpos.htm",
+     "citation": "Return Before Taxes 24.87% (Past One Year)"
+    },
+    {
+     "annee": 2025,
+     "valeur_liquidative": 0.1773,
+     "document": "Prospectus (formulaire 485BPOS) du 26 janvier 2026, « Average Annual Total Returns (for periods ending December 31, 2025) »",
+     "url": "https://www.sec.gov/Archives/edgar/data/884394/000119312526022316/d77353d485bpos.htm",
+     "citation": "Return Before Taxes 17.73 % (Past One Year)"
+    }
+   ]
+  },
+  {
+   "ticker": "ESGV",
+   "emetteur": "Vanguard",
+   "devise": "USD",
+   "decimales_publiees": 2,
+   "base_publiee": "Valeur liquidative (« performance of the Fund's ETF shares (based on NAV) ») ; cours de marché seulement pour 2024 (tableau des rendements annuels moyens sur 1 an au 31 décembre 2024)",
+   "rendements": [
+    {
+     "annee": 2022,
+     "valeur_liquidative": -0.2402,
+     "document": "Prospectus du 19 décembre 2025 (complété le 30 juin 2026), « Annual Total Returns — Vanguard ESG U.S. Stock ETF Shares » ; 2025 n'y figure pas encore",
+     "url": "https://fund-docs.vanguard.com/p4393.pdf",
+     "citation": "2019 2020 2021 2022 2023 2024 / 33.40 25.71 26.41 –24.02 30.76 24.68"
+    },
+    {
+     "annee": 2023,
+     "valeur_liquidative": 0.3076,
+     "document": "Prospectus du 19 décembre 2025 (complété le 30 juin 2026), « Annual Total Returns — Vanguard ESG U.S. Stock ETF Shares » ; 2025 n'y figure pas encore",
+     "url": "https://fund-docs.vanguard.com/p4393.pdf",
+     "citation": "2019 2020 2021 2022 2023 2024 / 33.40 25.71 26.41 –24.02 30.76 24.68"
+    },
+    {
+     "annee": 2024,
+     "valeur_liquidative": 0.2468,
+     "cours": 0.2469,
+     "document": "Prospectus du 19 décembre 2025 (complété le 30 juin 2026), « Annual Total Returns — Vanguard ESG U.S. Stock ETF Shares » ; 2025 n'y figure pas encore",
+     "url": "https://fund-docs.vanguard.com/p4393.pdf",
+     "citation": "2019 2020 2021 2022 2023 2024 / 33.40 25.71 26.41 –24.02 30.76 24.68 ; Based on Market Price, Return Before Taxes 24.69 (1 Year)"
+    }
+   ]
+  }
+ ],
+ "non_releves": [
+  {
+   "ticker": "QQQ",
+   "emetteur": "Invesco",
+   "motif": "Aucun rendement par année civile publié dans les pages lues (page du fonds, page de performance, perspectives trimestrielles au 30 septembre 2026 : rendements cumulés et annualisés seulement) ; la fiche PDF américaine n'a pas pu être obtenue."
+  },
+  {
+   "ticker": "GLD",
+   "emetteur": "State Street Global Advisors (SPDR)",
+   "motif": "La fiche (septembre 2026) et la page du fonds ne publient que des rendements par période (trimestre, depuis le début de l'année, 1, 3, 5 et 10 ans), pas par année civile."
+  }
+ ]
+}

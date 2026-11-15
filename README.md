@@ -76,6 +76,8 @@ Sans AWS ni Bedrock, sur les données du dépôt ; chaque commande régénère s
 ```powershell
 .venv\Scripts\python -X utf8 -m validation                        # scénarios de validation et de sensibilité (#15)
 .venv\Scripts\python -X utf8 -m validation.evaluation chiffres    # « Trompez le Greffier, 100 fois » (#165)
+.venv\Scripts\python -X utf8 -m validation.evaluation cadre       # « Trompez le Greffier », côté cadre (#166)
+.venv\Scripts\python -X utf8 -m validation.externe                # nos rendements face à ceux des émetteurs (#168)
 .venv\Scripts\python -X utf8 -m contrat.valider frontend\src\data\proces\2026-11-15-032ec3367b19.json
 ```
 
@@ -99,7 +101,7 @@ On peut aussi le construire par le questionnaire investisseur : `python -m pipel
 | `pipeline/` | Le Tribunal en Python : données, outils de calcul (pièces), agents Bedrock (Profil, Orchestrateur, Procureur, Avocat), Greffier, contrat final |
 | `contrat/` | Schéma JSON de la sortie et validateur (`python -m contrat.valider`) |
 | `personas/`, `config/` | Profils de test et leur Pacte (un fichier JSON par profil), catégories, questionnaire, Pacte vécu |
-| `alphaforge_starter/`, `donnees_externes/` | Données de départ fournies ; données ajoutées par l'équipe (ESG, frais et composition des FNB), sourcées et datées |
+| `alphaforge_starter/`, `donnees_externes/` | Données de départ fournies ; données ajoutées par l'équipe (ESG, frais, composition et rendements publiés des FNB), sourcées et datées |
 | `deploiement/` | Lambda, déploiement AWS idempotent (S3, IAM, Lambda, Function URL, CloudFront), politique IAM |
 | `frontend/` | Interface « Astrée » (React + TypeScript + Vite) et ses tests de bout en bout |
 | `validation/`, `tests/` | Scénarios de validation et évaluations mesurées des garde-fous ; tests unitaires (un fichier par module) |
@@ -127,3 +129,5 @@ Pour chaque document, le fichier donne la source, la date de consultation, des e
 **Données ajoutées par l'équipe : frais des FNB** (#114), dans `donnees_externes/frais_fnb.json`. Le ratio des frais de chacun des 9 FNB de l'univers a été relevé le 2026-11-15 sur la page ou le document officiel de l'émetteur (fiches iShares et Vanguard, aperçu du FNB de BMO, pages State Street, Invesco et iShares États-Unis). Ces frais sont prélevés sur l'actif des fonds : ils sont déjà dans `adj_close`. La simulation affiche leur coût annuel, sans le déduire une seconde fois.
 
 **Données ajoutées par l'équipe : composition des FNB** (#116), dans `donnees_externes/composition_fnb.json`. Les répartitions par secteur (et par pays quand elles sont publiées) des 9 FNB de l'univers ont été relevées le 2026-11-15 sur les pages publiques de leurs émetteurs (State Street, Invesco, Vanguard, BlackRock, BMO), avec la date affichée par chacun. Elles servent à calculer les plafonds par transparence. Conditions d'utilisation : quelques chiffres agrégés cités avec leur source, à des fins éducatives ; hors du datathon, il faudrait une source sous licence.
+
+**Données ajoutées par l'équipe : rendements publiés par les émetteurs** (#168), dans `donnees_externes/rendements_emetteurs.json`. Les rendements totaux par année civile de 2022 à 2025 de 7 FNB de l'univers (XIU, XBB, ZST, AGG, TLT, SPY, ESGV) ont été relevés le 2026-11-15 dans les fiches iShares, l'aperçu du FNB de BMO, les prospectus de SPY déposés à la SEC et le prospectus de Vanguard, avec la ligne citée mot pour mot. Ils servent seulement à valider nos rendements calculés sur `adj_close` (`python -m validation.externe`) : **27/27 dans le seuil de 0,25 point**, fixé avant le calcul. QQQ et GLD ne publient pas de rendement par année civile dans les documents lus : ils ne sont pas relevés. Chiffres publics des émetteurs, cités avec leur source à des fins éducatives.

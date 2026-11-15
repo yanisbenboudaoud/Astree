@@ -136,6 +136,7 @@ Socle commun : **`charger_donnees`** lit les CSV (local ou S3), convertit en CAD
 | 4 | `taille_max_compatible` | Plus grande taille qui respecte le Pacte (appelle l'outil 2) | Orchestrateur | V1 |
 | 5 | `verifier_pacte` | Compare les résultats aux règles du Pacte | Greffier | V1 |
 | 6 | `verifier_chiffres` | Vérifie que chaque nombre cité existe dans une pièce (section 4 ter) | Greffier | V1 |
+| 7 | `consulter_jurisprudence` | Verdicts passés du même profil (archives `verdicts/<profil>/` de S3) : violations par règle et choix de l'utilisateur (#56) | Orchestrateur | Bonus |
 
 Aucun de ces outils n'utilise le LLM. On les développe et teste **en local**, puis le même code est déployé dans Lambda (variable `SOURCE_DONNEES=local|s3`). Les outils 1 à 4 sont décrits à l'orchestrateur comme outils Bedrock (nom, description, schéma JSON des paramètres).
 

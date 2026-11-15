@@ -1,6 +1,6 @@
 # #99 — Portefeuille : composer un panier depuis n'importe quel profil
 
-- **Issue** : #99 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #99 · **PR** : #101 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

@@ -8,7 +8,8 @@ Deux routes, en POST, avec un corps JSON :
   l'en-tête ``X-Proces-Id`` : le format du contrat ne change pas.
 - ``/verdict`` ``{"id": "<id>", "verdict": "maintenu" | "modifie" | "pacte_ajuste"}`` :
   archive la décision avec ses pièces et le choix de l'utilisateur
-  (``verdicts/<id>.json``). Un nouveau verdict pour le même procès remplace l'ancien.
+  (``verdicts/<profil>/<id>.json``, relu par l'outil de jurisprudence, #56). Un nouveau
+  verdict pour le même procès remplace l'ancien.
 
 Le pipeline est importé et les CSV sont lus au niveau du module, hors du
 handler : une Lambda déjà démarrée les garde en mémoire (caches de
@@ -35,6 +36,7 @@ from botocore.exceptions import ClientError
 
 from pipeline.agent_profil import ProfilInconnu
 from pipeline.donnees import ErreurDonnees, seances_americaines
+from pipeline.jurisprudence import cle_verdict
 from pipeline.pacte import PacteInvalide
 from pipeline.tribunal import juger_decision
 
@@ -136,8 +138,9 @@ def _verdict(corps: dict[str, Any]) -> dict[str, Any]:
             return _reponse(404, {"erreur": f"Aucun procès archivé avec l'identifiant {identifiant}"})
         raise
     archive = {**contrat, "verdict": verdict}
-    _ecrire(cle_verdict(identifiant), archive)
-    return _reponse(200, {"id": identifiant, "verdict": verdict, "archive": cle_verdict(identifiant)})
+    cle = cle_verdict(contrat["persona"], identifiant)
+    _ecrire(cle, archive)
+    return _reponse(200, {"id": identifiant, "verdict": verdict, "archive": cle})
 
 
 # --- S3 ------------------------------------------------------------------------
@@ -151,10 +154,6 @@ def nouvel_identifiant(maintenant: datetime | None = None) -> str:
 
 def cle_trace(identifiant: str) -> str:
     return f"traces/{identifiant[:10]}/{identifiant}.json"
-
-
-def cle_verdict(identifiant: str) -> str:
-    return f"verdicts/{identifiant}.json"
 
 
 def _bucket() -> str:

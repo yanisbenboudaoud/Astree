@@ -7,7 +7,8 @@ résultat devient une pièce numérotée (P2, P3… : P1 est la pièce « Pacte 
 
 Garde-fous, tous appliqués par Python :
 - **liste blanche** : seuls les outils de ``outils_du_profil`` sont décrits au
-  modèle et exécutés (outils 1 à 4 et recherche documentaire ; jamais ceux du Greffier) ;
+  modèle et exécutés (outils 1 à 4, recherche documentaire et jurisprudence ;
+  jamais ceux du Greffier) ;
 - **budget** : ``BUDGET_APPELS`` appels au plus, refus compris, puis on passe
   au débat ;
 - **raison** : obligatoire, une phrase, sans chiffre ; sinon l'appel est refusé
@@ -30,7 +31,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from pipeline import correlations, documents, indicateurs, simulation, taille_max
+from pipeline import correlations, documents, indicateurs, jurisprudence, simulation, taille_max
 from pipeline.donnees import ErreurDonnees
 from pipeline.llm import (
     DemandeOutil,
@@ -73,7 +74,7 @@ class ResultatInstruction:
 
 
 def outils_du_profil(profil: dict[str, Any], decision: dict[str, Any] | None = None) -> list[Outil]:
-    """Liste blanche des outils (1 à 4, et la recherche documentaire), décrits pour le portefeuille de ce profil.
+    """Liste blanche des outils (1 à 4, recherche documentaire et jurisprudence), décrits pour ce profil.
 
     Pour une décision de réallocation (#16), la simulation et la taille maximale
     portent sur le panier de la décision : le modèle choisit seulement la part
@@ -113,6 +114,10 @@ def outils_du_profil(profil: dict[str, Any], decision: dict[str, Any] | None = N
     def executer_taille_max(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
         return taille_max.piece_taille_max(id_piece, portefeuille, decision_simulee(entree), regles)
 
+    def executer_jurisprudence(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
+        archives = jurisprudence.charger_archives(profil["id"])
+        return {"id": id_piece, **jurisprudence.piece_jurisprudence(archives, entree["regle"])}
+
     return [
         Outil("indicateurs_actif", indicateurs.DESCRIPTION_BEDROCK, executer_indicateurs),
         Outil(simulation.NOM_OUTIL, description_simulation, executer_simulation),
@@ -120,6 +125,9 @@ def outils_du_profil(profil: dict[str, Any], decision: dict[str, Any] | None = N
         Outil(documents.NOM_OUTIL, documents.decrire_rechercher_documents(tickers_univers),
               executer_documents),
         Outil(taille_max.NOM_OUTIL, description_taille_max, executer_taille_max),
+        Outil(jurisprudence.NOM_OUTIL,
+              jurisprudence.decrire_consulter_jurisprudence([regle["id"] for regle in regles]),
+              executer_jurisprudence),
     ]
 
 
@@ -133,7 +141,8 @@ Règles :
   Par exemple : un horizon court rend le temps de récupération d'un titre important ;
   une règle de pire baisse rend utile le rejeu d'une année de crise ; une règle
   probablement dépassée rend utile la taille maximale compatible avec le Pacte ; un critère
-  non financier du Pacte (critère documentaire) rend utile la recherche documentaire.
+  non financier du Pacte (critère documentaire) rend utile la recherche documentaire ; une
+  règle probablement violée rend utile la jurisprudence (procès passés de ce même profil).
 - La simulation complète du portefeuille avec la décision est toujours nécessaire.
 - Chaque appel a un paramètre « raison » : une phrase courte, en français, qui dit pourquoi
   cette preuve est utile. La raison ne contient AUCUN chiffre : ni seuil, ni pourcentage,

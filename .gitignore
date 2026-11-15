@@ -18,3 +18,6 @@ venv/
 
 # Zip de la Lambda (deploiement/construire_zip.py)
 build/
+
+# Verdicts archivés en local (outil de jurisprudence, #56)
+archives/

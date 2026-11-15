@@ -141,8 +141,9 @@ def test_verdict_archive_le_proces_avec_le_choix(s3, faux_proces):
     statut, contenu = reponse(lambda_tribunal.handler(
         evenement("/verdict", {"id": identifiant, "verdict": "modifie"})))
 
-    assert statut == 200 and contenu["archive"] == f"verdicts/{identifiant}.json"
-    assert s3.objets[f"verdicts/{identifiant}.json"] == {**CONTRAT, "verdict": "modifie"}
+    # Rangé par profil : l'outil de jurisprudence (#56) relit les verdicts d'un profil.
+    assert statut == 200 and contenu["archive"] == f"verdicts/robert/{identifiant}.json"
+    assert s3.objets[f"verdicts/robert/{identifiant}.json"] == {**CONTRAT, "verdict": "modifie"}
 
 
 def test_verdict_pour_un_proces_inconnu_404(s3):

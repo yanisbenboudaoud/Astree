@@ -35,7 +35,7 @@ flowchart TB
 
     OUT -->|"lit donnees/*.csv (une fois par Lambda démarrée)"| S3
     C -->|"archive traces/AAAA-MM-JJ/id.json"| S3
-    H -->|"archive verdicts/id.json"| S3
+    H -->|"archive verdicts/profil/id.json"| S3
     LAMBDA -.-> CW
 ```
 
@@ -46,7 +46,7 @@ flowchart TB
 | **Amazon Bedrock** | Le LLM des quatre agents : Agent Profil, orchestrateur (boucle Converse avec *tool use*), Procureur et Avocat | Cœur agentique, et la contribution la plus visible d'AWS. Le LLM explique ; il ne calcule jamais |
 | **AWS Lambda** | Exécute tout le pipeline : les phases, les outils Python et le Greffier | Même code qu'en local ; aucun serveur à gérer |
 | **Lambda Function URL** | Point d'accès HTTPS de l'interface | Un procès dure de 25 à 40 s : API Gateway coupe à 29 s. C'est aussi un service de moins |
-| **Amazon S3** | Données (CSV), trace de chaque procès, journal des verdicts | Explicabilité : chaque procès est archivé avec ses pièces et peut être relu |
+| **Amazon S3** | Données (CSV), trace de chaque procès, journal des verdicts | Explicabilité : chaque procès est archivé avec ses pièces et peut être relu ; l'orchestrateur relit les verdicts passés du profil (jurisprudence, #56) |
 | **CloudWatch** | Journaux de la Lambda | Diagnostic (ex. : « Données chargées » n'apparaît qu'au démarrage) |
 
 ## Un procès, pas à pas

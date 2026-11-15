@@ -50,13 +50,11 @@
   stroke-linejoin: round;
 }
 
-.pointActuel { fill: var(--fond-papier); stroke: var(--donnee-secondaire); stroke-width: 2; }
 .pointCreux { fill: var(--donnee-principale); stroke: var(--fond-papier); stroke-width: 2; }
 .pointCreuxFranchi { fill: var(--statut-violation); stroke: var(--fond-papier); stroke-width: 2; }
 /* Étiquettes détourées de blanc : lisibles même posées sur une courbe ou une aire. */
 .etiquetteCreux,
-.etiquetteCreuxFranchi,
-.etiquetteActuel {
+.etiquetteCreuxFranchi {
   font-family: var(--police-texte);
   font-size: 12px;
   paint-order: stroke;
@@ -66,7 +64,6 @@
 }
 .etiquetteCreux { fill: var(--encre-900); font-weight: 600; }
 .etiquetteCreuxFranchi { fill: var(--statut-violation); font-weight: 600; }
-.etiquetteActuel { fill: var(--encre-500); font-weight: 500; }
 
 /* Lecture au survol ou au clavier : repère, un point par courbe, bulle comparative. */
 .repereLecture { stroke: var(--encre-300); stroke-width: 1; }

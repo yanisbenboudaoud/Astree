@@ -55,8 +55,7 @@ export function TrompezLeGreffier({ resultat, pieces }: { resultat: ResultatTrib
       <div className={styles.entete}>
         <h2 className="t-intertitre" id="titre-pieges">Essayez de tromper le Greffier</h2>
         <p className="t-petit c-700">
-          Écrivez un argument chiffré et citez des pièces : le Greffier vérifie chaque nombre avec les mêmes règles que pour
-          le Procureur et l'Avocat. Python seul, sans IA : la réponse est immédiate.
+          Écrivez un argument chiffré : le Greffier vérifie chaque nombre, sans IA.
         </p>
       </div>
 

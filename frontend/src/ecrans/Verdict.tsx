@@ -92,7 +92,7 @@ export function Verdict({ profil }: { profil: Profil }) {
               <span className="t-corps-fort">{option.titre}</span>
               {option.statut && <Statut type={option.statut} />}
             </span>
-            <span className="t-petit c-700">{option.sousTitre}</span>
+            {option.sousTitre && <span className="t-petit c-700">{option.sousTitre}</span>}
             {option.mesures.length > 0 && (
               <span className={styles.mesures}>
                 {option.mesures.map((m) => (
@@ -140,7 +140,6 @@ export function Verdict({ profil }: { profil: Profil }) {
       <div className={styles.corps}>
         <LienRetour vers={`/${profil.id}/tribunal`}>Tribunal</LienRetour>
         <div className={styles.titre}>
-          <p className="t-etiquette c-500">Verdict</p>
           <h1 className="t-h1">Quelle est votre décision ?</h1>
           <p className={styles.rappel}>
             <Statut type={statut} />
@@ -173,8 +172,6 @@ export function Verdict({ profil }: { profil: Profil }) {
               </section>
             )}
             <div className={styles.blocExport}>
-              <h2 className="t-etiquette c-500">Procès-verbal</h2>
-              <p className="t-petit c-700">Tout le dossier du procès (pièces, contrôles, arguments, trace), en page imprimable.</p>
               <Bouton variante="secondaire" compact fleche={false} className={styles.lienExport} onClick={exporterProcesVerbal}>
                 Exporter le procès-verbal
               </Bouton>

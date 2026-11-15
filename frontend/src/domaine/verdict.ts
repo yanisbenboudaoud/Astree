@@ -85,7 +85,7 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
     verdict: 'maintenu',
     titre: panier ? 'Garder le panier tel quel' : `Maintenir ${libelle}`,
     sousTitre: violations.length === 0
-      ? "Aucune règle mesurable de votre Pacte n'est enfreinte."
+      ? ''
       : violations.length === 1
         ? `Vous passez outre la violation de votre Pacte (${paragraphes}).`
         : `Vous passez outre ${violations.length} violations de votre Pacte (${paragraphes}).`,
@@ -111,7 +111,7 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
         id: 'ramener',
         verdict: 'modifie',
         titre: `Ramener la position à ${points} %`,
-        sousTitre: 'La plus grande taille compatible avec les règles mesurables de votre Pacte.',
+        sousTitre: '',
         statut: statutRamene,
         mesures: [
           { libelle: 'Chute max.', valeur: pourcent(entree.chuteMax) },
@@ -135,7 +135,7 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
         id: 'ramener',
         verdict: 'modifie',
         titre: `Réallouer seulement ${points} %`,
-        sousTitre: 'La plus grande part réallouable compatible avec les règles mesurables de votre Pacte ; le reste du portefeuille ne bouge pas.',
+        sousTitre: 'Le reste du portefeuille ne bouge pas.',
         statut: statutRamene,
         mesures,
         noteSiChoisie: paire
@@ -150,7 +150,7 @@ export function optionsVerdict(ctx: ContexteVerdict): OptionVerdict[] {
     id: 'renoncer',
     verdict: 'modifie',
     titre: panier ? 'Garder mon portefeuille actuel' : 'Renoncer',
-    sousTitre: "Le portefeuille reste tel qu'il est.",
+    sousTitre: '',
     mesures: [],
   });
   return options;

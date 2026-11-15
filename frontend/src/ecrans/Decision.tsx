@@ -12,7 +12,7 @@ import { IconeStatut, Provenance } from '../components/Etiquettes';
 import { LienRetour, Message, Monogramme, Section } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { GraphiqueRecul } from '../components/graphiques/GraphiqueRecul';
-import { date, dollars, seuil as seuilTexte } from '../lib/format';
+import { date, dollars } from '../lib/format';
 import { serieRecul } from '../lib/series';
 import {
   effetsSurLePacte, entreePanier, entreePosition, ficheTitre, messagesDecision, totalPanier, type Effet,
@@ -46,7 +46,6 @@ function BlocTaille({ profil, decision, table, onTaille }: {
   const horsLimite = max === null || decision.taille > max;
   const tailleDefaut = profil.decisionDemo?.type === 'position' && profil.decisionDemo.ticker === decision.ticker
     ? Math.round(profil.decisionDemo.taille * 100) : 10;
-  const seuil = seuilPireBaisse(profil);
   const zones = useMemo(() => {
     const runs: { debut: number; fin: number; compatible: boolean }[] = [];
     table.tailles.forEach((e) => {
@@ -62,9 +61,6 @@ function BlocTaille({ profil, decision, table, onTaille }: {
     : horsLimite
       ? `Au-delà de votre limite : compatible jusqu'à ${max} %`
       : max >= 50 ? 'Compatible avec votre Pacte sur toute la plage' : `Compatible avec votre Pacte jusqu'à ${max} %`;
-  const detailHors = seuil !== undefined
-    ? `Au-delà, la chute observée dépasse ${seuilTexte(seuil)} ou une autre règle mesurable est enfreinte.`
-    : 'Au-delà, une règle mesurable du Pacte est enfreinte.';
 
   return (
     <Section id="titre-taille" titre="Taille de la position" droite={<Provenance type="Fictif" />}>
@@ -131,8 +127,7 @@ function BlocTaille({ profil, decision, table, onTaille }: {
       </div>
 
       <p className="t-petit c-500">
-        {(max === null || max < 50) && <>{detailHors} </>}
-        Financement simulé : réduction proportionnelle de vos positions.
+        Financement : réduction proportionnelle de vos positions.
       </p>
     </Section>
   );
@@ -231,7 +226,6 @@ function BlocEffets({ profil, entree, decision, libelleGraphique }: { profil: Pr
     <Section
       id="titre-effets"
       titre="Effet sur votre Pacte"
-      droite={<p className="t-petit c-500">Sur la période du {date(profil.debut)} au {date(profil.fin)}</p>}
     >
       <div className={styles.tableauEffets}>
         <table>
@@ -254,13 +248,12 @@ function BlocEffets({ profil, entree, decision, libelleGraphique }: { profil: Pr
         decision={avec}
         limite={seuilPireBaisse(profil)}
         creux={{ date: entree.dateChuteMax, valeur: entree.chuteMax }}
-        creuxActuel={{ date: profil.actuel.dateChuteMax, valeur: profil.actuel.chuteMax }}
         seances={entree.seances}
         libelleDecision={libelleGraphique}
       />
       <p className={styles.provenance}>
         <Provenance type="Fait" />
-        <span className="t-petit c-500">Rejeu sur les prix réels, en CAD. Le passé ne prédit pas l'avenir.</span>
+        <span className="t-petit c-500">Prix réels du {date(profil.debut)} au {date(profil.fin)}, en CAD. Le passé ne prédit pas l'avenir.</span>
       </p>
     </Section>
   );
@@ -327,7 +320,6 @@ export function Decision({ profil }: { profil: Profil }) {
       <div className={styles.corps}>
         <LienRetour vers={`/${profil.id}/portefeuille`}>Portefeuille</LienRetour>
         <div className={styles.titre}>
-          <p className="t-etiquette c-500">Instruction d'une décision</p>
           <h1 className="t-h1">
             {decision.type === 'position'
               ? `Quelle part de votre portefeuille en ${nomTitre(decision.ticker)} ?`
@@ -337,8 +329,8 @@ export function Decision({ profil }: { profil: Profil }) {
             <Provenance type="Fait" />
             <span className="t-petit c-700">
               {decision.type === 'position'
-                ? ficheTitre(decision.ticker, profil.debut, profil.fin)
-                : `Remplace votre répartition actuelle · simulé sur ${Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10)} ans de prix réels`}
+                ? ficheTitre(decision.ticker)
+                : 'Remplace votre répartition actuelle'}
             </span>
           </p>
         </div>

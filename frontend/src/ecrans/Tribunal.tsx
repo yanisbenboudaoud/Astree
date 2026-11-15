@@ -410,12 +410,11 @@ export function Tribunal({ profil }: { profil: Profil }) {
           <LienRetour vers={`/${profil.id}/decision`}>Décision</LienRetour>
           <div className={styles.titre}>
             <p className="t-etiquette c-500">
-              Audience n° {resultat.audience} · instruction terminée
+              Audience n° {resultat.audience}
               {manquantes ? ` · ${manquantes} donnée${manquantes > 1 ? 's' : ''} manquante${manquantes > 1 ? 's' : ''}` : ''}
               {MODE_DIRECT ? '' : ' · procès enregistré'}
             </p>
             <h1 className="t-h1">{resultat.titre}</h1>
-            <p className="t-citation c-700">Le Tribunal présente les deux côtés. C'est vous qui rendez le verdict.</p>
           </div>
 
           <section className={styles.bilan} aria-labelledby="titre-bilan">
@@ -492,7 +491,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
           <TrompezLeGreffier resultat={resultat} pieces={pieces} />
 
           <div className={styles.replis}>
-            <Repli id="repli-trace" titre="Comment le Tribunal a travaillé" sousTitre={`${resultat.trace.length} étapes tracées : profil, outils choisis par l'orchestrateur, plaidoiries, contrôle`}>
+            <Repli id="repli-trace" titre="Comment le Tribunal a travaillé" sousTitre={`${resultat.trace.length} étapes`}>
               <ol className={styles.chronologie}>
                 {resultat.trace.map((e, i) => (
                   <li key={i} className={styles.etapeChrono}>
@@ -509,7 +508,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
                 ))}
               </ol>
             </Repli>
-            <Repli id="repli-pieces" titre="Pièces à conviction" sousTitre={`${pieces.length} pièces : source, traitement et limites de chaque chiffre`}>
+            <Repli id="repli-pieces" titre="Pièces à conviction" sousTitre={`${pieces.length} pièces`}>
               <ul className={styles.listePieces}>
                 {pieces.map((p) => (
                   <li key={p.code} className={styles.lignePiece}>

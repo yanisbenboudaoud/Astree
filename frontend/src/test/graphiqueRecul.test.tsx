@@ -19,7 +19,6 @@ const base = {
   decision,
   limite: -0.2,
   creux: { date: '2022-12-30', valeur: -0.2031 },
-  creuxActuel: { date: '2022-12-30', valeur: -0.151 },
   libelleDecision: 'Avec 12 % de TSLA',
 };
 
@@ -31,7 +30,7 @@ describe('GraphiqueRecul', () => {
 
   it('dit quand la limite n’est jamais franchie', () => {
     render(<GraphiqueRecul {...base} seances={{ nombre: 0, du: null, au: null }} />);
-    expect(screen.getByText(/ne serait jamais passé sous votre limite/)).toBeInTheDocument();
+    expect(screen.getByText(/Jamais sous votre limite de/)).toBeInTheDocument();
   });
 
   it('compare les deux courbes à la même date, au clavier', () => {

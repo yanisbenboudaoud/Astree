@@ -5,7 +5,7 @@
  * Lecture en trois temps :
  *  1. une phrase en tête donne la conclusion (limite franchie ou non, pendant combien de séances, quand) ;
  *  2. le graphique montre les deux courbes, la limite du Pacte, la période passée sous la limite
- *     et les deux pires moments annotés ;
+ *     et le pire moment avec la décision ;
  *  3. au survol, au toucher ou au clavier, un repère compare les deux courbes à la même date.
  *
  * Tout vient des tables précalculées : rien n'est interpolé, estimé ni recalculé ici.
@@ -23,8 +23,6 @@ interface ProprietesGraphiqueRecul {
   limite?: number;
   /** Pire moment avec la décision. */
   creux: { date: string; valeur: number };
-  /** Pire moment du portefeuille actuel. */
-  creuxActuel: { date: string; valeur: number };
   seances?: SeancesSousLimite | null;
   libelleDecision: string;
 }
@@ -47,23 +45,23 @@ function periode(du: string, au: string): string {
 }
 
 /** La phrase de lecture et son ton : franchie (rouge), jamais franchie (vert), ou neutre. */
-function conclusion(libelle: string, creux: { date: string; valeur: number }, limite?: number, seances?: SeancesSousLimite | null) {
+function conclusion(creux: { date: string; valeur: number }, limite?: number, seances?: SeancesSousLimite | null) {
   const pire = `${pourcent(creux.valeur)} en ${moisAnnee(creux.date)}`;
-  if (limite === undefined) return { ton: 'neutre', texte: `${libelle}, la pire baisse aurait été de ${pire}.` };
+  if (limite === undefined) return { ton: 'neutre', texte: `Pire baisse : ${pire}.` };
   if (seances && seances.nombre > 0 && seances.du && seances.au) {
     return {
       ton: 'franchie',
-      texte: `${libelle}, le portefeuille serait passé sous votre limite de ${seuil(limite)} pendant ${compte(seances.nombre, 'séance')}, ${periode(seances.du, seances.au)}, avec un creux à ${pourcent(creux.valeur)}.`,
+      texte: `Sous votre limite de ${seuil(limite)} pendant ${compte(seances.nombre, 'séance')}, ${periode(seances.du, seances.au)}.`,
     };
   }
   if (seances && seances.nombre === 0) {
-    return { ton: 'respectee', texte: `${libelle}, le portefeuille ne serait jamais passé sous votre limite de ${seuil(limite)}. Pire baisse : ${pire}.` };
+    return { ton: 'respectee', texte: `Jamais sous votre limite de ${seuil(limite)}.` };
   }
   // Seuil mesuré par le Pacte vécu (#68) : les séances ont été comptées avec l'ancien seuil, on ne les cite pas.
-  return { ton: 'neutre', texte: `${libelle}, la pire baisse aurait été de ${pire}, pour une limite de ${seuil(limite)}.` };
+  return { ton: 'neutre', texte: `Pire baisse : ${pire}, pour une limite de ${seuil(limite)}.` };
 }
 
-export function GraphiqueRecul({ actuel, decision, limite, creux, creuxActuel, seances, libelleDecision }: ProprietesGraphiqueRecul) {
+export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libelleDecision }: ProprietesGraphiqueRecul) {
   const [ref, largeur] = useLargeur<HTMLDivElement>(776);
   const [actif, setActif] = useState<number | null>(null);
   const droite = largeur - DROITE;
@@ -83,17 +81,16 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, creuxActuel, s
   const franchie = Boolean(seances && seances.nombre > 0 && seances.du && seances.au && limite !== undefined);
   const idClip = `sous-limite-${Math.round(largeur)}`;
   const idDegrade = `degrade-recul-${Math.round(largeur)}`;
-  const lecture = conclusion(libelleDecision, creux, limite, seances);
+  const lecture = conclusion(creux, limite, seances);
 
-  // Pires moments : le point de la décision est annoté sous le creux ; celui d'aujourd'hui aussi
-  // s'il est assez loin, sinon il rejoint l'étiquette de la décision sur une deuxième ligne.
+  // Pire moment avec la décision : étiquette sous le point, ou à côté s'il touche le bas du graphique.
   const xCreux = x(jour(creux.date));
   const yCreux = y(creux.valeur);
-  const xCreuxActuel = x(jour(creuxActuel.date));
-  const yCreuxActuel = y(creuxActuel.valeur);
-  const separes = Math.abs(xCreux - xCreuxActuel) > 150;
-  const ancre = (px: number) => (px < GAUCHE + 90 ? 'start' : px > droite - 90 ? 'end' : 'middle');
-  const yEtiquette = (py: number, lignes: number) => Math.min(py + 22, HAUT + HAUTEUR_TRACE - 6 - (lignes - 1) * 16);
+  const placeDessous = yCreux + 22 <= HAUT + HAUTEUR_TRACE - 4;
+  const versLaGauche = xCreux > droite - 140;
+  const etiquetteCreux = placeDessous
+    ? { x: xCreux, y: yCreux + 22, ancre: xCreux < GAUCHE + 70 ? 'start' : versLaGauche ? 'end' : 'middle' }
+    : { x: versLaGauche ? xCreux - 12 : xCreux + 12, y: yCreux + 4, ancre: versLaGauche ? 'end' : 'start' };
 
   const point = actif !== null ? {
     date: decision[actif][0],
@@ -150,7 +147,7 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, creuxActuel, s
         width={largeur}
         height={HAUTEUR}
         role="img"
-        aria-label={`Baisse depuis le dernier sommet, actuel et ${libelleDecision.toLowerCase()}. ${lecture.texte}`}
+        aria-label={`Baisse depuis le dernier sommet, actuel et ${libelleDecision.toLowerCase()}. ${lecture.texte} Pire baisse avec la décision : ${pourcent(creux.valeur)} en ${moisAnnee(creux.date)}.`}
         aria-roledescription="graphique interactif"
         aria-describedby="aide-graphique-recul"
         tabIndex={0}
@@ -206,21 +203,9 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, creuxActuel, s
           </g>
         )}
 
-        {/* Pire moment d'aujourd'hui */}
-        <circle cx={xCreuxActuel} cy={yCreuxActuel} r={4} className={styles.pointActuel} />
-        {separes && (
-          <text x={xCreuxActuel} y={yEtiquette(yCreuxActuel, 1)} textAnchor={ancre(xCreuxActuel)} className={styles.etiquetteActuel}>
-            Actuel {pourcent(creuxActuel.valeur)}
-          </text>
-        )}
-
-        {/* Pire moment avec la décision */}
         <circle cx={xCreux} cy={yCreux} r={5} className={franchie ? styles.pointCreuxFranchi : styles.pointCreux} />
-        <text x={xCreux} y={yEtiquette(yCreux, separes ? 1 : 2)} textAnchor={ancre(xCreux)} className={franchie ? styles.etiquetteCreuxFranchi : styles.etiquetteCreux}>
-          <tspan>{pourcent(creux.valeur)} · {moisAnnee(creux.date)}</tspan>
-          {!separes && (
-            <tspan x={xCreux} dy={16} className={styles.etiquetteActuel}>Actuel {pourcent(creuxActuel.valeur)}</tspan>
-          )}
+        <text x={etiquetteCreux.x} y={etiquetteCreux.y} textAnchor={etiquetteCreux.ancre} className={franchie ? styles.etiquetteCreuxFranchi : styles.etiquetteCreux}>
+          {pourcent(creux.valeur)} · {moisAnnee(creux.date)}
         </text>
 
         {debutsAnnees(decision.map(([d]) => d)).map(({ annee, date: d }) => (

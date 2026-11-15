@@ -112,6 +112,8 @@ Style épuré (refonte #105, inspirée des applications de placement grand publi
 - Les gains et pertes s'écrivent en encre, avec un signe et ▲/▼ (pas en vert ou rouge).
 - Un trait qui porte une information (bord de contrôle, pastille d'étape à venir, courbe « Actuel ») atteint au moins 3:1 sur le papier et sur les cartes (WCAG 1.4.11) : `--trait-moyen` ou plus foncé, jamais `--trait-fin`, `--encre-200` ni `--encre-300` (#103).
 
+**Sobriété du texte (#105).** Chaque phrase affichée doit apprendre quelque chose qu'aucun autre élément visible ne dit déjà. On retire les surtitres qui répètent les étapes, les sous-titres qui reformulent un chiffre, les précisions évidentes (« annualisée », « par an sur 5 ans ») et les modes d'emploi. Restent toujours : le bandeau de simulation, les étiquettes Fait / Hypothèse / Fictif, la source et la période des calculs, « Le passé ne prédit pas l'avenir », et tout texte utile aux lecteurs d'écran (gardé en `visuellement-cache`).
+
 ### A.2 Typographie (Google Fonts)
 
 Polices (#105) :
@@ -199,9 +201,8 @@ Ces règles reproduisent nos chiffres au dixième près. Les valeurs attendues s
 
 ### C.1 Écran d'entrée
 
-- **Étiquette :** « Démonstration ».
 - **Titre (H1) :** « Testez une décision d'investissement avant de la prendre. » (#103 : le titre dit ce que fait Astrée, au lieu de « Avec quel profil voulez-vous explorer Astrée ? »)
-- **Sous-titre :** « Cherchez un titre et choisissez une taille : un Procureur et un Avocat en débattent face aux règles de votre Pacte, et c'est vous qui rendez le verdict. Choisissez un profil pour commencer ; vous pourrez en changer à tout moment depuis le menu en haut à droite. »
+- **Sous-titre (#105) :** « Un Procureur et un Avocat en débattent face à vos règles. Vous rendez le verdict. » Les cartes ne portent plus la question en italique ; le bloc « Votre propre Pacte » dit seulement « 15 questions, environ 5 minutes. » ; le pied : « Profils fictifs, prix réels du … au … ».
 - **Trois cartes cliquables** (carte entière + bouton secondaire « Entrer comme … »), dans cet ordre. Au survol, la carte se soulève de 2 px (bord encre, ombre de survol) ; à l'appui, elle redescend.
 
 | Profil | Âge · métier | Risque | Horizon | Décision à tester | Question en italique |
@@ -341,7 +342,7 @@ Ces règles reproduisent nos chiffres au dixième près. Les valeurs attendues s
 **Règles communes à toutes les audiences :**
 - Chaque argument a une provenance (Fait, Hypothèse ou Fictif) et cite au moins une pièce.
 - **Encadré « Limite que l'Avocat reconnaît »** (fond ocre) sous les arguments de l'Avocat, pour les 3 profils : « Biais du survivant : l'univers a été choisi en 2026 parmi des titres devenus gros. Les rendements passés cités ici sont donc flattés. »
-- **Sous-titre de toutes les audiences :** « Le Tribunal présente les deux côtés. C'est vous qui rendez le verdict. »
+- **Pas de sous-titre** sous le titre de l'audience (#105).
 
 #### Robert
 
@@ -538,13 +539,8 @@ L'état est conservé par profil dans un store : taille choisie, panier, répons
 
 La recherche est la fonction principale de l'écran : elle passe en tête, sur toute la largeur (#103).
 
-- **En-tête de page :** « Bonjour {prénom}. » en H1, suivi sur la même ligne (renvoi à la ligne si la place manque) de ✓ vert + phrase de statut.
-- **Bandeau de recherche** (D.3), juste sous l'en-tête, sur toute la largeur du conteneur : à gauche la recherche, à droite les **3 étapes du parcours** (`EtapesParcours`), séparées par un filet vertical clair :
-  1. **Décision** : « Choisissez un titre et une taille : l'effet sur votre Pacte s'affiche aussitôt. »
-  2. **Tribunal** : « Un Procureur et un Avocat (IA) plaident à partir de pièces calculées ; le Greffier vérifie chaque chiffre. »
-  3. **Verdict** : « Vous décidez. Rien n'est acheté : le verdict est archivé. »
-
-  Pastilles numérotées de 26 px à contour papier ; la première est pleine. Sous 1024 px, les étapes passent sous la recherche.
+- **En-tête de page :** « Bonjour {prénom}. » en H1. La phrase de statut n'apparaît que si le portefeuille enfreint une règle (#105) : la carte du Pacte dit déjà « Respecté ».
+- **Bandeau de recherche** (D.3), juste sous l'en-tête, sur toute la largeur du conteneur, sur une seule colonne (#105 : les 3 étapes du parcours sont retirées, l'en-tête de la Décision les montre déjà).
 - **Colonne principale :**
   - Valeur : « Valeur du portefeuille », montant en Inter 600 48 / 52 (36 / 40 sous 600 px) + Fictif, ligne « ▲ 233 034 $ (+55,9 %) depuis le 12 nov. 2021 », mention « Sur 5 ans ».
   - Graphique de valeur : courbe `--donnee-principale` de 2,25 px, aire en dégradé de la même couleur (22 % en haut, transparente en bas, #105), axe en k$ à droite, pastille `--donnee-principale` de la valeur actuelle au bout de la courbe, point le plus bas marqué avec son libellé, années en abscisse. **Pas de bascule ni de choix de période** (simplification voulue).
@@ -558,11 +554,10 @@ La recherche est la fonction principale de l'écran : elle passe en tête, sur t
 
 ### D.3 Recherche (combobox ARIA)
 
-- **Bandeau (#103)** (`components/Recherche.tsx`) : panneau clair (`--fond-sourdine`, bordure `--trait-fin`, texte encre, #105) en haut du Portefeuille, padding 32 / 36, rayon 16 ; grille « recherche | complément de 360 px », gouttière de 48. De haut en bas :
-  - surtitre en Étiquette majuscule « Étape 1 · Décision » ;
+- **Bandeau (#103)** (`components/Recherche.tsx`) : panneau clair (`--fond-sourdine`, bordure `--trait-fin`, texte encre, #105) en haut du Portefeuille, padding 32 / 36, rayon 16 ; une colonne (une deuxième de 360 px seulement si un complément est passé). De haut en bas :
   - titre-question (un H2 au style Titre/H1) tiré de `profils_ui.json` : « Quelle décision voulez-vous tester ? » (mode titre) ou « Quel panier voulez-vous tester ? » (mode panier) ; mêmes textes par défaut pour un profil sans textes propres ;
   - le choix du mode, aligné à droite du titre ;
-  - l'aide, puis, en mode panier, les pastilles du panier ;
+  - l'aide, masquée à l'écran et gardée pour les lecteurs d'écran (description du champ, #105), puis, en mode panier, les pastilles du panier ;
   - le champ de **56 px** en pilule (texte 17 px, icône loupe de 20 px), bord encre et ombre de survol au survol, bord bleu de 2 px et halo `--accent-bleu-teinte` au focus ;
   - les **titres suggérés en un clic**, précédés de « Essayer : » (mode titre : un clic ouvre la Décision) ou « Ajouter : » (mode panier : un clic ajoute au panier ; un titre déjà ajouté est désactivé avec ✓). Pastilles de 32 px : nom + ticker court en Mono. La liste vient de `suggestionsDe` : les titres de la décision de démonstration du profil, puis TSLA, NVDA, XOM, BTC-USD, sans doublon, 5 au plus ;
   - en mode panier, « Instruire le panier (N titres) » (bouton primaire) à partir de 2 titres.
@@ -584,7 +579,7 @@ La recherche est la fonction principale de l'écran : elle passe en tête, sur t
 
 ### D.4 Décision
 
-- **Mise en page (paysage, #103) :** conteneur large. Lien « ← Portefeuille », étiquette « Instruction d'une décision », H1, ligne de fiche avec étiquette Fait. Dessous, une grille à zones de deux colonnes 5 : 7 :
+- **Mise en page (paysage, #103) :** conteneur large. Lien « ← Portefeuille », H1, ligne de fiche avec étiquette Fait (« TSLA · NASDAQ · volatilité 59 % · pire chute −70,9 % », #105). Dessous, une grille à zones de deux colonnes 5 : 7 :
   - à gauche, de haut en bas : le réglage (taille ou panier), les messages, les actions ;
   - à droite : « Effet sur votre Pacte », fixe au défilement (`position: sticky`).
 
@@ -657,7 +652,7 @@ Contenus par profil : annexe C.6.
 
 - **Mise en page (paysage, #103) :** conteneur large. Lien « ← Tribunal », étiquette « Verdict », H1 « Quelle est votre décision ? », rappel (statut + constat). Dessous, deux colonnes 7 : 5 :
   - à gauche : les options (cartes radio), le lien « Ou ajuster votre Pacte avant de décider », puis la barre d'actions (« Retour au Tribunal » ; « Rien n'est exécuté : le verdict est archivé. » + « Signer le verdict ») et, s'il y a lieu, la raison pour laquelle la signature est désactivée ;
-  - à droite, fixe au défilement : « Ce qui changerait la réponse » (points de bascule, avec les liens vers leurs pièces) et la carte **« Procès-verbal »** : « Tout le dossier du procès (pièces, contrôles, arguments, trace), en page imprimable. » + bouton secondaire compact « Exporter le procès-verbal » ; en cas d'échec, un message Violation avec « Réessayer ».
+  - à droite, fixe au défilement : « Ce qui changerait la réponse » (points de bascule, avec les liens vers leurs pièces) et la carte **« Procès-verbal »**, réduite au bouton secondaire compact « Exporter le procès-verbal » (#105) ; en cas d'échec, un message Violation avec « Réessayer ».
 - **Options :** au survol, la carte prend un bord `--encre-500` et l'ombre de survol ; l'option choisie garde son bord encre de 1,5 px.
 - **Sous 1024 px :** la colonne de droite passe en premier, puis les options, puis les actions.
 

@@ -93,7 +93,6 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
   const pireBaisse = regles.find((r) => r.type === 'pire_baisse_max');
   effets.push({
     libelle: 'Chute maximale',
-    detail: 'pire baisse depuis un sommet',
     avant: pourcent(profil.actuel.chuteMax),
     apres: pourcent(entree.chuteMax),
     limite: pireBaisse ? seuilTexte(pireBaisse.seuil ?? 0) : undefined,
@@ -102,19 +101,16 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
   });
   effets.push({
     libelle: 'Rendement annualisé',
-    detail: `par an sur ${Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10)} ans`,
     avant: pourcent(profil.actuel.rendement, { signe: true }),
     apres: pourcent(entree.rendement, { signe: true }),
   });
   effets.push({
-    libelle: 'Volatilité',
-    detail: 'annualisée',
+    libelle: 'Volatilité annuelle',
     avant: pourcent(profil.actuel.volatilite),
     apres: pourcent(entree.volatilite),
   });
   effets.push({
     libelle: 'Rendement en 2022',
-    detail: "rejeu de l'année de crise",
     avant: pourcent(profil.actuel.rejeu2022, { signe: true }),
     apres: pourcent(entree.rejeu2022, { signe: true }),
   });
@@ -204,10 +200,9 @@ export function messagesDecision(
   return messages;
 }
 
-/** Fiche d'un titre : « TSLA · action · NASDAQ · USD — volatilité ≈ 59 %, pire chute −70,9 % sur 5 ans, en CAD ». */
-export function ficheTitre(ticker: string, debut: string, fin: string): string {
+/** Fiche d'un titre : « TSLA · NASDAQ · volatilité 59 % · pire chute −70,9 % ». */
+export function ficheTitre(ticker: string): string {
   const t = titreDe(ticker);
   if (!t) return ticker;
-  const annees = Math.round((Date.parse(fin) - Date.parse(debut)) / 3.15576e10);
-  return `${t.ticker} · ${t.classe} · ${t.bourse} · ${t.devise} — volatilité ≈ ${pourcent(t.volatilite, { decimales: 0 })}, pire chute ${pourcent(t.chuteMax)} sur ${annees} ans, en CAD`;
+  return `${t.ticker} · ${t.bourse} · volatilité ${pourcent(t.volatilite, { decimales: 0 })} · pire chute ${pourcent(t.chuteMax)}`;
 }

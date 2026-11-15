@@ -8,7 +8,7 @@ import { GraphiqueValeur } from '../components/graphiques/GraphiqueValeur';
 import { Recherche } from '../components/Recherche';
 import { Bouton } from '../components/Bouton';
 import { Provenance } from '../components/Etiquettes';
-import { Jauge, Monogramme, Section } from '../components/Elements';
+import { Monogramme, Section } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { compte, date, dollars, jourMois, part, pourcent, seuil as seuilTexte } from '../lib/format';
 import { bilanPacte, regleCle, seuilPireBaisse } from '../domaine/pacte';
@@ -31,61 +31,28 @@ function suggestionsDe(profil: Profil): string[] {
   return [...new Set([...tickers, ...SUGGESTIONS_PAR_DEFAUT])].slice(0, NOMBRE_SUGGESTIONS);
 }
 
-/** Les 3 étapes du parcours, à droite de la recherche : ce qui se passe après avoir choisi un titre. */
-function EtapesParcours() {
-  const etapes = [
-    { titre: 'Décision', texte: "Choisissez un titre et une taille : l'effet sur votre Pacte s'affiche aussitôt." },
-    { titre: 'Tribunal', texte: 'Un Procureur et un Avocat (IA) plaident à partir de pièces calculées ; le Greffier vérifie chaque chiffre.' },
-    { titre: 'Verdict', texte: "Vous décidez. Rien n'est acheté : le verdict est archivé." },
-  ];
-  return (
-    <ol className={styles.etapesParcours} aria-label="Comment Astrée juge une décision">
-      {etapes.map((e, i) => (
-        <li key={e.titre}>
-          <span className={styles.numeroEtape} aria-hidden="true">{i + 1}</span>
-          <span className={styles.texteEtape}>
-            <span className="t-petit-fort">{e.titre}</span>
-            <span className="t-petit">{e.texte}</span>
-          </span>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 /** Indicateurs compacts (#103) : libellé au-dessus, chiffre et contexte sur la même ligne. */
 function Indicateurs({ profil }: { profil: Profil }) {
   const seuil = seuilPireBaisse(profil);
-  const annees = Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10);
-  const utilisation = seuil ? profil.actuel.chuteMax / seuil : null;
   return (
     <dl className={styles.indicateurs}>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Rendement annualisé</dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.rendement, { signe: true })}</span>
-          <span className="t-petit c-500">par an sur {annees} ans</span>
         </dd>
       </div>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Chute maximale</dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.chuteMax)}</span>
-          {seuil !== undefined && utilisation !== null && (
-            <>
-              <span className={styles.jaugeIndicateur}>
-                <Jauge valeur={utilisation} libelle={`Chute maximale : ${pourcent(utilisation, { decimales: 0 })} de la limite de votre Pacte`} />
-              </span>
-              <span className="t-petit c-500">{pourcent(utilisation, { decimales: 0 })} de votre limite de {seuilTexte(seuil)}</span>
-            </>
-          )}
+          {seuil !== undefined && <span className="t-petit c-500">limite {seuilTexte(seuil)}</span>}
         </dd>
       </div>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Volatilité</dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.volatilite)}</span>
-          <span className="t-petit c-500">annualisée</span>
         </dd>
       </div>
     </dl>
@@ -185,10 +152,10 @@ function PacteVecu({ profil }: { profil: Profil }) {
     <Link className={styles.pacteVecu} to={`/${profil.id}/pacte-vecu`}>
       <span className={styles.textePacteVecu}>
         <span className="t-petit-fort">{mesuree ? 'Limite mesurée' : 'Limite supposée'}</span>
-        <span className="t-petit c-500">{mesuree ? `${mesuree.provenance}.` : 'Mesurez-la sur 4 vrais jours de marché.'}</span>
+        {mesuree && <span className="t-petit c-500">{mesuree.provenance}.</span>}
       </span>
       <span className={`t-petit-fort ${styles.actionPacteVecu}`}>
-        {mesuree ? 'Revoir' : 'Commencer'}
+        {mesuree ? 'Revoir' : 'La mesurer'}
         <Icone nom="fleche-droite" taille={14} />
       </span>
     </Link>
@@ -219,10 +186,6 @@ function RegleCle({ regle }: { regle: ReglePacte }) {
       >
         <span style={{ width: `${Math.min(1, Math.max(0, utilisation)) * 100}%` }} />
       </span>
-      <p className={`t-petit c-500 ${styles.bornesJauge}`}>
-        <span>{pourcent(utilisation, { decimales: 0 })} de la limite utilisée</span>
-        {limite !== undefined && <span>Limite {baisse ? seuilTexte(limite) : part(limite)}</span>}
-      </p>
     </div>
   );
 }
@@ -289,7 +252,7 @@ function Journal({ entrees }: { entrees: EntreeJournal[] }) {
             <span className={styles.point} aria-hidden="true" />
             <span className={styles.texteEntree}>
               <span className="t-corps">{e.texte}</span>
-              <span className={`t-petit ${styles.statutEntree}`}>{LIBELLE_JOURNAL[e.statut]}</span>
+              <span className="visuellement-cache">{LIBELLE_JOURNAL[e.statut]}</span>
             </span>
             <time className="t-petit c-500" dateTime={e.date}>{jourMois(e.date)}</time>
           </li>
@@ -357,16 +320,13 @@ export function Portefeuille({ profil }: { profil: Profil }) {
 
         <div className={styles.titre}>
           <h1 className="t-h1">Bonjour {profil.nom}.</h1>
-          <p className={styles.statut}>
-            <span className={bilan.violations ? styles.iconeViolation : styles.iconeConforme}>
-              <Icone nom={bilan.violations ? 'interdit' : 'check'} taille={18} />
-            </span>
-            <span className="t-corps c-700">
-              {bilan.violations
-                ? `Votre portefeuille enfreint ${compte(bilan.violations, 'règle')} de votre Pacte.`
-                : 'Votre portefeuille respecte les règles mesurables de votre Pacte.'}
-            </span>
-          </p>
+          {/* Seulement s'il y a un problème : la carte du Pacte dit déjà « Respecté ». */}
+          {bilan.violations > 0 && (
+            <p className={styles.statut}>
+              <span className={styles.iconeViolation}><Icone nom="interdit" taille={18} /></span>
+              <span className="t-corps c-700">Votre portefeuille enfreint {compte(bilan.violations, 'règle')} de votre Pacte.</span>
+            </p>
+          )}
         </div>
 
         <Recherche
@@ -382,7 +342,6 @@ export function Portefeuille({ profil }: { profil: Profil }) {
           onInstruirePanier={instruirePanier}
           focusInitial={focusRecherche}
           suggestions={suggestionsDe(profil)}
-          complement={<EtapesParcours />}
         />
 
         <div className={styles.grille}>
@@ -405,7 +364,6 @@ export function Portefeuille({ profil }: { profil: Profil }) {
                     <span className="t-petit c-500">depuis le {date(profil.debut)}</span>
                   </p>
                 </div>
-                <p className="t-petit-fort c-500">Sur {Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10)} ans</p>
               </div>
               <GraphiqueValeur
                 serie={profil.serieValeur}
@@ -414,7 +372,7 @@ export function Portefeuille({ profil }: { profil: Profil }) {
               <Indicateurs profil={profil} />
               <p className={styles.provenance}>
                 <Provenance type="Fait" />
-                <span className="t-petit c-500">Calculé sur les prix réels du {date(profil.debut)} au {date(profil.fin)}, en CAD.</span>
+                <span className="t-petit c-500">Prix réels, en CAD</span>
               </p>
             </section>
             <Positions profil={profil} />

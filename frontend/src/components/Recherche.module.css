@@ -3,7 +3,7 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 48px;
   padding: 32px 36px;
   border-radius: var(--rayon);
@@ -11,6 +11,7 @@
   border: 1px solid var(--trait-fin);
   color: var(--encre-900);
 }
+.bandeau:has(> .complement) { grid-template-columns: minmax(0, 1fr) minmax(0, 360px); }
 .principal { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .enteteBandeau { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
 .titres { display: flex; flex-direction: column; gap: 6px; }

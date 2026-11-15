@@ -48,6 +48,12 @@ Une refonte du style seulement, sans changer le parcours ni les données. Le sty
     - lecture comparative au survol et au clavier : une bulle avec les deux valeurs à la même date, lues telles quelles dans les séries ;
     - nouvelle prop `creuxActuel` ; tests dans `src/test/graphiqueRecul.test.tsx` (phrase au singulier, limite jamais franchie, lecture au clavier) ;
   - les guillemets « » des messages ESG (`domaine/decision.ts`) sont collés au texte par des espaces insécables, pour ne plus rester seuls en fin de ligne.
+- **Moins de texte** (règle « Sobriété du texte » ajoutée à l'annexe A de la spec). Ce qui a été retiré :
+  - **Entrée** : surtitre « Démonstration », questions en italique des cartes ; sous-titre et bloc « Construire mon Pacte » raccourcis.
+  - **Portefeuille** : phrase de statut quand tout est conforme, surtitre « Étape 1 · Décision », aide visible du champ (gardée pour les lecteurs d'écran), les 3 étapes du parcours (`EtapesParcours` supprimé), « Sur 5 ans », contextes des indicateurs, bornes de la jauge du Pacte, phrase du Pacte vécu, statut écrit du journal (gardé pour les lecteurs d'écran).
+  - **Décision** : surtitre, fiche du titre raccourcie (`ficheTitre(ticker)`), précisions sous les indicateurs (`effetsSurLePacte`), période en tête du tableau (déplacée dans la provenance), phrase « Au-delà… ». La phrase du graphique de recul devient « Sous votre limite de −12 % pendant 278 séances, entre févr. 2022 et mai 2025. », et seul le pire moment avec la décision est annoté (prop `creuxActuel` retirée).
+  - **Tribunal** : sous-titre de l'audience, « instruction terminée », explications des replis, consigne de « Trompez le Greffier » raccourcie.
+  - **Verdict** : surtitre, description du procès-verbal, sous-titres des options sans information (`domaine/verdict.ts`).
 - **Correctif : décision sur un titre pour un profil en mode panier.** Amira est en mode panier, et `scripts/build_ui_series.py` ne lui générait que la table du panier. Choisir « Un titre » (#99) laissait donc l'écran Décision sur « Chargement de la simulation… » indéfiniment.
   - Le script génère maintenant les tables d'une position pour **tous** les profils (`decisions/amira/`, 31 titres).
   - `ecrans/Decision.tsx` affiche « Simulation indisponible : aucune simulation précalculée pour ce titre et ce profil » quand une table manque, au lieu d'attendre.

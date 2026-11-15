@@ -365,3 +365,30 @@ def test_fenetre_de_debit_glissante(monkeypatch):
     assert lambda_tribunal.trop_de_verifications("1.2.3.4", maintenant=59.0)
     assert not lambda_tribunal.trop_de_verifications("5.6.7.8", maintenant=59.0)
     assert not lambda_tribunal.trop_de_verifications("1.2.3.4", maintenant=61.0)
+
+
+# --- /proces-verbal (#57) ----------------------------------------------------------
+
+
+def test_proces_verbal_d_un_proces_archive(s3, faux_proces, monkeypatch):
+    monkeypatch.setattr(lambda_tribunal, "proces_verbal_html",
+                        lambda contrat, identifiant: f"<p>{identifiant} {contrat['verdict']}</p>")
+    identifiant = lambda_tribunal.handler(evenement("/tribunal", {"profil": "robert", "demande": "x"}))["headers"]["X-Proces-Id"]
+
+    resultat = lambda_tribunal.handler(evenement("/proces-verbal", {"id": identifiant}))
+    assert resultat["statusCode"] == 200
+    assert resultat["headers"]["Content-Type"].startswith("text/html")
+    assert resultat["body"] == f"<p>{identifiant} None</p>"  # pas encore de verdict
+
+    lambda_tribunal.handler(evenement("/verdict", {"id": identifiant, "verdict": "maintenu"}))
+    resultat = lambda_tribunal.handler(evenement("/proces-verbal", {"id": identifiant}))
+    assert resultat["body"] == f"<p>{identifiant} maintenu</p>"  # relit l'archive du verdict
+
+
+def test_proces_verbal_d_un_proces_inconnu_404(s3):
+    statut, _ = reponse(lambda_tribunal.handler(evenement("/proces-verbal", {"id": "2026-11-14-000000000000"})))
+    assert statut == 404
+
+
+def test_proces_verbal_identifiant_invalide_400(s3):
+    assert lambda_tribunal.handler(evenement("/proces-verbal", {"id": "../traces/x"}))["statusCode"] == 400

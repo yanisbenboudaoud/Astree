@@ -5,7 +5,7 @@
 import { useId, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import type { Profil } from '../api/types';
-import { archiverVerdict } from '../api/tribunal';
+import { archiverVerdict, ouvrirProcesVerbal } from '../api/tribunal';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { Statut } from '../components/Etiquettes';
@@ -28,6 +28,7 @@ export function Verdict({ profil }: { profil: Profil }) {
   const { decision, tribunal, verdict } = etat;
   const { tablePosition, entree } = useTables(profil, decision);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [erreurExport, setErreurExport] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
   const idRaison = useId();
   const idJustification = useId();
@@ -48,6 +49,15 @@ export function Verdict({ profil }: { profil: Profil }) {
     : choisie.engagement && (!verdict.justification.trim() || !verdict.compris)
       ? 'Pour maintenir malgré la violation, écrivez pourquoi et cochez la case : la signature reste désactivée jusque-là.'
       : null;
+
+  const exporterProcesVerbal = async () => {
+    setErreurExport(null);
+    try {
+      await ouvrirProcesVerbal(resultat.procesId);
+    } catch (e) {
+      setErreurExport(e instanceof Error ? e.message : String(e));
+    }
+  };
 
   const signerVerdict = async () => {
     if (raisonBlocage || !choisie) return;
@@ -177,6 +187,19 @@ export function Verdict({ profil }: { profil: Profil }) {
         {erreur && (
           <Message type="Violation" titre="Le verdict n'a pas pu être archivé" correction={{ libelle: 'Réessayer', onClick: signerVerdict }}>
             <p>{erreur}</p>
+          </Message>
+        )}
+
+        <p className={`t-petit c-700 ${styles.export}`}>
+          <Bouton variante="tertiaire" compact fleche={false} className={styles.lienExport} onClick={exporterProcesVerbal}>
+            Exporter le procès-verbal
+          </Bouton>{' '}
+          : tout le dossier du procès (pièces, contrôles, arguments, trace), en page imprimable.
+        </p>
+
+        {erreurExport && (
+          <Message type="Violation" titre="Le procès-verbal n'a pas pu être produit" correction={{ libelle: 'Réessayer', onClick: exporterProcesVerbal }}>
+            <p>{erreurExport}</p>
           </Message>
         )}
 

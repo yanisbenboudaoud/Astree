@@ -141,6 +141,18 @@ async function robertAuClavier(largeur, suffixe) {
   await tabulerJusqua(page, /checkbox|INPUT/);
   await page.keyboard.press('Space');
   await verifierEcran(page, `Verdict ${suffixe}`, `robert-4-verdict${suffixe}`);
+  // Procès-verbal (#57) : s'ouvre dans un nouvel onglet, avec le contenu du procès.
+  const [onglet] = await Promise.all([
+    page.waitForEvent('popup'),
+    page.getByRole('button', { name: /Exporter le procès-verbal/ }).click(),
+  ]);
+  await onglet.waitForLoadState();
+  const titreOnglet = await onglet.title();
+  const texteOnglet = await onglet.locator('body').innerText();
+  if (!titreOnglet.includes('Procès-verbal') || !texteOnglet.includes('Contrôles du Greffier')) {
+    problemes.push(`verdict : le procès-verbal ne s’ouvre pas correctement (${titreOnglet})`);
+  }
+  await onglet.close();
   await tabulerJusqua(page, /Signer le verdict/);
   await page.keyboard.press('Enter');
   await page.waitForURL('**/robert/portefeuille?archive=1');

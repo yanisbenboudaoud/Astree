@@ -1,6 +1,6 @@
 """Point d'entrée de la Lambda du Tribunal (#13), derrière une Lambda Function URL.
 
-Trois routes, en POST, avec un corps JSON :
+Cinq routes, en POST, avec un corps JSON :
 
 - ``/tribunal`` ``{"profil": "<id>", "demande": "<texte>"}`` : fait le procès. Champ
   facultatif ``"calibrage": {"reponses": {"<id de question>": "<réponse>"}}`` : les
@@ -20,6 +20,10 @@ Trois routes, en POST, avec un corps JSON :
   « Trompez le Greffier » (#69). Vérifie chaque nombre du texte contre les pièces citées
   du procès archivé (``detailler_argument``, outil 6), **sans Bedrock** : réponse
   immédiate et gratuite. Texte et débit limités, car le point d'accès est public.
+- ``/proces-verbal`` ``{"id": "<id>"}`` : renvoie le procès-verbal du procès archivé,
+  en page HTML imprimable (``pipeline.proces_verbal``, #57). Il relit l'archive du
+  verdict si l'utilisateur a déjà tranché, sinon la trace du procès. Aucun appel à
+  Bedrock : la page est produite par Python à partir du contrat.
 
 Le pipeline est importé et les CSV sont lus au niveau du module, hors du
 handler : une Lambda déjà démarrée les garde en mémoire (caches de
@@ -52,9 +56,11 @@ from pipeline.contre_interrogatoire import QuestionInvalide, interroger, pieces_
 from pipeline.donnees import ErreurDonnees, seances_americaines
 from pipeline.jurisprudence import cle_verdict
 from pipeline.pacte import PacteInvalide
+from pipeline.proces_verbal import proces_verbal_html
 from pipeline.tribunal import bornes_periode, juger_decision
 
 VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # CLAUDE.md, section 5
+ROUTES = ("/tribunal", "/verdict", "/question", "/verifier", "/proces-verbal")
 LONGUEUR_MAX_DEMANDE = 2000  # une demande d'investissement tient en quelques phrases
 REPONSES_MAX_CALIBRAGE = 20  # le Pacte vécu pose une dizaine de questions au plus
 FORMAT_ID = re.compile(r"\d{4}-\d{2}-\d{2}-[0-9a-f]{12}")
@@ -101,8 +107,8 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
     """Appelé par Lambda pour chaque requête de la Function URL (format d'événement 2.0)."""
     methode = event.get("requestContext", {}).get("http", {}).get("method", "")
     chemin = event.get("rawPath", "")
-    if chemin not in ("/tribunal", "/verdict", "/question", "/verifier"):
-        return _reponse(404, {"erreur": "Route inconnue : /tribunal, /verdict, /question ou /verifier"})
+    if chemin not in ROUTES:
+        return _reponse(404, {"erreur": f"Route inconnue : {', '.join(ROUTES)}"})
     if methode != "POST":
         return _reponse(405, {"erreur": "Seule la méthode POST est acceptée"})
     try:
@@ -114,6 +120,8 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
         if chemin == "/verifier":
             adresse = event.get("requestContext", {}).get("http", {}).get("sourceIp", "inconnue")
             return _verifier(corps, adresse)
+        if chemin == "/proces-verbal":
+            return _proces_verbal(corps)
         return _verdict(corps)
     except RequeteInvalide as erreur:
         return _reponse(400, {"erreur": str(erreur)})
@@ -185,6 +193,33 @@ def _verdict(corps: dict[str, Any]) -> dict[str, Any]:
     cle = cle_verdict(contrat["persona"], identifiant)
     _ecrire(cle, archive)
     return _reponse(200, {"id": identifiant, "verdict": verdict, "archive": cle})
+
+
+def _proces_verbal(corps: dict[str, Any]) -> dict[str, Any]:
+    identifiant = corps.get("id")
+    if not isinstance(identifiant, str) or not FORMAT_ID.fullmatch(identifiant):
+        raise RequeteInvalide(f"Champ « id » invalide : celui de l'en-tête {EN_TETE_ID} du procès")
+
+    try:
+        contrat = _lire(cle_trace(identifiant))
+    except ClientError as erreur:
+        if _absent(erreur):
+            return _reponse(404, {"erreur": f"Aucun procès archivé avec l'identifiant {identifiant}"})
+        raise
+    try:  # le verdict, s'il est rendu, est archivé à part avec le contrat complet
+        contrat = _lire(cle_verdict(contrat["persona"], identifiant))
+    except ClientError as erreur:
+        if not _absent(erreur):
+            raise
+    return {
+        "statusCode": 200,
+        "headers": {"Content-Type": "text/html; charset=utf-8"},
+        "body": proces_verbal_html(contrat, identifiant),
+    }
+
+
+def _absent(erreur: ClientError) -> bool:
+    return erreur.response.get("Error", {}).get("Code") in ("NoSuchKey", "404")
 
 
 def _question(corps: dict[str, Any]) -> dict[str, Any]:

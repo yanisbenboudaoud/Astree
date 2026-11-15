@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" width="640" height="380" role="img" aria-labelledby="titre desc">
+<title id="titre">Taille maximale compatible selon le seuil de pire baisse</title>
+<desc id="desc">Profil prudent, décision : 30 % en TSLA, financement proportionnel. Plus le seuil de pire baisse toléré est bas, plus la position compatible avec le Pacte est grande : −8 % donne 1 %, −9 % donne 5 %, −10 % donne 7 %, −11 % donne 8 %, −12 % donne 9 %, −13 % donne 11 %, −14 % donne 12 %, −15 % donne 13 %, −16 % donne 14 %, −17 % donne 15 %, −18 % donne 16 %, −19 % donne 18 %, −20 % donne 19 %, −21 % donne 20 %, −22 % donne 21 %, −23 % donne 22 %, −24 % donne 23 %, −25 % donne 25 %, −26 % donne 26 %, −27 % donne 27 %, −28 % donne 28 %, −29 % donne 30 %, −30 % donne 30 %.</desc>
+<style>
+  .fond{fill:#fcfcfb} .encre{fill:#0b0b0b} .encre2{fill:#52514e} .discret{fill:#898781}
+  .grille{stroke:#e1e0d9;stroke-width:1} .axe{stroke:#c3c2b7;stroke-width:1}
+  .ligne{fill:none;stroke:#2a78d6;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .point{fill:#2a78d6;stroke:#fcfcfb;stroke-width:2}
+  @media (prefers-color-scheme: dark){
+    .fond{fill:#1a1a19} .encre{fill:#f0efec} .encre2{fill:#c3c2b7}
+    .grille{stroke:#2c2c2a} .axe{stroke:#383835}
+    .ligne{stroke:#3987e5} .point{fill:#3987e5;stroke:#1a1a19}
+  }
+  text{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+</style>
+<rect class="fond" width="640" height="380"/>
+<text class="encre" x="64" y="28" font-size="16" font-weight="600">Taille maximale compatible selon le seuil de pire baisse</text>
+<text class="encre2" x="64" y="48" font-size="13">Profil prudent · 30 % en TSLA, financement proportionnel · 2021-11-12 → 2026-11-12</text>
+<line class="axe" x1="64" y1="324.0" x2="592" y2="324.0"/>
+<text class="discret" x="56" y="328.0" font-size="12" text-anchor="end">0 %</text>
+<line class="grille" x1="64" y1="240.0" x2="592" y2="240.0"/>
+<text class="discret" x="56" y="244.0" font-size="12" text-anchor="end">10 %</text>
+<line class="grille" x1="64" y1="156.0" x2="592" y2="156.0"/>
+<text class="discret" x="56" y="160.0" font-size="12" text-anchor="end">20 %</text>
+<line class="grille" x1="64" y1="72.0" x2="592" y2="72.0"/>
+<text class="discret" x="56" y="76.0" font-size="12" text-anchor="end">30 %</text>
+<text class="discret" x="64.0" y="344" font-size="12" text-anchor="middle">−8 %</text>
+<text class="discret" x="112.0" y="344" font-size="12" text-anchor="middle">−10 %</text>
+<text class="discret" x="160.0" y="344" font-size="12" text-anchor="middle">−12 %</text>
+<text class="discret" x="208.0" y="344" font-size="12" text-anchor="middle">−14 %</text>
+<text class="discret" x="256.0" y="344" font-size="12" text-anchor="middle">−16 %</text>
+<text class="discret" x="304.0" y="344" font-size="12" text-anchor="middle">−18 %</text>
+<text class="discret" x="352.0" y="344" font-size="12" text-anchor="middle">−20 %</text>
+<text class="discret" x="400.0" y="344" font-size="12" text-anchor="middle">−22 %</text>
+<text class="discret" x="448.0" y="344" font-size="12" text-anchor="middle">−24 %</text>
+<text class="discret" x="496.0" y="344" font-size="12" text-anchor="middle">−26 %</text>
+<text class="discret" x="544.0" y="344" font-size="12" text-anchor="middle">−28 %</text>
+<text class="discret" x="592.0" y="344" font-size="12" text-anchor="middle">−30 %</text>
+<text class="encre2" x="328.0" y="370" font-size="12" text-anchor="middle">Seuil de pire baisse toléré par le Pacte (plus à droite = plus tolérant)</text>
+<text class="encre2" x="592" y="64.0" font-size="12" text-anchor="end">Taille demandée : 30 %</text>
+<path class="ligne" d="M64.0,315.6 L88.0,282.0 L112.0,265.2 L136.0,256.8 L160.0,248.4 L184.0,231.6 L208.0,223.2 L232.0,214.8 L256.0,206.4 L280.0,198.0 L304.0,189.6 L328.0,172.8 L352.0,164.4 L376.0,156.0 L400.0,147.6 L424.0,139.2 L448.0,130.8 L472.0,114.0 L496.0,105.6 L520.0,97.2 L544.0,88.8 L568.0,72.0 L592.0,72.0"/>
+<circle class="point" cx="160.0" cy="248.4" r="5"/>
+<text class="encre" x="172.0" y="270.4" font-size="12">Seuil du profil prudent (−12 %) : 9 % au maximum</text>
+</svg>

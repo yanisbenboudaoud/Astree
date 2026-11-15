@@ -83,12 +83,13 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `personas/*.json` | Profils de test et leur Pacte, au format générique | [003](docs/journal/003-pacte-generique.md) |
 | `personas/schema_pacte.json` | Schéma JSON d'un fichier profil, un sous-schéma par type de règle | [003](docs/journal/003-pacte-generique.md) |
 | `config/categories.json` | Catégories (`tech`, `crypto`) des règles `plafond`, communes à tous les profils | [003](docs/journal/003-pacte-generique.md) |
-| `validation/` | Scénarios de validation et de sensibilité : même décision pour plusieurs profils, seuils, hypothèses, période, robustesse du Greffier, garde-fous, profil inventé. `python -m validation` | [015](docs/journal/015-scenarios-validation.md) |
+| `validation/` | Scénarios de validation et de sensibilité : même décision pour plusieurs profils, seuils, hypothèses, période, robustesse du Greffier, garde-fous, profil inventé ; graphique de sensibilité. `python -m validation` | [015](docs/journal/015-scenarios-validation.md), [059](docs/journal/059-scenarios-panier-graphique.md) |
 | `tests/` | Un fichier de test par module (`test_donnees.py` ↔ `pipeline/donnees.py`). `pytest -m bedrock` pour les vrais appels | — |
 | `docs/GUIDE_DU_PROJET.md` | Guide complet du projet pour tous les niveaux : l'idée sans jargon, le fonctionnement, la visite de chaque dossier, le chemin d'une demande dans le code, la façon de travailler, l'état et les limites | — |
 | `docs/guide_jurisprudence.md` | Guide pas à pas de la jurisprudence (#56) et de la correction du validateur (#65) : la boucle complète sur un vrai procès, les choix, les limites, et des questions pour vérifier sa compréhension | [056](docs/journal/056-jurisprudence.md), [065](docs/journal/065-valider-erreurs-outil.md) |
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](docs/journal/000-fondations.md) |
 | `docs/validation/resultats_scenarios.md` | Tableau des résultats des scénarios (généré par `python -m validation`) | [015](docs/journal/015-scenarios-validation.md) |
+| `docs/validation/sensibilite_seuil.svg` | Graphique : taille maximale compatible selon le seuil de pire baisse (généré par `python -m validation`) | [059](docs/journal/059-scenarios-panier-graphique.md) |
 | `docs/exemples/` | Faux contrats valides (cas 1 et 2), utilisés par l'équipe interface | [002](docs/journal/002-contrat-json.md) |
 | `docs/maquette/` | Maquette Figma V2 « Astrée » et sa spec d'implémentation (`spec_interface_astree.md`) ; ancienne maquette et prototype des 4 écrans | [000](docs/journal/000-fondations.md), [014](docs/journal/014-interface-astree.md) |
 | `docs/journal/` | Journal de construction : une fiche par issue, et son modèle | [018](docs/journal/018-livrables-documentation.md) |

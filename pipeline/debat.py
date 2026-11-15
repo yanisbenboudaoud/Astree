@@ -185,6 +185,9 @@ Règles sur le fond :
   pire baisse ; un rendement sur une année n'est pas une pire baisse.
 - Un rendement réel (après inflation) se compare à un autre rendement réel : écris toujours
   « après inflation » ou « réel » pour ne pas le confondre avec le rendement en dollars.
+- « part_usd » (après la décision) et « part_usd_actuelle » : part du portefeuille cotée en
+  dollars américains, dont la valeur en CAD varie aussi avec le taux de change. C'est un
+  risque de devise, distinct du risque des titres eux-mêmes. Une part s'écrit sans signe (37 %).
 - Le passé ne prédit pas l'avenir : ne présente jamais une performance passée comme une
   promesse (règle B).
 - Pour citer une règle du Pacte, reprends son libellé et cite la pièce du Pacte.

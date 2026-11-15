@@ -182,7 +182,7 @@ Chaque règle d'un Pacte a un **type**. Le Greffier sait vérifier chaque type :
 | `critere_documentaire` | « Pas de controverse ESG importante » | Cherche une pièce documentaire ; sans document, la règle reste « à vérifier » (rien n'est deviné) |
 | `qualitative` | « Préserver mon capital » | Ne se mesure pas : toujours « à vérifier », c'est l'utilisateur qui juge |
 
-Les catégories (`tech`, `crypto`) sont définies une seule fois pour tous les profils, dans `config/categories.json`.
+Les catégories (`tech`, `crypto`, `energie_fossile`, et les catégories géographiques `canada`, `etats_unis` et `hors_canada`) sont définies une seule fois pour tous les profils, dans `config/categories.json`.
 
 **Le Pacte vécu.** D'où vient « −12 % » ? Au départ, c'est une hypothèse de l'équipe. Le Pacte vécu la remplace par une mesure : l'utilisateur revit 3 ou 4 vrais jours de baisse (« le 13 juin 2022, votre capital de 650 000 $ vaudrait 583 948 $ »), sans voir la suite, et répond « je reste » ou « je vends ». Le seuil devient la baisse réelle du dernier jour où il est resté, et ses réponses deviennent une pièce que le Procureur peut citer : « vous aviez répondu « je vends » à −16,0 % ».
 
@@ -276,7 +276,7 @@ Fournies par le datathon, du 2021-11-12 au 2026-11-12. On ne les modifie pas.
 |---|---|
 | `personas/robert.json`, `amira.json`, `mateo.json` | Un profil fictif : âge, risque, horizon, capital, portefeuille, décision de démonstration, et **son Pacte** (chaque règle avec son libellé et sa justification) |
 | `personas/schema_pacte.json` | Le format obligatoire d'un fichier profil. Un profil mal écrit est refusé avec un message clair. |
-| `config/categories.json` | Quels titres sont `tech` et lesquels sont `crypto` |
+| `config/categories.json` | Quels titres sont `tech`, `crypto`, `energie_fossile`, `canada`, `etats_unis` ou `hors_canada` |
 | `donnees_externes/documents_esg.json` | Trois documents publics sur les critères ESG, lus par l'équipe, avec source, date et limites (le jeu de départ ne contient aucune donnée ESG) |
 
 ## 3.5 `pipeline/` : le cœur du projet

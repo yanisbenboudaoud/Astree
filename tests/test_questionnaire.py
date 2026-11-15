@@ -145,6 +145,34 @@ def test_categorie_energie_fossile():
     assert {"XOM", "CNQ.TO", "ENB.TO"} == {t for t in ("XOM", "CNQ.TO", "ENB.TO", "SPY", "XIU.TO") if "energie_fossile" in categories_du_titre(t)}
 
 
+# --- Part maximale hors du Canada (#112) ----------------------------------------------
+
+
+def test_part_maximale_hors_du_canada_devient_un_plafond_geographique():
+    profil = profil_comme("robert", hors_canada="quart")
+    assert erreurs_profil(profil, nom_fichier=profil["id"]) == []
+    plafond = regle(profil, "plafond_hors_canada")
+    assert plafond["type"] == "plafond" and plafond["categories"] == ["hors_canada"] and plafond["max"] == 0.25
+    assert plafond["libelle"] == "Hors du Canada : 25 % du portefeuille au maximum"
+    # Robert : 10 % de JNJ ; 30 % de TSLA en plus portent la part hors du Canada à 37 % : violation.
+    decision = {"type": "position", "ticker": "TSLA", "taille": 0.30, "financement": "proportionnel"}
+    controles = verifier_pacte([plafond], poids_apres_decision(profil["portefeuille"], decision), None, "P1")
+    assert controles[0]["statut"] == "violation"
+    assert controles[0]["message"].startswith("Placements hors du Canada : 37,0 % du portefeuille")
+
+
+def test_hors_du_canada_sans_limite_ou_passee_ne_cree_ni_regle_ni_controle():
+    for profil in (profil_comme("robert", hors_canada="sans_limite"), profil_comme("robert")):
+        assert regle(profil, "plafond_hors_canada") is None
+    detail = detail_bareme(COMME["robert"], DATE)
+    assert not any("Hors du Canada" in controle["message"] for controle in detail["controles"])
+
+
+def test_reponse_inconnue_a_la_question_hors_du_canada_refusee():
+    with pytest.raises(ReponsesInvalides, match="« tout » inconnue pour « hors_canada »"):
+        profil_comme("robert", hors_canada="tout")
+
+
 # --- Réponses manquantes ou invalides -----------------------------------------------
 
 
@@ -205,7 +233,7 @@ def test_decision_de_demonstration_facultative():
 def test_questions_pretes_a_afficher():
     liste = questions()
     assert [q["id"] for q in liste][:3] == ["horizon", "objectif", "retraits"]
-    assert len(liste) == 15
+    assert len(liste) == 16  # dont « hors_canada », facultative (#112)
 
 
 def test_la_question_des_portefeuilles_n_est_plus_posee():

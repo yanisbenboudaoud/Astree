@@ -142,6 +142,7 @@ const USAGES: Record<string, string> = {
   quiz_baisse: 'Elle vérifie que la règle de pire baisse est bien comprise, sans aucune pénalité.',
   crypto: 'Elle devient un plafond sur la part de cryptoactifs.',
   concentration: 'Elle devient un plafond sur la part des titres technologiques.',
+  hors_canada: 'Elle devient un plafond sur la part placée hors du Canada, en dollars américains : un risque de change en plus.',
   exclusions: 'Elle exclut une catégorie de titres, ou demande une source documentée pour vos valeurs.',
   regle_perso: 'Votre phrase devient une règle à juger par vous, reprise telle quelle : aucune IA ne la réécrit.',
 };

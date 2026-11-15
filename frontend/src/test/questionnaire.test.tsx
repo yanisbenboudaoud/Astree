@@ -24,8 +24,8 @@ const question = (id: string) => QUESTIONS.find((q) => q.id === id)!;
 window.scrollTo = vi.fn() as unknown as typeof window.scrollTo; // jsdom ne fait pas défiler
 
 describe('questions venues du pipeline', () => {
-  it('15 questions en 5 sections, dans l’ordre', () => {
-    expect(QUESTIONS).toHaveLength(15);
+  it('16 questions en 5 sections, dans l’ordre', () => {
+    expect(QUESTIONS).toHaveLength(16); // dont « hors du Canada », facultative (#112)
     expect(sections(QUESTIONS).map((s) => s.titre.split(' : ')[0])).toEqual([
       'Objectif et horizon', 'Capacité', 'Tolérance', 'Connaissances et expérience', 'Préférences et limites',
     ]);

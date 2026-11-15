@@ -86,7 +86,18 @@ Les seuils sont des **hypothèses** de l'équipe, pas des recommandations régle
 | `critere_documentaire` | `critere` (ex. : `controverse_esg_importante`) | `violation` ou `conforme` selon une pièce `documentaire` ; `a_verifier` (« source manquante ») sans pièce |
 | `qualitative` | aucun | toujours `a_verifier` : règle déclarée, non mesurable par calcul, à juger par l'utilisateur |
 
-Les **catégories** (`tech`, `crypto`, `energie_fossile`) sont définies une seule fois, pour tous les profils, dans `config/categories.json`, à partir des champs `asset_class` et `sector` de `assets_universe.csv` (plus des ajouts justifiés). Un titre absent de l'univers n'est jamais classé au hasard : le contrôle rend `a_verifier`.
+Les **catégories** sont définies une seule fois, pour tous les profils, dans `config/categories.json`, à partir des champs `asset_class`, `sector` et `market` de `assets_universe.csv`, plus des ajouts et des retraits justifiés. Un titre absent de l'univers n'est jamais classé au hasard : le contrôle rend `a_verifier`.
+
+| Catégorie | Définie par | Titres |
+|---|---|---|
+| `crypto` | classe d'actifs `crypto` | BTC-USD, ETH-USD |
+| `tech` | secteur `Information Technology`, plus GOOGL, AMZN et QQQ | 8 titres, dont SHOP.TO et CSU.TO |
+| `energie_fossile` | secteur `Energy` | XOM, CNQ.TO, ENB.TO |
+| `canada` (#112) | marché `TSX` | les 13 titres `.TO`, dont 3 FNB de titres canadiens |
+| `etats_unis` (#112) | marchés américains, sauf GLD (de l'or, sans pays) | actions et FNB américains ; ni l'or ni la crypto |
+| `hors_canada` (#112) | tout marché sauf `TSX` | titres américains, GLD et crypto (ici, exactement les titres en USD) |
+
+La place de cotation ne donne la région que pour cet univers : un FNB coté à Toronto qui détient des actions américaines (ex. : XSP) irait dans les `retraits` de `canada` et les `ajouts` de `etats_unis`. La géographie et la devise sont deux risques distincts : la part en USD (risque de change) est dans la pièce de simulation (`part_usd`, section 6 bis).
 
 Ajouter un profil = un fichier JSON. Ajouter un type de règle = une fonction dans le Greffier + une ligne dans ce tableau.
 
@@ -137,7 +148,7 @@ Socle commun : **`charger_donnees`** lit les CSV (local ou S3), convertit en CAD
 | # | Outil | Rôle | Appelé par | Version |
 |---|---|---|---|---|
 | 1 | `indicateurs_actif` | Rendement annualisé, volatilité, pire baisse, rendement 2022, temps de récupération d'un titre | Orchestrateur | V1 |
-| 2 | `simuler_portefeuille` | Indicateurs du portefeuille avant et après la décision (taille + mode de financement), rejeu de 2022 | Orchestrateur | V1 |
+| 2 | `simuler_portefeuille` | Indicateurs du portefeuille avant et après la décision (taille + mode de financement), part en USD, rejeu de 2022 | Orchestrateur | V1 |
 | 3 | `calculer_correlations` | Corrélation entre titres (ex. : BTC/ETH, NVDA/QQQ) | Orchestrateur | V2 |
 | 4 | `taille_max_compatible` | Plus grande taille qui respecte le Pacte (appelle l'outil 2) | Orchestrateur | V1 |
 | 5 | `verifier_pacte` | Compare les résultats aux règles du Pacte | Greffier | V1 |
@@ -287,6 +298,7 @@ Ces choix ont servi à produire les chiffres de la maquette. Le code doit les re
 - **Rendement 2022** : dernière valeur de 2021 → dernière valeur de 2022.
 - **Simulation de portefeuille** : rééquilibrage quotidien aux poids cibles. Financement `proportionnel` (tous les titres réduits au prorata) ou `depuis_<ticker>` (une seule ligne réduite).
 - **Temps de récupération** : du sommet précédant la pire baisse jusqu'au retour à ce sommet.
+- **Exposition en devise** (#112) : part du portefeuille dans chaque devise de cotation (champ `currency`), avant et après la décision (`part_usd`, `part_cad` et leurs variantes `_actuelle`) ; toutes les devises de l'univers sont présentes, même à 0.
 - **Inflation et rendement réel** (#111, `pipeline/macro.py`) : IPC du Canada (variation sur 12 mois, Banque du Canada), chaîné par années entières jusqu'au dernier mois **publié** avant la fin de la période (septembre 2026 pour la période complète, décembre 2022 pour le rejeu de 2022). On mesure après coup le pouvoir d'achat d'une période terminée, avec des valeurs toutes publiées avant l'extraction des données : aucune valeur n'est utilisée avant sa publication. Rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 (relation de Fisher).
 - **Taux sans risque et ratio de Sharpe** (#111) : taux directeur moyen de la Banque du Canada sur la période ; ratio de Sharpe = (rendement annualisé − taux sans risque) ÷ volatilité annualisée, avec les valeurs de la pièce (refaisable à la main).
 

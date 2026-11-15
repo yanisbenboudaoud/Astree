@@ -7,9 +7,12 @@ import pytest
 from pipeline import macro
 from pipeline.donnees import ErreurDonnees
 from pipeline.simulation import (
+    LIMITES_DEVISES,
     LIMITES_MACRO,
+    TRAITEMENT_DEVISES,
     ErreurSimulation,
     decrire_simuler_portefeuille,
+    exposition_devises,
     formater_pourcentage,
     piece_simulation,
     poids_apres_decision,
@@ -224,12 +227,23 @@ def sans_macro(monkeypatch):
     monkeypatch.setattr(macro, "_series", absent)
 
 
+def sans_exposition_devises(piece):
+    """La pièce sans l'exposition en devise, ajoutée après la maquette (#112)."""
+    valeurs = {cle: v for cle, v in piece["valeurs"].items() if not cle.startswith(("part_cad", "part_usd"))}
+    return {
+        **piece,
+        "valeurs": valeurs,
+        "traitement": piece["traitement"].removesuffix(f" ; {TRAITEMENT_DEVISES}"),
+        "limites": piece["limites"].removesuffix(f" ; {LIMITES_DEVISES}"),
+    }
+
+
 def test_piece_periode_complete_reproduit_p1(sans_macro):
-    # Sans données macro, la pièce est exactement celle de la maquette : la pièce
-    # obligatoire du procès ne dépend pas de macro_rates.csv (#111).
+    # Sans données macro, la pièce est exactement celle de la maquette, plus l'exposition en
+    # devise : la pièce obligatoire du procès ne dépend pas de macro_rates.csv (#111).
     piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
     valider_piece(piece)
-    comparer_a_la_maquette(piece, PIECES["P1"], "Simulation du portefeuille avec 30 % en TSLA")
+    comparer_a_la_maquette(sans_exposition_devises(piece), PIECES["P1"], "Simulation du portefeuille avec 30 % en TSLA")
 
 
 def test_piece_rejeu_2022_reproduit_p2(sans_macro):
@@ -348,6 +362,56 @@ def test_une_comparaison_en_dollars_passe_le_greffier():
     # Un montant inventé reste rejeté.
     faux = f"Au pire moment, votre portefeuille aurait perdu {_montant(v['perte_au_pire_moment_cad'] + 5000)} $."
     assert verifier_argument({"texte": faux, "pieces": ["P1"]}, dossier).introuvables
+
+
+# --- Exposition en devise : risque de change d'un investisseur en CAD (#112) -------------
+
+
+def test_exposition_en_devise_avant_et_apres_la_decision():
+    # Robert : seul JNJ (10 %) est coté en USD ; 30 % en TSLA, financés au prorata, portent la part à 37 %.
+    piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
+    v = piece["valeurs"]
+    assert (v["part_usd_actuelle"], v["part_cad_actuelle"]) == pytest.approx((0.10, 0.90))
+    assert (v["part_usd"], v["part_cad"]) == pytest.approx((0.10 * 0.70 + 0.30, 0.90 * 0.70))
+    assert v["part_usd"] + v["part_cad"] == pytest.approx(1)
+    assert TRAITEMENT_DEVISES in piece["traitement"] and LIMITES_DEVISES in piece["limites"]
+
+
+def test_exposition_en_devise_selon_le_financement():
+    # 7,5 % de TSLA financés par ZST.TO (CAD) : la part en USD monte de 7,5 points exactement.
+    v = piece_simulation("P1", PORTEFEUILLE, position("TSLA", 0.075, "depuis_ZST.TO"))["valeurs"]
+    assert v["part_usd"] == pytest.approx(0.175)
+
+
+def test_exposition_en_devise_d_une_reallocation():
+    decision = {"type": "reallocation", "part_reallouee": 0.5,
+                "panier": [{"ticker": "BTC-USD", "poids": 0.5}, {"ticker": "XIU.TO", "poids": 0.5}]}
+    v = piece_simulation("P1", PORTEFEUILLE, decision)["valeurs"]
+    assert v["part_usd"] == pytest.approx(0.10 * 0.5 + 0.25)
+
+
+def test_toutes_les_devises_de_l_univers_sont_dans_la_piece():
+    """Même à 0, pour que la pièce ait toujours les mêmes clés : aucune part à déduire."""
+    assert exposition_devises({"XIU.TO": 1.0}) == {"CAD": 1.0, "USD": 0.0}
+
+
+def test_exposition_d_un_titre_hors_univers_jamais_devinee():
+    with pytest.raises(ErreurDonnees, match="« GME » est absent de assets_universe.csv"):
+        exposition_devises({"GME": 1.0})
+
+
+def test_l_exposition_en_usd_passe_le_greffier():
+    from pipeline.chiffres import verifier_argument
+
+    piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
+    dossier = {"decision": DECISION, "pieces": [piece], "periode": ["2021-11-12", "2026-11-12"]}
+    # Une part s'écrit sans signe : le Greffier la lit comme positive (CLAUDE.md, section 4 ter, règle 4).
+    texte = ("Avec cette décision, la part de votre portefeuille cotée en dollars américains passerait de "
+             "10 % à 37 % : sa valeur en CAD dépendrait davantage du taux de change.")
+    assert verifier_argument({"texte": texte, "pieces": ["P1"]}, dossier).introuvables == []
+    # Une part inventée, ou dérivée (27 points de plus), reste rejetée.
+    for faux in ("La part en dollars américains atteindrait +45 %.", "La part en USD augmenterait de 27 points."):
+        assert verifier_argument({"texte": faux, "pieces": ["P1"]}, dossier).introuvables
 
 
 # --- Données macro : inflation, rendement réel, taux, ratio de Sharpe (#111) -------------

@@ -82,16 +82,25 @@ def main(arguments: list[str] | None = None) -> int:
     lecteur.add_argument("demande", help="la décision à juger, en une phrase")
     lecteur.add_argument("--fonction", default=FONCTION, help=f"nom de la Lambda ({FONCTION})")
     lecteur.add_argument("--sortie", type=Path, help="fichier où écrire la réponse JSON")
+    lecteur.add_argument("--verdict", choices=["maintenu", "modifie", "pacte_ajuste"],
+                         help="envoie aussi ce verdict à /verdict pour le procès archivé (#13)")
     options = lecteur.parse_args(arguments)
 
-    url = f"{adresse_function_url(options.fonction)}/tribunal"
-    statut, duree, contenu, identifiant = envoyer(url, {"profil": options.profil, "demande": options.demande})
+    adresse = adresse_function_url(options.fonction)
+    statut, duree, contenu, identifiant = envoyer(f"{adresse}/tribunal",
+                                                 {"profil": options.profil, "demande": options.demande})
     print(f"HTTP {statut} en {duree:.1f} s · procès archivé : {identifiant or 'non'}")
     print(resumer(contenu))
     if options.sortie:
         options.sortie.write_bytes(contenu)
         print(f"Réponse écrite dans {options.sortie}")
-    return 0 if statut == 200 else 1
+    if statut != 200:
+        return 1
+    if options.verdict and identifiant:
+        statut, duree, contenu, _ = envoyer(f"{adresse}/verdict", {"id": identifiant, "verdict": options.verdict})
+        print(f"/verdict : HTTP {statut} en {duree:.1f} s · {contenu.decode('utf-8')}")
+        return 0 if statut == 200 else 1
+    return 0
 
 
 if __name__ == "__main__":

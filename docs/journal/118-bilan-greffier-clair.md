@@ -1,6 +1,6 @@
 # #118 — Bilan du Greffier en langage clair
 
-- **Issue** : #118 · **PR** : #PR · **Statut** : terminée
+- **Issue** : #118 · **PR** : #119 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

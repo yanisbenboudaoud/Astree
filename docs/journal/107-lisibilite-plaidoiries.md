@@ -1,6 +1,6 @@
 # #107 — Lisibilité : typographie, écrans du Tribunal et plaidoiries en clair
 
-- **Issue** : #107 · **PR** : #108 · **Statut** : terminée
+- **Issue** : #107 · **PR** : #108, #119 (débat point par point et salle d'audience) · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

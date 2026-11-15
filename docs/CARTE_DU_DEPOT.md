@@ -62,6 +62,7 @@ Une PR qui ajoute, déplace ou supprime un fichier ou un dossier important met c
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](journal/000-fondations.md) |
 | `docs/DOCUMENTATION_TECHNIQUE.md` | Documentation technique : rôle des agents, garde-fous de l'orchestrateur, outils et méthode de calcul, Pacte générique, explicabilité sur un vrai procès (argument → pièce → fichier source), règles de `verifier_chiffres` avec un argument corrigé, validations, limites, schéma AWS | [018](journal/018-livrables-documentation.md) |
 | `docs/ONE_PAGER.md` | Le projet en une page : problème, Tribunal, originalité, données, explicabilité, bénéfices | [018](journal/018-livrables-documentation.md) |
+| `docs/validation/README.md` | Index des rapports de validation : ce que mesure chacun, la commande qui le régénère, ses limites. Les principaux chiffres sont repris dans la section « Preuves » du `README.md` | [171](journal/171-section-preuves.md) |
 | `docs/validation/resultats_scenarios.md` | Tableau des résultats des scénarios (généré par `python -m validation`) | [015](journal/015-scenarios-validation.md) |
 | `docs/validation/sensibilite_seuil.svg` | Graphique : taille maximale compatible selon le seuil de pire baisse (généré par `python -m validation`) | [059](journal/059-scenarios-panier-graphique.md) |
 | `docs/validation/evaluation_chiffres.md` | Taux de détection de `verifier_chiffres` par famille, intervalles de Wilson, ratés (généré par `python -m validation.evaluation chiffres`) | [165](journal/165-evaluation-chiffres.md) |

@@ -1,6 +1,6 @@
 # #56 — Jurisprudence : l'orchestrateur consulte les verdicts passés archivés dans S3
 
-- **Issue** : #56 · **PR** : à renseigner · **Statut** : en cours (code et tests faits ; reste la vérification sur la Lambda déployée)
+- **Issue** : #56 · **PR** : #63 · **Statut** : en cours (code et tests faits ; reste la vérification sur la Lambda déployée)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

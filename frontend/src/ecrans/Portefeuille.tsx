@@ -2,7 +2,7 @@
 import { useState, type CSSProperties } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { EntreeJournal, Profil, ReglePacte } from '../api/types';
-import { configUi, donneesCalibrage, nomTitre, rechercheUi } from '../api/donnees';
+import { PANIER_DEMO, configUi, donneesCalibrage, modeDeDepart, nomTitre, rechercheUi } from '../api/donnees';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { GraphiqueValeur } from '../components/graphiques/GraphiqueValeur';
 import { Recherche } from '../components/Recherche';
@@ -20,11 +20,16 @@ import styles from './Portefeuille.module.css';
 const TEINTES = ['var(--categorie-1)', 'var(--categorie-2)', 'var(--categorie-3)', 'var(--categorie-4)', 'var(--categorie-5)', 'var(--categorie-6)'];
 const TEINTES_COURTES = ['var(--categorie-1)', 'var(--categorie-2)', 'var(--categorie-3)'];
 
-/** Titres proposés en un clic sous la recherche : ceux de la décision de démonstration du profil, puis des exemples variés. */
+/**
+ * Titres proposés en un clic sous la recherche, par la même règle pour tous les profils : en mode
+ * titre, ceux de la décision de démonstration puis des exemples variés ; en mode panier, le panier
+ * de démonstration commun, dont l'aperçu est précalculé pour chaque profil.
+ */
 const SUGGESTIONS_PAR_DEFAUT = ['TSLA', 'NVDA', 'XOM', 'BTC-USD'];
 const NOMBRE_SUGGESTIONS = 5;
 
-function suggestionsDe(profil: Profil): string[] {
+function suggestionsDe(profil: Profil, mode: 'position' | 'panier'): string[] {
+  if (mode === 'panier') return PANIER_DEMO;
   const demo = profil.decisionDemo;
   let tickers: string[] = [];
   if (demo?.type === 'position') tickers = [demo.ticker];
@@ -274,9 +279,9 @@ export function Portefeuille({ profil }: { profil: Profil }) {
   const archive = params.get('archive') === '1' && etat.archive;
   const journal = [...etat.journal, ...(config.journal ?? [])];
   const focusRecherche = Boolean((location.state as { recherche?: boolean } | null)?.recherche);
-  // Tout profil peut tester un titre ou un panier ; le mode du profil (ou un panier entamé) n'est que le point de départ.
-  const [modeRecherche, setModeRecherche] = useState(etat.panier.length > 0 ? 'panier' : config.recherche.mode);
-  const recherche = rechercheUi(profil.id, modeRecherche);
+  // Tout profil peut tester un titre ou un panier ; la décision de démonstration (ou un panier entamé) n'est que le point de départ.
+  const [modeRecherche, setModeRecherche] = useState(etat.panier.length > 0 ? 'panier' : modeDeDepart(profil));
+  const recherche = rechercheUi(modeRecherche);
 
   const instruire = (ticker: string) => {
     const defaut = profil.decisionDemo?.type === 'position' && profil.decisionDemo.ticker === ticker
@@ -342,7 +347,7 @@ export function Portefeuille({ profil }: { profil: Profil }) {
           onPanier={definirPanier}
           onInstruirePanier={instruirePanier}
           focusInitial={focusRecherche}
-          suggestions={suggestionsDe(profil)}
+          suggestions={suggestionsDe(profil, recherche.mode)}
         />
 
         <div className={styles.grille}>

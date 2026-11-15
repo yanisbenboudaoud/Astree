@@ -22,6 +22,8 @@ Méthode (CLAUDE.md, section 6 bis) :
 - **Exposition en devise** (#112) : part du portefeuille dans chaque devise de cotation
   (``part_usd``, ``part_cad``), avant et après la décision, dans la pièce de la période
   complète : le risque de change d'un investisseur qui vit en CAD.
+- **Frais des FNB** (#114) : coût annuel des frais de gestion avant et après, tiré de
+  ``pipeline.frais``. Déjà prélevés dans les cours, ils sont affichés, jamais déduits.
 
 Le code ne connaît aucun persona : il lit seulement le portefeuille reçu.
 V1 : décisions de type « position ». Les réallocations vers un panier arrivent
@@ -35,7 +37,7 @@ from typing import Any
 
 import pandas as pd
 
-from pipeline import macro
+from pipeline import frais, macro
 from pipeline.donnees import ErreurDonnees, charger_donnees, charger_univers, date_extraction
 from pipeline.indicateurs import (
     DECIMALES_VALEURS,
@@ -55,7 +57,7 @@ LIMITES_PERIODE_COMPLETE = "Une seule période de {annees} ans ; biais du surviv
 LIMITES_REJEU = "Une seule année de crise ; la suivante peut être différente"
 # Ajoutée aux limites quand la pièce contient les données macro (#111). Sans chiffre : les
 # agents ne reprennent aucun nombre des limites (CLAUDE.md, section 4 ter).
-LIMITES_MACRO = "inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
+LIMITES_MACRO = "inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés"
 # Exposition en devise de la pièce de la période complète (#112), sans chiffre non plus.
 TRAITEMENT_DEVISES = "exposition en devise : part du portefeuille par devise de cotation (assets_universe.csv)"
 LIMITES_DEVISES = "exposition selon la devise de cotation, pas selon celle des titres détenus par un fonds"
@@ -208,7 +210,8 @@ def piece_simulation(
             (rejeu de l'année de crise : rendement 2022 avant et après).
         capital: capital fictif du profil, en CAD. S'il est connu, la pièce ajoute
             les comparaisons concrètes (``comparaisons_periode_complete`` et
-            ``comparaisons_2022``) : les agents ne calculent rien, ils citent ces valeurs.
+            ``comparaisons_2022``, frais en dollars) : les agents ne calculent rien, ils
+            citent ces valeurs.
 
     Returns:
         La pièce au format du contrat : ``valeurs`` brutes (arrondies à
@@ -220,7 +223,8 @@ def piece_simulation(
         piece = _piece_periode_complete(id_piece, actuel, apres, decision)
         if capital:
             piece["valeurs"].update(comparaisons_periode_complete(piece["valeurs"], capital))
-        return _avec_contexte_macro(piece, lambda: contexte_macro_periode_complete(piece["valeurs"], apres.valeurs))
+        piece = _avec_contexte_macro(piece, lambda: contexte_macro_periode_complete(piece["valeurs"], apres.valeurs))
+        return _avec_frais(piece, _poids_actuels(portefeuille), poids_apres_decision(portefeuille, decision), capital)
     if periode == "2022":
         piece = _piece_rejeu_2022(id_piece, actuel, apres, decision)
         if capital:
@@ -306,6 +310,26 @@ def _avec_contexte_macro(piece: dict[str, Any], calculer) -> dict[str, Any]:
     piece["source"] = f"{piece['source']} ; {source}"
     piece["traitement"] = f"{piece['traitement']} ; {traitement}"
     piece["limites"] = f"{piece['limites']} ; {LIMITES_MACRO}"
+    return piece
+
+
+def _avec_frais(piece: dict[str, Any], poids_actuels: dict[str, float], poids_apres: dict[str, float],
+                capital: float | None) -> dict[str, Any]:
+    """Ajoute le coût annuel des frais des FNB (#114) ; sans relevé des frais, la pièce reste la même.
+
+    Comme les données macro, une donnée de contexte manquante ne doit pas faire échouer la
+    pièce obligatoire du procès : elle est signalée dans CloudWatch.
+    """
+    try:
+        valeurs, traitement = frais.contexte_frais(poids_actuels, poids_apres, capital)
+        source = frais.source_frais()
+    except ErreurDonnees as erreur:
+        print(f"Frais non ajoutés à {piece['id']} : {erreur}")
+        return piece
+    piece["valeurs"].update(valeurs)
+    piece["source"] = f"{piece['source']} ; {source}"
+    piece["traitement"] = f"{piece['traitement']} ; {traitement}"
+    piece["limites"] = f"{piece['limites']} ; {frais.LIMITES_FRAIS}"
     return piece
 
 

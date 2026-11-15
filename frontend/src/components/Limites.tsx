@@ -96,13 +96,15 @@ function grandEcran(): boolean {
  * `ligne` : une ligne repliée sous les chiffres. `panneau` : une carte pour une colonne
  * latérale, ouverte d'office sur grand écran pour qu'on lise les limites sans défiler.
  */
-export function LimitesDonnees({ ecran, titre = 'Ce que ces chiffres ne disent pas', variante = 'ligne' }: {
+export function LimitesDonnees({ ecran, titre = 'Ce que ces chiffres ne disent pas', variante = 'ligne', ouvertParDefaut = false }: {
   ecran: Ecran;
   titre?: string;
   variante?: 'ligne' | 'panneau';
+  /** Ouvert d'office : les limites se lisent avant de juger (écran Tribunal). */
+  ouvertParDefaut?: boolean;
 }) {
   const panneau = variante === 'panneau';
-  const [ouvert, setOuvert] = useState(() => panneau && grandEcran());
+  const [ouvert, setOuvert] = useState(() => ouvertParDefaut || (panneau && grandEcran()));
   const id = useId();
   const limites = LIMITES_PAR_ECRAN[ecran];
   return (

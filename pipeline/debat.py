@@ -165,7 +165,9 @@ respecte pas) :
    (« perte_au_pire_moment_cad », « ecart_… », « rapport_volatilite », « resultat_2022_cad_… ») :
    cite-les telles quelles. Sinon, cite les deux valeurs (« passe de −7,8 % à −29,0 % »).
    Les pertes en dollars et les écarts sont positifs : « une perte de 33 660 $ »,
-   « 3,6 points de plus », « 1,3 fois plus de variations ».
+   « 3,6 points de plus », « 1,3 fois plus de variations ». Les montants échangés chaque
+   jour existent aussi en millions (« …_millions_cad_… ») : « 1,6 million $ par jour » ;
+   n'écris jamais « milliard ».
 5. N'écris aucun nombre en lettres (« trois fois », « la moitié ») et n'arrondis pas
    au-delà de ce que permet la règle 2.
 6. Virgule décimale française (−29,0 %). Une date ou une année doit figurer dans les
@@ -188,6 +190,8 @@ Règles sur le fond :
 - « part_usd » (après la décision) et « part_usd_actuelle » : part du portefeuille cotée en
   dollars américains, dont la valeur en CAD varie aussi avec le taux de change. C'est un
   risque de devise, distinct du risque des titres eux-mêmes. Une part s'écrit sans signe (37 %).
+- Les frais de gestion des FNB sont déjà prélevés dans les rendements des pièces : ne les
+  retranche jamais d'un rendement ; cite leur coût annuel tel que la pièce le donne.
 - La pièce « composition_fnb » compte chaque FNB pour sa composition réelle (« part_tech »,
   « part_tech_actuelle », et la part de chaque catégorie dans chaque FNB, ex. « QQQ_part_tech ») :
   c'est elle que les plafonds du Pacte utilisent. « part_…_sans_transparence » est l'ancien calcul,

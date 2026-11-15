@@ -16,14 +16,17 @@
 .titre { display: flex; flex-direction: column; gap: 8px; }
 
 
+/* Titres de la salle d'audience : la police des titres, la plus nette à l'écran. */
+.titreSolennel { font-family: var(--police-titre); font-weight: 600; letter-spacing: -0.015em; }
+
+/* Bilan du Greffier : le verdict du calcul, le Pacte règle par règle, ce qui changerait la réponse. */
 .bilan {
   --ton: var(--statut-conforme);
   --ton-teinte: var(--statut-conforme-teinte);
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 4px 16px;
-  padding: 18px 22px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
   border-left: 4px solid var(--ton);
@@ -32,6 +35,7 @@
 .bilanViolation { --ton: var(--statut-violation); --ton-teinte: var(--statut-violation-teinte); }
 .bilanAJuger { --ton: var(--statut-verifier); --ton-teinte: var(--statut-verifier-teinte); }
 .bilanConforme { --ton: var(--statut-conforme); --ton-teinte: var(--statut-conforme-teinte); }
+.teteBilan { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 16px; }
 .iconeBilan {
   display: inline-flex;
   align-items: center;
@@ -43,10 +47,47 @@
   color: var(--ton);
 }
 .resume { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.surtitreBilan { margin: 0; color: var(--encre-500); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
-.verdictBilan { color: var(--ton); }
-.coteBilan { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.comptesBilan { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin: 0; }
+.surtitreBilan { margin: 0; color: var(--encre-500); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.verdictBilan { color: var(--ton); font-size: 22px; line-height: 28px; }
+
+.colonnesBilan { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 12px; }
+.blocBilan { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: var(--rayon-moyen); background: var(--fond-sourdine); }
+.bascule { background: var(--statut-conforme-teinte); box-shadow: inset 3px 0 0 var(--statut-conforme); }
+.titreBloc { margin: 0; font-size: 15px; line-height: 21px; font-weight: 700; color: var(--encre-900); }
+.listeBascules { display: flex; flex-direction: column; gap: 10px; }
+.ligneBascule { display: flex; flex-direction: column; gap: 4px; }
+
+.listeControles { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.listeControles[hidden] { display: none; }
+.controle {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--trait-fin);
+}
+.controle:last-child { border-bottom: 0; }
+.controle > span:first-child { margin-top: 3px; }
+.texteControle { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.piecesControle { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+
+.systeme { display: flex; flex-direction: column; gap: 4px; padding-top: 12px; border-top: 1px solid var(--trait-fin); }
+.voirControles {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--encre-700);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+}
+.voirControles:hover { color: var(--encre-900); }
+.resumeSysteme { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .compteBilan {
   display: inline-flex;
   align-items: center;
@@ -62,225 +103,108 @@
 .tonEnfreint { color: var(--statut-violation); }
 .tonAJuger { color: var(--statut-verifier); }
 .tonVerifie { color: var(--statut-conforme); }
-.voirControles {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border: 0;
-  background: none;
-  color: var(--accent-bleu);
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 18px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  white-space: nowrap;
-}
-.controles { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--trait-fin); }
-.controles[hidden] { display: none; }
-.groupeControles { display: flex; flex-direction: column; gap: 6px; }
-.titreGroupe { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; }
-.listeControles { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-.controle {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--trait-fin);
-}
-.controle:last-child { border-bottom: 0; }
-.controle > svg, .controle > span:first-child { margin-top: 2px; }
-.texteControle { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.piecesControle { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 
-@media (max-width: 760px) {
-  .bilan { grid-template-columns: auto minmax(0, 1fr); }
-  .coteBilan { grid-column: 1 / -1; align-items: flex-start; }
-  .comptesBilan { justify-content: flex-start; }
-}
-
-.debat { display: flex; flex-direction: column; gap: 14px; }
-.enteteDebat { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
-.legendeDebat { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; font-size: 14px; font-weight: 600; }
-.legendeProcureur, .legendeAvocat { display: inline-flex; align-items: center; gap: 8px; }
-.legendeProcureur { color: var(--camp-procureur); }
-.legendeAvocat { color: var(--camp-avocat); }
-.legendeProcureur::before, .legendeAvocat::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: currentColor; }
-
-/* Sommaire : un onglet par point ; deux pastilles disent quel camp a parlé. */
-.sommaire { display: flex; gap: 8px; min-width: 0; max-width: 100%; overflow-x: auto; padding: 2px 2px 4px; scrollbar-width: none; }
-.sommaire::-webkit-scrollbar { display: none; }
-.onglet {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 14px 0 6px;
-  border: 1px solid var(--trait-fin);
-  border-radius: var(--rayon-pilule);
-  background: var(--fond-carte);
-  color: var(--encre-700);
-  font-size: 14px;
-  font-weight: 600;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
-}
-.onglet:hover { border-color: var(--encre-300); color: var(--encre-900); }
-.numeroOnglet {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--fond-creux);
-  font-size: 13px;
-}
-.ongletActif, .ongletActif:hover { background: var(--encre-900); border-color: var(--encre-900); color: var(--inverse-texte); }
-.ongletActif .numeroOnglet { background: rgb(255 255 255 / 0.16); }
-.voix { display: inline-flex; gap: 3px; }
-.voixProcureur, .voixAvocat { width: 7px; height: 7px; border-radius: 50%; }
-.voixProcureur { background: var(--camp-procureur); }
-.voixAvocat { background: var(--camp-avocat); }
-.voixMuette { background: transparent; box-shadow: inset 0 0 0 1.5px var(--encre-300); }
-.ongletActif .voixMuette { box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.45); }
-
-/* Scène : la question, puis le Procureur et l'Avocat de part et d'autre de la balance. */
-.scene {
+/* Le débat d'un seul regard : une ligne par question, le Procureur à gauche, l'Avocat à droite. */
+.debat { display: flex; flex-direction: column; gap: 10px; }
+.enteteDebat { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 24px; }
+.tableDebat {
+  --colonnes: minmax(170px, 0.45fr) minmax(0, 1fr) minmax(0, 1fr);
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 20px 24px 22px;
+  border: 1px solid var(--trait-fin);
   border-radius: var(--rayon);
-  background:
-    linear-gradient(90deg, var(--camp-procureur-teinte) 0%, transparent 30%, transparent 70%, var(--camp-avocat-teinte) 100%),
-    var(--fond-sourdine);
-  border: 1px solid var(--trait-fin);
-}
-.enteteScene { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.questionScene { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.compteurPoint { margin: 0; color: var(--encre-500); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
-.question { color: var(--encre-900); }
-.navigationScene { display: flex; gap: 8px; flex: none; }
-.fleche {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--trait-moyen);
-  border-radius: 50%;
+  overflow: hidden;
   background: var(--fond-carte);
-  color: var(--encre-900);
-  transition: background var(--transition);
 }
-.fleche:hover { background: var(--fond-creux); }
-
-.arene {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
-  align-items: stretch;
-  min-height: 200px;
-  animation: entreeScene 0.28s ease-out;
-}
-@keyframes entreeScene {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
-}
-.barre { position: relative; display: flex; justify-content: center; }
-.barre::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(var(--camp-procureur), var(--encre-300) 50%, var(--camp-avocat));
-  opacity: 0.5;
-}
-.balance {
-  position: relative;
-  align-self: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--fond-carte);
-  color: var(--encre-900);
-  box-shadow: 0 0 0 1px var(--trait-fin), var(--ombre-flottante);
-}
-
-.tribune {
-  --ton: var(--camp-procureur);
-  --ton-teinte: var(--camp-procureur-teinte);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-  padding: 16px 18px 18px;
-  border-radius: var(--rayon-moyen);
-  background: var(--fond-carte);
-  border: 1px solid var(--trait-fin);
-  border-top: 3px solid var(--ton);
-  box-shadow: 0 1px 2px rgb(17 17 17 / 0.04);
-}
-.tribuneAvocat { --ton: var(--camp-avocat); --ton-teinte: var(--camp-avocat-teinte); }
-.enteteTribune { display: flex; align-items: center; gap: 10px; }
+.ligneEntete, .ligneDebat { display: grid; grid-template-columns: var(--colonnes); }
+.ligneEntete { background: var(--fond-sourdine); border-bottom: 1px solid var(--trait-fin); }
+.enteteQuestion, .enteteCamp { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 15px; font-weight: 700; }
+.enteteQuestion { color: var(--encre-500); font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
+.enteteQuestion { grid-column: 1; grid-row: 1; }
+.enteteProcureur { grid-column: 2; grid-row: 1; color: var(--camp-procureur); background: var(--camp-procureur-teinte); }
+.enteteAvocat { grid-column: 3; grid-row: 1; color: var(--camp-avocat); background: var(--camp-avocat-teinte); padding-left: 30px; }
+.sens { color: var(--encre-500); font-size: 13px; font-weight: 500; }
 .blason {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  flex: none;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: var(--ton);
-  color: var(--inverse-texte);
-  font-family: var(--police-titre);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
 }
-.roleTribune { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.nomCamp { color: var(--ton); font-size: 17px; font-weight: 700; line-height: 22px; }
-.plaidoyers { display: flex; flex-direction: column; gap: 14px; }
-.plaidoyer { display: flex; flex-direction: column; gap: 8px; }
-.plaidoyer + .plaidoyer { padding-top: 14px; border-top: 1px solid var(--trait-fin); }
-.conclusion { font-weight: 600; color: var(--encre-900); }
-.preuve { animation: entreeScene 0.2s ease-out; }
-.voirPreuve {
-  margin-left: 4px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--accent-bleu);
-  font-size: 14px;
-  font-weight: 600;
-}
-.voirPreuve:hover { text-decoration: underline; }
-.rappelRegle { margin: 0; }
-.plaidoyerSurligne { margin: -8px; padding: 8px; border-radius: var(--rayon-petit); background: var(--accent-bleu-teinte); box-shadow: 0 0 0 2px var(--accent-bleu); }
-.provenanceArgument { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.silence {
-  flex: 1;
-  display: flex;
+.enteteProcureur .blason { background: var(--camp-procureur); color: var(--inverse-texte); }
+.enteteAvocat .blason { background: var(--camp-avocat); color: var(--inverse-texte); }
+/* La balance, sur la ligne qui sépare les deux camps. */
+.balance {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+  justify-self: start;
+  transform: translateX(-50%);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin: 0;
-  padding: 18px;
-  border: 1px dashed var(--encre-200);
-  border-radius: var(--rayon-petit);
-  color: var(--encre-500);
-  font-size: 15px;
-  font-style: italic;
-  text-align: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--fond-carte);
+  color: var(--encre-900);
+  box-shadow: 0 0 0 1px var(--trait-fin), 0 2px 8px rgb(17 17 17 / 0.08);
 }
 
-@media (max-width: 760px) {
-  .scene { padding: 18px 16px; }
-  .arene { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 40px auto; min-height: 0; }
-  .barre::before { top: 50%; bottom: auto; left: 0; right: 0; width: auto; height: 2px; background: linear-gradient(90deg, var(--camp-procureur), var(--encre-300) 50%, var(--camp-avocat)); }
-  .balance { width: 40px; height: 40px; }
+.ligneDebat + .ligneDebat { border-top: 1px solid var(--trait-fin); }
+.questionDebat {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 16px;
+  font-family: var(--police-titre);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--encre-900);
+}
+.numeroPoint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--fond-creux);
+  font-family: var(--police-texte);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--encre-700);
+}
+.cellule { min-width: 0; }
+.cellule + .cellule { border-left: 1px solid var(--trait-fin); }
+.case { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 8px 16px; }
+.caseProcureur { box-shadow: inset 3px 0 0 var(--camp-procureur); }
+.caseAvocat { box-shadow: inset 3px 0 0 var(--camp-avocat); }
+.campMobile { display: none; }
+.plaidoyer { margin: 0; color: var(--encre-900); font-size: 16px; line-height: 24px; }
+.plaidoyer + .plaidoyer { padding-top: 8px; border-top: 1px dashed var(--trait-fin); }
+.plaidoyerSurligne { margin: -6px; padding: 6px; border-radius: var(--rayon-petit); background: var(--accent-bleu-teinte); box-shadow: 0 0 0 2px var(--accent-bleu); }
+.textePlaidoyer { margin-right: 4px; }
+.provenanceArgument { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; vertical-align: middle; }
+.silence { margin: 0; color: var(--encre-500); font-size: 14px; line-height: 22px; font-style: italic; }
+
+@media (max-width: 860px) {
+  .ligneEntete { display: none; }
+  .ligneDebat { grid-template-columns: minmax(0, 1fr); }
+  .cellule + .cellule { border-left: 0; border-top: 1px solid var(--trait-fin); }
+  .questionDebat { padding-bottom: 4px; }
+  .campMobile { display: block; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
+  .caseProcureur .campMobile { color: var(--camp-procureur); }
+  .caseAvocat .campMobile { color: var(--camp-avocat); }
+  .bilan { padding: 18px 16px; }
 }
 
 .limite {
@@ -425,6 +349,35 @@
   background: var(--fond-carte);
 }
 
+/* Le dossier : ce qu'on consulte au besoin, sous les débats. */
+.dossier { display: flex; flex-direction: column; gap: 8px; }
+
+/* Barre du verdict : toujours visible en bas de l'écran, l'action principale n'est jamais loin. */
+.barreVerdict {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 8px calc(-1 * var(--marge-page)) -72px;
+  padding: 10px var(--marge-page);
+  border-top: 1px solid var(--trait-fin);
+  background: rgb(255 255 255 / 0.94);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 -8px 24px rgb(17 17 17 / 0.06);
+}
+.texteVerdict { display: flex; flex-direction: column; gap: 2px; min-width: 0; margin: 0; }
+.texteVerdict > :first-child { font-size: 18px; line-height: 24px; }
+.boutonsVerdict { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 599px) {
+  .barreVerdict { padding: 10px var(--marge-page); }
+  .texteVerdict { display: none; }
+  .boutonsVerdict { width: 100%; flex-wrap: nowrap; justify-content: space-between; gap: 8px; }
+}
+
 .actions {
   display: flex;
   align-items: center;
@@ -436,8 +389,6 @@
 }
 
 @media (max-width: 1023px) {
-  .debat { grid-template-columns: 1fr; }
-  .bilan { grid-template-columns: 1fr; }
   .controle { grid-template-columns: 1fr; gap: 6px; }
   .lignePiece { grid-template-columns: auto auto 1fr; }
   .lignePiece > :last-child { grid-column: 1 / -1; }

@@ -87,13 +87,19 @@ def _univers() -> pd.DataFrame:
 
 
 @lru_cache(maxsize=1)
-def _prix_bruts() -> pd.DataFrame:
-    """Prix adj_close, une ligne par date (toutes dates confondues), une colonne par titre."""
+def _lignes_prix() -> pd.DataFrame:
+    """prices_daily.csv tel quel, dates converties : lu une seule fois pour les prix et les volumes."""
     prix = lire_csv("prices_daily.csv")
     if prix.duplicated(["date", "ticker"]).any():
         raise ErreurDonnees("prices_daily.csv contient des lignes en double (date, ticker)")
     prix["date"] = pd.to_datetime(prix["date"])
-    return prix.pivot(index="date", columns="ticker", values="adj_close").sort_index()
+    return prix
+
+
+@lru_cache(maxsize=1)
+def _prix_bruts() -> pd.DataFrame:
+    """Prix adj_close, une ligne par date (toutes dates confondues), une colonne par titre."""
+    return _lignes_prix().pivot(index="date", columns="ticker", values="adj_close").sort_index()
 
 
 @lru_cache(maxsize=1)
@@ -162,6 +168,43 @@ def charger_prix(tickers: list[str]) -> pd.DataFrame:
     return prix
 
 
+def charger_volumes(tickers: list[str]) -> pd.DataFrame:
+    """Volumes et prix de clôture des titres demandés, sans report ni alignement de calendrier (#117).
+
+    Une ligne par séance **du titre lui-même** : un jour férié n'est pas un jour à volume nul,
+    et la crypto garde ses 7 jours sur 7. ``close`` est le prix réellement payé ce jour-là
+    (ajusté des fractionnements seulement, comme le volume).
+
+    Returns:
+        Colonnes ``date``, ``ticker``, ``close``, ``volume`` (vide si Yahoo n'en donne pas),
+        ``currency`` (devise de cotation), triées par titre puis par date.
+
+    Raises:
+        ErreurDonnees: titre absent de l'univers.
+    """
+    tickers = list(dict.fromkeys(tickers))
+    inconnus = [t for t in tickers if t not in set(_univers()["ticker"])]
+    if inconnus:
+        raise ErreurDonnees(f"Titre(s) absent(s) de l'univers d'actifs : {', '.join(inconnus)}")
+    lignes = _lignes_prix()
+    choisies = lignes.loc[lignes["ticker"].isin(tickers), ["date", "ticker", "close", "volume", "currency"]]
+    return choisies.sort_values(["ticker", "date"]).reset_index(drop=True)
+
+
+def taux_usdcad_aux_dates(dates: pd.DatetimeIndex) -> pd.Series:
+    """Taux USD/CAD à chaque date, le dernier taux connu étant reporté (jours fériés canadiens, week-ends).
+
+    Raises:
+        ErreurDonnees: date sans taux connu (avant le premier taux du fichier).
+    """
+    taux = _taux_usdcad()
+    taux = taux.reindex(taux.index.union(dates)).ffill().reindex(dates)
+    if taux.isna().any():
+        premiere = taux.index[taux.isna()][0].date()
+        raise ErreurDonnees(f"Aucun taux USD/CAD connu au {premiere}")
+    return taux
+
+
 def convertir_en_cad(prix: pd.DataFrame, devises: dict[str, str]) -> pd.DataFrame:
     """Convertit en CAD des prix exprimés dans leur devise de cotation.
 
@@ -183,11 +226,7 @@ def convertir_en_cad(prix: pd.DataFrame, devises: dict[str, str]) -> pd.DataFram
         detail = ", ".join(f"{t} ({d})" for t, d in non_gerees.items())
         raise ErreurDonnees(f"Devise manquante ou non prise en charge : {detail}")
 
-    taux = _taux_usdcad()
-    taux = taux.reindex(taux.index.union(prix.index)).ffill().reindex(prix.index)
-    if taux.isna().any():
-        premiere = taux.index[taux.isna()][0].date()
-        raise ErreurDonnees(f"Aucun taux USD/CAD connu au {premiere}")
+    taux = taux_usdcad_aux_dates(prix.index)
 
     en_cad = prix.copy()
     for ticker in prix.columns:

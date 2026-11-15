@@ -17,6 +17,7 @@ from contrat.valider import charger_schema, valider_contrat
 from pipeline import agent_profil, tribunal
 from pipeline.agent_profil import chemin_profil
 from pipeline.donnees import ErreurDonnees
+from pipeline.frais import HYPOTHESE_FRAIS
 from pipeline.llm import DemandeOutil, TourOutils, decrire_outil
 from pipeline.orchestrateur import (
     BUDGET_APPELS,
@@ -306,11 +307,14 @@ def test_juger_decision_enchaine_profil_et_orchestrateur(monkeypatch):
     assert contrat["hypotheses"][0] == "Période : 2021-11-12 au 2026-11-12"
     assert "Montants convertis en CAD" in contrat["hypotheses"]
     # #111 : les sources réellement utilisées, données macro comprises, et l'hypothèse du taux sans risque.
+    # #114 : le relevé des frais des FNB, et l'hypothèse des frais déjà prélevés dans les cours.
     noms = [s["nom"] for s in contrat["sources"]]
     assert noms == ["Pacte de l'investisseur", "Yahoo Finance via yfinance (prix ajustés)",
                     "Banque du Canada, API Valet : change USD/CAD", "Univers d'actifs des organisateurs du datathon",
-                    "Banque du Canada, API Valet : IPC, taux directeur, obligation à 10 ans"]
+                    "Banque du Canada, API Valet : IPC, taux directeur, obligation à 10 ans",
+                    "Pages et documents des émetteurs des FNB : ratio des frais, relevé par l'équipe"]
     assert "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période" in contrat["hypotheses"]
+    assert HYPOTHESE_FRAIS in contrat["hypotheses"]
     assert contrat["verdict"] is None and contrat["avertissement"] == AVERTISSEMENT
     for piece in contrat["pieces"]:
         valider_piece(piece)

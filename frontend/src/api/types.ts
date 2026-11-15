@@ -286,8 +286,6 @@ export interface ConfigRecherche {
 export interface ConfigProfilUI {
   decisionATester?: string;
   question?: string;
-  recherche?: ConfigRecherche;
-  panierDemo?: string[];
   journal?: EntreeJournal[];
 }
 

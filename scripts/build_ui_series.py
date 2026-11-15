@@ -14,12 +14,15 @@ l'interface affiche exactement les chiffres que le Tribunal citerait. Le script
 - ``profils/<id>.json`` : portefeuille actuel, indicateurs, courbe de valeur, Pacte ;
 - ``decisions/<id>/<ticker>.json`` : une position de 0 à 50 %, par pas de 1 point ;
 - ``paniers/<id>.json`` : chaque composition du panier de démonstration, par pas de 5 points ;
+  le même panier pour tous les profils (``panierDemo`` de ``profils_ui.json``), pour que
+  l'écran Décision offre partout les mêmes fonctions ;
 - ``calibrage/<id>.json`` : le Pacte vécu (#68), un vrai jour de marché par niveau de baisse,
   les questions complémentaires et les réponses préenregistrées du profil de test ;
 - ``questionnaire.json`` : les questions du questionnaire investisseur (#84), et pour le mode
   démonstration de l'écran « Construire mon Pacte » (#86), l'exemple de réponses
   ``docs/exemples/reponses_questionnaire.json`` avec ce que la Lambda renverrait (aperçu, profil
-  signé et ses vues) ; ses tables de décision vont dans ``decisions/<id de l'exemple>/``.
+  signé et ses vues) ; ses tables de décision vont dans ``decisions/<id de l'exemple>/`` et
+  ``paniers/<id de l'exemple>.json``.
 
 Rien n'est estimé dans le navigateur : le curseur et le panier lisent ces tables.
 """
@@ -139,7 +142,7 @@ def main(arguments: list[str]) -> int:
 
     debut = time.perf_counter()
     libelles = json.loads((DONNEES_FRONT / "libelles.json").read_text(encoding="utf-8"))
-    profils_ui = json.loads((DONNEES_FRONT / "profils_ui.json").read_text(encoding="utf-8"))["profils"]
+    panier_demo = json.loads((DONNEES_FRONT / "profils_ui.json").read_text(encoding="utf-8"))["panierDemo"]
     fichiers = sorted(DOSSIER_PERSONAS.glob("*.json"))
     profils = [charger_pacte(f) for f in fichiers if f.name != "schema_pacte.json"]
     if options.profils:
@@ -165,14 +168,10 @@ def main(arguments: list[str]) -> int:
     for profil in profils:
         ecrire(SORTIE / "profils" / f"{profil['id']}.json", construire_profil(profil, par_ticker, semaines))
         ecrire(SORTIE / "calibrage" / f"{profil['id']}.json", construire_calibrage(profil), compact=True)
-        mode = profils_ui.get(profil["id"], {}).get("recherche", {}).get("mode")
-        if mode is None:
-            mode = "panier" if (profil.get("decision_demo") or {}).get("type") == "reallocation" else "position"
-        if mode == "panier":
-            candidats = profils_ui[profil["id"]]["panierDemo"]
-            table = table_panier(profil, candidats, semaines)
-            ecrire(SORTIE / "paniers" / f"{profil['id']}.json", table, compact=True)
-            print(f"{profil['id']} : {len(table['compositions'])} compositions du panier {candidats}")
+        # Le même panier pour tous les profils : un profil peut tester un panier comme un titre seul.
+        table = table_panier(profil, panier_demo, semaines)
+        ecrire(SORTIE / "paniers" / f"{profil['id']}.json", table, compact=True)
+        print(f"{profil['id']} : {len(table['compositions'])} compositions du panier {panier_demo}")
         # Tables d'une position pour tous les profils : un profil en mode panier peut aussi tester un titre seul (#99).
         for ticker in par_ticker:
             ecrire(SORTIE / "decisions" / profil["id"] / f"{ticker}.json",
@@ -183,6 +182,7 @@ def main(arguments: list[str]) -> int:
     for ticker in par_ticker:
         ecrire(SORTIE / "decisions" / exemple["id"] / f"{ticker}.json",
                table_position(exemple, ticker, semaines), compact=True)
+    ecrire(SORTIE / "paniers" / f"{exemple['id']}.json", table_panier(exemple, panier_demo, semaines), compact=True)
     print(f"Questionnaire : {len(questionnaire['questions'])} questions ; exemple « {exemple['id']} » "
           f"et ses {len(par_ticker)} tables de décision")
     print(f"Terminé en {time.perf_counter() - debut:.0f} s → {SORTIE.relative_to(RACINE)}")

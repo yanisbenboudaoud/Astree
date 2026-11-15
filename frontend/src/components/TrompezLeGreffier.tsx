@@ -20,7 +20,8 @@ function libelleSource(source: string): string {
   return `dans ${source}`;
 }
 
-export function TrompezLeGreffier({ resultat, pieces }: { resultat: ResultatTribunal; pieces: Piece[] }) {
+/** `integre` : posé dans une section repliable qui porte déjà le titre ; pas de carte ni d'en-tête visible. */
+export function TrompezLeGreffier({ resultat, pieces, integre = false }: { resultat: ResultatTribunal; pieces: Piece[]; integre?: boolean }) {
   const [texte, setTexte] = useState('');
   const [citees, setCitees] = useState<string[]>([]);
   const [verification, setVerification] = useState<ResultatVerification | null>(null);
@@ -51,8 +52,8 @@ export function TrompezLeGreffier({ resultat, pieces }: { resultat: ResultatTrib
   const basculer = (code: string) => setCitees((c) => (c.includes(code) ? c.filter((x) => x !== code) : [...c, code]));
 
   return (
-    <section className={styles.section} aria-labelledby="titre-pieges">
-      <div className={styles.entete}>
+    <section className={`${styles.section} ${integre ? styles.integre : ''}`} aria-labelledby="titre-pieges">
+      <div className={integre ? 'visuellement-cache' : styles.entete}>
         <h2 className="t-intertitre" id="titre-pieges">Essayez de tromper le Greffier</h2>
         <p className="t-petit c-700">
           Écrivez un argument chiffré : le Greffier vérifie chaque nombre, sans IA.
@@ -103,7 +104,7 @@ export function TrompezLeGreffier({ resultat, pieces }: { resultat: ResultatTrib
               <label key={p.code} className={styles.piece} title={p.titre}>
                 <input type="checkbox" checked={citees.includes(p.code)} onChange={() => basculer(p.code)} />
                 <span className="t-trace">{p.code}</span>
-                <span className="visuellement-cache"> : {p.titre}</span>
+                <span className={styles.titrePiece}>{p.titre}</span>
               </label>
             ))}
           </fieldset>

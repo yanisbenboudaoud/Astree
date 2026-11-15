@@ -120,6 +120,8 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 - les nombres dérivés (écarts, ratios) sont interdits : si un argument en a besoin, c'est Python qui les calcule ;
 - les dates sont vérifiées comme les autres nombres.
 
+**Mesuré, pas seulement promis** (#165, #166) : le vérificateur de chiffres et le contrôle du cadre ont été mis à l'épreuve sur des jeux de pièges écrits avant la mesure. Les taux, avec leurs intervalles de confiance et leurs ratés, sont dans la section « Preuves » du [`README.md`](../README.md#preuves).
+
 ---
 
 ## Choix 7 — Le Pacte : des règles déclarées à l'avance
@@ -281,4 +283,5 @@ Phrase pour le one pager : « Chaque décision jugée par Astrée devient un pro
 - **Biais du survivant** dans l'univers d'actifs fourni (choisi en 2026) : les arguments de l'Avocat basés sur le rendement passé sont flattés.
 - **Une seule période** (2021-2026) : un autre découpage donnerait d'autres chiffres.
 - **Données ESG** : aucune n'est fournie ; elles dépendent de sources externes (V3).
+- **Le Greffier vérifie l'existence d'un nombre, pas son sens** : un chiffre exact attribué à la mauvaise grandeur passe, et `cadre_simulation` repère des tournures, pas des intentions (un conseil formulé autrement peut passer). Ces deux limites sont mesurées : [`validation/evaluation_chiffres.md`](validation/evaluation_chiffres.md) et [`validation/evaluation_cadre.md`](validation/evaluation_cadre.md).
 - **Simulation uniquement :** aucune transaction réelle, aucun conseil financier personnalisé.

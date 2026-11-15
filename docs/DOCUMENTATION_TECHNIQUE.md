@@ -55,7 +55,7 @@ L'orchestrateur est une boucle **Converse** de Bedrock avec `toolConfig` (*tool 
 
 Ces garde-fous sont **testés avec un faux modèle** : un modèle qui demande 10 outils n'en obtient que 8 ; un modèle qui oublie la simulation la voit ajoutée d'office ; un appel à `verifier_chiffres` est refusé ; une raison chiffrée est refusée ([`validation/resultats_scenarios.md`](validation/resultats_scenarios.md), section 6).
 
-**Mesurés sur les vrais procès** (#167, [PR #175](https://github.com/yanisbenboudaoud/Datathon2026/pull/175), fichier `docs/validation/evaluation_orchestrateur.md`, lu le 2026-11-15) : sur 183 procès archivés dans S3, le budget de 8 appels est respecté 183 fois sur 183, et le modèle a demandé lui-même la simulation obligatoire dans 183 procès sur 183 (0 ajout d'office). Les outils changent avec le Pacte : `calculer_correlations` est demandé dans 24 procès sur 24 pour le profil audacieux contre 45 sur 120 pour le profil prudent, et `rechercher_documents` n'est demandé que pour le profil ESG. Limite écrite dans ce rapport : ces procès ne sont pas un échantillon planifié.
+**Mesurés sur les vrais procès** (#167, [PR #175](https://github.com/yanisbenboudaoud/Datathon2026/pull/175), fichier `docs/validation/evaluation_orchestrateur.md`, lu le 2026-11-15) : sur 201 procès archivés dans S3, le budget de 8 appels est respecté 201 fois sur 201, et le modèle a demandé lui-même la simulation obligatoire dans 201 procès sur 201 (0 ajout d'office). Les outils changent avec le Pacte : `calculer_correlations` est demandé dans 30 procès sur 30 pour le profil audacieux contre 49 sur 126 pour le profil prudent, et `rechercher_documents` n'est demandé que pour le profil ESG. Limite écrite dans ce rapport : ces procès ne sont pas un échantillon planifié.
 
 ## 4. Les outils, la méthode de calcul et les hypothèses
 
@@ -209,6 +209,8 @@ D'autres rejets, joués volontairement, sont dans [`validation/resultats_scenari
 
 ## 8. Validations
 
+Les principaux résultats, promesse par promesse, sont repris dans la section « Preuves » du [`README.md`](../README.md#preuves) ; l'index des rapports, la commande qui régénère chacun et leurs limites sont dans [`validation/README.md`](validation/README.md).
+
 | Validation | Commande | Résultat | Fiche |
 |---|---|---|---|
 | **Tests unitaires** | `pytest -q` | sans réseau ni AWS ; lancés à chaque push par l'intégration continue ([`.github/workflows/tests.yml`](../.github/workflows/tests.yml)) | [169](journal/169-integration-continue.md) |
@@ -216,7 +218,7 @@ D'autres rejets, joués volontairement, sont dans [`validation/resultats_scenari
 | **« Trompez le Greffier, 100 fois »** | `python -m validation.evaluation chiffres` | 66/66 chiffres inventés détectés, 80/80 arguments valides acceptés ([`evaluation_chiffres.md`](validation/evaluation_chiffres.md)) | [165](journal/165-evaluation-chiffres.md) |
 | **« Trompez le Greffier », côté cadre** | `python -m validation.evaluation cadre` | 47/78 conseils et promesses bloqués, 71/71 arguments légitimes admis ; 9/20 bloqués sur les cas écrits sans accès au code ([`evaluation_cadre.md`](validation/evaluation_cadre.md)) | [166](journal/166-evaluation-cadre.md) |
 | **Validation externe des données** | `python -m validation.externe` | 27/27 rendements annuels de 7 FNB à moins de 0,25 point de ceux publiés par les émetteurs (seuil fixé avant le calcul), 2022 : 7/7 ; écart maximal 0,12 point ([`validation_externe.md`](validation/validation_externe.md)) | [168](journal/168-validation-externe.md) |
-| **Orchestrateur et débat sur les procès tenus** | `python -m validation.evaluation orchestrateur` | 183 procès relus ; voir section 3 ([PR #175](https://github.com/yanisbenboudaoud/Datathon2026/pull/175), `docs/validation/evaluation_orchestrateur.md`) | 167 (PR #175) |
+| **Orchestrateur et débat sur les procès tenus** | `python -m validation.evaluation orchestrateur` | 201 procès relus ; voir section 3 ([PR #175](https://github.com/yanisbenboudaoud/Datathon2026/pull/175), `docs/validation/evaluation_orchestrateur.md`) | 167 (PR #175) |
 | **Contrats** | `python -m contrat.valider <fichier.json>` | schéma et renvois entre champs ; les procès enregistrés de l'interface sont validés en intégration continue | [002](journal/002-contrat-json.md), [065](journal/065-valider-erreurs-outil.md) |
 
 Ce que montrent les scénarios ([`resultats_scenarios.md`](validation/resultats_scenarios.md)) :

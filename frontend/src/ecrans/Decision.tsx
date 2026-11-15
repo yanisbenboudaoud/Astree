@@ -254,6 +254,7 @@ function BlocEffets({ profil, entree, decision, libelleGraphique }: { profil: Pr
         decision={avec}
         limite={seuilPireBaisse(profil)}
         creux={{ date: entree.dateChuteMax, valeur: entree.chuteMax }}
+        creuxActuel={{ date: profil.actuel.dateChuteMax, valeur: profil.actuel.chuteMax }}
         seances={entree.seances}
         libelleDecision={libelleGraphique}
       />

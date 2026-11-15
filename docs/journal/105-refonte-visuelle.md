@@ -41,7 +41,12 @@ Une refonte du style seulement, sans changer le parcours ni les données. Le sty
   - tailles rapides en contrôle segmenté, avec une pastille « max. » ; la légende des zones et la bande sous la piste sont retirées ;
   - tableau des effets : la colonne de la décision ressort sur fond gris très clair, et le statut devient une icône après la limite (plus de colonne Statut) ;
   - `Message` (`components/Elements`) : fond teinte arrondi sans bordure ;
-  - `GraphiqueRecul` : aire « sous l'eau » en dégradé sous la courbe de la décision, traits plus fins ;
+  - `GraphiqueRecul` **refait** (styles dans `GraphiqueRecul.module.css`, retirés de `Graphiques.module.css`) :
+    - une phrase de lecture en tête donne la conclusion (limite franchie pendant N séances et quand, ou jamais franchie) ; « 1 séance » est désormais au singulier ;
+    - la légende est intégrée à l'en-tête ;
+    - une bande verticale marque la période sous la limite, et les deux pires moments (aujourd'hui et avec la décision) sont annotés ;
+    - lecture comparative au survol et au clavier : une bulle avec les deux valeurs à la même date, lues telles quelles dans les séries ;
+    - nouvelle prop `creuxActuel` ; tests dans `src/test/graphiqueRecul.test.tsx` (phrase au singulier, limite jamais franchie, lecture au clavier) ;
   - les guillemets « » des messages ESG (`domaine/decision.ts`) sont collés au texte par des espaces insécables, pour ne plus rester seuls en fin de ligne.
 - **Correctif : décision sur un titre pour un profil en mode panier.** Amira est en mode panier, et `scripts/build_ui_series.py` ne lui générait que la table du panier. Choisir « Un titre » (#99) laissait donc l'écran Décision sur « Chargement de la simulation… » indéfiniment.
   - Le script génère maintenant les tables d'une position pour **tous** les profils (`decisions/amira/`, 31 titres).
@@ -53,7 +58,7 @@ Une refonte du style seulement, sans changer le parcours ni les données. Le sty
 Rien à changer : `npm run dev` depuis `frontend/`. Pour changer une couleur, modifier le jeton dans `tokens.css` ; aucun composant n'écrit de couleur en dur.
 
 ## Comment vérifier
-- Depuis `frontend/` : `npx tsc --noEmit` passe. `npm test` donne 79 tests sur 81 : les 2 échecs de `domaine.test.ts` (« Tribunal occupé ») existaient déjà sur `main` avant ce changement et ne touchent pas au style.
+- Depuis `frontend/` : `npx tsc --noEmit` passe. `npm test` donne 82 tests sur 84 : les 2 échecs de `domaine.test.ts` (« Tribunal occupé ») existaient déjà sur `main` avant ce changement et ne touchent pas au style.
 - `npm run verifier` : 23 écrans vérifiés par axe-core (contrastes compris), aucun débordement à 1440 et 1280 px. Lancé sur le serveur de démonstration (port 5175), il ne signale que des erreurs CORS vers la Lambda : seul `http://localhost:5173` est autorisé (#14).
 - Captures de Robert à 1440 px. Avant : celles de la fiche 103. Après :
 

@@ -9,34 +9,10 @@
 .courbeValeur { fill: none; stroke: var(--donnee-principale); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
 .pointBas { fill: var(--fond-papier); stroke: var(--statut-violation); stroke-width: 2; }
 .annotation { fill: var(--encre-700); font-family: var(--police-texte); font-size: 13px; }
-.annotationForte { fill: var(--encre-900); font-family: var(--police-texte); font-size: 13px; font-weight: 600; }
-.annotationViolation { fill: var(--statut-violation); font-weight: 600; }
 .pastilleValeur { fill: var(--donnee-principale); }
 .texteInverse { fill: var(--inverse-texte); font-family: var(--police-mono); font-size: 12px; font-weight: 600; }
 
-/* Courbe « Actuel » : --trait-moyen (3,3:1) au lieu d'--encre-300 (2,4:1), WCAG 1.4.11 (#103). */
-.aireRecul { fill: url(#degrade-recul); }
-.degradeReculHaut { stop-color: var(--donnee-principale); stop-opacity: 0.04; }
-.degradeReculBas { stop-color: var(--donnee-principale); stop-opacity: 0.2; }
-.courbeActuel { fill: none; stroke: var(--donnee-secondaire); stroke-width: 1.25; stroke-linejoin: round; stroke-linecap: round; }
-.courbeDecision { fill: none; stroke: var(--donnee-principale); stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
-.limite { stroke: var(--statut-violation); stroke-width: 1.5; stroke-dasharray: 5 4; }
-.zoneSousLimite { fill: var(--statut-violation); fill-opacity: 0.12; }
 
-.legende {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 16px;
-  color: var(--encre-700);
-  font-size: 13px;
-  line-height: 18px;
-}
-.legende li { display: inline-flex; align-items: center; gap: 6px; }
-.traitActuel { width: 18px; height: 2px; border-radius: 2px; background: var(--donnee-secondaire); }
-.traitDecision { width: 18px; height: 3px; border-radius: 2px; background: var(--donnee-principale); }
-.carreLimite { width: 14px; height: 10px; border-radius: 3px; background: var(--statut-violation); opacity: 0.12; }
-.traitLimite { width: 18px; border-top: 1.5px dashed var(--statut-violation); }
 
 /* Lecture dynamique de la courbe de valeur : repère, point et bulle (date · valeur). */
 .interactif { touch-action: pan-y; cursor: crosshair; }

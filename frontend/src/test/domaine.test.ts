@@ -13,7 +13,7 @@ import tsla from '../data/generated/decisions/robert/TSLA.json';
 import xom from '../data/generated/decisions/mateo/XOM.json';
 import type { ContratTribunal } from '../api/contrat';
 import type { DecisionUI, TablePosition } from '../api/types';
-import { adapterContrat, etapeTrace, numeroAudience } from '../api/adaptateur';
+import { adapterContrat, adapterEchange, etapeTrace, numeroAudience } from '../api/adaptateur';
 import { profil } from '../api/donnees';
 import { correspondAuContrat, demandeDecision, libelleDecision, messagesDecision } from '../domaine/decision';
 import { questionsSuggerees, repondre } from '../domaine/questions';
@@ -114,7 +114,7 @@ describe('questions du Greffier', () => {
   it('un nouveau calcul devient une nouvelle pièce, avec les chiffres de la table', () => {
     const reponse = repondre({ id: 'taille:15', libelle: 'Et à 15 % ?' }, contexte)!;
     expect(reponse.role).toBe('Greffier');
-    expect(reponse.nouvellePiece?.code).toBe(`P${resultat.pieces.length + 1}`);
+    expect(reponse.nouvellePiece?.code).toBe('G1');
     expect(reponse.texte).toContain(`${MOINS}16,4${FINE}%`);
     expect(reponse.texte).toContain(`${MOINS}13,4${FINE}%`);
   });
@@ -154,6 +154,34 @@ describe('options du Verdict', () => {
     const options = optionsVerdict({ profil: amira, resultat, decision: decisionAmira, table: null, entreeDecision: null });
     expect(options[1].titre).toBe(`Réallouer seulement 28${FINE}%`);
     expect(options[1].statut).toBe('Conforme');
+  });
+});
+
+describe('contre-interrogatoire (#55)', () => {
+  const contrat = contratRobert as ContratTribunal;
+  const simulation15 = { ...contrat.pieces[1], id: 'P7', titre: 'Simulation à 15 %', valeur_affichee: '−16,4 % max · +11,0 %/an' };
+  const echange = {
+    question: 'Et si je mettais 15 % au lieu de 30 % ?',
+    pieces_ajoutees: ['P7'],
+    requisitoire: [{ etiquette: 'fait' as const, texte: 'À 15 %, la pire baisse simulée serait de −16,4 %.', pieces: ['P1', 'P7'] }],
+    plaidoirie: [{ etiquette: 'fait' as const, texte: 'Le rendement annuel serait de +11,0 %.', pieces: ['P7'] }],
+    arguments_rejetes: [],
+    controle_chiffres: { statut: 'conforme' as const, regle: 'verifier_chiffres', message: 'Chiffres cités vérifiés contre leurs pièces : 3/3 chiffres, 2 arguments' },
+    trace: [{ etape: 'orchestrateur', outil: 'simuler_portefeuille', raison: 'Simuler la taille demandée.', entree: { taille: 0.15 }, sortie: 'P7' }],
+  };
+
+  it('adapte la réponse : arguments des deux camps, pièce ajoutée citée, contrôle du Greffier', () => {
+    const resultat = adapterEchange(echange, [...contrat.pieces, simulation15]);
+    expect(resultat.arguments.map((a) => a.camp)).toEqual(['Procureur', 'Avocat']);
+    expect(resultat.piecesAjoutees.map((p) => p.code)).toEqual(['P7']);
+    expect(resultat.piecesAjoutees[0].citeePar).toEqual(['Procureur · réponse 1', 'Avocat · réponse 1']);
+    expect(resultat.controle).toContain('3/3 chiffres');
+  });
+
+  it('un procès relu avec ses questions archivées les affiche et les cite', () => {
+    const avecQuestion = adapter({ ...contrat, pieces: [...contrat.pieces, simulation15], contre_interrogatoire: [echange] }, 'Robert', decisionRobert);
+    expect(avecQuestion.echanges).toHaveLength(1);
+    expect(avecQuestion.pieces.find((p) => p.code === 'P7')!.citeePar).toContain('Procureur · question 1, réponse 1');
   });
 });
 

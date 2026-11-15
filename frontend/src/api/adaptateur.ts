@@ -2,8 +2,8 @@
  * Contrat du pipeline (CLAUDE.md, section 5) → types de l'écran Tribunal (annexe D.7).
  * Le même adaptateur sert aux procès enregistrés (mode démonstration) et au Tribunal en direct.
  */
-import type { ContratTribunal, EtapeTraceContrat, EtiquetteContrat } from './contrat';
-import type { Argument, ArgumentRejete, Controle, Correction, EtapeTrace, Piece, Provenance, ResultatTribunal } from './types';
+import type { ContratTribunal, EchangeContrat, EtapeTraceContrat, EtiquetteContrat, PieceContrat } from './contrat';
+import type { Argument, ArgumentRejete, Controle, Correction, Echange, EtapeTrace, Piece, Provenance, ResultatTribunal } from './types';
 import { paragraphe, parGravite, statutUi } from '../domaine/pacte';
 import { part } from '../lib/format';
 
@@ -75,6 +75,45 @@ export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
   return { role, appel, etat, raison: etape.raison, sortie: idPiece };
 }
 
+export function adapterPiece(p: PieceContrat, citeePar: string[] = []): Piece {
+  return {
+    code: p.id,
+    provenance: provenanceUi(p.etiquette),
+    titre: p.titre,
+    valeur: p.valeur_affichee,
+    source: p.source,
+    traitement: p.traitement,
+    limites: p.limites,
+    citeePar,
+    origine: 'tribunal',
+  };
+}
+
+function argumentsEchange(echange: EchangeContrat): Argument[] {
+  return [
+    ...echange.requisitoire.map((a) => ({ camp: 'Procureur' as const, texte: a.texte, provenance: provenanceUi(a.etiquette), pieces: a.pieces })),
+    ...echange.plaidoirie.map((a) => ({ camp: 'Avocat' as const, texte: a.texte, provenance: provenanceUi(a.etiquette), pieces: a.pieces })),
+  ];
+}
+
+/** Échange du contre-interrogatoire (#55) → écran ; `pieces` : toutes les pièces du contrat (celles ajoutées y sont). */
+export function adapterEchange(echange: EchangeContrat, pieces: PieceContrat[]): Echange {
+  const args = argumentsEchange(echange);
+  const ajoutees = pieces.filter((p) => echange.pieces_ajoutees.includes(p.id)).map((p) => {
+    const citeePar = (['Procureur', 'Avocat'] as const).flatMap((camp) => args
+      .filter((a) => a.camp === camp)
+      .flatMap((a, i) => (a.pieces.includes(p.id) ? [`${camp} · réponse ${i + 1}`] : [])));
+    return adapterPiece(p, citeePar);
+  });
+  return {
+    question: echange.question,
+    arguments: args,
+    piecesAjoutees: ajoutees,
+    controle: echange.controle_chiffres.message,
+    argumentsRejetes: echange.arguments_rejetes.map((a) => ({ camp: a.cote === 'requisitoire' ? 'Procureur' : 'Avocat', texte: a.texte, raison: a.raison })),
+  };
+}
+
 export interface ContexteAdaptation {
   nomProfil: string;
   titreDecision: string;
@@ -91,23 +130,18 @@ export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdapt
   ];
 
   const citations = new Map<string, string[]>();
-  for (const camp of ['Procureur', 'Avocat'] as const) {
-    argumentsTribunal.filter((a) => a.camp === camp).forEach((a, i) => {
-      for (const code of a.pieces) citations.set(code, [...(citations.get(code) ?? []), `${camp} · argument ${i + 1}`]);
-    });
-  }
+  const citer = (args: Argument[], libelle: (camp: string, i: number) => string) => {
+    for (const camp of ['Procureur', 'Avocat'] as const) {
+      args.filter((a) => a.camp === camp).forEach((a, i) => {
+        for (const code of a.pieces) citations.set(code, [...(citations.get(code) ?? []), libelle(camp, i)]);
+      });
+    }
+  };
+  citer(argumentsTribunal, (camp, i) => `${camp} · argument ${i + 1}`);
+  const echangesContrat = contrat.contre_interrogatoire ?? [];
+  echangesContrat.forEach((e, n) => citer(argumentsEchange(e), (camp, i) => `${camp} · question ${n + 1}, réponse ${i + 1}`));
 
-  const pieces: Piece[] = contrat.pieces.map((p) => ({
-    code: p.id,
-    provenance: provenanceUi(p.etiquette),
-    titre: p.titre,
-    valeur: p.valeur_affichee,
-    source: p.source,
-    traitement: p.traitement,
-    limites: p.limites,
-    citeePar: citations.get(p.id) ?? [],
-    origine: 'tribunal',
-  }));
+  const pieces: Piece[] = contrat.pieces.map((p) => adapterPiece(p, citations.get(p.id) ?? []));
 
   const controles: Controle[] = parGravite(contrat.controles.map((c) => {
     const numero = paragraphe(regles, c.regle);
@@ -150,6 +184,7 @@ export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdapt
     questionsSuggerees: [],
     argumentsRejetes,
     corrections,
+    echanges: echangesContrat.map((e) => adapterEchange(e, contrat.pieces)),
     procesId: contexte.procesId,
     contrat,
   };

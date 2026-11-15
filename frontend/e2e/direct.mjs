@@ -88,6 +88,31 @@ try {
     const proces = await attendreProces(page, 'robert', appels);
     await axe(page, 'Robert · tribunal en direct');
     await page.screenshot({ path: `${DOSSIER}/direct-robert-tribunal.png`, fullPage: true });
+
+    // « Trompez le Greffier » sur ce vrai procès (POST /verifier, sans Bedrock).
+    await page.getByRole('button', { name: 'Un chiffre inventé' }).click();
+    try {
+      await page.getByText(/Argument rejeté/).waitFor({ timeout: 10_000 });
+    } catch {
+      problemes.push('robert : « Trompez le Greffier » sans verdict sur le procès en direct');
+    }
+
+    // Contre-interrogatoire (#55) : la question de l'issue, posée au vrai Tribunal.
+    const debutQuestion = Date.now();
+    await page.getByLabel('Votre question aux agents').fill('Et si je mettais 15 % au lieu de 30 % ?');
+    await page.getByRole('button', { name: /^Envoyer$/ }).click();
+    try {
+      await page.getByText(/Question 1 : « Et si je mettais 15/).waitFor({ timeout: DELAI_PROCES_MS });
+      const question = appels.find((a) => a.route === '/question');
+      if (!question || question.statut !== 200) problemes.push(`robert : POST /question a répondu ${question?.statut}`);
+      const echange = await page.locator('li', { hasText: /Question 1 :/ }).first().textContent();
+      bilan.push({ profil: 'robert (question)', duree: Math.round((Date.now() - debutQuestion) / 1000), id: proces.id, audience: '', constat: echange?.match(/Greffier : [^·]*/)?.[0] ?? '', verdict: '' });
+      if (!/pièces ajoutées/.test(echange ?? '')) problemes.push('robert : la question n\'a ajouté aucune pièce');
+      await axe(page, 'Robert · contre-interrogatoire');
+      await page.screenshot({ path: `${DOSSIER}/direct-robert-question.png`, fullPage: true });
+    } catch (e) {
+      problemes.push(`robert : pas de réponse à la question (${e.message})`);
+    }
     const verdict = await signer(page, 'robert', appels, [/Ramener la position/, /Renoncer/]);
     bilan.push({ profil: 'robert', ...proces, verdict });
     await page.close();

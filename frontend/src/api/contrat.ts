@@ -89,6 +89,17 @@ export interface IndicateursContrat {
   rendement_2022: number;
 }
 
+/** Une question libre posée après le procès et ses réponses vérifiées (#55, `POST /question`). */
+export interface EchangeContrat {
+  question: string;
+  pieces_ajoutees: string[];
+  requisitoire: ArgumentContrat[];
+  plaidoirie: ArgumentContrat[];
+  arguments_rejetes: ArgumentRejeteContrat[];
+  controle_chiffres: ControleContrat;
+  trace: EtapeTraceContrat[];
+}
+
 export interface ContratTribunal {
   persona: string;
   demande: string;
@@ -115,6 +126,7 @@ export interface ContratTribunal {
   limites: string[];
   trace: EtapeTraceContrat[];
   avertissement: string;
+  contre_interrogatoire?: EchangeContrat[];
 }
 
 export type VerdictContrat = 'maintenu' | 'modifie' | 'pacte_ajuste';

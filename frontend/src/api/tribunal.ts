@@ -6,9 +6,10 @@
  *   `POST /tribunal` puis `POST /verdict` (deploiement/lambda_tribunal.py).
  * - Dans les deux modes, « Trompez le Greffier » appelle `POST /verifier` (Python seul, sans
  *   Bedrock) sur le procès affiché, dès que VITE_API_URL est défini.
+ * - En mode direct, une question libre appelle `POST /question` (contre-interrogatoire, #55).
  */
 import indexProces from '../data/proces/index.json';
-import type { ContratTribunal, DecisionContrat, VerdictContrat } from './contrat';
+import type { ContratTribunal, DecisionContrat, EchangeContrat, PieceContrat, VerdictContrat } from './contrat';
 import type { DecisionUI, ResultatTribunal, ResultatVerification } from './types';
 import { adapterContrat, numeroAudience } from './adaptateur';
 import { profil as profilDe } from './donnees';
@@ -75,6 +76,10 @@ export async function decisionEnregistree(idProfil: string): Promise<DecisionUI 
 }
 
 async function lireErreur(reponse: Response): Promise<string> {
+  if (reponse.status === 429) {
+    // Concurrence réservée de 2 (coûts Bedrock) ou limite de débit de /verifier.
+    return 'Le Tribunal est occupé : deux procès au plus en même temps, et un nombre limité de vérifications par minute. Réessayez dans un instant.';
+  }
   try {
     const corps = await reponse.json();
     if (corps && typeof corps.erreur === 'string') return corps.erreur;
@@ -152,6 +157,40 @@ export async function verifierArgument(procesId: string, texte: string, pieces: 
   if (!reponse.ok) throw new Error(await lireErreur(reponse));
   const resultat = (await reponse.json()) as Omit<ResultatVerification, 'dureeMs'>;
   return { ...resultat, dureeMs: Math.round(performance.now() - debut) };
+}
+
+/**
+ * Réveille la Lambda sans rien lui demander de coûteux : une vérification sans chiffre ni pièce
+ * sur le procès affiché (une lecture S3, aucun appel Bedrock, réponse 200). Le premier vrai appel
+ * évite ainsi le démarrage à froid (environ 4 s mesurées après un déploiement).
+ */
+export function reveillerLambda(procesId: string | undefined): void {
+  if (!procesId || !greffierEnDirect(procesId)) return;
+  fetch(`${URL_API}/verifier`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: procesId, texte: 'réveil', pieces: [] }),
+  }).catch(() => { /* simple réveil : une erreur réseau sera signalée au vrai appel */ });
+}
+
+/** Question libre possible : mode direct (Bedrock payant, procès réarchivé) et procès archivé. */
+export function questionLibreDisponible(procesId: string | undefined): boolean {
+  return MODE_DIRECT && greffierEnDirect(procesId);
+}
+
+/**
+ * Contre-interrogatoire (#55, `POST /question`) : l'orchestrateur choisit ses outils, le Procureur
+ * et l'Avocat répondent avec les pièces, le Greffier vérifie les chiffres. Environ 20 à 40 s.
+ */
+export async function poserQuestion(procesId: string, question: string, signal?: AbortSignal): Promise<{ echange: EchangeContrat; pieces: PieceContrat[] }> {
+  const reponse = await fetch(`${URL_API}/question`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: procesId, question }),
+    signal,
+  });
+  if (!reponse.ok) throw new Error(await lireErreur(reponse));
+  return (await reponse.json()) as { echange: EchangeContrat; pieces: PieceContrat[] };
 }
 
 /** Archive le verdict. En démonstration, rien n'est envoyé : le verdict reste dans le navigateur. */

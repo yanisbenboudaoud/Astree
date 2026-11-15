@@ -70,9 +70,13 @@ export function questionsSuggerees({ resultat, decision, table }: ContexteQuesti
   return questions;
 }
 
+/**
+ * Les pièces calculées ici par le Greffier sont numérotées G1, G2… : les P<n> sont réservés au
+ * Tribunal, qui numérote à la suite du procès les pièces du contre-interrogatoire (#55).
+ */
 function prochainCode(pieces: Piece[]): string {
-  const max = pieces.reduce((m, p) => Math.max(m, Number(p.code.slice(1)) || 0), 0);
-  return `P${max + 1}`;
+  const max = pieces.filter((p) => p.code.startsWith('G')).reduce((m, p) => Math.max(m, Number(p.code.slice(1)) || 0), 0);
+  return `G${max + 1}`;
 }
 
 function premierePhrase(texte: string): string {

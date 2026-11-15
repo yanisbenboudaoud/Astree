@@ -17,7 +17,7 @@ export function accroche(texte: string): { tete: string; suite: string } {
 }
 
 export type Theme =
-  | 'titre_seul' | 'reactions' | 'antecedents' | 'valeurs' | 'annee_2022' | 'frais' | 'taille'
+  | 'titre_seul' | 'reactions' | 'antecedents' | 'valeurs' | 'annee_2022' | 'frais' | 'devise' | 'taille'
   | 'diversification' | 'regles' | 'rendement' | 'perte' | 'autre';
 
 /** Question affichée au-dessus de chaque point, dans l'ordre où les règles sont essayées. */
@@ -28,6 +28,7 @@ export const QUESTIONS: Record<Theme, string> = {
   valeurs: 'La décision respecte-t-elle vos valeurs ?',
   annee_2022: 'Et dans une année de crise comme 2022 ?',
   frais: 'Combien coûtent les frais des fonds chaque année ?',
+  devise: 'Et le risque de change ?',
   taille: 'Une taille plus modeste passerait-elle ?',
   diversification: 'Les titres bougent-ils ensemble ?',
   regles: 'Et les autres règles de votre Pacte ?',
@@ -44,6 +45,7 @@ export const LIBELLES_COURTS: Record<Theme, string> = {
   valeurs: 'Vos valeurs',
   annee_2022: 'Crise de 2022',
   frais: 'Frais',
+  devise: 'Devise',
   taille: 'Taille modeste',
   diversification: 'Diversification',
   regles: 'Autres règles',
@@ -61,6 +63,8 @@ const REGLES: [Theme, RegExp][] = [
   ['valeurs', /controvers|poursuite|valeurs|ESG|climat/i],
   ['annee_2022', /2022/],
   ['frais', /\bfrais\b/i],
+  // Pas « USD » seul : il apparaît dans les symboles BTC-USD et ETH-USD.
+  ['devise', /dollars? américains?|devise|taux de change/i],
   ['taille', /jusqu.à \d|plus modeste|respecterait|serait respectée|au maximum respecte|(position|taille|réallocation) de \d|\bà \d+(,\d+)?\s%\sen [A-Z]/i],
   ['diversification', /ensemble|corrélation|\blien\b|\bliés\b|moteur|d.un seul bloc|indépendamment/i],
   ['regles', /crypto|\btech\b|règles calculables|seule la règle|équilibre|stabilité|votre Pacte (demande|prévoit|dit|pose)/i],

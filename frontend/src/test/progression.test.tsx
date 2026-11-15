@@ -3,8 +3,8 @@
  * chargement, et relecture d'un procès enregistré en mode démonstration.
  */
 import { render, screen, within } from '@testing-library/react';
-import contratRobert from '../data/proces/2026-11-15-fe7e9832703a.json';
-import contratAmira from '../data/proces/2026-11-15-b6795c03a385.json';
+import contratRobert from '../data/proces/2026-11-15-fcb6ce39f184.json';
+import contratAmira from '../data/proces/2026-11-15-f59548b2fdd9.json';
 import type { ContratTribunal, EtapeTraceContrat, ProgressionContrat } from '../api/contrat';
 import type { ProgressionTribunal } from '../api/types';
 import { etapeTrace } from '../api/adaptateur';

@@ -26,6 +26,8 @@ describe('thème d’un argument (première phrase)', () => {
     ['Parmi les titres comparés, TSLA a varié presque indépendamment de JNJ (−0,07) et de XBB.TO (0,08).', 'diversification'],
     ['Les frais annuels de gestion des FNB s’élèvent à 478 $ avec la décision, contre 682 $ sans cette position.', 'frais'],
     ['Les frais annuels du portefeuille réalloué coûtent 18 $ sur 40 000 $, contre 37 $ pour le portefeuille actuel.', 'frais'],
+    ['La part de votre portefeuille cotée en dollars américains passe de 45 % à 50,5 % avec la décision.', 'devise'],
+    ['Avec 30 % en BTC-USD, le portefeuille a progressé de +16,9 % par an.', 'rendement'],
     ['Lors du rejeu d’une chute des cryptoactifs, vous avez répondu rester malgré une baisse de 73,7 %.', 'reactions'],
     ['Votre Pacte demande un « Équilibre entre croissance et stabilité ».', 'regles'],
     ['La règle « Crypto : exclue » est respectée : parmi les règles calculables, seule celle de pire baisse est en violation.', 'regles'],

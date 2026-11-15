@@ -46,24 +46,27 @@ Résultats pour les profils de test :
 Une action ou un cryptoactif n'a pas de frais de gestion : ces décisions font donc baisser les frais. Cet argument est honnête pour l'Avocat, et il ne dit rien du risque.
 
 **Sur AWS**
-- **Lambda redéployée** (`deploiement/deployer.py --sans-donnees`). Le relevé est dans le zip avec `donnees_externes/` : aucun service, fichier S3 ni droit IAM de plus.
-- **Les 7 procès de démonstration refaits** sur la Lambda, copiés tels quels depuis `traces/2026-11-15/` du bucket. Ils remplacent ceux de #111 (fiche 111), avec `index.json` et les procès-verbaux. Chaque copie S3 est identique à la réponse reçue, et chaque contrat passe `contrat.valider`.
-  - La pièce de simulation de chacun contient le coût des frais.
+- **Lambda redéployée** (`deploiement/deployer.py --sans-donnees`) depuis le code fusionné avec `main` : #112 (part en USD), #113 (IPC jamais utilisé avant sa publication) et #114. Le relevé est dans le zip avec `donnees_externes/` : aucun service, fichier S3 ni droit IAM de plus.
+  - Une première série de procès a été tenue sur une Lambda sans #112 ni #113. La branche de #112 a ensuite été déployée, ce qui a retiré les frais.
+  - Le redéploiement depuis le code fusionné remet les trois ensemble, et les procès ont été refaits dessus.
+- **Les 7 procès de démonstration refaits** sur cette Lambda, copiés tels quels depuis `traces/2026-11-15/` du bucket. Ils remplacent ceux de #111 (fiche 111), avec `index.json` et les procès-verbaux. Chaque copie S3 est identique à la réponse reçue, et chaque contrat passe `contrat.valider`.
+  - La pièce de simulation de chacun contient le coût des frais, la part en USD et le rendement réel.
   - Le relevé figure dans les sources de chacun : 7 à 9 sources selon le procès.
-  - L'Avocat cite les frais dans 4 procès sur 7 (Robert 25 % et Pacte vécu, Amira et Amira Pacte vécu), par exemple « Les frais annuels du portefeuille réalloué coûtent 18 $ sur 40 000 $, contre 37 $ pour le portefeuille actuel. » Ces arguments passent le Greffier.
-  - `2026-11-15-449f913437d8` (Robert, 25 %) garde un argument rejeté : « aurait perdu 132 206 $ » sans signe « − ».
+  - Aucun argument rejeté.
+  - L'Avocat cite le coût des frais dans 3 procès (Robert 25 %, Amira, Amira Pacte vécu), par exemple « Les frais annuels de la réallocation s'élèvent à 18 $, contre 37 $ pour le portefeuille actuel. » Ces arguments passent le Greffier.
+  - Il rappelle aussi de lui-même que « les frais des fonds sont déjà prélevés dans ces rendements » (Robert, 30 % et 25 %).
 
 | Procès | Profil, décision | Frais par an |
 |---|---|---|
-| `2026-11-15-fe7e9832703a` | Robert, 30 % en TSLA | 682 $ → 478 $ |
-| `2026-11-15-449f913437d8` | Robert, 25 % en TSLA | 682 $ → 512 $ |
-| `2026-11-15-b6795c03a385` | Amira, panier crypto-tech | 37 $ → 18 $ |
-| `2026-11-15-d6b68c21715f` | Mateo, 10 % en XOM | 191 $ → 172 $ |
-| `2026-11-15-6e4909122c29` | Robert, Pacte vécu | 682 $ → 478 $ |
-| `2026-11-15-bf35f3959b58` | Amira, Pacte vécu | 37 $ → 18 $ |
-| `2026-11-15-c6adf5094e76` | Mateo, Pacte vécu | 191 $ → 172 $ |
+| `2026-11-15-fcb6ce39f184` | Robert, 30 % en TSLA | 682 $ → 478 $ |
+| `2026-11-15-032ec3367b19` | Robert, 25 % en TSLA | 682 $ → 512 $ |
+| `2026-11-15-f59548b2fdd9` | Amira, panier crypto-tech | 37 $ → 18 $ |
+| `2026-11-15-c7c4bcc1736b` | Mateo, 10 % en XOM | 191 $ → 172 $ |
+| `2026-11-15-3da0fd68f5e4` | Robert, Pacte vécu | 682 $ → 478 $ |
+| `2026-11-15-1b59a098a64c` | Amira, Pacte vécu | 37 $ → 18 $ |
+| `2026-11-15-b04a4cbd233e` | Mateo, Pacte vécu | 191 $ → 172 $ |
 
-- **Interface** (`frontend/src/domaine/debat.ts`) : le débat point par point a un point « Frais » (« Combien coûtent les frais des fonds chaque année ? »), et « Une réallocation de 28 % du portefeuille respecte… » est rangé dans « Taille modeste ». Les tests de l'interface suivent les nouveaux identifiants et les motifs des corrections du Greffier.
+- **Interface** (`frontend/src/domaine/debat.ts`) : le débat point par point gagne deux points, « Frais » (« Combien coûtent les frais des fonds chaque année ? ») et « Devise » (« Et le risque de change ? »), pour les arguments sur la part en dollars américains de #112. Sans eux, ces arguments tombaient dans « Autres points ». « Une réallocation de 28 % du portefeuille respecte… » est rangé dans « Taille modeste ». Les tests de l'interface suivent les nouveaux identifiants et les corrections du Greffier.
 
 ## Comment l'utiliser
 ```python

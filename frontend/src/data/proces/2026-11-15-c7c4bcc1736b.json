@@ -80,6 +80,10 @@
         "pire_baisse_actuelle": -0.151278,
         "rendement_annuel_actuel": 0.114965,
         "volatilite_annuelle_actuelle": 0.097523,
+        "part_cad": 0.495,
+        "part_usd": 0.505,
+        "part_cad_actuelle": 0.55,
+        "part_usd_actuelle": 0.45,
         "capital": 180000,
         "perte_au_pire_moment_cad": 17974,
         "perte_au_pire_moment_cad_actuelle": 27230,
@@ -101,8 +105,8 @@
       },
       "valeur_affichee": "−10,0 % max · +13,5 %/an",
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13 ; Pages et documents des émetteurs des FNB (ratio des frais), relevés le 2026-11-15",
-      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle ; frais : ratio des frais de chaque FNB (page ou document de l'émetteur), pondéré par les poids ; zéro pour un titre détenu en direct ; déjà prélevés dans les cours, donc affichés sans être déduits",
-      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés ; frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage et écart entre prix d'achat et de vente non comptés"
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; exposition en devise : part du portefeuille par devise de cotation (assets_universe.csv) ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié, chaque mois étant supposé publié à la fin du mois suivant) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle ; frais : ratio des frais de chaque FNB (page ou document de l'émetteur), pondéré par les poids ; zéro pour un titre détenu en direct ; déjà prélevés dans les cours, donc affichés sans être déduits",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; exposition selon la devise de cotation, pas selon celle des titres détenus par un fonds ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés ; frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage et écart entre prix d'achat et de vente non comptés"
     },
     {
       "id": "P3",
@@ -252,12 +256,12 @@
     {
       "statut": "conforme",
       "regle": "verifier_chiffres",
-      "message": "Chiffres cités vérifiés contre leurs pièces : 23/23 chiffres, 7 arguments"
+      "message": "Chiffres cités vérifiés contre leurs pièces : 16/16 chiffres, 8 arguments"
     },
     {
       "statut": "conforme",
       "regle": "cadre_simulation",
-      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés"
+      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 8 arguments vérifiés"
     },
     {
       "statut": "a_verifier",
@@ -300,15 +304,15 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Mesurer la pire baisse et le profil du portefeuille avec la décision, face au seuil du Pacte."
+          "raison": "Mesurer l'effet de la décision sur la pire baisse, le rendement, la volatilité et l'exposition au risque de devise."
         },
         {
           "id": "P3",
-          "raison": "Rejouer l'année de crise où actions et obligations ont baissé ensemble pour tester la règle de pire baisse."
+          "raison": "Vérifier le comportement du portefeuille lors de l'année de crise où actions et obligations ont baissé ensemble, au regard de la règle de pire baisse."
         },
         {
           "id": "P5",
-          "raison": "Juger le risque propre du titre, sa pire baisse et son temps de récupération face à l'horizon du Pacte."
+          "raison": "Juger le risque propre du titre pétrolier, sa pire baisse et son temps de récupération par rapport à l'horizon du Pacte."
         }
       ]
     },
@@ -321,15 +325,15 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Mesurer la pire baisse et le profil du portefeuille avec la décision, face au seuil du Pacte."
+          "raison": "Mesurer l'effet de la décision sur la pire baisse, le rendement, la volatilité et l'exposition au risque de devise."
         },
         {
           "id": "P3",
-          "raison": "Rejouer l'année de crise où actions et obligations ont baissé ensemble pour tester la règle de pire baisse."
+          "raison": "Vérifier le comportement du portefeuille lors de l'année de crise où actions et obligations ont baissé ensemble, au regard de la règle de pire baisse."
         },
         {
           "id": "P5",
-          "raison": "Juger le risque propre du titre, sa pire baisse et son temps de récupération face à l'horizon du Pacte."
+          "raison": "Juger le risque propre du titre pétrolier, sa pire baisse et son temps de récupération par rapport à l'horizon du Pacte."
         }
       ]
     },
@@ -342,15 +346,15 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Mesurer la pire baisse et le profil du portefeuille avec la décision, face au seuil du Pacte."
+          "raison": "Mesurer l'effet de la décision sur la pire baisse, le rendement, la volatilité et l'exposition au risque de devise."
         },
         {
           "id": "P3",
-          "raison": "Rejouer l'année de crise où actions et obligations ont baissé ensemble pour tester la règle de pire baisse."
+          "raison": "Vérifier le comportement du portefeuille lors de l'année de crise où actions et obligations ont baissé ensemble, au regard de la règle de pire baisse."
         },
         {
           "id": "P5",
-          "raison": "Juger le risque propre du titre, sa pire baisse et son temps de récupération face à l'horizon du Pacte."
+          "raison": "Juger le risque propre du titre pétrolier, sa pire baisse et son temps de récupération par rapport à l'horizon du Pacte."
         }
       ],
       "controles": [
@@ -366,11 +370,11 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Mesurer la pire baisse et le profil du portefeuille avec la décision, face au seuil du Pacte."
+          "raison": "Mesurer l'effet de la décision sur la pire baisse, le rendement, la volatilité et l'exposition au risque de devise."
         },
         {
           "id": "P3",
-          "raison": "Rejouer l'année de crise où actions et obligations ont baissé ensemble pour tester la règle de pire baisse."
+          "raison": "Vérifier le comportement du portefeuille lors de l'année de crise où actions et obligations ont baissé ensemble, au regard de la règle de pire baisse."
         }
       ]
     },
@@ -383,7 +387,7 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Mesurer la pire baisse et le profil du portefeuille avec la décision, face au seuil du Pacte."
+          "raison": "Mesurer l'effet de la décision sur la pire baisse, le rendement, la volatilité et l'exposition au risque de devise."
         }
       ]
     },
@@ -396,7 +400,7 @@
       "pieces": [
         {
           "id": "P4",
-          "raison": "Vérifier le critère documentaire du Pacte sur les controverses environnementales ou sociales de l'entreprise."
+          "raison": "Vérifier si l'entreprise est associée à des controverses environnementales ou sociales documentées, critère non financier du Pacte."
         }
       ],
       "controles": [
@@ -412,7 +416,7 @@
       "pieces": [
         {
           "id": "P6",
-          "raison": "Vérifier si un conflit avec la règle sur les controverses s'est déjà produit pour ce profil et comment il a été tranché."
+          "raison": "Une controverse environnementale documentée touche ce titre : un conflit semblable s'est-il déjà présenté, et comment l'investisseur a-t-il tranché ?"
         }
       ]
     }
@@ -472,7 +476,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Mesurer la pire baisse et le profil du portefeuille avec la décision, face au seuil du Pacte.",
+      "raison": "Mesurer l'effet de la décision sur la pire baisse, le rendement, la volatilité et l'exposition au risque de devise.",
       "entree": {
         "financement": "proportionnel",
         "periode": "complete",
@@ -484,7 +488,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Rejouer l'année de crise où actions et obligations ont baissé ensemble pour tester la règle de pire baisse.",
+      "raison": "Vérifier le comportement du portefeuille lors de l'année de crise où actions et obligations ont baissé ensemble, au regard de la règle de pire baisse.",
       "entree": {
         "financement": "proportionnel",
         "periode": "2022",
@@ -496,7 +500,7 @@
     {
       "etape": "orchestrateur",
       "outil": "rechercher_documents",
-      "raison": "Vérifier le critère documentaire du Pacte sur les controverses environnementales ou sociales de l'entreprise.",
+      "raison": "Vérifier si l'entreprise est associée à des controverses environnementales ou sociales documentées, critère non financier du Pacte.",
       "entree": {
         "critere": "controverse_esg_importante",
         "ticker": "XOM"
@@ -506,7 +510,7 @@
     {
       "etape": "orchestrateur",
       "outil": "indicateurs_actif",
-      "raison": "Juger le risque propre du titre, sa pire baisse et son temps de récupération face à l'horizon du Pacte.",
+      "raison": "Juger le risque propre du titre pétrolier, sa pire baisse et son temps de récupération par rapport à l'horizon du Pacte.",
       "entree": {
         "ticker": "XOM"
       },
@@ -515,7 +519,16 @@
     {
       "etape": "orchestrateur",
       "outil": "consulter_jurisprudence",
-      "raison": "Vérifier si un conflit avec la règle sur les controverses s'est déjà produit pour ce profil et comment il a été tranché.",
+      "raison": "Raison refusée par le garde-fou",
+      "entree": {
+        "regle": "controverses_esg"
+      },
+      "sortie": "Erreur : La raison doit faire au plus 160 caractères"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "consulter_jurisprudence",
+      "raison": "Une controverse environnementale documentée touche ce titre : un conflit semblable s'est-il déjà présenté, et comment l'investisseur a-t-il tranché ?",
       "entree": {
         "regle": "controverses_esg"
       },
@@ -535,7 +548,7 @@
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Vous avez écrit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Or XOM fait l'objet d'une controverse documentée. La poursuite de l'État du Massachusetts sur l'information climatique, relancée par une décision du 2022-05-24, est toujours en cours : ce sont des allégations contestées par l'entreprise, sans jugement sur le fond.",
+          "texte": "Vous avez écrit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Or XOM fait l'objet d'une poursuite du Massachusetts sur l'information climatique, qui était toujours en cours à la dernière consultation. Ce sont des allégations, contestées par l'entreprise, sans jugement sur le fond.",
           "pieces": [
             "P1",
             "P4"
@@ -543,20 +556,26 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Seule, l'action XOM a connu une chute de 19,1 % depuis un sommet, tout près de votre « Pire baisse tolérée : −20 % ». Dans le portefeuille avec 10 % en XOM, la pire baisse est de −10,0 %.",
+          "texte": "Seule, XOM a connu une chute de 19,1 % depuis un sommet, tout près de votre règle « Pire baisse tolérée : −20 % ».",
           "pieces": [
-            "P1",
-            "P2",
-            "P5"
+            "P5",
+            "P1"
           ]
         },
         {
           "etiquette": "hypothese",
-          "texte": "Les variations d'une année à l'autre de XOM seul sont de 26,0 %, contre 9,5 % pour le portefeuille avec 10 % en XOM, ce qui pourrait s'écarter de l'« Équilibre entre croissance et stabilité » que vous avez écrit.",
+          "texte": "Les variations d'une année à l'autre de XOM atteignent 26,0 %, contre 9,5 % pour le portefeuille avec la décision, ce qui pèserait sur « Équilibre entre croissance et stabilité ».",
           "pieces": [
-            "P1",
+            "P5",
             "P2",
-            "P5"
+            "P1"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Avec la décision, la part du portefeuille cotée en dollars américains passe de 45 % à 50,5 %, ce qui l'expose davantage aux variations du taux de change.",
+          "pieces": [
+            "P2"
           ]
         }
       ]
@@ -575,14 +594,7 @@
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Au pire moment, votre portefeuille de 180 000 $ aurait perdu 17 974 $ avec 10 % en XOM, contre 27 230 $ sans cette position.",
-          "pieces": [
-            "P2"
-          ]
-        },
-        {
-          "etiquette": "fait",
-          "texte": "Avec 10 % en XOM, la plus forte chute depuis un sommet du portefeuille est de −10,0 %, dans la limite de « Pire baisse tolérée : −20 % ». Elle était de −15,1 % sans cette position.",
+          "texte": "La pire baisse du portefeuille avec 10 % en XOM est de −10,0 %, sous la limite de la règle « Pire baisse tolérée : −20 % ». Sans cette position, elle était de −15,1 %.",
           "pieces": [
             "P1",
             "P2"
@@ -590,16 +602,23 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Lors du rejeu de 2022, le portefeuille aurait perdu 3 819 $ avec 10 % en XOM, contre 18 146 $ sans cette position. Il s'agit d'une seule année de crise, et la suivante peut être différente.",
+          "texte": "En 2022, le portefeuille avec 10 % en XOM aurait perdu 3 819 $, contre 18 146 $ sans cette position. Ce n'est toutefois qu'une seule année de crise, qui ne dit rien de la suivante.",
           "pieces": [
             "P3"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Avec 10 % en XOM, le portefeuille a rendu +13,5 % par an, contre +11,5 % sans cette position. Il s'agit d'une seule période passée, qui ne dit rien de la suite.",
+          "texte": "Sur la période analysée, le portefeuille avec XOM a progressé de +13,5 % par an, contre +11,5 % sans cette position. Ce constat décrit le passé et ne prédit rien.",
           "pieces": [
             "P2"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "La poursuite du Massachusetts contre Exxon Mobil repose sur des allégations contestées par l'entreprise, sans jugement sur le fond mentionné. La qualification de controverse « importante » reste pourtant un jugement de l'équipe, et non celui d'une agence de notation ESG.",
+          "pieces": [
+            "P4"
           ]
         }
       ]
@@ -619,12 +638,12 @@
       "etape": "avocat",
       "outil": "bedrock_correction",
       "entree": {
-        "argument": "Lors du rejeu de 2022, le portefeuille aurait perdu 3 819 $ avec 10 % en XOM, contre 18 146 $ sans cette position. Il s'agit d'une seule année de crise, et la suivante peut être différente.",
+        "argument": "En 2022, le portefeuille avec 10 % en XOM aurait perdu 3 819 $, contre 18 146 $ sans cette position. Ce n'est toutefois qu'une seule année de crise, qui ne dit rien de la suivante.",
         "motif": "« 3 819 » introuvable dans P3 : valeur négative, écrire le signe « − » ; « 18 146 » introuvable dans P3 : valeur négative, écrire le signe « − »"
       },
       "sortie": {
         "etiquette": "fait",
-        "texte": "Lors du rejeu de 2022, le résultat de votre portefeuille aurait été de −3 819 $ avec 10 % en XOM, contre −18 146 $ sans cette position. Il s'agit d'une seule année de crise, et la suivante peut être différente.",
+        "texte": "Lors du rejeu de 2022, le portefeuille avec 10 % en XOM affiche un résultat de −3 819 $, contre −18 146 $ sans cette position. Il s'agit d'une seule année de crise, qui ne dit rien de la suivante.",
         "pieces": [
           "P3"
         ]
@@ -633,14 +652,14 @@
     {
       "etape": "greffier",
       "outil": "verifier_chiffres",
-      "entree": "7 arguments",
-      "sortie": "Chiffres cités vérifiés contre leurs pièces : 23/23 chiffres, 7 arguments"
+      "entree": "8 arguments",
+      "sortie": "Chiffres cités vérifiés contre leurs pièces : 16/16 chiffres, 8 arguments"
     },
     {
       "etape": "greffier",
       "outil": "verifier_cadre_simulation",
-      "entree": "7 arguments",
-      "sortie": "Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés"
+      "entree": "8 arguments",
+      "sortie": "Aucun conseil personnalisé ni promesse sur l'avenir : 8 arguments vérifiés"
     }
   ],
   "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.",
@@ -663,7 +682,7 @@
   "requisitoire": [
     {
       "etiquette": "fait",
-      "texte": "Vous avez écrit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Or XOM fait l'objet d'une controverse documentée. La poursuite de l'État du Massachusetts sur l'information climatique, relancée par une décision du 2022-05-24, est toujours en cours : ce sont des allégations contestées par l'entreprise, sans jugement sur le fond.",
+      "texte": "Vous avez écrit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Or XOM fait l'objet d'une poursuite du Massachusetts sur l'information climatique, qui était toujours en cours à la dernière consultation. Ce sont des allégations, contestées par l'entreprise, sans jugement sur le fond.",
       "pieces": [
         "P1",
         "P4"
@@ -671,34 +690,33 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Seule, l'action XOM a connu une chute de 19,1 % depuis un sommet, tout près de votre « Pire baisse tolérée : −20 % ». Dans le portefeuille avec 10 % en XOM, la pire baisse est de −10,0 %.",
+      "texte": "Seule, XOM a connu une chute de 19,1 % depuis un sommet, tout près de votre règle « Pire baisse tolérée : −20 % ».",
       "pieces": [
-        "P1",
-        "P2",
-        "P5"
+        "P5",
+        "P1"
       ]
     },
     {
       "etiquette": "hypothese",
-      "texte": "Les variations d'une année à l'autre de XOM seul sont de 26,0 %, contre 9,5 % pour le portefeuille avec 10 % en XOM, ce qui pourrait s'écarter de l'« Équilibre entre croissance et stabilité » que vous avez écrit.",
+      "texte": "Les variations d'une année à l'autre de XOM atteignent 26,0 %, contre 9,5 % pour le portefeuille avec la décision, ce qui pèserait sur « Équilibre entre croissance et stabilité ».",
       "pieces": [
-        "P1",
+        "P5",
         "P2",
-        "P5"
+        "P1"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Avec la décision, la part du portefeuille cotée en dollars américains passe de 45 % à 50,5 %, ce qui l'expose davantage aux variations du taux de change.",
+      "pieces": [
+        "P2"
       ]
     }
   ],
   "plaidoirie": [
     {
       "etiquette": "fait",
-      "texte": "Au pire moment, votre portefeuille de 180 000 $ aurait perdu 17 974 $ avec 10 % en XOM, contre 27 230 $ sans cette position.",
-      "pieces": [
-        "P2"
-      ]
-    },
-    {
-      "etiquette": "fait",
-      "texte": "Avec 10 % en XOM, la plus forte chute depuis un sommet du portefeuille est de −10,0 %, dans la limite de « Pire baisse tolérée : −20 % ». Elle était de −15,1 % sans cette position.",
+      "texte": "La pire baisse du portefeuille avec 10 % en XOM est de −10,0 %, sous la limite de la règle « Pire baisse tolérée : −20 % ». Sans cette position, elle était de −15,1 %.",
       "pieces": [
         "P1",
         "P2"
@@ -706,16 +724,23 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Lors du rejeu de 2022, le résultat de votre portefeuille aurait été de −3 819 $ avec 10 % en XOM, contre −18 146 $ sans cette position. Il s'agit d'une seule année de crise, et la suivante peut être différente.",
+      "texte": "Lors du rejeu de 2022, le portefeuille avec 10 % en XOM affiche un résultat de −3 819 $, contre −18 146 $ sans cette position. Il s'agit d'une seule année de crise, qui ne dit rien de la suivante.",
       "pieces": [
         "P3"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Avec 10 % en XOM, le portefeuille a rendu +13,5 % par an, contre +11,5 % sans cette position. Il s'agit d'une seule période passée, qui ne dit rien de la suite.",
+      "texte": "Sur la période analysée, le portefeuille avec XOM a progressé de +13,5 % par an, contre +11,5 % sans cette position. Ce constat décrit le passé et ne prédit rien.",
       "pieces": [
         "P2"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "La poursuite du Massachusetts contre Exxon Mobil repose sur des allégations contestées par l'entreprise, sans jugement sur le fond mentionné. La qualification de controverse « importante » reste pourtant un jugement de l'équipe, et non celui d'une agence de notation ESG.",
+      "pieces": [
+        "P4"
       ]
     }
   ],

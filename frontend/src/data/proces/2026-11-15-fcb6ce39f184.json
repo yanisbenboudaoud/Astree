@@ -79,6 +79,10 @@
         "pire_baisse_actuelle": -0.077574,
         "rendement_annuel_actuel": 0.092868,
         "volatilite_annuelle_actuelle": 0.055947,
+        "part_cad": 0.63,
+        "part_usd": 0.37,
+        "part_cad_actuelle": 0.9,
+        "part_usd_actuelle": 0.1,
         "capital": 650000,
         "perte_au_pire_moment_cad": 188291,
         "perte_au_pire_moment_cad_actuelle": 50423,
@@ -100,8 +104,8 @@
       },
       "valeur_affichee": "−29,0 % max · +12,0 %/an",
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13 ; Pages et documents des émetteurs des FNB (ratio des frais), relevés le 2026-11-15",
-      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle ; frais : ratio des frais de chaque FNB (page ou document de l'émetteur), pondéré par les poids ; zéro pour un titre détenu en direct ; déjà prélevés dans les cours, donc affichés sans être déduits",
-      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés ; frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage et écart entre prix d'achat et de vente non comptés"
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; exposition en devise : part du portefeuille par devise de cotation (assets_universe.csv) ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié, chaque mois étant supposé publié à la fin du mois suivant) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle ; frais : ratio des frais de chaque FNB (page ou document de l'émetteur), pondéré par les poids ; zéro pour un titre détenu en direct ; déjà prélevés dans les cours, donc affichés sans être déduits",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; exposition selon la devise de cotation, pas selon celle des titres détenus par un fonds ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés ; frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage et écart entre prix d'achat et de vente non comptés"
     },
     {
       "id": "P3",
@@ -300,6 +304,11 @@
     },
     {
       "statut": "a_verifier",
+      "regle": "performance_passee",
+      "message": "Performance passée invoquée : elle ne prédit pas l'avenir"
+    },
+    {
+      "statut": "a_verifier",
       "regle": "biais_survivant",
       "message": "Biais du survivant : univers choisi en 2026, les résultats passés paraissent meilleurs"
     }
@@ -339,19 +348,19 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Simulation obligatoire de la décision complète"
+          "raison": "Simulation complète obligatoire de la décision sur toute la période."
         },
         {
           "id": "P3",
-          "raison": "Rejouer l'année de crise au regard de la règle de pire baisse"
+          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise."
         },
         {
           "id": "P4",
-          "raison": "La pire baisse dépasse la tolérance ; chercher une taille compatible avec le Pacte"
+          "raison": "La règle de pire baisse est probablement dépassée ; voir si une taille plus modeste serait compatible."
         },
         {
           "id": "P5",
-          "raison": "Juger le risque propre du titre face à l'horizon court et à la préservation du capital"
+          "raison": "Juger le risque propre du titre face à un horizon court et à l'objectif de préserver le capital."
         },
         {
           "id": "P7",
@@ -368,19 +377,19 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Simulation obligatoire de la décision complète"
+          "raison": "Simulation complète obligatoire de la décision sur toute la période."
         },
         {
           "id": "P3",
-          "raison": "Rejouer l'année de crise au regard de la règle de pire baisse"
+          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise."
         },
         {
           "id": "P4",
-          "raison": "La pire baisse dépasse la tolérance ; chercher une taille compatible avec le Pacte"
+          "raison": "La règle de pire baisse est probablement dépassée ; voir si une taille plus modeste serait compatible."
         },
         {
           "id": "P5",
-          "raison": "Juger le risque propre du titre face à l'horizon court et à la préservation du capital"
+          "raison": "Juger le risque propre du titre face à un horizon court et à l'objectif de préserver le capital."
         },
         {
           "id": "P7",
@@ -397,19 +406,19 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Simulation obligatoire de la décision complète"
+          "raison": "Simulation complète obligatoire de la décision sur toute la période."
         },
         {
           "id": "P3",
-          "raison": "Rejouer l'année de crise au regard de la règle de pire baisse"
+          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise."
         },
         {
           "id": "P4",
-          "raison": "La pire baisse dépasse la tolérance ; chercher une taille compatible avec le Pacte"
+          "raison": "La règle de pire baisse est probablement dépassée ; voir si une taille plus modeste serait compatible."
         },
         {
           "id": "P5",
-          "raison": "Juger le risque propre du titre face à l'horizon court et à la préservation du capital"
+          "raison": "Juger le risque propre du titre face à un horizon court et à l'objectif de préserver le capital."
         },
         {
           "id": "P7",
@@ -429,11 +438,11 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Simulation obligatoire de la décision complète"
+          "raison": "Simulation complète obligatoire de la décision sur toute la période."
         },
         {
           "id": "P3",
-          "raison": "Rejouer l'année de crise au regard de la règle de pire baisse"
+          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise."
         }
       ]
     },
@@ -446,7 +455,7 @@
       "pieces": [
         {
           "id": "P2",
-          "raison": "Simulation obligatoire de la décision complète"
+          "raison": "Simulation complète obligatoire de la décision sur toute la période."
         }
       ]
     },
@@ -459,7 +468,7 @@
       "pieces": [
         {
           "id": "P6",
-          "raison": "Règle de pire baisse probablement violée ; vérifier si un conflit semblable s'est déjà produit"
+          "raison": "Une règle est probablement violée ; vérifier si ce conflit s'est déjà produit pour ce profil."
         }
       ]
     }
@@ -519,7 +528,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Simulation obligatoire de la décision complète",
+      "raison": "Simulation complète obligatoire de la décision sur toute la période.",
       "entree": {
         "financement": "proportionnel",
         "periode": "complete",
@@ -531,7 +540,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Rejouer l'année de crise au regard de la règle de pire baisse",
+      "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise.",
       "entree": {
         "financement": "proportionnel",
         "periode": "2022",
@@ -543,7 +552,7 @@
     {
       "etape": "orchestrateur",
       "outil": "taille_max_compatible",
-      "raison": "La pire baisse dépasse la tolérance ; chercher une taille compatible avec le Pacte",
+      "raison": "La règle de pire baisse est probablement dépassée ; voir si une taille plus modeste serait compatible.",
       "entree": {
         "financement": "proportionnel",
         "taille": 0.3,
@@ -554,7 +563,7 @@
     {
       "etape": "orchestrateur",
       "outil": "indicateurs_actif",
-      "raison": "Juger le risque propre du titre face à l'horizon court et à la préservation du capital",
+      "raison": "Juger le risque propre du titre face à un horizon court et à l'objectif de préserver le capital.",
       "entree": {
         "ticker": "TSLA"
       },
@@ -563,21 +572,11 @@
     {
       "etape": "orchestrateur",
       "outil": "consulter_jurisprudence",
-      "raison": "Règle de pire baisse probablement violée ; vérifier si un conflit semblable s'est déjà produit",
+      "raison": "Une règle est probablement violée ; vérifier si ce conflit s'est déjà produit pour ce profil.",
       "entree": {
         "regle": "toutes"
       },
       "sortie": "P6"
-    },
-    {
-      "etape": "orchestrateur",
-      "outil": "rechercher_documents",
-      "raison": "Vérifier les controverses documentées pour le critère d'entreprise établie et comprise",
-      "entree": {
-        "critere": "controverse_esg_importante",
-        "ticker": "TSLA"
-      },
-      "sortie": "Erreur : Aucun document sur TSLA pour le critère « controverse_esg_importante » : source manquante, le critère reste à vérifier"
     },
     {
       "etape": "orchestrateur",
@@ -605,7 +604,7 @@
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Avec 30 % en TSLA, votre portefeuille aurait perdu 188 291 $ au pire moment, contre 50 423 $ sans cette position. Vous avez écrit : « Pire baisse tolérée : −12 % ».",
+          "texte": "Vous avez écrit « Pire baisse tolérée : −12 % » ; avec 30 % en TSLA, la plus forte chute depuis un sommet atteint −29,0 %. Sans cette position, elle était de −7,8 %.",
           "pieces": [
             "P1",
             "P2"
@@ -613,22 +612,25 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Lors d'une année de crise comme 2022, 30 % en TSLA auraient mené à une perte de 154 134 $, contre 16 866 $ sans cette position.",
+          "texte": "Au pire moment, votre portefeuille aurait perdu 188 291 $ avec cette position, contre 50 423 $ sans elle. Vous avez écrit : « Préserver mon capital ».",
           "pieces": [
-            "P3"
+            "P1",
+            "P2"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "3 procès archivés de ce profil, sur la décision « 30 % en TSLA », ont déjà relevé une violation de « Pire baisse tolérée : −12 % ». Les verdicts rendus : 1 maintenu et 2 modifiés.",
+          "texte": "3 procès archivés avec « 30 % en TSLA » ont tous dépassé la règle « Pire baisse tolérée : −12 % ». Les verdicts rendus : 1 maintenu, 2 modifiés.",
           "pieces": [
+            "P1",
             "P6"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "La règle « Pire baisse tolérée : −12 % » serait respectée jusqu'à 9 % en TSLA, contre 30 % dans votre décision. À cette taille, la pire baisse est de −11,2 %.",
+          "texte": "La règle « Pire baisse tolérée : −12 % » serait respectée jusqu'à 9 % en TSLA, contre 30 % dans votre décision. À 9 %, la pire baisse simulée est de −11,2 %.",
           "pieces": [
+            "P1",
             "P4",
             "P7"
           ]
@@ -650,14 +652,14 @@
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Avec 30 % en TSLA, votre portefeuille a progressé de +12,0 % par an, contre +9,3 % sans cette position. Cette progression passée n'est pas une promesse pour l'avenir.",
+          "texte": "Avec 30 % en TSLA, le portefeuille a progressé de +12,0 % par an, contre +9,3 % par an sans cette position. Les frais des fonds sont déjà prélevés dans ces rendements, et il s'agit d'une seule période passée.",
           "pieces": [
             "P2"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Une position de 9 % en TSLA respecterait le Pacte, avec une pire baisse de −11,2 % pour une limite de −12 %. Ce constat vaut pour une seule période passée.",
+          "texte": "Une position de 9 % en TSLA respecterait la règle « Pire baisse tolérée : −12 % », avec −11,2 % au pire moment sur la période passée.",
           "pieces": [
             "P4",
             "P1"
@@ -665,18 +667,18 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Parmi les règles mesurables du Pacte, seule « Pire baisse tolérée : −12 % » est en violation ; « Crypto : exclue » n'est pas en cause. Les règles qualitatives ne sont pas mesurées par les pièces.",
+          "texte": "La règle « Crypto : exclue » est respectée ; seule la règle « Pire baisse tolérée : −12 % » est en violation.",
           "pieces": [
             "P7",
-            "P1",
-            "P4"
+            "P1"
           ]
         },
         {
-          "etiquette": "fait",
-          "texte": "TSLA est revenu à son sommet après 2,9 ans, malgré une chute de −70,9 %. Cette seule chute observée ne dit rien de la prochaine.",
+          "etiquette": "hypothese",
+          "texte": "La chute de TSLA a duré 2,9 ans avant son retour au sommet, soit moins que l'horizon de 3 à 5 ans de votre Pacte. Il s'agit d'une seule chute observée, et le passé ne prédit pas l'avenir.",
           "pieces": [
-            "P5"
+            "P5",
+            "P1"
           ]
         }
       ]
@@ -691,37 +693,6 @@
         "entreprises_etablies"
       ],
       "sortie": "1 violation, 1 conforme, 2 à vérifier"
-    },
-    {
-      "etape": "procureur",
-      "outil": "bedrock_correction",
-      "entree": {
-        "argument": "Lors d'une année de crise comme 2022, 30 % en TSLA auraient mené à une perte de 154 134 $, contre 16 866 $ sans cette position.",
-        "motif": "« 16 866 » introuvable dans P3 : valeur négative, écrire le signe « − »"
-      },
-      "sortie": {
-        "etiquette": "fait",
-        "texte": "En 2022, 30 % en TSLA auraient causé une perte de 154 134 $, contre une perte de 16 866 $ sans cette position.",
-        "pieces": [
-          "P3"
-        ]
-      }
-    },
-    {
-      "etape": "procureur",
-      "outil": "bedrock_correction",
-      "entree": {
-        "argument": "3 procès archivés de ce profil, sur la décision « 30 % en TSLA », ont déjà relevé une violation de « Pire baisse tolérée : −12 % ». Les verdicts rendus : 1 maintenu et 2 modifiés.",
-        "motif": "« −12 % » introuvable dans P6 (présent dans P1, P4, P7, pièce non citée)"
-      },
-      "sortie": {
-        "etiquette": "fait",
-        "texte": "3 procès archivés sur « 30 % en TSLA » ont déjà relevé une violation de « Pire baisse tolérée : −12 % ». Les verdicts rendus : 1 maintenu et 2 modifiés.",
-        "pieces": [
-          "P1",
-          "P6"
-        ]
-      }
     },
     {
       "etape": "greffier",
@@ -768,7 +739,7 @@
   "requisitoire": [
     {
       "etiquette": "fait",
-      "texte": "Avec 30 % en TSLA, votre portefeuille aurait perdu 188 291 $ au pire moment, contre 50 423 $ sans cette position. Vous avez écrit : « Pire baisse tolérée : −12 % ».",
+      "texte": "Vous avez écrit « Pire baisse tolérée : −12 % » ; avec 30 % en TSLA, la plus forte chute depuis un sommet atteint −29,0 %. Sans cette position, elle était de −7,8 %.",
       "pieces": [
         "P1",
         "P2"
@@ -776,14 +747,15 @@
     },
     {
       "etiquette": "fait",
-      "texte": "En 2022, 30 % en TSLA auraient causé une perte de 154 134 $, contre une perte de 16 866 $ sans cette position.",
+      "texte": "Au pire moment, votre portefeuille aurait perdu 188 291 $ avec cette position, contre 50 423 $ sans elle. Vous avez écrit : « Préserver mon capital ».",
       "pieces": [
-        "P3"
+        "P1",
+        "P2"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "3 procès archivés sur « 30 % en TSLA » ont déjà relevé une violation de « Pire baisse tolérée : −12 % ». Les verdicts rendus : 1 maintenu et 2 modifiés.",
+      "texte": "3 procès archivés avec « 30 % en TSLA » ont tous dépassé la règle « Pire baisse tolérée : −12 % ». Les verdicts rendus : 1 maintenu, 2 modifiés.",
       "pieces": [
         "P1",
         "P6"
@@ -791,8 +763,9 @@
     },
     {
       "etiquette": "fait",
-      "texte": "La règle « Pire baisse tolérée : −12 % » serait respectée jusqu'à 9 % en TSLA, contre 30 % dans votre décision. À cette taille, la pire baisse est de −11,2 %.",
+      "texte": "La règle « Pire baisse tolérée : −12 % » serait respectée jusqu'à 9 % en TSLA, contre 30 % dans votre décision. À 9 %, la pire baisse simulée est de −11,2 %.",
       "pieces": [
+        "P1",
         "P4",
         "P7"
       ]
@@ -801,14 +774,14 @@
   "plaidoirie": [
     {
       "etiquette": "fait",
-      "texte": "Avec 30 % en TSLA, votre portefeuille a progressé de +12,0 % par an, contre +9,3 % sans cette position. Cette progression passée n'est pas une promesse pour l'avenir.",
+      "texte": "Avec 30 % en TSLA, le portefeuille a progressé de +12,0 % par an, contre +9,3 % par an sans cette position. Les frais des fonds sont déjà prélevés dans ces rendements, et il s'agit d'une seule période passée.",
       "pieces": [
         "P2"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Une position de 9 % en TSLA respecterait le Pacte, avec une pire baisse de −11,2 % pour une limite de −12 %. Ce constat vaut pour une seule période passée.",
+      "texte": "Une position de 9 % en TSLA respecterait la règle « Pire baisse tolérée : −12 % », avec −11,2 % au pire moment sur la période passée.",
       "pieces": [
         "P4",
         "P1"
@@ -816,18 +789,18 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Parmi les règles mesurables du Pacte, seule « Pire baisse tolérée : −12 % » est en violation ; « Crypto : exclue » n'est pas en cause. Les règles qualitatives ne sont pas mesurées par les pièces.",
+      "texte": "La règle « Crypto : exclue » est respectée ; seule la règle « Pire baisse tolérée : −12 % » est en violation.",
       "pieces": [
         "P7",
-        "P1",
-        "P4"
+        "P1"
       ]
     },
     {
-      "etiquette": "fait",
-      "texte": "TSLA est revenu à son sommet après 2,9 ans, malgré une chute de −70,9 %. Cette seule chute observée ne dit rien de la prochaine.",
+      "etiquette": "hypothese",
+      "texte": "La chute de TSLA a duré 2,9 ans avant son retour au sommet, soit moins que l'horizon de 3 à 5 ans de votre Pacte. Il s'agit d'une seule chute observée, et le passé ne prédit pas l'avenir.",
       "pieces": [
-        "P5"
+        "P5",
+        "P1"
       ]
     }
   ],

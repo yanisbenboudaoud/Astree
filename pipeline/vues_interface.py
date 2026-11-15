@@ -29,7 +29,8 @@ from pipeline.calibrage import (
 )
 from pipeline.categories import TitreHorsUnivers, categories_du_titre
 from pipeline.correlations import calculer_matrice_correlations
-from pipeline.donnees import charger_donnees, charger_univers
+from pipeline import macro
+from pipeline.donnees import ErreurDonnees, charger_donnees, charger_univers
 from pipeline.greffier import verifier_pacte
 from pipeline.indicateurs import (
     calculer_pire_baisse,
@@ -67,6 +68,23 @@ def indicateurs(valeurs: pd.Series) -> dict[str, Any]:
         "dateChuteMax": recul.idxmin().date().isoformat(),
         "rejeu2022": brut(calculer_rendement_2022(valeurs)),
     }
+
+
+def inflation_de_la_periode(valeurs: pd.Series) -> macro.Inflation | None:
+    """Inflation du Canada sur la période de la série (#113) ; None sans données macro.
+
+    Mêmes fonctions que la pièce de ``simuler_portefeuille`` : IPC publié à l'extraction,
+    années entières. Une donnée macro manquante n'empêche pas l'écran de s'afficher.
+    """
+    try:
+        return macro.inflation(valeurs.index[0], valeurs.index[-1])
+    except ErreurDonnees:
+        return None
+
+
+def rendement_reel(rendement: float, mesure: macro.Inflation | None) -> float | None:
+    """Rendement annualisé après inflation (relation de Fisher), comme ``rendement_reel_annuel`` des pièces."""
+    return None if mesure is None else brut(macro.rendement_reel(rendement, mesure.annuelle))
 
 
 def positions_hebdomadaires(index: pd.DatetimeIndex) -> np.ndarray:
@@ -170,6 +188,7 @@ def construire_profil(profil: dict[str, Any], univers: dict[str, dict], semaines
     capital = profil["capital_fictif_cad"]
     valeurs = valeurs_actuelles(portefeuille)
     actuel = indicateurs(valeurs)
+    mesure = inflation_de_la_periode(valeurs)
     poids = {ligne["ticker"]: ligne["poids"] for ligne in portefeuille}
     jugement = juger(regles, poids, actuel["chuteMax"])
     recul = recul_depuis_sommet(valeurs)
@@ -215,8 +234,15 @@ def construire_profil(profil: dict[str, Any], univers: dict[str, dict], semaines
         "capital": capital,
         "debut": valeurs.index[0].date().isoformat(),
         "fin": valeurs.index[-1].date().isoformat(),
+        "inflation": None if mesure is None else {
+            "annuelle": brut(mesure.annuelle),
+            "moisDebut": mesure.mois_debut,
+            "moisFin": mesure.mois_fin,
+            "publieLe": mesure.publie_le,
+        },
         "actuel": {
             **actuel,
+            "rendementReel": rendement_reel(actuel["rendement"], mesure),
             "valeurChuteMax": round(float(valeurs[actuel["dateChuteMax"]] * capital / v_fin)),
             "valeurDepart": round(capital / v_fin),
             "gain": round(capital - capital / v_fin),
@@ -241,6 +267,7 @@ def entree_decision(portefeuille, decision, regles, semaines) -> dict[str, Any]:
     jugement = juger(regles, poids_apres_decision(portefeuille, decision), resultat["chuteMax"])
     return {
         **resultat,
+        "rendementReel": rendement_reel(resultat["rendement"], inflation_de_la_periode(apres)),
         "seances": seances_sous_limite(recul, seuil_pire_baisse(regles)),
         "statuts": jugement["statuts"],
         "parts": jugement["parts"],

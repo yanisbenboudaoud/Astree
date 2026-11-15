@@ -255,7 +255,8 @@ def contexte_macro_periode_complete(valeurs: dict[str, Any], serie_apres: pd.Ser
         if valeurs[volatilite] > 0:
             contexte[nom] = (valeurs[rendement] - sans_risque) / valeurs[volatilite]
     traitement = (
-        f"inflation : IPC du Canada de {mesure.mois_debut} à {mesure.mois_fin} (dernier mois publié) ; "
+        f"inflation : IPC du Canada de {mesure.mois_debut} à {mesure.mois_fin} (dernier mois publié, "
+        "chaque mois étant supposé publié à la fin du mois suivant) ; "
         "rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé "
         "− taux directeur moyen) ÷ volatilité annuelle"
     )

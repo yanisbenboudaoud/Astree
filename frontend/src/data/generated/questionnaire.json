@@ -1007,12 +1007,19 @@
      "capital": 120000,
      "debut": "2021-11-12",
      "fin": "2026-11-12",
+     "inflation": {
+      "annuelle": 0.035441,
+      "moisDebut": "2021-09",
+      "moisFin": "2026-09",
+      "publieLe": "2026-10-31"
+     },
      "actuel": {
       "rendement": 0.091393,
       "volatilite": 0.086266,
       "chuteMax": -0.130012,
       "dateChuteMax": "2022-06-16",
       "rejeu2022": -0.083541,
+      "rendementReel": 0.054037,
       "valeurChuteMax": 68389,
       "valeurDepart": 77500,
       "gain": 42500,

@@ -472,3 +472,18 @@ def test_un_rendement_reel_cite_passe_le_greffier():
     # Le rendement réel calculé par l'agent par simple soustraction (−2,6 − 6,3) est rejeté.
     faux = "En 2022, votre portefeuille a fait −8,9 % après inflation."
     assert verifier_argument({"texte": faux, "pieces": ["P2"]}, dossier).introuvables
+
+
+def test_rendement_reel_de_la_periode_cite_passe_le_greffier():
+    """#113 : le rendement réel avant / après de la pièce principale, tel qu'un agent l'écrirait."""
+    from pipeline.chiffres import verifier_argument
+
+    piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
+    assert "supposé publié à la fin du mois suivant" in piece["traitement"]
+    dossier = {"decision": DECISION, "pieces": [piece], "periode": ["2021-11-12", "2026-11-12"]}
+    texte = ("Après inflation, votre portefeuille aurait rapporté +5,5 % par an, et +8,1 % avec 30 % en TSLA. "
+             "La hausse des prix a été de +3,5 % par an.")
+    assert verifier_argument({"texte": texte, "pieces": ["P1"]}, dossier).introuvables == []
+    # Rendement en dollars moins l'inflation (+12,0 − 3,5) : nombre dérivé, rejeté.
+    faux = "Avec 30 % en TSLA, votre portefeuille aurait rapporté +8,5 % par an après inflation."
+    assert verifier_argument({"texte": faux, "pieces": ["P1"]}, dossier).introuvables

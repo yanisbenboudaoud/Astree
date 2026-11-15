@@ -4,7 +4,7 @@ Fichier généré par `python -m validation` (issue #15) : ne pas le modifier à
 Partie calculée du procès (Pacte, simulation, Greffier, taille maximale) sur les données du dépôt,
 sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèle et les vrais outils.
 
-**Bilan : 50 réussis, 0 en échec, 0 en attente.**
+**Bilan : 52 réussis, 0 en échec, 0 en attente.**
 
 ## 1. Même décision, profils différents
 
@@ -99,6 +99,8 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Rendement réel 2022 du portefeuille actuel (relation de Fisher) | (1 + rendement) ÷ (1 + inflation) − 1, plus bas que le rendement en dollars | −2,6 % en dollars, inflation 6,3 %, −8,4 % réel | ✅ |
 | Contexte de 2022 : taux directeur de la Banque du Canada | en hausse sur l'année (début < moyenne < fin) | 0,2 % → 4,2 %, moyenne 1,9 % | ✅ |
 | Ratio de Sharpe avant et après la décision | plus bas après : rendement plus élevé, mais risque beaucoup plus fort | 1,09 → 0,46 | ✅ |
+| Rendement réel annualisé de la période, avant et après la décision (#113) | (1 + rendement) ÷ (1 + inflation) − 1 pour les deux portefeuilles | 9,3 % → 12,0 % en dollars ; 5,5 % → 8,1 % après une inflation de 3,5 %/an | ✅ |
+| IPC présent dans le fichier mais pas encore publié (#113) | ignoré : la mesure s'arrête au dernier mois publié à l'extraction | inflation 3,5 %/an, IPC jusqu'à 2026-09 | ✅ |
 | Données macro indisponibles (fichier absent du bucket) | la pièce obligatoire reste produite, sans valeurs macro | pièce sans inflation ni ratio de Sharpe | ✅ |
 
 ## Graphique : taille maximale compatible selon le seuil

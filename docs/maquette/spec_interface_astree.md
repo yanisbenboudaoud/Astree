@@ -561,7 +561,7 @@ L'état est conservé par profil dans un store : taille choisie, panier, répons
   - curseur 0–50 % (`input type=range` accessible, `aria-valuetext="30 %, hors limite du Pacte"`), avec un repère « Limite du Pacte · X % » ;
   - bande de zones sous la piste : vert jusqu'au maximum conforme, teinte rouge au-delà ;
   - légende des zones ;
-  - ligne « Financement simulé : réduction proportionnelle de vos positions. » + lien « Modifier ».
+  - ligne « Financement simulé : réduction proportionnelle de vos positions. » (sans bouton : la démonstration ne précalcule que ce financement, #96).
 - **Panier (Amira) :**
   - une ligne par titre : monogramme, nom, classe, pas-à-pas « − 25 % + » (pas de 5 %), bouton retirer ;
   - « Ajouter un titre » ;

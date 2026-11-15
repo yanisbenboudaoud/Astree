@@ -41,7 +41,6 @@ function BlocTaille({ profil, decision, table, onTaille }: {
   table: TablePosition;
   onTaille: (t: number) => void;
 }) {
-  const [noteFinancement, setNoteFinancement] = useState(false);
   const idCurseur = useId();
   const max = table.maxConforme;
   const horsLimite = max === null || decision.taille > max;
@@ -130,16 +129,7 @@ function BlocTaille({ profil, decision, table, onTaille }: {
         )}
       </ul>
 
-      <div className={styles.financement}>
-        <p className="t-petit c-500">Financement simulé : réduction proportionnelle de vos positions.</p>
-        <Bouton variante="tertiaire" compact fleche={false} aria-expanded={noteFinancement} onClick={() => setNoteFinancement((n) => !n)}>Modifier</Bouton>
-      </div>
-      {noteFinancement && (
-        <p className="t-petit c-700">
-          Cette démonstration précalcule le financement proportionnel. Pour financer depuis une ligne précise, décrivez-le au
-          Tribunal en direct : l'Agent Profil le traduira en « depuis_&lt;titre&gt; ».
-        </p>
-      )}
+      <p className="t-petit c-500">Financement simulé : réduction proportionnelle de vos positions.</p>
     </Section>
   );
 }

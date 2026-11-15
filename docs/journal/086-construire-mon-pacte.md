@@ -1,6 +1,6 @@
 # #86 — « Construire mon Pacte » : écran du questionnaire, aperçu et signature
 
-- **Issue** : #86 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #86 · **PR** : #97 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -36,7 +36,7 @@ cd frontend && VITE_USE_MOCKS=true npx vitest run     # 67 tests, dont 13 dans s
 - `test_route_profil.py` : aperçu sans rangement, vues à la signature, `/table` (et refus) ; la table de `/table` pour Robert est **identique** à `generated/decisions/robert/TSLA.json`.
 - `test_build_ui_series.py` : les vues renvoyées par la Lambda pour Robert sont identiques aux fichiers précalculés.
 - Navigateur (mode démonstration) : parcours complet jusqu'au Tribunal, axe-core sans violation sur les trois étapes, aucun débordement à 375 px.
-- **En direct, le 2026-11-15**, Lambda redéployée depuis la branche de cette PR (`deployer.py --sans-donnees`) :
+- **En direct, le 2026-11-15**, Lambda redéployée depuis la branche de cette PR (`deployer.py --sans-donnees`), puis de nouveau après le rebase sur #90, dont le déploiement avait retiré `/table` :
   - routes : `/questionnaire` 200 (16 questions, 5,5 s au démarrage à froid), `/profil` en aperçu 200 en 0,1 s sans rien ranger, `/profil` signé 201 en 0,6 s (`profils/<id>.json`, seuil « Choisi par vous »), `/table` 200 en 0,9 s, réponse inconnue 400 avec son motif ;
   - parcours dans l'interface (`localhost:5173`, mode direct) : réponses refusées par Python affichées avec leur motif ; aperçu avec deux contradictions et la capacité plus prudente que la tolérance ; seuil changé de −10 % à −12 % (« Choisi par vous ») ; signature → « Revivez 4 jours » ; Portefeuille et Décision (table de TSLA venue de `/table`) ; procès de « 30 % en TSLA » en 55 s environ (1 violation, 6 à vérifier, 4 conformes ; le questionnaire est la pièce P2) ; verdict signé, archivé dans `verdicts/<id>/`.
 

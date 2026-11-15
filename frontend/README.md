@@ -56,7 +56,7 @@ Le script réutilise le code du pipeline : l'interface affiche exactement les ch
 La couche `src/api/` isole les écrans du backend : les composants ne lisent que les types de `src/api/types.ts` (annexe D.7).
 
 - **Mode démonstration** (défaut, `VITE_USE_MOCKS=true`) : `src/api/tribunal.ts` rejoue un procès **réellement tenu par la Lambda** et archivé dans S3, copié tel quel dans `src/data/proces/<id>.json` et validé par `python -m contrat.valider` : Robert à 30 % et à 25 % de TSLA (ce dernier contient un argument corrigé par le Greffier), Amira (panier à 25 %, et QQQ et NVDA à 50 %), Mateo (10 % de XOM). Deux d'entre eux gardent leur contre-interrogatoire réel (#55), affiché tel quel : Robert à 30 % de TSLA (« Et si je mettais 15 % au lieu de 30 % ? ») et Amira à QQQ et NVDA. Un procès est rejoué seulement s'il juge exactement la décision soumise ; sinon, l'écran le dit et propose la décision enregistrée. Aucun procès n'est inventé.
-- **Sans AWS** (comptes du Datathon supprimés le 16 novembre 2026) : seul le mode démonstration fonctionne, avec `VITE_API_URL` vide. Toutes les données viennent du dépôt ; la question libre et « Trompez le Greffier » le disent au lieu d'appeler la Lambda.
+- **Sans AWS** (comptes du Datathon supprimés le 16 novembre 2026) : seul le mode démonstration fonctionne, avec `VITE_API_URL` vide. Toutes les données viennent du dépôt ; la question libre et « Trompez le Greffier » le disent au lieu d'appeler la Lambda. Ce mode est publié sur GitHub Pages à chaque fusion dans `main` : <https://yanisbenboudaoud.github.io/Datathon2026/> (#186).
 - **Mode direct** : copier `.env.example` en `.env.local` et définir :
   ```
   VITE_USE_MOCKS=false

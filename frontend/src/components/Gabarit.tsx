@@ -194,7 +194,7 @@ export function Gabarit({ children, nomProfil, idProfil, etape, inerte = false }
         <div className={styles.entete}>
           <Link to={idProfil ? `/${idProfil}/portefeuille` : '/'} className={styles.logo} aria-label={idProfil ? 'Astrée, retour au portefeuille' : 'Astrée, accueil'}>
             <span className={styles.marque}>
-              <img src="/marque.svg" width={30} height={30} alt="" />
+              <img src={`${import.meta.env.BASE_URL}marque.svg`} width={30} height={30} alt="" />
             </span>
             <span className={styles.nomMarque}>
               <span className={styles.motMarque}>Astrée</span>

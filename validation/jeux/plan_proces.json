@@ -1,0 +1,28 @@
+{
+ "issue": 167,
+ "titre": "Plan de procès : la même décision jugée pour les trois profils de test",
+ "redige_le": "2026-11-15",
+ "description": "Échantillon planifié, en plus des procès archivés : chaque décision est jugée pour chaque profil, deux fois, par la Lambda déployée (POST /tribunal, Bedrock). Il montre si les outils choisis par l'orchestrateur changent avec le Pacte à décision égale, et s'ils restent stables d'une répétition à l'autre.",
+ "cout_estime": "environ 0,17 $ par procès au plus (jetons Bedrock mesurés dans CloudWatch le 2026-11-14 et le 2026-11-15, rapportés aux procès archivés : 51 000 jetons d'entrée et 7 000 de sortie au plus, au tarif Sonnet 5.5 de 2 $ et 10 $ par million de jetons), soit environ 3 $ pour 18 procès.",
+ "cout_mesure": "ajouté après le plan : de 22 h 09 à 22 h 26 UTC le 2026-11-15, CloudWatch compte 116 appels Bedrock (profil global.anthropic.claude-sonnet-5-5), 872 730 jetons d'entrée et 118 202 de sortie, soit environ 2,93 $ au tarif Sonnet 5.5 (0,16 $ par procès, 6,4 appels Bedrock par procès, tours de l'orchestrateur compris). Borne haute : un appel d'un coéquipier dans cette fenêtre serait compté aussi.",
+ "repetitions": 2,
+ "profils": [
+  "robert",
+  "amira",
+  "mateo"
+ ],
+ "decisions": [
+  {
+   "id": "tsla_30",
+   "demande": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)"
+  },
+  {
+   "id": "panier_crypto_tech",
+   "demande": "Je veux tout réallouer vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %"
+  },
+  {
+   "id": "xom_10",
+   "demande": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)"
+  }
+ ]
+}

@@ -185,3 +185,64 @@ def test_rapport_sur_les_proces_de_l_interface():
     assert "ne sont pas un échantillon planifié" in texte
     for identifiant in locaux:
         assert f"`{identifiant}`" in texte
+
+
+# --- Plan de procès -------------------------------------------------------------------
+
+from validation import plan_proces  # noqa: E402
+from validation.evaluation_orchestrateur import outils_obtenus, section_plan  # noqa: E402
+
+PLAN = {"description": "Plan.", "cout_estime": "0 $.", "repetitions": 2, "profils": ["robert", "amira"],
+        "decisions": [{"id": "tsla", "demande": "30 % en TSLA"}]}
+
+
+def test_tenir_plan_reprend_sans_rejouer_ce_qui_est_fait(tmp_path, monkeypatch):
+    monkeypatch.setattr(plan_proces, "CHEMIN_PLAN", tmp_path / "plan.json")
+    monkeypatch.setattr(plan_proces, "CHEMIN_RESULTATS", tmp_path / "resultats.json")
+    (tmp_path / "plan.json").write_text(json.dumps(PLAN), encoding="utf-8")
+    (tmp_path / "resultats.json").write_text(json.dumps([
+        {"decision": "tsla", "demande": "30 % en TSLA", "profil": "robert", "repetition": 1,
+         "proces_id": "p1", "statut": 200, "duree_s": 20.0},
+        {"decision": "tsla", "demande": "30 % en TSLA", "profil": "amira", "repetition": 1,
+         "proces_id": None, "statut": 429, "duree_s": 0.4},
+    ]), encoding="utf-8")
+    envois = []
+
+    def envoyer(corps):
+        envois.append(corps["profil"])
+        return 200, 25.04, f"p{len(envois) + 1}"
+
+    resultats = plan_proces.tenir_plan(envoyer, plan_proces._ecrire)
+    assert envois == ["amira", "robert", "amira"]  # la case en échec est rejouée, la case réussie non
+    assert len(resultats) == 5  # l'échec reste noté
+    assert json.loads((tmp_path / "resultats.json").read_text(encoding="utf-8"))[-1]["duree_s"] == 25.0
+
+
+def test_section_plan_stabilite_et_duree():
+    tsla = contrat(orchestrateur=[SIMULATION_COMPLETE, appel("taille_max_compatible")])
+    autre = contrat(orchestrateur=[SIMULATION_COMPLETE, appel("calculer_correlations")])
+    lecture = rassembler({"a": tsla, "b": tsla, "c": tsla, "d": autre}, {}, "2026-11-15", "bucket")
+    resultats = [
+        {"decision": "tsla", "profil": "robert", "repetition": 1, "proces_id": "a", "statut": 200, "duree_s": 20.0},
+        {"decision": "tsla", "profil": "robert", "repetition": 2, "proces_id": "b", "statut": 200, "duree_s": 30.0},
+        {"decision": "tsla", "profil": "amira", "repetition": 1, "proces_id": "c", "statut": 200, "duree_s": 25.0},
+        {"decision": "tsla", "profil": "amira", "repetition": 2, "proces_id": "d", "statut": 200, "duree_s": 40.0},
+        {"decision": "tsla", "profil": "amira", "repetition": 2, "proces_id": None, "statut": 429, "duree_s": 0.5},
+    ]
+    texte = "\n".join(section_plan(lecture, PLAN, resultats))
+    assert "4 procès sur 4 lus ; envois en échec : 1 (429)" in texte
+    assert "Mêmes outils d'une répétition à l'autre : 1/2" in texte
+    assert "min. 20,0, médiane 27,5, max. 40,0 s" in texte
+    assert "| 30 % en TSLA | robert | `simuler_portefeuille`, `taille_max_compatible` |" in texte
+
+
+def test_section_plan_sans_proces_lus():
+    lecture = rassembler({}, {}, "2026-11-15", None)
+    texte = "\n".join(section_plan(lecture, PLAN, []))
+    assert "Aucun procès du plan n'a pu être lu" in texte
+
+
+def test_outils_obtenus_dans_l_ordre_et_sans_refus():
+    c = contrat(orchestrateur=[appel("taille_max_compatible"), SIMULATION_COMPLETE,
+                               appel("rechercher_documents", sortie="Erreur : source manquante")])
+    assert outils_obtenus(c) == ["simuler_portefeuille", "taille_max_compatible"]

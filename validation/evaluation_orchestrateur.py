@@ -290,7 +290,75 @@ def _repartition(valeurs: list[int]) -> str:
     return f"min. {min(valeurs)}, médiane {mediane}, max. {max(valeurs)}"
 
 
-def rapport(lecture: Lecture, mesures: Mesures) -> str:
+def outils_obtenus(contrat: dict[str, Any]) -> list[str]:
+    """Outils dont le modèle a obtenu une pièce, dans l'ordre de la section 4 bis."""
+    obtenus = {e["outil"] for e in appels_du_modele(contrat["trace"]) if not est_refus(e)}
+    return [o for o in ORDRE_OUTILS if o in obtenus] + sorted(obtenus - set(ORDRE_OUTILS))
+
+
+def section_plan(lecture: Lecture, plan: dict[str, Any], resultats: list[dict[str, Any]]) -> list[str]:
+    """Le plan de procès (même décision pour chaque profil, répétée) : outils, stabilité, durée."""
+    tenus = [r for r in resultats if r["statut"] == 200 and r.get("proces_id") in lecture.contrats]
+    echecs = [r for r in resultats if r["statut"] != 200]
+    nb_cases = len(plan["decisions"]) * len(plan["profils"]) * plan["repetitions"]
+    lignes = [
+        "## Plan de procès : même décision, profils différents",
+        "",
+        f"{plan['description']} Plan : `validation/jeux/plan_proces.json` ; tenu par `python -m validation.plan_proces`. "
+        f"Coût estimé avant de le tenir : {plan['cout_estime']}"
+        + (f" Coût mesuré, {plan['cout_mesure']}" if plan.get("cout_mesure") else ""),
+        "",
+        f"{len(tenus)} procès sur {nb_cases} lus ; envois en échec : {len(echecs)}"
+        + (f" ({', '.join(sorted({str(r['statut']) for r in echecs}))})" if echecs else "") + ".",
+        "",
+    ]
+    if not tenus:
+        return lignes + ["Aucun procès du plan n'a pu être lu (S3 non lu, ou plan pas encore tenu).", ""]
+
+    par_case: dict[tuple[str, str], dict[int, dict[str, Any]]] = defaultdict(dict)
+    for r in tenus:
+        par_case[(r["decision"], r["profil"])][r["repetition"]] = r
+    demandes = {d["id"]: d["demande"] for d in plan["decisions"]}
+    repetitions = range(1, plan["repetitions"] + 1)
+    lignes += [
+        "| Décision | Profil | " + " | ".join(f"Outils, répétition {k}" for k in repetitions) + " | Mêmes outils | Durée (s) |",
+        "|---|---|" + "---|" * plan["repetitions"] + "---|---|",
+    ]
+    stables = comparables = 0
+    for decision in plan["decisions"]:
+        for profil in plan["profils"]:
+            essais = par_case.get((decision["id"], profil), {})
+            ensembles = {k: outils_obtenus(lecture.contrats[r["proces_id"]]) for k, r in essais.items()}
+            cellules = [", ".join(f"`{o}`" for o in ensembles[k]) if k in ensembles else "non tenu" for k in repetitions]
+            if len(ensembles) == plan["repetitions"]:
+                comparables += 1
+                identiques = len({tuple(e) for e in ensembles.values()}) == 1
+                stables += identiques
+                meme = "oui" if identiques else "non"
+            else:
+                meme = "—"
+            durees = " ; ".join(f"{essais[k]['duree_s']:g}".replace(".", ",") for k in repetitions if k in essais)
+            lignes.append(f"| {cellule(demandes[decision['id']])} | {profil} | " + " | ".join(cellules)
+                          + f" | {meme} | {durees} |")
+    durees = [r["duree_s"] for r in tenus]
+    lignes += [
+        "",
+        f"- Mêmes outils d'une répétition à l'autre : " + (taux(stables, comparables) if comparables else "sans objet") + ".",
+        f"- Durée d'un procès, mesurée côté client (envoi → contrat) : {_repartition_durees(durees)} s.",
+        "- Ces procès sont aussi comptés dans les tableaux ci-dessus, avec les procès archivés.",
+        "",
+    ]
+    return lignes
+
+
+def _repartition_durees(durees: list[float]) -> str:
+    def nombre(x: float) -> str:
+        return f"{x:.1f}".replace(".", ",")
+    return f"min. {nombre(min(durees))}, médiane {nombre(statistics.median(durees))}, max. {nombre(max(durees))}"
+
+
+def rapport(lecture: Lecture, mesures: Mesures, plan: dict[str, Any] | None = None,
+            resultats_plan: list[dict[str, Any]] | None = None) -> str:
     m = mesures
     n = m.nb_proces
     depuis_s3 = sum("S3" in o for o in lecture.origines.values())
@@ -311,7 +379,8 @@ def rapport(lecture: Lecture, mesures: Mesures) -> str:
         "**Limite** : ces procès ne sont pas un échantillon planifié. Ce sont les procès lancés pendant le "
         "développement et les démonstrations, dominés par quelques décisions répétées (voir le tableau "
         "profil × décision). Les taux décrivent ces procès, pas le comportement du modèle sur toutes les "
-        "décisions possibles.",
+        "décisions possibles. Le plan de procès, plus bas, est un petit échantillon planifié : la même "
+        "décision jugée pour chaque profil.",
         "",
         "## En bref",
         "",
@@ -350,6 +419,7 @@ def rapport(lecture: Lecture, mesures: Mesures) -> str:
                                                                               key=lambda t: (-t[1][0], t[0]))],
                          m.outils),
         "",
+        *(section_plan(lecture, plan, resultats_plan or []) if plan else []),
         "## Garde-fous de l'orchestrateur",
         "",
         f"- Appels exécutés : {m.appels_executes} ; refusés : {sum(m.refus.values())}.",
@@ -392,8 +462,9 @@ def rapport(lecture: Lecture, mesures: Mesures) -> str:
         f"- Appels Bedrock visibles dans la trace (Agent Profil, Procureur, Avocat et leurs relances) : "
         f"{_repartition(m.appels_bedrock)} par procès, {sum(m.appels_bedrock)} en tout.",
         "- Non mesurables ici : les tours de conversation de l'orchestrateur (la trace garde les appels "
-        "d'outils, pas les tours Bedrock, et un tour peut demander plusieurs outils), la durée d'un procès "
-        "et les jetons consommés. La trace archivée ne contient ni horodatage ni compteur de jetons.",
+        "d'outils, pas les tours Bedrock, et un tour peut demander plusieurs outils) et les jetons consommés. "
+        "La trace archivée ne contient ni horodatage ni compteur de jetons : la durée n'est mesurée que pour "
+        "les procès du plan, côté client.",
         "",
         "## Méthode",
         "",
@@ -427,8 +498,10 @@ def lire(local_seulement: bool = False) -> Lecture:
 
 def executer(arguments: list[str]) -> tuple[str, str]:
     """Lit les procès, écrit le rapport ; rend le chemin et un résumé d'une ligne."""
+    from validation.plan_proces import charger_plan, charger_resultats
+
     lecture = lire(local_seulement="--local" in arguments)
     mesures = mesurer(lecture.contrats.values())
     chemin = RACINE / "docs" / "validation" / "evaluation_orchestrateur.md"
-    chemin.write_text(rapport(lecture, mesures), encoding="utf-8")
+    chemin.write_text(rapport(lecture, mesures, charger_plan(), charger_resultats()), encoding="utf-8")
     return str(chemin.relative_to(RACINE)), f"{mesures.nb_proces} procès lus le {lecture.date_lecture}"

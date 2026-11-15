@@ -23,6 +23,7 @@ import {
   seuilModifiable, totalPoids, valeurDepuisPoints,
 } from '../domaine/questionnaire';
 import { date, dollars, horizon, nombre } from '../lib/format';
+import { LimitesDonnees } from '../components/Limites';
 import styles from './ConstruireMonPacte.module.css';
 
 const MENTION = 'Simulation éducative. Ce questionnaire décrit vos propres règles ; il ne constitue pas un conseil financier.';
@@ -103,7 +104,7 @@ export function ConstruireMonPacte() {
 
   return (
     <Gabarit>
-      <div className={styles.corps}>
+      <div className={`${styles.corps} ${brouillon.etape !== 'portefeuille' ? styles.corpsLarge : ''}`}>
         <p className={`t-petit c-700 ${styles.mention}`} role="note">{MENTION}</p>
         {typeof brouillon.etape === 'number' && (
           <EtapeQuestion brouillon={brouillon} modifier={modifier} titre={titre} onDemo={remplirDemo} />
@@ -122,6 +123,28 @@ interface ProprietesEtape {
 }
 
 // --- Questions -------------------------------------------------------------------------
+
+/**
+ * À quoi sert chaque réponse, en clair (champ « alimente » de config/questionnaire.json) :
+ * l'utilisateur voit comment sa réponse devient une règle, avant de répondre.
+ */
+const USAGES: Record<string, string> = {
+  horizon: 'Elle fixe l’horizon de votre Pacte, et compte dans la plus forte baisse que votre argent peut encaisser.',
+  objectif: 'Elle devient une règle que vous jugerez vous-même : le calcul ne peut pas la vérifier.',
+  retraits: 'Elle sert à calculer la plus forte baisse que vous pouvez vous permettre.',
+  coussin: 'Elle sert à calculer la plus forte baisse que vous pouvez vous permettre.',
+  part_patrimoine: 'Elle sert à calculer la plus forte baisse que vous pouvez vous permettre.',
+  revenu: 'Elle sert à calculer la plus forte baisse que vous pouvez vous permettre.',
+  reaction: 'Si vous vendriez pendant une baisse, votre limite de baisse est resserrée d’un cran.',
+  vecu_2022: 'Ce que vous avez vraiment fait en 2022 compte plus qu’une réaction imaginée.',
+  regard_proches: 'Elle sert seulement à repérer des réponses qui se contredisent.',
+  experience: 'Le Tribunal vous signalera une décision sur un type de placement que vous n’avez jamais utilisé.',
+  quiz_baisse: 'Elle vérifie que la règle de pire baisse est bien comprise, sans aucune pénalité.',
+  crypto: 'Elle devient un plafond sur la part de cryptoactifs.',
+  concentration: 'Elle devient un plafond sur la part des titres technologiques.',
+  exclusions: 'Elle exclut une catégorie de titres, ou demande une source documentée pour vos valeurs.',
+  regle_perso: 'Votre phrase devient une règle à juger par vous, reprise telle quelle : aucune IA ne la réécrit.',
+};
 
 function Progression({ index }: { index: number }) {
   const parties = sections(QUESTIONS);
@@ -177,10 +200,27 @@ function EtapeQuestion({ brouillon, modifier, titre, onDemo }: ProprietesEtape &
   };
 
   return (
-    <>
-      <div className={styles.entete}>
-        <p className="t-etiquette c-500">Construire mon Pacte</p>
-        <Progression index={index} />
+    <div className={styles.questionGrille}>
+      <div className={styles.questionCote}>
+        <div className={styles.entete}>
+          <p className="t-etiquette c-500">Construire mon Pacte</p>
+          <Progression index={index} />
+        </div>
+        {USAGES[question.id] && (
+          <section className={styles.usage} aria-labelledby="titre-usage">
+            <h2 className="t-petit-fort" id="titre-usage">À quoi sert votre réponse</h2>
+            <p className="t-petit c-700">{USAGES[question.id]}</p>
+          </section>
+        )}
+        {index === 0 && (
+          <aside className={styles.demo} aria-label="Démonstration">
+            <p className="t-petit c-700">
+              Pour une démonstration reproductible : réponses préenregistrées d’un profil de test, avec leur portefeuille.
+            </p>
+            <Bouton variante="secondaire" compact onClick={onDemo}>Remplir comme un profil de test</Bouton>
+            <Provenance type="Fictif" />
+          </aside>
+        )}
       </div>
       <form className={styles.question} onSubmit={(e) => { e.preventDefault(); suivant(); }} noValidate>
         <fieldset className={styles.fieldset} aria-describedby={erreur ? idErreur : undefined}>
@@ -201,16 +241,7 @@ function EtapeQuestion({ brouillon, modifier, titre, onDemo }: ProprietesEtape &
           <Bouton variante="primaire" type="submit">{suivante === 'portefeuille' ? 'Passer au portefeuille' : 'Suivante'}</Bouton>
         </div>
       </form>
-      {index === 0 && (
-        <aside className={styles.demo} aria-label="Démonstration">
-          <p className="t-petit c-700">
-            Pour une démonstration reproductible : réponses préenregistrées d’un profil de test, avec leur portefeuille.
-          </p>
-          <Bouton variante="secondaire" compact onClick={onDemo}>Remplir comme un profil de test</Bouton>
-          <Provenance type="Fictif" />
-        </aside>
-      )}
-    </>
+    </div>
   );
 }
 
@@ -397,88 +428,95 @@ function EtapeApercu({ brouillon, modifier, titre, onRecommencer }: ProprietesEt
   const passees = questionsPassees(QUESTIONS, brouillon.reponses);
   const profil = resultat?.profil;
 
+  const regles = profil && resultat && (
+    <section className={styles.regles} aria-labelledby="titre-regles">
+      <h2 className="t-h2" id="titre-regles">Les règles de votre Pacte</h2>
+      <ol>
+        {profil.pacte.regles.map((regle, i) => (
+          <CarteRegle key={regle.id} numero={i + 1} regle={regle} resultat={resultat} brouillon={brouillon} modifier={modifier} />
+        ))}
+      </ol>
+    </section>
+  );
+
+  // Paysage : le résumé, les points à vérifier, les limites et la signature à gauche ; les règles à droite.
   return (
-    <>
-      <div className={styles.entete}>
-        <p className="t-etiquette c-500">Construire mon Pacte · aperçu</p>
-        <h1 className="t-h1" ref={titre} tabIndex={-1}>Votre Pacte, tiré de vos réponses</h1>
-        <p className="t-corps c-700">
-          Chaque règle dit quelle réponse l’a produite. Relisez-les, changez un seuil si vous le souhaitez, puis signez :
-          le Tribunal jugera ensuite vos décisions avec ces règles.
-        </p>
-        {brouillon.demo && (
-          <p className={`t-petit c-700 ${styles.provenance}`}>
-            <Provenance type="Fictif" /> Réponses préenregistrées d’un profil de test.
+    <div className={styles.apercuGrille}>
+      <div className={styles.apercuCote}>
+        <div className={styles.entete}>
+          <p className="t-etiquette c-500">Construire mon Pacte · aperçu</p>
+          <h1 className="t-h1" ref={titre} tabIndex={-1}>Votre Pacte, tiré de vos réponses</h1>
+          <p className="t-corps c-700">
+            Chaque règle dit quelle réponse l’a produite. Relisez-les, changez un seuil si vous le souhaitez, puis signez :
+            le Tribunal jugera ensuite vos décisions avec ces règles.
           </p>
-        )}
-      </div>
-
-      {erreur && (
-        <Message type="À vérifier" titre={nonDisponible ? 'Pacte non disponible en démonstration' : 'Le Pacte n’a pas pu être construit'}
-          correction={{ libelle: 'Revenir aux questions', onClick: () => modifier({ etape: 0 }) }}>
-          <ul className={styles.liste}>{erreur.map((m) => <li key={m}>{m}</li>)}</ul>
-        </Message>
-      )}
-      {!erreur && !profil && <p className="t-corps c-700" role="status">Calcul du Pacte par le Tribunal…</p>}
-
-      {profil && resultat && (
-        <>
-          <dl className={styles.resume}>
-            <div><dt className="t-petit c-700">Profil de risque</dt><dd className="t-corps-fort">{libelleProfilRisque(profil.profil_risque)}</dd></div>
-            <div><dt className="t-petit c-700">Horizon</dt><dd className="t-corps-fort">{horizon(profil.horizon_ans)}</dd></div>
-            <div><dt className="t-petit c-700">Capital fictif</dt><dd className="t-corps-fort">{dollars(profil.capital_fictif_cad)} <Provenance type="Fictif" /></dd></div>
-          </dl>
-
-          <section className={styles.regles} aria-labelledby="titre-regles">
-            <h2 className="t-h2" id="titre-regles">Les règles de votre Pacte</h2>
-            <ol>
-              {profil.pacte.regles.map((regle, i) => (
-                <CarteRegle key={regle.id} numero={i + 1} regle={regle} resultat={resultat} brouillon={brouillon} modifier={modifier} />
-              ))}
-            </ol>
-          </section>
-
-          {(resultat.contradictions.length > 0 || resultat.bareme.controles.length > 0) && (
-            <section className={styles.regles} aria-labelledby="titre-verifier">
-              <h2 className="t-h2" id="titre-verifier">À vérifier avant de signer</h2>
-              <ul className={styles.verifier}>
-                {resultat.contradictions.map((c) => (
-                  <li key={c.id}><Statut type="À vérifier" /><span className="t-corps">{c.message}</span></li>
-                ))}
-                {resultat.bareme.controles.map((c) => (
-                  <li key={c.message}><Statut type="À vérifier" /><span className="t-corps">{c.message}</span></li>
-                ))}
-              </ul>
-            </section>
-          )}
-          {passees.length > 0 && <p className="t-petit c-700">Questions passées : {passees.join(', ')}.</p>}
-          {!MODE_DIRECT && (
-            <p className="t-petit c-700">
-              En démonstration, les seuils ne se modifient pas : le barème tourne en Python, sur la Lambda du Tribunal (mode direct).
+          {brouillon.demo && (
+            <p className={`t-petit c-700 ${styles.provenance}`}>
+              <Provenance type="Fictif" /> Réponses préenregistrées d’un profil de test.
             </p>
           )}
+        </div>
 
-          <section className={styles.limites} aria-labelledby="titre-limites">
-            <h2 className="t-petit-fort" id="titre-limites">Limites</h2>
-            <ul className={`t-petit c-700 ${styles.liste}`}>
-              {resultat.bareme.limites.map((l) => <li key={l}>{l}</li>)}
-            </ul>
-          </section>
+        {erreur && (
+          <Message type="À vérifier" titre={nonDisponible ? 'Pacte non disponible en démonstration' : 'Le Pacte n’a pas pu être construit'}
+            correction={{ libelle: 'Revenir aux questions', onClick: () => modifier({ etape: 0 }) }}>
+            <ul className={styles.liste}>{erreur.map((m) => <li key={m}>{m}</li>)}</ul>
+          </Message>
+        )}
+        {!erreur && !profil && <p className="t-corps c-700" role="status">Calcul du Pacte par le Tribunal…</p>}
 
-          <div className={styles.actions}>
-            <Bouton variante="secondaire" onClick={() => modifier({ etape: 'portefeuille' })}>← Portefeuille</Bouton>
-            <Bouton variante="tertiaire" onClick={onRecommencer}>Tout recommencer</Bouton>
-            <span className={styles.espace} />
-            <Bouton variante="primaire" onClick={signer} disabled={signature === 'envoi'} aria-describedby="date-signature">
-              {signature === 'envoi' ? 'Signature…' : 'Signer mon Pacte'}
-            </Bouton>
-          </div>
-          <p id="date-signature" className="t-petit c-700">
-            Date de signature : {date(profil.pacte.date_signature)}. Ensuite : « Revivez 4 jours », pour mesurer votre limite sur de vrais jours de marché.
-          </p>
-        </>
-      )}
-    </>
+        {profil && resultat && (
+          <>
+            <dl className={styles.resume}>
+              <div><dt className="t-petit c-700">Profil de risque</dt><dd className="t-corps-fort">{libelleProfilRisque(profil.profil_risque)}</dd></div>
+              <div><dt className="t-petit c-700">Horizon</dt><dd className="t-corps-fort">{horizon(profil.horizon_ans)}</dd></div>
+              <div><dt className="t-petit c-700">Capital fictif</dt><dd className="t-corps-fort">{dollars(profil.capital_fictif_cad)} <Provenance type="Fictif" /></dd></div>
+            </dl>
+
+            {(resultat.contradictions.length > 0 || resultat.bareme.controles.length > 0) && (
+              <section className={styles.regles} aria-labelledby="titre-verifier">
+                <h2 className="t-panneau" id="titre-verifier">À vérifier avant de signer</h2>
+                <ul className={styles.verifier}>
+                  {resultat.contradictions.map((c) => (
+                    <li key={c.id}><Statut type="À vérifier" /><span className="t-corps">{c.message}</span></li>
+                  ))}
+                  {resultat.bareme.controles.map((c) => (
+                    <li key={c.message}><Statut type="À vérifier" /><span className="t-corps">{c.message}</span></li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {passees.length > 0 && <p className="t-petit c-700">Questions passées : {passees.join(', ')}.</p>}
+            {!MODE_DIRECT && (
+              <p className="t-petit c-700">
+                En démonstration, les seuils ne se modifient pas : le barème tourne en Python, sur la Lambda du Tribunal (mode direct).
+              </p>
+            )}
+
+            <LimitesDonnees ecran="questionnaire" titre="Ce que ces règles ne disent pas" variante="panneau" />
+            <section className={styles.limites} aria-labelledby="titre-limites">
+              <h2 className="t-petit-fort" id="titre-limites">Limites du barème</h2>
+              <ul className={`t-petit c-700 ${styles.liste}`}>
+                {resultat.bareme.limites.map((l) => <li key={l}>{l}</li>)}
+              </ul>
+            </section>
+
+            <div className={styles.actions}>
+              <Bouton variante="secondaire" onClick={() => modifier({ etape: 'portefeuille' })}>← Portefeuille</Bouton>
+              <Bouton variante="tertiaire" onClick={onRecommencer}>Tout recommencer</Bouton>
+              <span className={styles.espace} />
+              <Bouton variante="primaire" onClick={signer} disabled={signature === 'envoi'} aria-describedby="date-signature">
+                {signature === 'envoi' ? 'Signature…' : 'Signer mon Pacte'}
+              </Bouton>
+            </div>
+            <p id="date-signature" className="t-petit c-700">
+              Date de signature : {date(profil.pacte.date_signature)}. Ensuite : « Revivez 4 jours », pour mesurer votre limite sur de vrais jours de marché.
+            </p>
+          </>
+        )}
+      </div>
+      <div className={styles.apercuRegles}>{regles}</div>
+    </div>
   );
 }
 

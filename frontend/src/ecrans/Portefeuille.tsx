@@ -14,6 +14,7 @@ import { compte, date, dollars, jourMois, part, pourcent, seuil as seuilTexte } 
 import { bilanPacte, regleCle, seuilPireBaisse } from '../domaine/pacte';
 import { regleMesuree } from '../domaine/calibrage';
 import { useEtatProfil } from '../state/store';
+import { InfoLimite, LimitesDonnees } from '../components/Limites';
 import styles from './Portefeuille.module.css';
 
 const TEINTES = ['var(--categorie-1)', 'var(--categorie-2)', 'var(--categorie-3)', 'var(--categorie-4)', 'var(--categorie-5)', 'var(--categorie-6)'];
@@ -37,20 +38,20 @@ function Indicateurs({ profil }: { profil: Profil }) {
   return (
     <dl className={styles.indicateurs}>
       <div className={styles.indicateur}>
-        <dt className="t-petit-fort c-500">Rendement annualisé</dt>
+        <dt className={`t-petit-fort c-500 ${styles.libelleIndicateur}`}>Rendement annualisé <InfoLimite indicateur="rendement" libelle="Rendement annualisé" /></dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.rendement, { signe: true })}</span>
         </dd>
       </div>
       <div className={styles.indicateur}>
-        <dt className="t-petit-fort c-500">Chute maximale</dt>
+        <dt className={`t-petit-fort c-500 ${styles.libelleIndicateur}`}>Chute maximale <InfoLimite indicateur="pire_baisse" libelle="Chute maximale" /></dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.chuteMax)}</span>
           {seuil !== undefined && <span className="t-petit c-500">limite {seuilTexte(seuil)}</span>}
         </dd>
       </div>
       <div className={styles.indicateur}>
-        <dt className="t-petit-fort c-500">Volatilité</dt>
+        <dt className={`t-petit-fort c-500 ${styles.libelleIndicateur}`}>Volatilité <InfoLimite indicateur="volatilite" libelle="Volatilité" /></dt>
         <dd className={styles.valeurIndicateur}>
           <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.volatilite)}</span>
         </dd>
@@ -349,7 +350,7 @@ export function Portefeuille({ profil }: { profil: Profil }) {
             <section className={`section ${styles.valeur}`} aria-labelledby="titre-valeur">
               <div className={styles.montant}>
                 <div className={styles.blocValeur}>
-                  <h2 className="t-petit-fort c-500" id="titre-valeur">Valeur du portefeuille</h2>
+                  <h2 className={`t-petit-fort c-500 ${styles.libelleIndicateur}`} id="titre-valeur">Valeur du portefeuille <InfoLimite indicateur="valeur" libelle="Valeur du portefeuille" /></h2>
                   <p className={styles.chiffre}>
                     <span className={styles.chiffreValeur}>{dollars(profil.capital)}</span>
                     <Provenance type="Fictif" />
@@ -372,7 +373,9 @@ export function Portefeuille({ profil }: { profil: Profil }) {
               <Indicateurs profil={profil} />
               <p className={styles.provenance}>
                 <Provenance type="Fait" />
-                <span className="t-petit c-500">Prix réels, en CAD</span>
+                <span className="t-petit c-500">Prix réels du {date(profil.debut)} au {date(profil.fin)}, en CAD</span>
+                <Provenance type="Fictif" />
+                <span className="t-petit c-500">portefeuille de test</span>
               </p>
             </section>
             <Positions profil={profil} />
@@ -381,6 +384,7 @@ export function Portefeuille({ profil }: { profil: Profil }) {
           <aside className={styles.laterale} aria-label="Pacte et journal">
             <CartePacte profil={profil} />
             <Journal entrees={journal} />
+            <LimitesDonnees ecran="portefeuille" variante="panneau" />
           </aside>
         </div>
       </div>

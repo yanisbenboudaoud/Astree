@@ -9,6 +9,7 @@ import { chargerTablePanier, chargerTablePosition, nomTitre, titre as titreDe } 
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { IconeStatut, Provenance } from '../components/Etiquettes';
+import { InfoLimite, LimitesDonnees } from '../components/Limites';
 import { LienRetour, Message, Monogramme, Section } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { GraphiqueRecul } from '../components/graphiques/GraphiqueRecul';
@@ -75,6 +76,7 @@ function BlocTaille({ profil, decision, table, onTaille }: {
       <p className={`t-petit-fort ${styles.etatTaille} ${horsLimite ? styles.etatHors : styles.etatCompatible}`}>
         <span className={styles.pointEtat} aria-hidden="true" />
         {etatCompatible}
+        <InfoLimite indicateur="taille_max" libelle="Taille compatible" />
       </p>
 
       <div className={styles.curseur}>
@@ -196,7 +198,7 @@ function LigneEffet({ effet }: { effet: Effet }) {
   return (
     <tr className={violation ? styles.ligneViolation : undefined}>
       <th scope="row">
-        <span className="t-petit-fort">{effet.libelle}</span>
+        <span className={`t-petit-fort ${styles.libelleEffet}`}>{effet.libelle} <InfoLimite indicateur={effet.indicateur} libelle={effet.libelle} /></span>
         {effet.detail && <span className="t-petit c-500">{effet.detail}</span>}
       </th>
       <td className="t-tableau c-700">{effet.avant}</td>
@@ -234,8 +236,13 @@ function BlocEffets({ profil, entree, decision, libelleGraphique }: { profil: Pr
             <tr>
               <th scope="col" className="t-petit c-500">Indicateur</th>
               <th scope="col" className="t-petit c-500">Actuel</th>
-              <th scope="col" className={`t-petit-fort ${styles.colonneApres}`}>{libelleGraphique}</th>
-              <th scope="col" className="t-petit c-500">Limite du Pacte</th>
+              <th scope="col" className={`t-petit-fort ${styles.colonneApres}`}>
+                {libelleGraphique}
+                <span className={`t-petit c-500 ${styles.simule}`}>simulation</span>
+              </th>
+              <th scope="col" className="t-petit c-500">
+                <span className={styles.libelleEffet}>Limite du Pacte <InfoLimite indicateur="seuil_pacte" libelle="Limite du Pacte" /></span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -250,10 +257,13 @@ function BlocEffets({ profil, entree, decision, libelleGraphique }: { profil: Pr
         creux={{ date: entree.dateChuteMax, valeur: entree.chuteMax }}
         seances={entree.seances}
         libelleDecision={libelleGraphique}
+        hauteurTrace={150}
       />
       <p className={styles.provenance}>
         <Provenance type="Fait" />
-        <span className="t-petit c-500">Prix réels du {date(profil.debut)} au {date(profil.fin)}, en CAD. Le passé ne prédit pas l'avenir.</span>
+        <span className="t-petit c-500">Prix du {date(profil.debut)} au {date(profil.fin)}, en CAD</span>
+        <Provenance type="Fictif" />
+        <span className="t-petit c-500">décision simulée</span>
       </p>
     </Section>
   );
@@ -418,6 +428,10 @@ export function Decision({ profil }: { profil: Profil }) {
               <p id={idErreur} className="t-petit c-700">Un panier compte au moins deux titres.</p>
             )}
           </div>
+
+          <aside className={styles.limites} aria-label="Limites des chiffres">
+            <LimitesDonnees ecran="decision" variante="panneau" />
+          </aside>
         </div>
       </div>
     </Gabarit>

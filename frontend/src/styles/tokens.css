@@ -50,8 +50,8 @@
   --police-mono: var(--police-texte);
   --police-code: ui-monospace, 'SF Mono', 'Geist Mono', 'Cascadia Mono', monospace;
 
-  /* Paysage (#103) : 1344 px = 1440 px − 2 × 48 px de marge. */
-  --conteneur-large: 1344px;
+  /* Paysage : jusqu’à 1600 px de contenu, pour occuper un portable de 14 à 16 pouces (1344 px avant). */
+  --conteneur-large: 1600px;
   --conteneur-etroit: 776px;
   --colonne-laterale: 376px;
   --marge-page: 48px;

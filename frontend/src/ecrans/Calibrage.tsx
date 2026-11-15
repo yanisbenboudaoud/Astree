@@ -18,6 +18,7 @@ import { date, dollars, horizon, nombre, part, pourcent, seuil as seuilTexte } f
 import { prochaineQuestion, resultatCalibrage, RESTE } from '../domaine/calibrage';
 import { seuilPireBaisse } from '../domaine/pacte';
 import { useEtatProfil } from '../state/store';
+import { LimitesDonnees } from '../components/Limites';
 import styles from './Calibrage.module.css';
 
 const LIBELLES_CHOIX: Record<string, Record<string, string>> = {
@@ -221,6 +222,7 @@ export function Calibrage({ profil }: { profil: Profil }) {
                   )}
                   {demo && <Provenance type="Fictif" />}
                 </div>
+                <LimitesDonnees ecran="calibrage" titre="Ce que cette mesure ne dit pas" variante="panneau" />
               </>
             )}
           </aside>

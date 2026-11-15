@@ -13,6 +13,7 @@ import { LienRetour, Message } from '../components/Elements';
 import { OPTION_PACTE, archivage, optionsVerdict, pointsDeBascule, statutDecision, type OptionVerdict } from '../domaine/verdict';
 import { useEtatProfil } from '../state/store';
 import { useTables } from '../state/useTables';
+import { LimitesDonnees } from '../components/Limites';
 import styles from './Verdict.module.css';
 
 const LONGUEUR_MAX = 280;
@@ -171,6 +172,7 @@ export function Verdict({ profil }: { profil: Profil }) {
                 </ul>
               </section>
             )}
+            <LimitesDonnees ecran="verdict" titre="Avant de signer : ce que le procès ne dit pas" variante="panneau" />
             <div className={styles.blocExport}>
               <Bouton variante="secondaire" compact fleche={false} className={styles.lienExport} onClick={exporterProcesVerbal}>
                 Exporter le procès-verbal

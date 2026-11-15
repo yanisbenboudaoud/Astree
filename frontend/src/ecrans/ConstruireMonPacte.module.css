@@ -6,6 +6,25 @@
   flex-direction: column;
   gap: 32px;
 }
+/* Aperçu en paysage : page large, deux colonnes. */
+.corpsLarge { max-width: calc(var(--conteneur-large) + 2 * var(--marge-page)); }
+.apercuGrille { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 32px 48px; align-items: start; }
+.apercuCote { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.apercuRegles { min-width: 0; }
+@media (max-width: 1023px) {
+  .apercuGrille { grid-template-columns: minmax(0, 1fr); }
+
+}
+/* Questions en paysage : progression et usage de la réponse à gauche, la question à droite. */
+.questionGrille { display: grid; grid-template-columns: minmax(260px, 4fr) minmax(0, 8fr); gap: 32px 64px; align-items: start; }
+.questionCote { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.questionGrille .sections { flex-direction: column; gap: 8px; font-size: 15px; line-height: 20px; }
+.usage { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: var(--rayon-moyen); background: var(--fond-sourdine); }
+@media (max-width: 1023px) {
+  .questionGrille { grid-template-columns: minmax(0, 1fr); }
+  .questionCote { position: static; }
+  .questionGrille .sections { flex-direction: row; flex-wrap: wrap; gap: 6px 20px; }
+}
 .mention { padding: 10px 14px; border-left: 4px solid var(--encre-500); background: var(--fond-creux); }
 .entete { display: flex; flex-direction: column; gap: 12px; }
 .entete h1:focus { outline: none; }

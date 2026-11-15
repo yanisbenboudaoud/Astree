@@ -2,6 +2,7 @@
  * Décision en cours d'instruction : libellé, demande envoyée au Tribunal, lecture des
  * tables précalculées, effets sur le Pacte et messages. Tout vient des tables et du Pacte.
  */
+import type { Indicateur } from './limites';
 import type { DecisionContrat } from '../api/contrat';
 import type { DecisionUI, EntreeSimulation, Profil, Statut, TablePanier, TablePosition } from '../api/types';
 import { nomTitre, titre as titreDe } from '../api/donnees';
@@ -59,6 +60,8 @@ export function entreePanier(table: TablePanier, lignes: { ticker: string; poids
 
 export interface Effet {
   libelle: string;
+  /** Indicateur affiché, pour expliquer ce qu'il mesure et sa limite (domaine/limites.ts). */
+  indicateur: Indicateur;
   /** Précision sous le libellé (« par an sur 5 ans »). */
   detail?: string;
   avant: string;
@@ -82,6 +85,7 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
     if (decision.type === 'position' && avant === 0 && apres === 0) continue;
     effets.push({
       libelle: libelleCategories(regle.categories ?? []),
+      indicateur: 'part_categories',
       detail: 'part du portefeuille',
       avant: part(avant),
       apres: part(apres),
@@ -93,6 +97,7 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
   const pireBaisse = regles.find((r) => r.type === 'pire_baisse_max');
   effets.push({
     libelle: 'Chute maximale',
+    indicateur: 'pire_baisse',
     avant: pourcent(profil.actuel.chuteMax),
     apres: pourcent(entree.chuteMax),
     limite: pireBaisse ? seuilTexte(pireBaisse.seuil ?? 0) : undefined,
@@ -101,16 +106,19 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
   });
   effets.push({
     libelle: 'Rendement annualisé',
+    indicateur: 'rendement',
     avant: pourcent(profil.actuel.rendement, { signe: true }),
     apres: pourcent(entree.rendement, { signe: true }),
   });
   effets.push({
     libelle: 'Volatilité annuelle',
+    indicateur: 'volatilite',
     avant: pourcent(profil.actuel.volatilite),
     apres: pourcent(entree.volatilite),
   });
   effets.push({
     libelle: 'Rendement en 2022',
+    indicateur: 'rendement_2022',
     avant: pourcent(profil.actuel.rejeu2022, { signe: true }),
     apres: pourcent(entree.rejeu2022, { signe: true }),
   });

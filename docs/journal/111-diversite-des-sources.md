@@ -1,6 +1,6 @@
 # #111 — Diversité des sources : toutes les sources d'un procès, et les données macro
 
-- **Issue** : #111 · **PR** : #120 (code), suivie du redéploiement et des procès de démo · **Statut** : terminée
+- **Issue** : #111 · **PR** : #120 (code), #123 (redéploiement et procès de démo) · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

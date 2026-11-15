@@ -8,6 +8,7 @@ Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre déc
 
 | Pour… | Lire |
 |---|---|
+| **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
 | Comprendre le projet, ses règles et son architecture | [`CLAUDE.md`](CLAUDE.md) |
 | Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
 | Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
@@ -83,6 +84,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `config/categories.json` | Catégories (`tech`, `crypto`) des règles `plafond`, communes à tous les profils | [003](docs/journal/003-pacte-generique.md) |
 | `validation/` | Scénarios de validation et de sensibilité : même décision pour plusieurs profils, seuils, hypothèses, période, robustesse du Greffier, garde-fous, profil inventé. `python -m validation` | [015](docs/journal/015-scenarios-validation.md) |
 | `tests/` | Un fichier de test par module (`test_donnees.py` ↔ `pipeline/donnees.py`). `pytest -m bedrock` pour les vrais appels | — |
+| `docs/GUIDE_DU_PROJET.md` | Guide complet du projet pour tous les niveaux : l'idée sans jargon, le fonctionnement, la visite de chaque dossier, le chemin d'une demande dans le code, la façon de travailler, l'état et les limites | — |
 | `docs/guide_jurisprudence.md` | Guide pas à pas de la jurisprudence (#56) et de la correction du validateur (#65) : la boucle complète sur un vrai procès, les choix, les limites, et des questions pour vérifier sa compréhension | [056](docs/journal/056-jurisprudence.md), [065](docs/journal/065-valider-erreurs-outil.md) |
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](docs/journal/000-fondations.md) |
 | `docs/validation/resultats_scenarios.md` | Tableau des résultats des scénarios (généré par `python -m validation`) | [015](docs/journal/015-scenarios-validation.md) |

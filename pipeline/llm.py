@@ -31,9 +31,9 @@ temps avec ``concurrent.futures.ThreadPoolExecutor``.
 
 Configuration, par variables d'environnement (jamais en dur dans le code) :
 - BEDROCK_MODEL_ID : identifiant du profil d'inférence,
-  ex. « us.anthropic.claude-sonnet-5-5 ». Sur ce compte, les modèles Claude
-  s'appellent par leur profil d'inférence (préfixe « us. »), pas par leur
-  identifiant brut.
+  ex. « global.anthropic.claude-sonnet-5-5 ». Sur ce compte, les modèles Claude
+  s'appellent par leur profil d'inférence (préfixe « global. » ou « us. »), pas
+  par leur identifiant brut.
 - AWS_REGION : région Bedrock, ex. « us-east-1 ».
 
 Les identifiants AWS viennent de la chaîne standard de boto3 : « aws login » en
@@ -267,7 +267,7 @@ def _identifiant_modele() -> str:
     if not identifiant:
         raise ErreurLLM(
             "Variable d'environnement BEDROCK_MODEL_ID absente "
-            "(ex. : us.anthropic.claude-sonnet-5-5). Voir .env.example."
+            "(ex. : global.anthropic.claude-sonnet-5-5). Voir .env.example."
         )
     return identifiant
 

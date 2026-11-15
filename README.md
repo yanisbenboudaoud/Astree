@@ -17,6 +17,8 @@ Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre déc
 
 ## Démarrage
 
+**Essayer sans rien installer** : l'interface est hébergée sur AWS (S3 + CloudFront, #135) à l'adresse **https://d15khh2djw55mh.cloudfront.net**. Pour l'instant, elle rejoue des procès réellement tenus par les agents (mode démonstration) ; le mode direct suivra (#141). Pour la mettre à jour : `deploiement\deployer_interface.py` ([`deploiement/README.md`](deploiement/README.md), « Interface hébergée »).
+
 Prérequis : **Python 3.14**, la version du runtime Lambda (`python3.14`, #22). Commandes pour PowerShell, sous Windows. Après une mise à jour de `requirements-dev.txt`, relancer la commande `pip install` ci-dessous.
 
 ```powershell
@@ -45,7 +47,7 @@ Valider un contrat JSON (`-X utf8` est nécessaire sous Windows pour afficher �
 | Variable | Rôle | Valeur |
 |---|---|---|
 | `AWS_REGION` | Région Bedrock | `us-east-1` |
-| `BEDROCK_MODEL_ID` | Modèle des agents (profil d'inférence) | `us.anthropic.claude-sonnet-5-5` ; `us.anthropic.claude-haiku-5-5` pour les tests |
+| `BEDROCK_MODEL_ID` | Modèle des agents (profil d'inférence) | `global.anthropic.claude-sonnet-5-5` ; `global.anthropic.claude-haiku-5-5` pour les tests |
 | `SOURCE_DONNEES` | Où lire les CSV | `local` (par défaut) ; `s3` dans la Lambda (#13), avec `BUCKET_PROJET` = nom du bucket |
 
 Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws login`.
@@ -113,6 +115,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `deploiement/` | Paramètres vérifiés du déploiement (runtime, couche pandas, délai, mémoire, Function URL en `NONE` avec CORS limité à l'interface, zip, coûts), politique IAM de la Lambda, et `tester_function_url.py` pour lancer un procès sur la Lambda déployée | [022](docs/journal/022-pieges-aws.md), [013](docs/journal/013-deploiement-aws.md), [014](docs/journal/014-interface-astree.md) |
 | `deploiement/lambda_tribunal.py` | Point d'entrée de la Lambda : `POST /tribunal` (procès, archivé dans `traces/` ; avec `progression: true`, 202 et procès en arrière-plan par invocation asynchrone, #90), `POST /progression` (progression réelle ou contrat, relus dans S3), `POST /verdict` (archivé dans `verdicts/<profil>/`), `POST /question` (contre-interrogatoire), `POST /verifier` (« Trompez le Greffier »), `POST /proces-verbal` (page HTML du procès archivé), `POST /questionnaire` (questions), `POST /profil` (profil créé, rangé dans `profils/`) et `POST /table` (table de décision d'un titre) | [013](docs/journal/013-deploiement-aws.md), [056](docs/journal/056-jurisprudence.md), [057](docs/journal/057-proces-verbal.md), [055](docs/journal/055-contre-interrogatoire.md), [069](docs/journal/069-trompez-le-greffier.md), [087](docs/journal/087-route-profil.md), [090](docs/journal/090-progression-en-direct.md), [086](docs/journal/086-construire-mon-pacte.md) |
 | `deploiement/construire_zip.py` / `deploiement/deployer.py` | Construire le zip de la Lambda / déployer ou mettre à jour toute l'infrastructure (S3, IAM, Lambda, Function URL), de façon idempotente | [013](docs/journal/013-deploiement-aws.md) |
+| `deploiement/deployer_interface.py` | Héberger l'interface : bucket S3 privé `alphaforge-site-<compte>`, distribution CloudFront (HTTPS, OAC, pages profondes), construction avec l'adresse de la Lambda lue sur le compte, envoi des seuls fichiers modifiés et invalidation, de façon idempotente | [135](docs/journal/135-interface-hebergee.md) |
 | `docs/architecture.md` | Schéma d'architecture AWS (pour la doc et la vidéo) et rôle de chaque service | [013](docs/journal/013-deploiement-aws.md) |
 | `pipeline/profils.py` | Profils créés par les utilisateurs : `enregistrer_profil` (rangés dans `profils/` du bucket, ou `archives/profils/` en local, sans jamais écraser), `lire_profil_cree`, `nouvel_identifiant_profil`, `appliquer_modifications` (seuils choisis par l'utilisateur, « Choisi par vous ») ; `agent_profil.charger_profil` lit `personas/` puis ces profils | [087](docs/journal/087-route-profil.md), [086](docs/journal/086-construire-mon-pacte.md) |
 | `pipeline/vues_interface.py` | Ce que l'interface affiche pour un profil (portefeuille, courbe, indicateurs, Pacte, tables de décision, « Revivez 4 jours »), calculé par les fonctions du pipeline, dont le rendement après inflation (`rendementReel`) ; utilisé par `scripts/build_ui_series.py` et par la Lambda pour un profil créé (`/profil`, `/table`) | [086](docs/journal/086-construire-mon-pacte.md), [113](docs/journal/113-inflation-rendement-reel.md) |

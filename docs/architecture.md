@@ -4,8 +4,13 @@ Schéma pour la documentation technique et la vidéo (#13). Le pourquoi de chaqu
 
 ```mermaid
 flowchart TB
-    UI["Interface (écrans de la maquette, #14)"]
+    NAV["Navigateur"]
+    CF["Amazon CloudFront · HTTPS<br/>https://d15khh2djw55mh.cloudfront.net (#135)"]
+    SITE[("Amazon S3 · alphaforge-site-compte<br/>privé, lu par CloudFront seulement (OAC)")]
+    UI["Interface (écrans de la maquette, #14)<br/>exécutée dans le navigateur"]
     URL["Lambda Function URL<br/>(pas d'API Gateway : un procès dure plus de 29 s)"]
+    NAV -->|"charge le site"| CF -->|"index.html, assets/"| SITE
+    NAV --- UI
 
     subgraph LAMBDA["AWS Lambda · alphaforge-tribunal · python3.14 + couche pandas · 300 s · 1024 Mo · concurrence 2"]
         H["lambda_tribunal.handler<br/>/tribunal (202, procès en arrière-plan) · /progression · /verdict…"]
@@ -51,6 +56,7 @@ flowchart TB
 | **Lambda Function URL** | Point d'accès HTTPS de l'interface | Un procès dure de 25 à 40 s : API Gateway coupe à 29 s. C'est aussi un service de moins |
 | **Amazon S3** | Données (CSV), progression du procès en cours, trace de chaque procès, journal des verdicts | Explicabilité : chaque procès est archivé avec ses pièces et peut être relu ; l'orchestrateur relit les verdicts passés du profil (jurisprudence, #56) ; pendant le procès, l'interface relit chaque étape réelle (#90) |
 | **CloudWatch** | Journaux de la Lambda | Diagnostic (ex. : « Données chargées » n'apparaît qu'au démarrage) |
+| **Amazon CloudFront** + bucket S3 du site | Sert l'interface en HTTPS (#135) ; le navigateur appelle ensuite la Function URL directement | Adresse publique pour le jury, sans serveur. Bucket privé, lu par la distribution seulement. Les appels au Tribunal ne passent pas par CloudFront : son délai vers l'origine (60 s au plus) couperait les procès longs |
 
 ## Un procès, pas à pas
 
@@ -65,4 +71,5 @@ flowchart TB
 
 - **Aucune clé** dans le code ni dans Git : le rôle IAM de la Lambda reçoit des identifiants temporaires d'AWS.
 - **Rôle IAM minimal** (`deploiement/politique_iam_lambda.json`) : `bedrock:InvokeModel` sur Sonnet 5.5 seulement (profil d'inférence et ses trois régions), le bucket du projet, et l'invocation de la fonction elle-même (procès en arrière-plan, #90).
-- **Concurrence réservée de 2**, **alerte de budget** de 100 $ par mois, **Function URL en `NONE`** depuis #14, pour que le navigateur l'appelle, avec un CORS limité à l'interface (`http://localhost:5173`). Elle sera supprimée après le jury.
+- **Concurrence réservée de 2**, **alerte de budget** de 100 $ par mois, **Function URL en `NONE`** depuis #14, pour que le navigateur l'appelle, avec un CORS limité à l'interface (`http://localhost:5173` et, depuis #135, le domaine CloudFront du site). Elle sera supprimée après le jury.
+- **Site hébergé** (#135) : bucket `alphaforge-site-<compte>` à accès public bloqué, lu par la distribution seulement (OAC et condition `AWS:SourceArn`), séparé du bucket des données.

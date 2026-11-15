@@ -411,8 +411,14 @@ def profil_depuis_reponses(
     identifiant: str = "investisseur",
     nom: str = "Investisseur",
     decision: dict[str, Any] | None = None,
+    etiquette_reponses: str = "fait",
 ) -> dict[str, Any]:
     """Fichier profil (format de ``personas/``) tiré des réponses ; valide pour ``pipeline.pacte``.
+
+    Le profil garde ses réponses (champ ``questionnaire``) : pendant un procès, elles
+    deviennent une pièce ``declaree`` et leurs contradictions des contrôles (#85).
+    ``etiquette_reponses`` : ``fait`` pour les réponses d'une vraie personne, ``fictif``
+    pour des réponses préenregistrées de démonstration.
 
     Raises:
         ReponsesInvalides: réponse inconnue, saisie invalide, aucune règle, ou profil refusé
@@ -421,7 +427,10 @@ def profil_depuis_reponses(
     erreurs = _erreurs_saisies(capital, portefeuille, identifiant, date_reponses)
     if erreurs:
         raise ReponsesInvalides(erreurs)
-    analyse = analyser(valider_reponses(reponses), date_reponses)
+    if etiquette_reponses not in ("fait", "fictif"):
+        raise ReponsesInvalides([f"Étiquette des réponses invalide : « {etiquette_reponses} » (fait ou fictif)"])
+    propres = valider_reponses(reponses)
+    analyse = analyser(propres, date_reponses)
     if not analyse.regles:
         raise ReponsesInvalides(["Aucune règle : répondez au moins à la question des portefeuilles ou à une préférence"])
     profil = {
@@ -433,6 +442,7 @@ def profil_depuis_reponses(
         "capital_fictif_cad": capital,
         "portefeuille": [{"ticker": ligne["ticker"], "poids": ligne["poids"]} for ligne in portefeuille],
         "pacte": {"date_signature": date_reponses, "regles": analyse.regles},
+        "questionnaire": {"date": date_reponses, "etiquette": etiquette_reponses, "reponses": propres},
     }
     if decision is not None:
         profil["decision_demo"] = decision
@@ -486,6 +496,155 @@ def controle_experience(experience: list[str], decision: dict[str, Any]) -> dict
         "message": f"Type de titre jamais détenu selon le questionnaire ({', '.join(types)}) : "
                    f"{', '.join(sorted(nouveaux))}. Rien n'est bloqué : à garder en tête avant de décider.",
     }
+
+
+# --- Contradictions et pièce du procès (#85) ---------------------------------------
+
+CONTROLE_COHERENCE = "coherence_questionnaire"
+NOM_OUTIL_PIECE = "lire_questionnaire"
+
+
+def _cran(seuil: float) -> int:
+    """Rang de la tranche de profil_risque du barème : 0 = le plus prudent."""
+    tranches = charger_config()["bareme"]["profil_risque"]["tranches"]
+    return next((i for i, t in enumerate(tranches) if seuil >= t["seuil_min"]), len(tranches) - 1)
+
+
+def _libelle_reponse(qid: str, valeur: Any) -> str:
+    """« Libellé » de la réponse, tel qu'affiché dans le questionnaire (texte libre : repris tel quel)."""
+    return _citation(_questions_config()[qid], valeur)
+
+
+def contradictions(reponses: dict[str, Any]) -> list[dict[str, Any]]:
+    """Réponses qui se contredisent, selon les règles de ``config/questionnaire.json`` (aucun LLM).
+
+    Deux sortes : une paire de réponses incompatibles (ex. : « J'en rachète » et « J'ai vendu »
+    en 2022), et une tolérance déclarée d'au moins ``crans_min`` tranches au-delà du plafond
+    de capacité. Une contradiction ne change aucune règle du Pacte.
+
+    Returns:
+        ``[{"id", "questions", "message"}]``, dans l'ordre de la config ; liste vide si tout est cohérent.
+    """
+    reponses = valider_reponses(reponses)
+    config = charger_config()["contradictions"]
+    trouvees = []
+    for paire in config["paires"]:
+        if all(reponses.get(qid) in valeurs for qid, valeurs in paire["si"].items()):
+            citations = {qid: _libelle_reponse(qid, reponses[qid]) for qid in paire["si"]}
+            trouvees.append({"id": paire["id"], "questions": list(paire["si"]), "message": paire["message"].format_map(citations)})
+
+    ecart = config["ecart_tolerance_capacite"]
+    tolerance, capacite = tolerance_declaree(reponses), plafond_capacite(reponses)
+    if tolerance and capacite and _cran(tolerance["seuil"]) - _cran(capacite["plafond"]) >= ecart["crans_min"]:
+        q = _questions_config()
+        raisons = ", ".join(f"{q[d['question']]['nom_court'].lower()} : « {d['reponse']} »" for d in capacite["decisifs"])
+        trouvees.append({
+            "id": ecart["id"],
+            "questions": [QUESTION_CARTES, *(d["question"] for d in capacite["decisifs"])],
+            "message": ecart["message"].format_map({
+                "tolerance": formater_pourcentage(tolerance["seuil"]),
+                "carte": f"« {tolerance['carte']['libelle']} »",
+                "capacite": formater_pourcentage(capacite["plafond"]),
+                "raisons": raisons,
+            }),
+        })
+    return trouvees
+
+
+def piece_questionnaire(profil: dict[str, Any], id_piece: str) -> dict[str, Any]:
+    """Pièce ``declaree`` : les réponses au questionnaire et ce que le barème en tire.
+
+    Le Procureur et l'Avocat peuvent la citer ; ``verifier_chiffres`` en lit les valeurs
+    (date, horizon, tolérance déclarée, plafond de capacité, seuil retenu).
+
+    Args:
+        profil: profil validé qui porte ``questionnaire`` (``date``, ``reponses``, ``etiquette``).
+        id_piece: numéro attribué par le Tribunal.
+    """
+    bloc = profil["questionnaire"]
+    reponses = valider_reponses(bloc["reponses"])
+    analyse = analyser(reponses, bloc["date"])
+    tolerance, capacite, seuil = analyse.tolerance, analyse.capacite, analyse.seuil
+    trouvees = contradictions(reponses)
+    q = _questions_config()
+    valeurs = {
+        "date_reponses": bloc["date"],
+        "horizon_ans": analyse.horizon_ans,
+        "tolerance_declaree": tolerance["seuil"] if tolerance else None,
+        "pire_baisse_carte": tolerance["pire_baisse_carte"] if tolerance else None,
+        "capacite_plafond": capacite["plafond"] if capacite else None,
+        "seuil_retenu": seuil["valeur"] if seuil else None,
+        "questions": [q[qid]["nom_court"] for qid in reponses],
+        "reponses": [_libelle_reponse(qid, valeur) for qid, valeur in reponses.items()],
+        "contradictions": [c["id"] for c in trouvees],
+    }
+    morceaux = []
+    if tolerance:
+        morceaux.append(f"Tolérance {formater_pourcentage(tolerance['seuil'])}")
+    morceaux.append(f"capacité {formater_pourcentage(capacite['plafond'])}" if capacite else "capacité sans plafond")
+    if seuil:
+        morceaux.append(f"seuil retenu {formater_pourcentage(seuil['valeur'])}")
+    if trouvees:
+        morceaux.append(f"{len(trouvees)} contradiction{'s' if len(trouvees) > 1 else ''}")
+    etiquette = bloc.get("etiquette", "fait")
+    provenance = "Réponses préenregistrées d'un profil fictif" if etiquette == "fictif" else "Vos réponses"
+    return {
+        "id": id_piece,
+        "type": "declaree",
+        "etiquette": etiquette,
+        "titre": f"Questionnaire : {len(reponses)} réponses du {bloc['date']}",
+        "outil": NOM_OUTIL_PIECE,
+        "valeurs": valeurs,
+        "valeur_affichee": " · ".join(morceaux),
+        "source": f"{provenance} au questionnaire du {bloc['date']} ; cartes calculées sur les prix "
+                  "réels de l'univers (alphaforge_starter/prices_daily.csv)",
+        "traitement": "Barème de config/questionnaire.json : tolérance = pire baisse réelle de la carte "
+                      "choisie, resserrée d'un cran si vente ; capacité = plafond le plus contraignant ; "
+                      "seuil retenu = le plus prudent des deux, arrondi vers le prudent. Contradictions : "
+                      "règles de la même config. Aucun LLM.",
+        "limites": "Un questionnaire mesure ce que la personne dit, pas ce qu'elle fera. "
+                   "Barèmes et règles de contradiction : hypothèses de l'équipe.",
+    }
+
+
+def controles_questionnaire(
+    profil: dict[str, Any],
+    id_piece: str,
+    decision: dict[str, Any] | None = None,
+    piece_calibrage: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Contrôles « à vérifier » tirés du questionnaire, à verser au contrat.
+
+    - un contrôle ``coherence_questionnaire`` par contradiction ;
+    - si le Pacte vécu (#68) a mesuré un autre seuil que le seuil retenu au questionnaire,
+      un contrôle ``coherence_questionnaire`` qui le dit (le seuil mesuré l'emporte) ;
+    - ``controle_experience`` si la décision porte sur un type de titre jamais détenu.
+    """
+    bloc = profil["questionnaire"]
+    reponses = valider_reponses(bloc["reponses"])
+    controles = [
+        {"statut": "a_verifier", "regle": CONTROLE_COHERENCE, "message": f"Questionnaire : {c['message']}",
+         "pieces": [id_piece]}
+        for c in contradictions(reponses)
+    ]
+
+    seuil = analyser(reponses, bloc["date"]).seuil
+    mesure = piece_calibrage["valeurs"].get("seuil_mesure") if piece_calibrage else None
+    if seuil and mesure is not None and round(mesure, 3) != round(seuil["valeur"], 3):
+        controles.append({
+            "statut": "a_verifier",
+            "regle": CONTROLE_COHERENCE,
+            "message": f"Vous aviez déclaré {formater_pourcentage(seuil['valeur'])} au questionnaire ; devant de "
+                       f"vrais jours de marché, vous êtes resté jusqu'à {formater_pourcentage(mesure)}. "
+                       "Le seuil mesuré l'emporte.",
+            "pieces": [id_piece, piece_calibrage["id"]],
+        })
+
+    if decision is not None:
+        experience = controle_experience(reponses.get("experience", []), decision)
+        if experience:
+            controles.append({**experience, "pieces": [id_piece]})
+    return controles
 
 
 # --- Commande ----------------------------------------------------------------------

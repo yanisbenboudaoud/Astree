@@ -208,5 +208,41 @@
         {"seuil_min": -1.0, "profil": "eleve"}
       ]
     }
+  },
+  "contradictions": {
+    "justification": "Règles choisies par l'équipe (hypothèse) : deux réponses qui ne vont pas ensemble, ou une tolérance très au-delà de la capacité. Une contradiction ne change aucune règle du Pacte : elle devient un contrôle « à vérifier » (coherence_questionnaire), pour que l'utilisateur la voie au lieu qu'elle soit cachée dans une moyenne.",
+    "paires": [
+      {
+        "id": "reaction_contre_vecu_2022",
+        "si": {"reaction": ["rien", "rachete"], "vecu_2022": ["vendu"]},
+        "message": "Vous répondez {reaction} face à une baisse, mais {vecu_2022} en 2022. Votre vécu pèse plus que votre réaction imaginée : c'est lui qui fixe la tolérance."
+      },
+      {
+        "id": "vente_imaginee_contre_rachat_2022",
+        "si": {"reaction": ["vend_tout", "vend_partie"], "vecu_2022": ["rachete"]},
+        "message": "Vous répondez {reaction} face à une baisse, mais {vecu_2022} en 2022 : vous êtes peut-être plus tolérant que vous ne le pensez. Le vécu de 2022 fixe la tolérance."
+      },
+      {
+        "id": "proches_prudents_contre_crypto",
+        "si": {"regard_proches": ["tres_prudent"], "crypto": ["10", "25"]},
+        "message": "Vos proches vous décrivent comme {regard_proches}, mais vous acceptez {crypto} de cryptoactifs, l'une des classes d'actifs les plus volatiles."
+      },
+      {
+        "id": "proches_prudents_contre_carte",
+        "si": {"regard_proches": ["tres_prudent"], "fourchettes": ["croissance", "audacieux"]},
+        "message": "Vos proches vous décrivent comme {regard_proches}, mais vous choisissez le portefeuille {fourchettes}."
+      },
+      {
+        "id": "proches_joueur_contre_carte",
+        "si": {"regard_proches": ["joueur"], "fourchettes": ["tres_prudent"]},
+        "message": "Vos proches vous décrivent comme {regard_proches}, mais vous choisissez le portefeuille le plus prudent, {fourchettes}."
+      }
+    ],
+    "ecart_tolerance_capacite": {
+      "id": "tolerance_contre_capacite",
+      "crans_min": 2,
+      "justification": "Les crans sont les tranches de profil_risque du barème. Deux crans d'écart ou plus : la personne veut accepter bien plus que sa situation ne le permet.",
+      "message": "Vous acceptez {tolerance} (portefeuille {carte}), mais votre situation ne permet que {capacite} ({raisons}). Le seuil retenu est le plus prudent des deux : vouloir accepter une baisse ne veut pas dire pouvoir se la permettre."
+    }
   }
 }

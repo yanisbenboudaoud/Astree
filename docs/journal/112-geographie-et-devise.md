@@ -1,6 +1,6 @@
 # #112 — Diversification géographique et risque de devise
 
-- **Issue** : #112 · **PR** : à venir · **Statut** : terminée (Lambda à redéployer pour l'interface en direct)
+- **Issue** : #112 · **PR** : #125 · **Statut** : terminée (Lambda à redéployer pour l'interface en direct)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

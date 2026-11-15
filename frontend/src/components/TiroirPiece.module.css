@@ -1,0 +1,43 @@
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgb(26 23 18 / 0.32);
+  display: flex;
+  justify-content: flex-end;
+}
+.panneau {
+  width: min(520px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  background: var(--fond-papier);
+  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: entree 180ms ease-out;
+}
+@keyframes entree {
+  from { transform: translateX(24px); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+.entete { display: flex; align-items: center; justify-content: space-between; }
+.etiquettes { display: inline-flex; align-items: center; gap: 8px; }
+.fermer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  border: 1px solid var(--trait-moyen);
+  background: var(--fond-carte);
+  color: var(--encre-900);
+}
+.fermer:hover { border-color: var(--encre-700); }
+.titre { display: flex; flex-direction: column; gap: 6px; padding-bottom: 20px; border-bottom: 1px solid var(--trait-fin); }
+.section { display: flex; flex-direction: column; gap: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--trait-fin); }
+.citee { border-bottom: 0; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.citations { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.procureur { color: var(--camp-procureur); }
+.avocat { color: var(--camp-avocat); }

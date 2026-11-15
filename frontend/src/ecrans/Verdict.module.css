@@ -1,0 +1,89 @@
+.corps {
+  max-width: calc(var(--conteneur-etroit) + 2 * var(--marge-page));
+  margin: 0 auto;
+  padding: 32px var(--marge-page) 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.titre { display: flex; flex-direction: column; gap: 8px; }
+.rappel { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.options { border: 0; padding: 0; margin: 0; min-width: 0; }
+.options ul { display: flex; flex-direction: column; gap: 12px; }
+.option {
+  background: var(--fond-carte);
+  border: 1px solid var(--trait-fin);
+  border-radius: 4px;
+}
+.selectionnee { border: 1.5px solid var(--encre-900); }
+.option:has(input:focus-visible) { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
+.etiquetteOption { display: flex; gap: 14px; padding: 18px 20px; cursor: pointer; }
+.radio {
+  flex: none;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  border: 1.5px solid var(--encre-900);
+  border-radius: 9px;
+  background: var(--fond-carte);
+  display: grid;
+  place-content: center;
+}
+.radio:checked::before { content: ''; width: 10px; height: 10px; border-radius: 5px; background: var(--encre-900); }
+.radio:focus-visible { outline: none; }
+.texteOption { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.ligneTitre { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.mesures { display: flex; flex-wrap: wrap; gap: 4px 20px; padding-top: 4px; }
+
+.engagement {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 20px 0 52px;
+  padding: 16px 0 20px;
+  border-top: 1px solid var(--trait-fin);
+}
+.zoneTexte {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--encre-500);
+  border-radius: 3px;
+  background: var(--fond-papier);
+}
+.zoneTexte:focus-within { border: 2px solid var(--accent-bleu); padding: 9px 11px; }
+.zoneTexte textarea {
+  border: 0;
+  resize: vertical;
+  background: transparent;
+  font-size: 15px;
+  line-height: 22px;
+  outline: none;
+}
+.zoneTexte span { align-self: flex-end; }
+.case { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.case input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--encre-900); }
+.note { margin: 0 20px 18px 52px; padding: 10px 12px; background: var(--fond-creux); border-radius: 2px; }
+
+.lienPacte { align-self: flex-start; text-decoration: underline; text-underline-offset: 3px; }
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid var(--trait-fin);
+}
+.signature { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.raison { text-align: right; margin-top: -20px; }
+
+@media (max-width: 599px) {
+  .engagement, .note { margin-left: 20px; }
+  .raison { text-align: left; }
+}

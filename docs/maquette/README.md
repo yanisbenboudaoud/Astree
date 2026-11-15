@@ -1,6 +1,14 @@
 # Maquette de référence — Le Tribunal
 
-## Où la trouver
+## Version actuelle : Astrée (V2 · Prototype simplifié)
+
+- **Figma** : https://www.figma.com/design/31U3H5m2gPdbqzfg4qgulC, page « V2 · Prototype simplifié » (7 écrans par profil, composants, jetons).
+- **Spec d'implémentation** : [`spec_interface_astree.md`](spec_interface_astree.md) (jetons, composants, méthode de calcul, contenus, routes, définition de « terminé »).
+- **Implémentation** : [`frontend/`](../../frontend/README.md) (issue #14). Là où la spec et le backend divergent (portefeuilles d'Amira et de Mateo, source ESG de #17), **le backend fait foi** : voir la fiche [`014`](../journal/014-interface-astree.md).
+
+La version ci-dessous (« AlphaForge », 4 écrans) est l'ancienne maquette, gardée pour l'historique.
+
+## Où la trouver (ancienne version)
 
 - **Figma (référence visuelle, modifiable)** : https://www.figma.com/design/eBlJ3Ze7ALeY2QdFXZMdI4
   - Parcours de Robert : Portefeuille → Décision → Tribunal → Verdict, relié en prototype cliquable (▶ Présenter).

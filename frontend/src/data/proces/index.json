@@ -1,0 +1,8 @@
+{
+  "description": "Procès réellement tenus par le pipeline (python -m pipeline <profil> \"<demande>\", Amazon Bedrock, modèle us.anthropic.claude-sonnet-5-5), enregistrés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct. Chaque contrat passe python -m contrat.valider.",
+  "proces": [
+    {"fichier": "robert.json", "profil": "robert", "audience": "0142", "enregistreLe": "2026-11-14"},
+    {"fichier": "amira.json", "profil": "amira", "audience": "0143", "enregistreLe": "2026-11-14"},
+    {"fichier": "mateo.json", "profil": "mateo", "audience": "0144", "enregistreLe": "2026-11-14"}
+  ]
+}

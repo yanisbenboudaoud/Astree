@@ -1,0 +1,33 @@
+.conteneur { width: 100%; display: flex; flex-direction: column; gap: 16px; }
+.svg { display: block; overflow: visible; }
+
+.repere { stroke: var(--trait-fin); stroke-width: 1; }
+.axe { fill: var(--encre-500); font-family: var(--police-mono); font-size: 12px; }
+.aire { fill: var(--encre-900); fill-opacity: 0.06; }
+.courbeValeur { fill: none; stroke: var(--encre-900); stroke-width: 1.75; stroke-linejoin: round; }
+.pointBas { fill: var(--fond-papier); stroke: var(--encre-900); stroke-width: 2; }
+.annotation { fill: var(--encre-700); font-family: var(--police-texte); font-size: 13px; }
+.annotationForte { fill: var(--encre-900); font-family: var(--police-texte); font-size: 13px; font-weight: 600; }
+.annotationViolation { fill: var(--statut-violation); font-weight: 600; }
+.pastilleValeur { fill: var(--encre-900); }
+.texteInverse { fill: var(--inverse-texte); font-family: var(--police-mono); font-size: 12px; }
+
+.courbeActuel { fill: none; stroke: var(--encre-300); stroke-width: 1.5; stroke-linejoin: round; }
+.courbeDecision { fill: none; stroke: var(--encre-900); stroke-width: 2; stroke-linejoin: round; }
+.limite { stroke: var(--encre-900); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.zoneSousLimite { fill: var(--statut-violation); fill-opacity: 0.22; }
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  color: var(--encre-700);
+  font-size: 13px;
+  line-height: 18px;
+}
+.legende li { display: inline-flex; align-items: center; gap: 6px; }
+.traitActuel { width: 18px; height: 1.5px; background: var(--encre-300); }
+.traitDecision { width: 18px; height: 2.5px; background: var(--encre-900); }
+.carreLimite { width: 14px; height: 10px; background: var(--statut-violation); opacity: 0.22; }
+.traitLimite { width: 18px; border-top: 1.5px dashed var(--encre-900); }

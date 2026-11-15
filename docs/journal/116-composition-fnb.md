@@ -1,6 +1,6 @@
 # #116 — Composition des FNB : plafonds calculés par transparence
 
-- **Issue** : #116 · **PR** : #140, puis la PR de la Lambda redéployée et des procès de démo d'Amira refaits · **Statut** : terminée
+- **Issue** : #116 · **PR** : #140, puis #147 (Lambda redéployée, procès de démo d'Amira refaits) · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -69,6 +69,7 @@ Autres tests :
 
 **Sur AWS (après la fusion de #140)**
 - **Lambda redéployée** (`deploiement/deployer.py --sans-donnees`) depuis `main` : le zip contient `pipeline/composition.py`, `config/categories.json` et `donnees_externes/composition_fnb.json`. Aucun service, fichier S3 ni droit IAM de plus.
+  - Lancé sans `--origine` (20 h 46 UTC), il a retiré un moment le domaine CloudFront de #135 du CORS. La session de #135 l'a remis. Jusqu'à #136, il faut lancer `deployer.py --origine https://d15khh2djw55mh.cloudfront.net` (`deploiement/README.md`).
 - **Les 2 procès de démo d'Amira refaits** sur cette Lambda, avec la même demande (panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, tout le portefeuille). Ils sont copiés tels quels depuis `traces/2026-11-15/` du bucket : le contenu est identique à la réponse reçue, et chaque contrat passe `contrat.valider`.
   - `index.json`, les procès-verbaux et les imports des tests de l'interface suivent.
   - Les procès de Robert et de Mateo ne changent pas, puisque leurs Pactes ne plafonnent que la crypto : ils ne sont pas refaits.

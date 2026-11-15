@@ -1,6 +1,6 @@
 # #68 — Le Pacte vécu : mesurer les limites de l'investisseur sur de vrais jours de marché
 
-- **Issue** : #68 · **PR** : #78 · **Statut** : terminée (mode démonstration vérifié ; mode direct à vérifier une fois la Lambda redéployée et ouverte au navigateur, #14)
+- **Issue** : #68 · **PR** : #78, #79 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -47,9 +47,19 @@ Dans l'interface : Portefeuille → carte « Votre Pacte » → « Revivez 4 jou
 - **Pas d'étape « Pacte vécu » dans la barre de procédure** : l'écran est facultatif et s'ouvre depuis la carte du Pacte.
 - **Date des réponses en UTC**, côté navigateur comme côté Lambda : un soir à Montréal, elle peut afficher le lendemain.
 
+## Procès calibrés sur la Lambda (seconde PR)
+Après la fusion de #78 et le redéploiement, 3 procès ont été tenus sur la Lambda avec `tester_function_url.py … --calibrage-demo` (2026-11-15), archivés dans S3 et copiés dans `frontend/src/data/proces/` sous leur identifiant, avec `"calibrage": true` dans `index.json` :
+
+| Profil | Procès | Seuil mesuré | Contrôles |
+|---|---|---|---|
+| Robert, 30 % en TSLA | `2026-11-15-cd9914bdb1af` | −10,2 % (violation) | 38/38 chiffres, cadre respecté, 0 rejet |
+| Amira, panier à 25 % | `2026-11-15-2a7b5ce951aa` | −40,6 % (violation) | 29/29 chiffres, cadre respecté, 0 rejet |
+| Mateo, 10 % en XOM | `2026-11-15-651ad5c7f489` | −15,1 % | 27/27 chiffres, cadre respecté, 0 rejet |
+
+Chacun cite la pièce P2 (les réponses). Vérifié dans l'interface (démonstration) : les réponses de démonstration rejouent le procès de Robert, avec la jurisprudence et « Trompez le Greffier » sur la même page.
+
 ## Limites et suite
-- **Procès calibrés de démonstration à enregistrer sur la Lambda** : depuis #71, les procès de démonstration viennent de S3 (identifiant utilisable par « Trompez le Greffier »). Les 3 procès tenus en local ne suivent pas ce format et n'ont pas été gardés. Après la fusion et le redéploiement : `tester_function_url.py <profil> "<demande>" --calibrage-demo --sortie …` pour chaque profil, puis ajout dans `frontend/src/data/proces/` et `index.json` (`"calibrage": true`). D'ici là, en démonstration, le Pacte vécu fonctionne jusqu'au Tribunal, qui dit qu'aucun procès n'est enregistré avec ces réponses.
-- **Mode direct pas encore vérifié** : la Lambda doit être redéployée avec ce code, et la Function URL ouverte au navigateur (#14).
+- **Mode direct** : la Lambda accepte `calibrage` (procès ci-dessus) ; le parcours complet depuis l'interface en mode direct n'a pas été refait.
 - Une réponse à un épisode passé ne garantit pas le comportement futur (Bradbury, Hens et Zeisberger, *Review of Finance*, 2015) ; une seule période de données. Ces limites sont dans la pièce et dans le contrat.
 - Seule la pire baisse est mesurée. Les réponses sur la capacité, la crypto et les valeurs sont déclarées et citables, mais ne changent aucune règle.
 - `e2e/verifier.mjs` n'a pas été relancé (il demande Edge ou Chrome) ; le nouvel écran n'y est pas encore parcouru.

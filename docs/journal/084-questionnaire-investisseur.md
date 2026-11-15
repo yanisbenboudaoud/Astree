@@ -1,6 +1,6 @@
 # #84 — Questionnaire investisseur : les questions, le barème et le Pacte généré
 
-- **Issue** : #84 · **PR** : à renseigner · **Statut** : terminée
+- **Issue** : #84 · **PR** : #91 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

@@ -41,3 +41,20 @@
 .citations { display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .procureur { color: var(--camp-procureur); }
 .avocat { color: var(--camp-avocat); }
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: var(--rayon-petit);
+  background: var(--accent-bleu-teinte);
+  border-left: 3px solid var(--accent-bleu);
+}
+.points { margin: 2px 0 0; padding-left: 20px; list-style: disc; display: flex; flex-direction: column; gap: 6px; }
+.points li::marker { color: var(--encre-500, currentColor); }
+.details summary { cursor: pointer; list-style-position: outside; }
+.details[open] summary { margin-bottom: 6px; }
+.definition { padding: 12px 14px; border: 1px dashed var(--trait-moyen); border-radius: var(--rayon-petit); }
+.definition summary { cursor: pointer; color: var(--accent-bleu); }
+.definition[open] summary { margin-bottom: 6px; }
+ol.points { list-style: decimal; }

@@ -35,7 +35,13 @@ if (!navigateur) throw new Error('Ni Edge ni Chrome trouvés.');
 async function nouvellePage() {
   const page = await navigateur.newPage({ viewport: { width: 1440, height: 900 } });
   const appels = [];
-  page.on('console', (m) => { if (['error', 'warning'].includes(m.type())) problemes.push(`console ${m.type()} : ${m.text()}`); });
+  page.on('console', (m) => {
+    if (!['error', 'warning'].includes(m.type())) return;
+    // 429 d'AWS (concurrence réservée de 2, Lambda partagée) : l'interface affiche « Tribunal occupé »
+    // et continue (#90). Compté dans le bilan des relectures, pas comme une erreur.
+    if (/status of 429/.test(m.text())) return;
+    problemes.push(`console ${m.type()} : ${m.text()}`);
+  });
   page.on('pageerror', (e) => problemes.push(`erreur de page : ${e.message}`));
   page.on('response', (r) => {
     if (r.url().includes('.lambda-url.')) appels.push({ route: new URL(r.url()).pathname, statut: r.status(), id: r.headers()['x-proces-id'] });
@@ -68,13 +74,14 @@ async function attendreProces(page, profil, appels) {
   const tribunal = appels.find((a) => a.route === '/tribunal');
   const relectures = appels.filter((a) => a.route === '/progression');
   const audience = await page.locator('p.t-etiquette').first().textContent();
-  const constat = await page.locator('section[aria-labelledby="titre-bilan"] p.t-corps').textContent();
+  const constat = await page.locator('#titre-bilan').textContent(); // verdict du Greffier (#149)
   if (!tribunal || tribunal.statut !== 202) problemes.push(`${profil} : POST /tribunal a répondu ${tribunal?.statut} (202 attendu : procès en arrière-plan)`);
-  if (!relectures.length || relectures.some((a) => a.statut !== 200)) problemes.push(`${profil} : relectures de /progression ${relectures.map((a) => a.statut).join(',') || 'absentes'}`);
+  const occupe = relectures.filter((a) => a.statut === 429).length;
+  if (!relectures.some((a) => a.statut === 200) || relectures.some((a) => ![200, 429].includes(a.statut))) problemes.push(`${profil} : relectures de /progression ${relectures.map((a) => a.statut).join(',') || 'absentes'}`);
   if (phasesVues.size < 2) problemes.push(`${profil} : phase en cours figée pendant l'attente (${[...phasesVues].join(', ') || 'aucune'})`);
   if (/n° —/.test(audience ?? '')) problemes.push(`${profil} : identifiant du procès illisible (CORS ExposeHeaders x-proces-id ?)`);
   if (/procès enregistré/.test(audience ?? '')) problemes.push(`${profil} : procès rejoué au lieu d'un vrai procès`);
-  return { duree, id: tribunal?.id, audience: audience?.trim(), constat: constat?.trim(), phases: [...phasesVues].join(' → ') };
+  return { duree, id: tribunal?.id, audience: audience?.trim(), constat: constat?.trim(), phases: [...phasesVues].join(' → '), occupe };
 }
 
 async function signer(page, profil, appels, choix) {
@@ -157,7 +164,7 @@ try {
 }
 
 for (const b of bilan) {
-  console.log(`${b.profil} : procès ${b.id} en ${b.duree} s${b.phases ? ` (phases vues : ${b.phases})` : ''} · ${b.audience} · ${b.constat} · POST /verdict ${b.verdict}`);
+  console.log(`${b.profil} : procès ${b.id} en ${b.duree} s${b.phases ? ` (phases vues : ${b.phases})` : ''}${b.occupe ? ` · ${b.occupe} relectures « Tribunal occupé » (429)` : ''} · ${b.audience} · ${b.constat} · POST /verdict ${b.verdict}`);
 }
 console.log(problemes.length ? `\n${problemes.length} problème(s) :\n- ${problemes.join('\n- ')}` : 'Mode direct vérifié : vrais procès, verdicts archivés, CORS, axe-core et console.');
 process.exit(problemes.length ? 1 : 0);

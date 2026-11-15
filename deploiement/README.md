@@ -127,11 +127,24 @@ Options : `--sans-construction` envoie `frontend/dist/` tel quel ; `--forcer` re
 | Prévol CORS depuis le site / depuis une autre origine | 200 avec `Access-Control-Allow-Origin` / aucun en-tête `Access-Control-*` |
 | Second lancement du script | Aucune ressource créée (toujours 1 OAC et 1 distribution `alphaforge-interface`), 0 fichier envoyé sur 146, aucune invalidation |
 
-Pendant ces vérifications, un redéploiement de la Lambda depuis une autre session (`deployer.py` sans `--origine`, 20 h 46 UTC) a retiré le domaine du CORS : le Greffier en direct échouait depuis le site. Il a été remis avec `--url-seulement --origine`. C'est le problème que règle #136. Une modification du CORS met aussi quelques secondes à s'appliquer partout.
+Pendant ces vérifications, un redéploiement de la Lambda depuis une autre session (`deployer.py` sans `--origine`, 20 h 46 UTC) a retiré le domaine du CORS : le Greffier en direct échouait depuis le site. Il a été remis avec `--url-seulement --origine`. C'est le problème que règle #136 (section suivante). Une modification du CORS met aussi quelques secondes à s'appliquer partout.
 
 **Limites** :
 - Un onglet ouvert avant un redéploiement peut ne plus trouver un morceau de l'interface chargé à la demande (la table des paniers de l'écran Décision) : il a été supprimé du bucket. Recharger la page suffit.
 - **Couper après le jury** : désactiver la distribution (console CloudFront → *Disable*), puis la supprimer une fois désactivée ; vider et supprimer le bucket `alphaforge-site-<compte>`.
+
+## CORS et débit : vérifié sur la Lambda déployée (2026-11-15, #136)
+
+Lambda déployée deux fois depuis `main` + #136 avec un `deployer.py` complet **sans `--origine`** (20 h 58 et 21 h 07 UTC). Les seuils de débit sont des **hypothèses de l'équipe** : un procès dure de 20 à 50 s et une question de 20 à 40 s, une personne n'en lance pas plus. Ils vivent en mémoire de chaque instance de la Lambda : un garde-fou contre une boucle ou un abus, pas une protection complète (la concurrence réservée de 2 et l'alerte de budget restent les bornes).
+
+| Vérification | Résultat |
+|---|---|
+| CORS après chaque déploiement sans `--origine` | `http://localhost:5173` et `https://d15khh2djw55mh.cloudfront.net`, lu sur le compte |
+| Prévol depuis le site / depuis une autre origine | 200 avec `Access-Control-Allow-Origin: https://d15khh2djw55mh.cloudfront.net` / aucun en-tête `Access-Control-*` |
+| 5 `POST /tribunal` de suite depuis la même adresse (profil inconnu, `progression: true`) | 404, 404, 404 (vérification sans Bedrock), puis **429 en 0,1 s** : « Trop de procès lancés depuis votre adresse : 3 par minute au plus » |
+| 11 `POST /question` de suite (identifiant invalide) | 400 dix fois, puis **429** : « Trop de questions posées depuis votre adresse : 10 par minute au plus » |
+| `ASTREE_URL=https://d15khh2djw55mh.cloudfront.net npm run verifier:direct`, site construit en mode direct le temps du test (21 h 13 à 21 h 16 UTC), puis remis en démonstration | Robert : vrai procès, question « Et si je mettais 15 % au lieu de 30 % ? » instruite, verdict `modifie` archivé (`verdicts/robert/2026-11-15-e79cef530bc9.json`). Amira : vrai procès, verdict archivé (`verdicts/amira/2026-11-15-a27b42997c6c.json`) |
+| Relectures de `/progression` pendant le procès d'Amira | 18 réponses 429 d'AWS : un procès d'une autre session tournait en même temps (concurrence de 2 atteinte, `Throttles` dans CloudWatch). L'interface a continué à relire, puis affiché le contrat. `direct.mjs` compte désormais ces 429 au lieu de les traiter comme des erreurs |
 
 ## Progression en direct : vérifié en local (2026-11-15, #90)
 

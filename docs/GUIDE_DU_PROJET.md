@@ -499,13 +499,12 @@ Deux règles d'équipe : aucune mention de l'assistant de code dans les commits 
 - Les 7 outils, le Greffier (Pacte et chiffres), l'Orchestrateur, le Procureur et l'Avocat.
 - La jurisprudence (#56) : la mémoire des verdicts.
 - Le déploiement AWS : Lambda, Bedrock, S3, Function URL, vérifiés avec de vrais procès.
-- L'interface Astrée, en mode démonstration avec 3 procès réels enregistrés.
+- L'interface Astrée : en mode démonstration avec 3 procès réels enregistrés, ou en direct sur la Lambda (#14).
 
 **Ce qui reste ouvert** (issues sur GitHub) :
 
 | Issue | Sujet |
 |---|---|
-| #14 | Interface : la brancher en direct sur la Lambda. La Function URL est encore protégée (type `AWS_IAM`) : il faut l'ouvrir au navigateur avec un CORS limité au domaine de l'interface. |
 | #18 | Livrables : README final, documentation technique, vidéo, one pager |
 | #55 | Contre-interrogatoire : poser une question libre au Tribunal |
 | #57 | Export du procès-verbal (dossier de convenance) |

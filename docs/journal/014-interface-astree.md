@@ -1,7 +1,7 @@
 # #14 — Interface Astrée : les écrans de la maquette, branchés sur le Tribunal
 
-- **Issue** : #14 · **PR** : #62 · **Statut** : en cours (mode direct à brancher côté AWS)
-- **Dernière mise à jour** : 2026-11-14
+- **Issue** : #14 · **PR** : #62, à venir · **Statut** : terminée
+- **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
 - **`frontend/`** : l'interface « Astrée » (React 18, TypeScript, Vite, CSS Modules), fidèle à la maquette Figma V2 et à [`docs/maquette/spec_interface_astree.md`](../maquette/spec_interface_astree.md). Routes de l'annexe D.1 : entrée, `/:profil/portefeuille` (recherche, confirmation `?archive=1`), `/decision`, `/tribunal` (`?piece=P4` ouvre le tiroir), `/verdict`. Mode d'emploi : [`frontend/README.md`](../../frontend/README.md).
@@ -26,6 +26,12 @@ npm run verifier                 # avec npm run dev lancé : 3 parcours, clavier
 ```
 Résultat au 2026-11-14 : 33/33 vitest, 6/6 pytest ; `npm run verifier` sans aucun problème, deux fois de suite (23 écrans sans violation axe-core WCAG 2.2 AA, parcours de Robert au clavier seul à 1440 et 1280 px, aucune erreur de console, aucun débordement horizontal, y compris à 390 px).
 
+## Mode direct (seconde PR)
+- **`deploiement/deployer.py`** : `assurer_function_url(lam, origines)` passe la Function URL en `NONE` avec le CORS de l'interface (`cors_interface` : `http://localhost:5173`, `POST`, `content-type`, `ExposeHeaders: x-proces-id`). `autoriser_appels_publics` ajoute les deux permissions qu'exige Lambda pour une URL en `NONE` : `lambda:InvokeFunctionUrl`, et `lambda:InvokeFunction` seulement par l'URL (`InvokedViaFunctionUrl`). Nouvelles options : `--url-seulement` (étape 5 seule, sans toucher au code déployé) et `--origine` (répétable).
+- Appliqué sur le compte le 2026-11-15 (`deployer.py --url-seulement`) ; le code de la Lambda n'a pas changé.
+- **`frontend/e2e/direct.mjs`** (`npm run verifier:direct`) : deux vrais procès par l'interface, verdicts signés. Résultat : Robert en 28 s, Amira (le procès le plus long) en 44 s, `POST /tribunal` et `POST /verdict` en HTTP 200, identifiant du procès lisible par la page, aucune violation axe-core, aucune erreur de console. Une autre origine que `localhost:5173` ne reçoit aucun en-tête CORS.
+- `src/api/adaptateur.ts` : un appel d'outil refusé (sortie « Erreur : … », #65) affiche son motif dans la trace.
+
 ## Choix faits en cours de route
 - **Le backend fait foi** quand la spec diverge (décision de l'équipe, conforme à la note de l'annexe C) :
   - portefeuilles, capitaux et Pactes d'Amira et de Mateo lus dans `personas/*.json`. Exemples : Mateo + 10 % de XOM donne −10,0 % et +13,5 %, pas −10,3 % et +11,8 % ; la règle « revenu fixe ≥ 20 % » de la spec n'existe pas ;
@@ -39,7 +45,8 @@ Résultat au 2026-11-14 : 33/33 vitest, 6/6 pytest ; `npm run verifier` sans auc
 - Compteur à zéro du bilan du Greffier : atténué par la couleur et un contour, pas par l'opacité, pour garder un contraste de 4,5:1.
 
 ## Limites et suite
-- **Mode direct non testé de bout en bout** : la Function URL est en `AWS_IAM`. Il faut la passer en `NONE` avec CORS limité au domaine de l'interface et `ExposeHeaders: x-proces-id` (`deploiement/README.md`), puis héberger `frontend/dist/`.
+- L'interface tourne en local (`npm run dev`) : c'est la seule origine autorisée par le CORS. Pour l'héberger, ajouter son domaine avec `deployer.py --url-seulement --origine <domaine>`.
+- La Function URL en `NONE` est appelable par n'importe quel client (le CORS ne protège que des navigateurs) : la couper après le jury (`deploiement/README.md`).
 - En démonstration, seules les décisions enregistrées ont un procès (30 % en TSLA, 10 % en XOM, panier BTC/ETH/NVDA/QQQ à 25 %). Le panier n'est précalculé que pour ces 4 titres ; un autre panier est signalé et jugé seulement par le Tribunal en direct.
 - `POST /verdict` n'archive pas la justification écrite (la Lambda ne garde que `id` et `verdict`) : elle reste dans le journal du navigateur.
 - Score Lighthouse non mesuré ici, faute de pouvoir télécharger l'outil dans la session. axe-core, son moteur d'accessibilité, passe sur tous les écrans.

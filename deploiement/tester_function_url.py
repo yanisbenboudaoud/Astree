@@ -1,8 +1,9 @@
 """Lance un procès sur la Lambda déployée, par sa Function URL (#22).
 
-Tant que la Function URL est en type d'authentification ``AWS_IAM``, un navigateur
-ne peut pas l'appeler. Ce script signe la requête (SigV4) avec les identifiants de
-``aws login``, puis affiche le statut HTTP, la durée et un résumé du contrat.
+Ce script signe la requête (SigV4) avec les identifiants de ``aws login``, puis affiche
+le statut HTTP, la durée et un résumé du contrat. La signature était obligatoire quand
+la Function URL était en ``AWS_IAM`` ; depuis #14 elle est en ``NONE`` (appelée par
+l'interface) et une requête signée reste acceptée.
 
 L'adresse n'est pas écrite dans le dépôt : elle est lue sur le compte
 (``get_function_url_config``).

@@ -62,4 +62,4 @@ flowchart TB
 
 - **Aucune clé** dans le code ni dans Git : le rôle IAM de la Lambda reçoit des identifiants temporaires d'AWS.
 - **Rôle IAM minimal** (`deploiement/politique_iam_lambda.json`) : `bedrock:InvokeModel` sur Sonnet 5.5 seulement (profil d'inférence et ses trois régions), et le bucket du projet.
-- **Concurrence réservée de 2**, **alerte de budget** de 100 $ par mois, **Function URL en `AWS_IAM`** tant que l'interface n'est pas en ligne. Elle passera ensuite en `NONE` avec un CORS limité au domaine de l'interface (#14), et sera supprimée après le jury.
+- **Concurrence réservée de 2**, **alerte de budget** de 100 $ par mois, **Function URL en `NONE`** depuis #14, pour que le navigateur l'appelle, avec un CORS limité à l'interface (`http://localhost:5173`). Elle sera supprimée après le jury.

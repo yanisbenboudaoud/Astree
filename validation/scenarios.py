@@ -17,6 +17,7 @@ import json
 import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable, Iterator
 from unittest import mock
@@ -40,6 +41,7 @@ from pipeline.taille_max import rechercher_taille_max
 RACINE = Path(__file__).resolve().parent.parent
 DOSSIER_PERSONAS = RACINE / "personas"
 CHEMIN_RAPPORT = RACINE / "docs" / "validation" / "resultats_scenarios.md"
+CHEMIN_GRAPHIQUE = CHEMIN_RAPPORT.with_name("sensibilite_seuil.svg")
 EXEMPLE_ROBERT = RACINE / "docs" / "exemples" / "contrat_robert.json"
 
 RAISON = "Mesurer le risque propre du titre demandé"
@@ -154,9 +156,12 @@ def scenarios_profils() -> list[Resultat]:
         jugement.violations() == [] and jugement.statut("controverses_esg") == "a_verifier",
     ))
 
+    jugement = juger(amira, amira["decision_demo"])
+    attendues = {"pire_baisse_max", "plafond_crypto", "pas_exclusivement_tech"}
     resultats.append(Resultat(
-        groupe, "Profil audacieux + panier crypto-tech (100 %)", "3 violations",
-        "en attente de #16 : simuler_portefeuille ne simule pas encore les réallocations", None,
+        groupe, "Profil audacieux + panier crypto-tech (100 % réalloué)",
+        "3 violations : pire baisse, crypto et tech + crypto",
+        resume(jugement), set(jugement.violations()) == attendues,
     ))
     return resultats
 
@@ -187,6 +192,113 @@ def scenarios_seuil() -> list[Resultat]:
         " → ".join(pourcent(t) for t in tailles), croissantes,
     ))
     return resultats
+
+
+# --- Graphique : taille maximale selon le seuil ---------------------------------------
+
+# Seuils de pire baisse testés pour le graphique : de −8 % à −30 %, par pas de 1 point.
+SEUILS_GRAPHIQUE = [-i / 100 for i in range(8, 31)]
+TAILLE_DEMANDEE = 0.30
+
+
+@lru_cache(maxsize=1)
+def sensibilite_seuil() -> tuple[tuple[float, float | None], ...]:
+    """Taille maximale compatible pour chaque seuil (profil prudent, 30 % TSLA proportionnel)."""
+    points = []
+    for seuil in SEUILS_GRAPHIQUE:
+        modifie = copy.deepcopy(profil("robert"))
+        regle(modifie, "pire_baisse_max")["seuil"] = seuil
+        recherche = rechercher_taille_max(modifie["portefeuille"], position("TSLA", TAILLE_DEMANDEE),
+                                          modifie["pacte"]["regles"])
+        points.append((seuil, recherche.taille_max))
+    return tuple(points)
+
+
+# Couleurs : palette de référence de la méthode de visualisation (une seule série, bleu),
+# encres et filets recessifs ; mode sombre propre, pas une inversion automatique.
+STYLE_GRAPHIQUE = """
+  .fond{fill:#fcfcfb} .encre{fill:#0b0b0b} .encre2{fill:#52514e} .discret{fill:#898781}
+  .grille{stroke:#e1e0d9;stroke-width:1} .axe{stroke:#c3c2b7;stroke-width:1}
+  .ligne{fill:none;stroke:#2a78d6;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .point{fill:#2a78d6;stroke:#fcfcfb;stroke-width:2}
+  @media (prefers-color-scheme: dark){
+    .fond{fill:#1a1a19} .encre{fill:#f0efec} .encre2{fill:#c3c2b7}
+    .grille{stroke:#2c2c2a} .axe{stroke:#383835}
+    .ligne{stroke:#3987e5} .point{fill:#3987e5;stroke:#1a1a19}
+  }
+  text{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+"""
+
+
+def _pct(valeur: float) -> str:
+    return pourcent(valeur).replace(",0 %", " %")
+
+
+def graphique_svg(points: tuple[tuple[float, float | None], ...]) -> str:
+    """Courbe « taille maximale compatible » selon le seuil de pire baisse, en SVG statique."""
+    largeur, hauteur = 640, 380
+    gauche, droite, haut, bas = 64, 48, 72, 56
+    zone_l, zone_h = largeur - gauche - droite, hauteur - haut - bas
+    x_min, x_max, y_max = 0.08, 0.30, TAILLE_DEMANDEE
+
+    def x(seuil: float) -> float:
+        return round(gauche + (abs(seuil) - x_min) / (x_max - x_min) * zone_l, 1)
+
+    def y(taille: float) -> float:
+        return round(haut + zone_h - taille / y_max * zone_h, 1)
+
+    valides = [(s, t) for s, t in points if t is not None]
+    chemin = " ".join(f"{'M' if i == 0 else 'L'}{x(s)},{y(t)}" for i, (s, t) in enumerate(valides))
+    prudent = next(((s, t) for s, t in valides if round(s, 2) == -0.12), None)
+    lignes = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {largeur} {hauteur}" width="{largeur}" '
+        f'height="{hauteur}" role="img" aria-labelledby="titre desc">',
+        '<title id="titre">Taille maximale compatible selon le seuil de pire baisse</title>',
+        '<desc id="desc">Profil prudent, décision : 30 % en TSLA, financement proportionnel. Plus le seuil '
+        'de pire baisse toléré est bas, plus la position compatible avec le Pacte est grande : '
+        + ", ".join(f"{_pct(s)} donne {_pct(t)}" for s, t in valides) + ".</desc>",
+        f"<style>{STYLE_GRAPHIQUE}</style>",
+        f'<rect class="fond" width="{largeur}" height="{hauteur}"/>',
+        f'<text class="encre" x="{gauche}" y="28" font-size="16" font-weight="600">'
+        "Taille maximale compatible selon le seuil de pire baisse</text>",
+        f'<text class="encre2" x="{gauche}" y="48" font-size="13">'
+        "Profil prudent · 30 % en TSLA, financement proportionnel · 2021-11-12 → 2026-11-12</text>",
+    ]
+    for taille in (0.0, 0.10, 0.20, 0.30):
+        lignes.append(f'<line class="{"axe" if taille == 0 else "grille"}" x1="{gauche}" y1="{y(taille)}" '
+                      f'x2="{largeur - droite}" y2="{y(taille)}"/>')
+        lignes.append(f'<text class="discret" x="{gauche - 8}" y="{y(taille) + 4}" font-size="12" '
+                      f'text-anchor="end">{_pct(taille)}</text>')
+    for i in range(8, 31, 2):
+        lignes.append(f'<text class="discret" x="{x(-i / 100)}" y="{haut + zone_h + 20}" font-size="12" '
+                      f'text-anchor="middle">{_pct(-i / 100)}</text>')
+    lignes.append(f'<text class="encre2" x="{gauche + zone_l / 2}" y="{hauteur - 10}" font-size="12" '
+                  'text-anchor="middle">Seuil de pire baisse toléré par le Pacte (plus à droite = plus tolérant)</text>')
+    lignes.append(f'<text class="encre2" x="{largeur - droite}" y="{y(y_max) - 8}" font-size="12" '
+                  'text-anchor="end">Taille demandée : 30 %</text>')
+    lignes.append(f'<path class="ligne" d="{chemin}"/>')
+    if prudent:
+        px, py = x(prudent[0]), y(prudent[1])
+        lignes.append(f'<circle class="point" cx="{px}" cy="{py}" r="5"/>')
+        lignes.append(f'<text class="encre" x="{px + 12}" y="{py + 22}" font-size="12">'
+                      f"Seuil du profil prudent ({_pct(prudent[0])}) : {_pct(prudent[1])} au maximum</text>")
+    lignes.append("</svg>")
+    return "\n".join(lignes) + "\n"
+
+
+def section_graphique(points: tuple[tuple[float, float | None], ...]) -> list[str]:
+    """Le graphique dans le rapport, avec ses valeurs en tableau (lecture sans couleur)."""
+    lignes = [
+        "", "## Graphique : taille maximale compatible selon le seuil", "",
+        f"![Taille maximale compatible selon le seuil de pire baisse]({CHEMIN_GRAPHIQUE.name})", "",
+        "Profil prudent, 30 % en TSLA, financement proportionnel. Chaque point est calculé par "
+        "`rechercher_taille_max` (#21) avec un seuil de pire baisse différent.", "",
+        "<details><summary>Valeurs du graphique</summary>", "",
+        "| Seuil de pire baisse | Taille maximale compatible |", "|---|---|",
+    ]
+    lignes += [f"| {pourcent(s)} | {pourcent(t)} |" for s, t in points]
+    lignes += ["", "</details>"]
+    return lignes
 
 
 # --- 3. Changer une hypothèse ---------------------------------------------------------
@@ -428,6 +540,7 @@ def rapport_markdown(resultats: list[Resultat]) -> str:
             lignes += ["", f"## {r.groupe}", "", "| Scénario | Attendu | Obtenu | |", "|---|---|---|---|"]
         symbole = {True: "✅", False: "❌", None: "⏸"}[r.ok]
         lignes.append(f"| {_cellule(r.scenario)} | {_cellule(r.attendu)} | {_cellule(r.obtenu)} | {symbole} |")
+    lignes += section_graphique(sensibilite_seuil())
     return "\n".join(lignes) + "\n"
 
 
@@ -436,6 +549,8 @@ def _cellule(texte: str) -> str:
 
 
 def ecrire_rapport(resultats: list[Resultat], chemin: Path = CHEMIN_RAPPORT) -> Path:
+    """Écrit le rapport Markdown et, à côté, le graphique SVG qu'il affiche."""
     chemin.parent.mkdir(parents=True, exist_ok=True)
     chemin.write_text(rapport_markdown(resultats), encoding="utf-8")
+    chemin.with_name(CHEMIN_GRAPHIQUE.name).write_text(graphique_svg(sensibilite_seuil()), encoding="utf-8")
     return chemin

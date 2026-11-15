@@ -247,10 +247,17 @@ export interface EntreeJournal {
   nouveau?: boolean;
 }
 
+export interface ConfigRecherche {
+  mode: 'position' | 'panier';
+  titre: string;
+  aide: string;
+  placeholder: string;
+}
+
 export interface ConfigProfilUI {
   decisionATester?: string;
   question?: string;
-  recherche?: { mode: 'position' | 'panier'; titre: string; aide: string; placeholder: string };
+  recherche?: ConfigRecherche;
   panierDemo?: string[];
   journal?: EntreeJournal[];
 }

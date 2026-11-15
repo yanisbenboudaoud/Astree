@@ -543,6 +543,7 @@ L'état est conservé par profil dans un store : taille choisie, panier, répons
   - chaque ligne : monogramme, nom avec la partie tapée en gras, « TICKER · classe · bourse · devise · secteur », volatilité annualisée en CAD à droite ;
   - la ligne active a un fond `--fond-creux` et une barre bleue de 3 px à gauche.
 - **Clavier :** ↑ ↓ pour parcourir, Entrée pour ouvrir l'instruction, Échap pour fermer. Rappelle ces touches dans le pied de la liste.
+- **Choix du mode :** sous le titre, deux boutons « Un titre » / « Un panier » (`aria-pressed`), pour tout profil. Le mode prévu pour le profil dans `profils_ui.json` (ou un panier déjà commencé) est le mode de départ ; un profil sans textes propres reçoit des textes génériques.
 - **Particularités par profil :**
   - **Mateo :** chaque action affiche un statut À vérifier + « Aucune donnée ESG ». ESGV affiche « Fonds filtré ESG ».
   - **Amira (mode panier) :**

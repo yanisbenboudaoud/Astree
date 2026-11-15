@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { EntreeJournal, Profil } from '../api/types';
-import { configUi, donneesCalibrage, nomTitre } from '../api/donnees';
+import { configUi, donneesCalibrage, nomTitre, rechercheUi } from '../api/donnees';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { GraphiqueValeur } from '../components/graphiques/GraphiqueValeur';
 import { Recherche } from '../components/Recherche';
@@ -191,6 +191,9 @@ export function Portefeuille({ profil }: { profil: Profil }) {
   const archive = params.get('archive') === '1' && etat.archive;
   const journal = [...etat.journal, ...(config.journal ?? [])];
   const focusRecherche = Boolean((location.state as { recherche?: boolean } | null)?.recherche);
+  // Tout profil peut tester un titre ou un panier ; le mode du profil (ou un panier entamé) n'est que le point de départ.
+  const [modeRecherche, setModeRecherche] = useState(etat.panier.length > 0 ? 'panier' : config.recherche.mode);
+  const recherche = rechercheUi(profil.id, modeRecherche);
 
   const instruire = (ticker: string) => {
     const defaut = profil.decisionDemo?.type === 'position' && profil.decisionDemo.ticker === ticker
@@ -285,10 +288,11 @@ export function Portefeuille({ profil }: { profil: Profil }) {
           <aside className={styles.laterale} aria-label="Décision, Pacte et journal">
             <Recherche
               profil={profil}
-              mode={config.recherche.mode}
-              titre={config.recherche.titre}
-              aide={config.recherche.aide}
-              placeholder={config.recherche.placeholder}
+              mode={recherche.mode}
+              titre={recherche.titre}
+              aide={recherche.aide}
+              placeholder={recherche.placeholder}
+              onMode={setModeRecherche}
               panier={etat.panier}
               onInstruire={instruire}
               onPanier={definirPanier}

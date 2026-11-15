@@ -11,6 +11,27 @@
 }
 .aide { color: var(--inverse-texte); opacity: 0.85; }
 
+.modes {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 2px;
+  border: 1px solid var(--encre-500);
+  border-radius: 3px;
+}
+.mode {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: var(--inverse-texte);
+  font-weight: 600;
+  font-size: 13px;
+}
+.mode:hover { background: rgba(255, 255, 255, 0.08); }
+.mode:focus-visible { outline: 2px solid var(--inverse-texte); outline-offset: 2px; }
+.modeActif, .modeActif:hover { background: var(--fond-carte); color: var(--encre-900); }
+
 .panier { display: flex; flex-direction: column; gap: 8px; }
 .pastilles { display: flex; flex-wrap: wrap; gap: 6px; }
 .pastille {

@@ -25,8 +25,15 @@ interface ProprietesRecherche {
   onInstruire: (ticker: string) => void;
   onPanier: (tickers: string[]) => void;
   onInstruirePanier: () => void;
+  /** Si fourni, affiche le choix « Un titre » / « Un panier ». */
+  onMode?: (mode: 'position' | 'panier') => void;
   focusInitial?: boolean;
 }
+
+const MODES = [
+  { mode: 'position', libelle: 'Un titre' },
+  { mode: 'panier', libelle: 'Un panier' },
+] as const;
 
 function NomSurligne({ resultat }: { resultat: ResultatRecherche }) {
   const { titre, surligne } = resultat;
@@ -41,7 +48,7 @@ function NomSurligne({ resultat }: { resultat: ResultatRecherche }) {
   );
 }
 
-export function Recherche({ profil, mode, titre, aide, placeholder, panier, onInstruire, onPanier, onInstruirePanier, focusInitial }: ProprietesRecherche) {
+export function Recherche({ profil, mode, titre, aide, placeholder, panier, onInstruire, onPanier, onInstruirePanier, onMode, focusInitial }: ProprietesRecherche) {
   const [requete, setRequete] = useState('');
   const [ouvert, setOuvert] = useState(false);
   const [actif, setActif] = useState(0);
@@ -97,6 +104,21 @@ export function Recherche({ profil, mode, titre, aide, placeholder, panier, onIn
   return (
     <section className={styles.carte} aria-labelledby={idTitre}>
       <h2 id={idTitre} className="t-h2">{titre}</h2>
+      {onMode && (
+        <div className={styles.modes} role="group" aria-label="Type de décision à tester">
+          {MODES.map((m) => (
+            <button
+              key={m.mode}
+              type="button"
+              className={`${styles.mode} ${mode === m.mode ? styles.modeActif : ''}`}
+              aria-pressed={mode === m.mode}
+              onClick={() => onMode(m.mode)}
+            >
+              {m.libelle}
+            </button>
+          ))}
+        </div>
+      )}
       <p id={idAide} className={`t-petit ${styles.aide}`}>{aide}</p>
 
       {enPanier && panier.length > 0 && (

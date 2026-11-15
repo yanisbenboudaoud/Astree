@@ -145,7 +145,7 @@ def verser_points_de_bascule(
     Sinon, la pièce prend le numéro suivant et l'étape de trace porte la raison
     d'office, comme la simulation obligatoire.
     """
-    id_piece = prochain_id_piece(contrat["pieces"])
+    id_piece = f"P{prochain_numero(contrat['pieces'])}"
     piece = piece_points_de_bascule(id_piece, recherche, decision)
     if piece is None:
         return []
@@ -160,9 +160,13 @@ def verser_points_de_bascule(
     return pour_contrat(recherche, decision, id_piece)
 
 
-def prochain_id_piece(pieces: list[dict[str, Any]]) -> str:
-    """« P7 » si la plus grande pièce est P6."""
-    return f"P{max((int(piece['id'][1:]) for piece in pieces), default=0) + 1}"
+def prochain_numero(pieces: list[dict[str, Any]]) -> int:
+    """Numéro de la prochaine pièce : celui qui suit la plus grande pièce « P<n> » du dossier.
+
+    Sert aussi au contre-interrogatoire (#55), qui numérote ses pièces à la suite.
+    """
+    numeros = [int(piece["id"][1:]) for piece in pieces if piece["id"][1:].isdigit()]
+    return max(numeros, default=0) + 1
 
 
 def verifier_cote(arguments, cote, role, dossier, trace):

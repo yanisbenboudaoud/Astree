@@ -14,7 +14,7 @@ Une revue d'ergonomie de l'écran Tribunal. L'ordre suit maintenant ce qu'il fau
 - **`frontend/src/domaine/debat.ts`** : nouveau thème `recuperation` (« Combien de temps pour s'en remettre ? »), essayé en premier. Un argument du type « NVDA a mis 1,5 an à retrouver son niveau » n'est plus rangé sous « Combien pourriez-vous perdre ? ».
 - **`frontend/src/components/TrompezLeGreffier.tsx`** : option `integre` (pas de carte ni d'en-tête visible dans une section repliable) ; chaque case à cocher montre le nom de la pièce, pas seulement « P5 ».
 - **`frontend/src/components/Limites.tsx`** : option `ouvertParDefaut` de `LimitesDonnees`.
-- **`frontend/src/styles/tokens.css`** : `--police-solennelle`, police à empattements du système (aucune police à télécharger) pour le titre de l'audience, les questions du débat, le verdict du bilan et la barre du verdict.
+- **Lisibilité du débat** : arguments en 16 px (interligne 24 px), questions dans la police des titres du site.
 - **`frontend/e2e/greffier.mjs`** : ouvre « Mettre le Greffier à l'épreuve » avant l'essai ; attend `#titre-bilan` (même ligne que #130).
 
 ## Comment l'utiliser
@@ -28,9 +28,8 @@ Rien à faire : l'écran Tribunal l'affiche pour tout procès, enregistré ou en
 ## Choix faits en cours de route
 - **Un tableau plutôt qu'un carrousel** : un carrousel cache tous les points sauf un, et on compare mal ce qu'on ne voit pas en même temps. Le tableau est plus long, mais il se lit sans rien retenir.
 - **Une ligne même quand un seul camp plaide** : la case vide le dit (« Pas d'argument sur ce point »). Le tableau montre honnêtement où les camps se répondent et où ils ne se croisent pas.
-- **Police du système** : une police servie par npm aurait ajouté une dépendance ; la pile `--police-solennelle` utilise ce que le système a (Iowan Old Style, Charter, Cambria, Georgia…).
+- **Pas de police à empattements** : essayée pour le thème de la justice, elle retombait sur Noto Serif sous Linux, lourde et serrée dans le tableau. Le site garde une seule famille sans empattement, la plus nette à l'écran.
 
 ## Limites et suite
 - Le regroupement des arguments reste lu par expressions régulières sur la première phrase (`debat.ts`) : un argument mal formulé peut tomber sous une autre question.
-- Le rendu de la police à empattements varie un peu selon le système.
 - `verifier:greffier` n'a pas été relancé : il demande la Lambda en direct.

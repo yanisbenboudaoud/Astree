@@ -47,8 +47,6 @@
   --police-titre: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Geist', 'Segoe UI', system-ui, sans-serif;
   --police-texte: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Geist', 'Segoe UI', system-ui, sans-serif;
   /* Chiffres : la même famille, en chasse fixe (tabular-nums) ; la trace garde une vraie police à chasse fixe. */
-  /* Titres de la salle d'audience (Tribunal) : un empattement de système, sans police à télécharger. */
-  --police-solennelle: 'Iowan Old Style', 'Charter', 'Bitstream Charter', 'Sitka Text', Cambria, 'Source Serif 4', Georgia, 'Noto Serif', serif;
   --police-mono: var(--police-texte);
   --police-code: ui-monospace, 'SF Mono', 'Geist Mono', 'Cascadia Mono', monospace;
 

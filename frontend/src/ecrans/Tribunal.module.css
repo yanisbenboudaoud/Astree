@@ -16,8 +16,8 @@
 .titre { display: flex; flex-direction: column; gap: 8px; }
 
 
-/* Titres de la salle d'audience : un empattement, comme un acte officiel. */
-.titreSolennel { font-family: var(--police-solennelle); font-weight: 600; letter-spacing: -0.01em; }
+/* Titres de la salle d'audience : la police des titres, la plus nette à l'écran. */
+.titreSolennel { font-family: var(--police-titre); font-weight: 600; letter-spacing: -0.015em; }
 
 /* Bilan du Greffier : le verdict du calcul, le Pacte règle par règle, ce qui changerait la réponse. */
 .bilan {
@@ -48,7 +48,7 @@
 }
 .resume { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .surtitreBilan { margin: 0; color: var(--encre-500); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-.verdictBilan { color: var(--ton); font-family: var(--police-solennelle); font-size: 24px; line-height: 30px; }
+.verdictBilan { color: var(--ton); font-size: 22px; line-height: 28px; }
 
 .colonnesBilan { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 12px; }
 .blocBilan { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: var(--rayon-moyen); background: var(--fond-sourdine); }
@@ -105,10 +105,10 @@
 .tonVerifie { color: var(--statut-conforme); }
 
 /* Le débat d'un seul regard : une ligne par question, le Procureur à gauche, l'Avocat à droite. */
-.debat { display: flex; flex-direction: column; gap: 12px; }
+.debat { display: flex; flex-direction: column; gap: 10px; }
 .enteteDebat { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 24px; }
 .tableDebat {
-  --colonnes: minmax(170px, 0.55fr) minmax(0, 1fr) minmax(0, 1fr);
+  --colonnes: minmax(170px, 0.45fr) minmax(0, 1fr) minmax(0, 1fr);
   display: flex;
   flex-direction: column;
   border: 1px solid var(--trait-fin);
@@ -118,7 +118,7 @@
 }
 .ligneEntete, .ligneDebat { display: grid; grid-template-columns: var(--colonnes); }
 .ligneEntete { background: var(--fond-sourdine); border-bottom: 1px solid var(--trait-fin); }
-.enteteQuestion, .enteteCamp { display: flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 15px; font-weight: 700; }
+.enteteQuestion, .enteteCamp { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 15px; font-weight: 700; }
 .enteteQuestion { color: var(--encre-500); font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
 .enteteQuestion { grid-column: 1; grid-row: 1; }
 .enteteProcureur { grid-column: 2; grid-row: 1; color: var(--camp-procureur); background: var(--camp-procureur-teinte); }
@@ -161,11 +161,12 @@
   align-items: flex-start;
   gap: 10px;
   margin: 0;
-  padding: 12px 16px;
-  font-family: var(--police-solennelle);
+  padding: 8px 16px;
+  font-family: var(--police-titre);
   font-size: 16px;
-  line-height: 22px;
+  line-height: 24px;
   font-weight: 600;
+  letter-spacing: -0.005em;
   color: var(--encre-900);
 }
 .numeroPoint {
@@ -184,11 +185,11 @@
 }
 .cellule { min-width: 0; }
 .cellule + .cellule { border-left: 1px solid var(--trait-fin); }
-.case { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 12px 16px; }
+.case { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 8px 16px; }
 .caseProcureur { box-shadow: inset 3px 0 0 var(--camp-procureur); }
 .caseAvocat { box-shadow: inset 3px 0 0 var(--camp-avocat); }
 .campMobile { display: none; }
-.plaidoyer { margin: 0; color: var(--encre-900); font-size: 15px; line-height: 22px; }
+.plaidoyer { margin: 0; color: var(--encre-900); font-size: 16px; line-height: 24px; }
 .plaidoyer + .plaidoyer { padding-top: 8px; border-top: 1px dashed var(--trait-fin); }
 .plaidoyerSurligne { margin: -6px; padding: 6px; border-radius: var(--rayon-petit); background: var(--accent-bleu-teinte); box-shadow: 0 0 0 2px var(--accent-bleu); }
 .textePlaidoyer { margin-right: 4px; }
@@ -362,14 +363,14 @@
   flex-wrap: wrap;
   gap: 12px 24px;
   margin: 8px calc(-1 * var(--marge-page)) -72px;
-  padding: 14px var(--marge-page);
+  padding: 10px var(--marge-page);
   border-top: 1px solid var(--trait-fin);
   background: rgb(255 255 255 / 0.94);
   backdrop-filter: blur(8px);
   box-shadow: 0 -8px 24px rgb(17 17 17 / 0.06);
 }
 .texteVerdict { display: flex; flex-direction: column; gap: 2px; min-width: 0; margin: 0; }
-.texteVerdict > :first-child { font-size: 19px; line-height: 26px; }
+.texteVerdict > :first-child { font-size: 18px; line-height: 24px; }
 .boutonsVerdict { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 @media (max-width: 599px) {
   .barreVerdict { padding: 10px var(--marge-page); }

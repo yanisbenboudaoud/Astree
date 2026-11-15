@@ -7,7 +7,7 @@
       "question": "Jusqu'où le système accepte-t-il le risque ?",
       "recherche": {
         "mode": "panier",
-        "titre": "Composer un panier",
+        "titre": "Quel panier voulez-vous tester ?",
         "aide": "Ajoutez plusieurs titres : le Tribunal juge le panier en entier. Rien n'est acheté.",
         "placeholder": "Nom ou symbole, ex. : Bitcoin, NVDA"
       },
@@ -22,7 +22,7 @@
       "question": "Le système tient-il compte de ses valeurs ?",
       "recherche": {
         "mode": "position",
-        "titre": "Tester une décision",
+        "titre": "Quelle décision voulez-vous tester ?",
         "aide": "Simulez un achat : Astrée vérifie aussi vos valeurs. Rien n'est acheté.",
         "placeholder": "Nom ou symbole, ex. : Exxon ou XOM"
       },
@@ -36,7 +36,7 @@
       "question": "Le système ose-t-il contredire une envie ?",
       "recherche": {
         "mode": "position",
-        "titre": "Tester une décision",
+        "titre": "Quelle décision voulez-vous tester ?",
         "aide": "Simulez un achat, puis soumettez-le au Tribunal. Rien n'est acheté.",
         "placeholder": "Nom ou symbole, ex. : Tesla ou TSLA"
       },

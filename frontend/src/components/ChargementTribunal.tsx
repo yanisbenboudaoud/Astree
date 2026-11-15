@@ -70,6 +70,7 @@ export function ChargementTribunal({ mode, phase, etapes, termine, activite, avi
         {PHASES.map((p) => {
           const etat = etats[p.id];
           const etapesPhase = etapes.filter((e) => e.phase === p.id);
+          // Phase à venir : nom en encre-700 et détail en encre-500, assez contrastés pour être lus (#103).
           const attenue = etat === 'a_venir' ? 'c-500' : '';
           return (
             <li key={p.id} className={`${styles.phase} ${CLASSES[etat]}`} data-etat={etat} aria-current={etat === 'en_cours' ? 'step' : undefined}>
@@ -78,7 +79,7 @@ export function ChargementTribunal({ mode, phase, etapes, termine, activite, avi
               </span>
               <div className={styles.textePhase}>
                 <p>
-                  <span className={`t-petit-fort ${attenue}`}>{p.libelle}</span>
+                  <span className={`t-petit-fort ${attenue ? 'c-700' : ''}`}>{p.libelle}</span>
                   <span className={`t-petit ${attenue || 'c-700'}`}> · {p.detail}</span>
                   <span className="visuellement-cache"> ({LIBELLES_ETAT[etat]})</span>
                 </p>
@@ -108,6 +109,52 @@ export function ChargementTribunal({ mode, phase, etapes, termine, activite, avi
         })}
       </ol>
       {avis && !termine && <p className={`t-petit ${styles.avis}`} role="status">{avis}</p>}
+    </section>
+  );
+}
+
+/** Une pièce versée : une étape dont la sortie est « P1 », « P2 »… */
+const PIECE = /^P\d+$/;
+
+/**
+ * Colonne de droite de l'attente (#103) : le dossier que le Tribunal instruit. La décision et les
+ * règles du Pacte sont connues avant le procès ; les pièces s'ajoutent au fil des étapes réelles.
+ */
+export function DossierInstruit({ decision, regles, etapes }: { decision: string; regles: { id: string; libelle: string }[]; etapes: EtapeTrace[] }) {
+  const pieces = etapes.filter((e) => e.sortie && PIECE.test(e.sortie));
+  return (
+    <section className={styles.dossier} aria-labelledby="titre-dossier">
+      <h2 className="t-panneau" id="titre-dossier">Le dossier</h2>
+      <div className={styles.rubrique}>
+        <p className="t-petit-fort c-500">Décision jugée</p>
+        <p className="t-intertitre">{decision}</p>
+      </div>
+      <div className={styles.rubrique}>
+        <p className="t-petit-fort c-500">Règles de votre Pacte</p>
+        <ol className={styles.reglesDossier}>
+          {regles.map((r, i) => (
+            <li key={r.id}>
+              <span className="t-trace c-500">§{i + 1}</span>
+              <span className="t-petit">{r.libelle}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div className={styles.rubrique}>
+        <p className="t-petit-fort c-500">Pièces versées au dossier · {pieces.length}</p>
+        {pieces.length ? (
+          <ul className={styles.piecesDossier}>
+            {pieces.map((e) => (
+              <li key={e.sortie} className={styles.pieceDossier}>
+                <span className={styles.codePiece}>{e.sortie}</span>
+                <code className="t-trace c-700">{e.appel.split('(')[0]}</code>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="t-petit c-700">Aucune pièce pour l'instant : chaque outil appelé en versera une.</p>
+        )}
+      </div>
     </section>
   );
 }

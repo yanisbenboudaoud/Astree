@@ -69,4 +69,6 @@
   white-space: nowrap;
   vertical-align: middle;
 }
-.pieceBouton:hover { border-color: var(--encre-700); }
+.pieceBouton { cursor: pointer; transition: background-color var(--transition), border-color var(--transition), transform var(--transition); }
+.pieceBouton:hover { border-color: var(--encre-900); background: var(--fond-creux); }
+.pieceBouton:active { transform: translateY(1px); }

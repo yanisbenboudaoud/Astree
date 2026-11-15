@@ -9,8 +9,12 @@
   --encre-700: #3f3a31;
   --encre-500: #675f52;
   --encre-300: #a39a89; /* décoratif uniquement, jamais pour du texte */
-  --trait-fin: #d9d2c3;
-  --trait-moyen: #bdb4a2;
+  --encre-200: #bdb4a2; /* décoratif uniquement (teintes de répartition) */
+  /* Filets et bords de cartes : décoratifs, 1,5:1 sur le papier. */
+  --trait-fin: #cbc3b2;
+  /* Bords et traits qui montrent un état ou un contrôle (pastilles, champs, boutons) :
+     au moins 3:1 sur le papier et sur les cartes (WCAG 1.4.11, #103). */
+  --trait-moyen: #8a8171;
   --accent-bleu: #1e3a5c;
   --accent-bleu-teinte: #dce4ee;
   --statut-violation: #a1281d;
@@ -29,16 +33,17 @@
   --police-texte: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
   --police-mono: 'Atkinson Hyperlegible Mono', ui-monospace, 'Cascadia Mono', monospace;
 
-  --conteneur-large: 1184px;
+  /* Paysage (#103) : 1344 px = 1440 px − 2 × 48 px de marge. */
+  --conteneur-large: 1344px;
   --conteneur-etroit: 776px;
   --colonne-laterale: 376px;
-  --marge-page: 128px;
+  --marge-page: 48px;
   --rayon: 4px;
+  /* Retours visuels (#103) : ombre d'une carte cliquable survolée, durée des transitions. */
+  --ombre-survol: 0 2px 10px rgba(26, 23, 18, 0.1);
+  --transition: 120ms ease-out;
 }
 
-@media (max-width: 1439px) {
-  :root { --marge-page: 48px; }
-}
 @media (max-width: 1023px) {
   :root { --marge-page: 24px; }
 }

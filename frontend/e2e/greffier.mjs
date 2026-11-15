@@ -53,7 +53,7 @@ async function resultat() {
 
 try {
   await ouvrirTribunal(30);
-  if (await page.getByText(/Le Greffier en direct a besoin/).count()) throw new Error('VITE_API_URL absent : le Greffier en direct est indisponible');
+  if (await page.getByText(/Cet essai se fait avec le Tribunal en direct/).count()) throw new Error('VITE_API_URL absent : le Greffier en direct est indisponible');
   if (!(await page.getByText(/Règle que vous avez signée le/).count())) problemes.push('date de signature du Pacte absente du bilan');
 
   const attendus = [

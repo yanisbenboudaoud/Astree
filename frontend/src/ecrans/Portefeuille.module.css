@@ -1,10 +1,10 @@
 .corps {
   max-width: calc(var(--conteneur-large) + 2 * var(--marge-page));
   margin: 0 auto;
-  padding: 56px var(--marge-page) 96px;
+  padding: 32px var(--marge-page) 96px;
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 28px;
 }
 
 .archive {
@@ -32,36 +32,58 @@
 }
 .annulerSignature:focus-visible { outline-color: var(--inverse-texte); }
 
-.titre { display: flex; flex-direction: column; gap: 10px; }
+.titre { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 20px; }
 .statut { display: flex; align-items: center; gap: 8px; }
 .iconeConforme { color: var(--statut-conforme); display: inline-flex; }
 .iconeViolation { color: var(--statut-violation); display: inline-flex; }
 
 .grille {
   display: grid;
-  grid-template-columns: minmax(0, 776fr) minmax(0, 376fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 376px);
+  gap: 40px;
   align-items: start;
 }
-.principale { display: flex; flex-direction: column; gap: 56px; min-width: 0; }
+.principale { display: flex; flex-direction: column; gap: 40px; min-width: 0; }
 .laterale { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 
-.valeur { display: flex; flex-direction: column; gap: 16px; }
+.valeur { display: flex; flex-direction: column; gap: 14px; }
 .montant { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.blocValeur { display: flex; flex-direction: column; gap: 6px; }
+.blocValeur { display: flex; flex-direction: column; gap: 4px; }
 .chiffre { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.chiffreValeur { font-family: var(--police-titre); font-weight: 400; font-size: 44px; line-height: 48px; letter-spacing: -0.015em; }
 .variation { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
+/* Indicateurs compacts (#103) : chiffre et contexte sur la même ligne. */
 .indicateurs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-top: 1px solid var(--trait-fin);
-  padding-top: 18px;
+  padding-top: 12px;
 }
-.indicateur { display: flex; flex-direction: column; gap: 4px; padding: 0 16px 0 20px; }
+.indicateur { display: flex; flex-direction: column; gap: 2px; padding: 0 16px 0 20px; min-width: 0; }
 .indicateur:first-child { padding-left: 0; }
 .indicateur + .indicateur { border-left: 1px solid var(--trait-fin); }
-.jaugeIndicateur { max-width: 150px; }
+.valeurIndicateur { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.chiffreIndicateur { font-family: var(--police-titre); font-size: 24px; line-height: 28px; letter-spacing: -0.005em; }
+.jaugeIndicateur { display: inline-block; width: 72px; align-self: center; }
+
+/* Étapes du parcours, à droite de la recherche (fond encre). */
+.etapesParcours { display: flex; flex-direction: column; gap: 14px; }
+.etapesParcours li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; }
+.numeroEtape {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  border: 1.25px solid var(--inverse-texte);
+  font-family: var(--police-mono);
+  font-size: 12px;
+}
+.etapesParcours li:first-child .numeroEtape { background: var(--inverse-texte); color: var(--encre-900); }
+.texteEtape { display: flex; flex-direction: column; gap: 2px; padding-top: 3px; }
+.texteEtape .t-petit { opacity: 0.85; }
 .provenance { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .groupeDroite { display: inline-flex; align-items: center; gap: 10px; }
@@ -75,7 +97,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 0;
+  padding: 9px 0;
   border-bottom: 1px solid var(--trait-fin);
 }
 .nom { display: flex; flex-direction: column; flex: 1; min-width: 0; }
@@ -114,13 +136,13 @@
 
 @media (max-width: 1023px) {
   .grille { grid-template-columns: 1fr; }
-  .laterale { order: -1; }
-  .corps { padding-top: 32px; }
+  .corps { padding-top: 24px; }
 }
 @media (max-width: 599px) {
-  .indicateurs { grid-template-columns: 1fr; gap: 16px; }
+  .indicateurs { grid-template-columns: 1fr; gap: 12px; }
   .indicateur, .indicateur:first-child { padding: 0; }
-  .indicateur + .indicateur { border-left: 0; border-top: 1px solid var(--trait-fin); padding-top: 16px; }
+  .indicateur + .indicateur { border-left: 0; border-top: 1px solid var(--trait-fin); padding-top: 12px; }
+  .chiffreValeur { font-size: 36px; line-height: 40px; }
   .montantLigne { width: auto; }
   .montant { flex-direction: column; align-items: flex-start; }
 }

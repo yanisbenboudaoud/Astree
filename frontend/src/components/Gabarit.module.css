@@ -80,6 +80,7 @@
   font-size: 13px;
   line-height: 18px;
 }
+.outil:hover span { text-decoration: underline; text-underline-offset: 3px; }
 .panneauAide {
   position: absolute;
   right: 0;
@@ -107,7 +108,9 @@
   font-weight: 600;
   font-size: 13px;
   line-height: 18px;
+  transition: background-color var(--transition), border-color var(--transition);
 }
+.menuProfil:hover { background: var(--fond-creux); border-color: var(--encre-900); }
 .menuProfil svg { color: var(--encre-700); }
 .avatar {
   display: inline-flex;

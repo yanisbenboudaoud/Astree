@@ -12,7 +12,8 @@
 .pastilleValeur { fill: var(--encre-900); }
 .texteInverse { fill: var(--inverse-texte); font-family: var(--police-mono); font-size: 12px; }
 
-.courbeActuel { fill: none; stroke: var(--encre-300); stroke-width: 1.5; stroke-linejoin: round; }
+/* Courbe « Actuel » : --trait-moyen (3,3:1) au lieu d'--encre-300 (2,4:1), WCAG 1.4.11 (#103). */
+.courbeActuel { fill: none; stroke: var(--trait-moyen); stroke-width: 1.5; stroke-linejoin: round; }
 .courbeDecision { fill: none; stroke: var(--encre-900); stroke-width: 2; stroke-linejoin: round; }
 .limite { stroke: var(--encre-900); stroke-width: 1.5; stroke-dasharray: 5 4; }
 .zoneSousLimite { fill: var(--statut-violation); fill-opacity: 0.22; }
@@ -27,7 +28,7 @@
   line-height: 18px;
 }
 .legende li { display: inline-flex; align-items: center; gap: 6px; }
-.traitActuel { width: 18px; height: 1.5px; background: var(--encre-300); }
+.traitActuel { width: 18px; height: 1.5px; background: var(--trait-moyen); }
 .traitDecision { width: 18px; height: 2.5px; background: var(--encre-900); }
 .carreLimite { width: 14px; height: 10px; background: var(--statut-violation); opacity: 0.22; }
 .traitLimite { width: 18px; border-top: 1.5px dashed var(--encre-900); }

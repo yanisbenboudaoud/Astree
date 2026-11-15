@@ -61,8 +61,10 @@ export function TrompezLeGreffier({ resultat, pieces }: { resultat: ResultatTrib
       </div>
 
       {!disponible ? (
+        // Il faut l'adresse de la Lambda (VITE_API_URL) et un procès archivé dans S3 ; le jury n'a pas à le lire (#103).
         <p className="t-petit c-700" role="note">
-          Le Greffier en direct a besoin de l'adresse de la Lambda (VITE_API_URL) et d'un procès archivé dans S3.
+          Cet essai se fait avec le Tribunal en direct : le Greffier vérifie votre argument sur le serveur, contre les pièces
+          d'un procès archivé. Cette démonstration rejoue un procès enregistré.
         </p>
       ) : (
         <form className={styles.formulaire} onSubmit={verifier}>

@@ -1,6 +1,6 @@
 # #55 — Contre-interrogatoire : question libre de l'utilisateur
 
-- **Issue** : #55 · **PR** : #72, #74 · **Statut** : en cours (branchement dans l'interface à suivre)
+- **Issue** : #55 · **PR** : #72, #74, #80 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -40,7 +40,12 @@ Les tests vérifient la numérotation à la suite, le budget de 4 appels, l'abse
 - **Question traitée comme une donnée**, pas comme une consigne : les deux consignes le disent, l'orchestrateur reste limité à sa liste blanche, et le Greffier vérifie toujours les chiffres.
 - **Contrat réarchivé au même endroit** (`traces/<date>/<id>.json`) : `/verdict` archive ensuite le procès avec ses échanges.
 
+## Interface (troisième PR)
+- **`frontend/src/ecrans/Tribunal.tsx`** : en mode direct, une question libre part au vrai Tribunal (`poserQuestion` dans `src/api/tribunal.ts`, `POST /question`). Pendant l'instruction, l'écran affiche le temps écoulé. L'échange s'affiche ensuite : les réponses du Procureur et de l'Avocat avec leur provenance et leurs pièces, le contrôle du Greffier, les arguments écartés et les pièces ajoutées (P7, P8…), qui s'ouvrent dans le tiroir et peuvent être citées dans « Trompez le Greffier ». En démonstration, aucune question libre n'est envoyée (appels payants) ; les questions suggérées restent calculées par le Greffier.
+- **`src/api/adaptateur.ts`** : `adapterEchange` (échange du contrat → écran) et `adapterPiece`. Un procès relu avec des questions déjà archivées (`contre_interrogatoire`) les affiche, et ses pièces disent quelle réponse les cite.
+- Les pièces calculées dans l'interface par le Greffier pour les questions suggérées s'appellent désormais G1, G2… : les P<n> restent ceux du Tribunal, qui numérote à la suite du procès.
+- **Démarrage à froid** : l'écran Tribunal réveille la Lambda à l'ouverture (`reveillerLambda`, une vérification sans chiffre, gratuite). Une réponse 429 (concurrence réservée de 2 atteinte) affiche « Le Tribunal est occupé… Réessayez dans un instant ».
+- **Vérifié en direct le 2026-11-15** (`frontend/e2e/direct.mjs`, Lambda redéployée depuis `main`) : pour Robert et « 30 % en TSLA », la question « Et si je mettais 15 % au lieu de 30 % ? » a reçu sa réponse en 15 s. Elle a ajouté P7 (« Simulation du portefeuille avec 15 % en TSLA », −16,4 %) et P8 (rejeu 2022 à 15 %), et le Greffier a vérifié 31 chiffres sur 31. Le contrat réarchivé dans S3 passe `contrat.valider`.
+
 ## Limites et suite
-- **Interface** (#14) : en mode direct, la case de question libre de l'écran Tribunal doit appeler `/question` et afficher l'échange. Le format est à valider avec Yanis ; à faire dans une deuxième PR.
-- **Déploiement** : redéployer avec `deploiement/deployer.py` pour que la route existe sur la Lambda.
 - Le Procureur cite parfois le profil de risque sous sa forme brute (« faible_a_modere ») : à reformuler dans les consignes du débat (#11).

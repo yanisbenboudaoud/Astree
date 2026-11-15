@@ -4,7 +4,7 @@
  * perd pas l'état des autres. Copie dans sessionStorage quand elle est disponible.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
-import type { DecisionUI, EntreeJournal, Piece, ResultatTribunal } from '../api/types';
+import type { DecisionUI, Echange, EntreeJournal, Piece, ResultatTribunal } from '../api/types';
 import type { IdOption } from '../domaine/verdict';
 import type { Reponse } from '../domaine/questions';
 import type { ReponsesCalibrage } from '../domaine/calibrage';
@@ -28,6 +28,8 @@ export interface EtatProfil {
   tribunal: EtatTribunal;
   reponses: Reponse[];
   piecesQuestions: Piece[];
+  /** Questions libres posées pendant cette session (contre-interrogatoire, #55). */
+  echanges: Echange[];
   verdict: EtatVerdict;
   journal: EntreeJournal[];
   archive: { resume: string; statut: EntreeJournal['statut'] } | null;
@@ -43,6 +45,7 @@ export const ETAT_INITIAL: EtatProfil = {
   tribunal: { statut: 'vide' },
   reponses: [],
   piecesQuestions: [],
+  echanges: [],
   verdict: VERDICT_VIDE,
   journal: [],
   archive: null,
@@ -54,6 +57,7 @@ type Action =
   | { type: 'panier'; profil: string; tickers: string[] }
   | { type: 'tribunal'; profil: string; tribunal: EtatTribunal }
   | { type: 'reponse'; profil: string; reponse: Reponse }
+  | { type: 'echange'; profil: string; echange: Echange }
   | { type: 'verdict'; profil: string; verdict: Partial<EtatVerdict> }
   | { type: 'signer'; profil: string; resume: string; entree: EntreeJournal }
   | { type: 'annuler_signature'; profil: string }
@@ -70,7 +74,7 @@ function reducteur(etat: Etat, action: Action): Etat {
     case 'decision':
       suivant = memeDecision(courant.decision, action.decision)
         ? courant
-        : { ...courant, decision: action.decision, tribunal: { statut: 'vide' }, reponses: [], piecesQuestions: [], verdict: VERDICT_VIDE };
+        : { ...courant, decision: action.decision, tribunal: { statut: 'vide' }, reponses: [], piecesQuestions: [], echanges: [], verdict: VERDICT_VIDE };
       break;
     case 'panier':
       suivant = { ...courant, panier: action.tickers };
@@ -84,6 +88,9 @@ function reducteur(etat: Etat, action: Action): Etat {
         reponses: [...courant.reponses, action.reponse],
         piecesQuestions: action.reponse.nouvellePiece ? [...courant.piecesQuestions, action.reponse.nouvellePiece] : courant.piecesQuestions,
       };
+      break;
+    case 'echange':
+      suivant = { ...courant, echanges: [...(courant.echanges ?? []), action.echange] };
       break;
     case 'verdict':
       suivant = { ...courant, verdict: { ...courant.verdict, ...action.verdict } };
@@ -153,10 +160,11 @@ export function useEtatProfil(idProfil: string) {
   const definirPanier = useCallback((tickers: string[]) => envoyer({ type: 'panier', profil: idProfil, tickers }), [envoyer, idProfil]);
   const definirTribunal = useCallback((tribunal: EtatTribunal) => envoyer({ type: 'tribunal', profil: idProfil, tribunal }), [envoyer, idProfil]);
   const ajouterReponse = useCallback((reponse: Reponse) => envoyer({ type: 'reponse', profil: idProfil, reponse }), [envoyer, idProfil]);
+  const ajouterEchange = useCallback((echange: Echange) => envoyer({ type: 'echange', profil: idProfil, echange }), [envoyer, idProfil]);
   const modifierVerdict = useCallback((verdict: Partial<EtatVerdict>) => envoyer({ type: 'verdict', profil: idProfil, verdict }), [envoyer, idProfil]);
   const signer = useCallback((resume: string, entree: EntreeJournal) => envoyer({ type: 'signer', profil: idProfil, resume, entree }), [envoyer, idProfil]);
   const annulerSignature = useCallback(() => envoyer({ type: 'annuler_signature', profil: idProfil }), [envoyer, idProfil]);
   const definirCalibrage = useCallback((calibrage: ReponsesCalibrage | null) => envoyer({ type: 'calibrage', profil: idProfil, calibrage }), [envoyer, idProfil]);
 
-  return { etat: etatProfil, definirDecision, definirPanier, definirTribunal, ajouterReponse, modifierVerdict, signer, annulerSignature, definirCalibrage };
+  return { etat: etatProfil, definirDecision, definirPanier, definirTribunal, ajouterReponse, ajouterEchange, modifierVerdict, signer, annulerSignature, definirCalibrage };
 }

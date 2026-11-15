@@ -70,6 +70,15 @@ export interface Correction {
   corrige: string;
 }
 
+/** Échange du contre-interrogatoire (#55), prêt à afficher. */
+export interface Echange {
+  question: string;
+  arguments: Argument[];
+  piecesAjoutees: Piece[];
+  controle: string;
+  argumentsRejetes: ArgumentRejete[];
+}
+
 export interface ResultatTribunal {
   audience: string;
   titre: string;
@@ -82,6 +91,8 @@ export interface ResultatTribunal {
   questionsSuggerees: string[];
   argumentsRejetes: ArgumentRejete[];
   corrections: Correction[];
+  /** Questions libres déjà posées sur ce procès (contrat relu dans S3). */
+  echanges: Echange[];
   procesId?: string;
   /** Contrat brut, pour le Verdict (taille maximale compatible, pièces de calcul). */
   contrat: ContratTribunal;

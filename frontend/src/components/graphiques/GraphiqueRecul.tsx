@@ -34,6 +34,7 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libel
   const points = (serie: [string, number][]) => serie.map(([d, v]) => [x(jour(d)), y(v)] as [number, number]);
   const ligneDecision = chemin(points(decision));
   const ligneActuel = chemin(points(actuel));
+  const aireDecision = `${ligneDecision}L${droite},${y(0)}L${GAUCHE},${y(0)}Z`;
   const yLimite = limite !== undefined ? y(limite) : undefined;
   const sousLimite = yLimite !== undefined
     ? `${ligneDecision}L${droite},${yLimite}L${GAUCHE},${yLimite}Z`
@@ -56,6 +57,11 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libel
     <div ref={ref} className={styles.conteneur}>
       <svg width={largeur} height={HAUTEUR} role="img" aria-label={resume} className={styles.svg}>
         <defs>
+          {/* Aire « sous l'eau » de la décision : couleur des données près de zéro, plus dense vers le creux. */}
+          <linearGradient id="degrade-recul" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" className={styles.degradeReculHaut} />
+            <stop offset="100%" className={styles.degradeReculBas} />
+          </linearGradient>
           {yLimite !== undefined && (
             <clipPath id={idClip}>
               <rect x={GAUCHE} y={yLimite} width={droite - GAUCHE} height={HAUT + HAUTEUR_TRACE - yLimite + 4} />
@@ -69,6 +75,7 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libel
           </g>
         ))}
         {sousLimite && <path d={sousLimite} clipPath={`url(#${idClip})`} className={styles.zoneSousLimite} />}
+        <path d={aireDecision} className={styles.aireRecul} />
         <path d={ligneActuel} className={styles.courbeActuel} />
         <path d={ligneDecision} className={styles.courbeDecision} />
         {yLimite !== undefined && (

@@ -32,113 +32,136 @@
 .fiche { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .horsLimite { color: var(--statut-violation); }
 
-.valeurEtRaccourcis { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+/* Bloc Taille (#105) : le chiffre, un état écrit, une seule piste, des tailles rapides en contrôle segmenté. */
 .valeurTaille { display: flex; flex-direction: column; gap: 2px; }
-.montantTaille { display: flex; align-items: center; gap: 8px; }
-.raccourcis { display: flex; flex-wrap: wrap; gap: 6px; }
-.raccourci {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--trait-moyen);
-  border-radius: var(--rayon-moyen);
-  background: var(--fond-carte);
-  color: var(--encre-900);
+.chiffreTaille {
+  font-family: var(--police-titre);
   font-weight: 600;
-  font-size: 13px;
-  line-height: 18px;
-  transition: border-color var(--transition), transform var(--transition);
+  font-size: 64px;
+  line-height: 68px;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
 }
-.raccourci:hover { border-color: var(--encre-900); background: var(--fond-creux); }
-.raccourci:active { transform: translateY(1px); }
-.raccourci[aria-pressed='true'] { background: var(--encre-900); border-color: var(--encre-900); color: var(--inverse-texte); }
-.iconeConforme { color: var(--statut-conforme); }
-.raccourci[aria-pressed='true'] .iconeConforme { color: var(--inverse-texte); }
+.uniteTaille { margin-left: 4px; font-size: 36px; letter-spacing: -0.02em; color: var(--encre-500); }
+.horsLimite .uniteTaille { color: inherit; }
 
-.curseur { position: relative; height: 82px; }
-.repereLimite {
+.etatTaille { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; }
+.pointEtat { flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.etatCompatible { color: var(--statut-conforme); }
+.etatHors { color: var(--statut-violation); }
+
+.curseur { position: relative; height: 56px; margin-top: 4px; }
+.piste {
   position: absolute;
-  top: 0;
-  height: 58px;
-  border-left: 1.5px solid var(--encre-900);
-  padding-left: 6px;
-  white-space: nowrap;
-  pointer-events: none;
+  left: 12px;
+  right: 12px;
+  top: 8px;
+  height: 8px;
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-creux);
+  overflow: hidden;
 }
-.piste { position: absolute; left: 0; right: 0; top: 32px; height: 4px; border-radius: var(--rayon-petit); background: var(--trait-moyen); }
-.pisteRemplie { height: 4px; border-radius: var(--rayon-petit); background: var(--encre-900); transition: background-color var(--transition); }
+.piste > span { position: absolute; top: 0; bottom: 0; }
+.zoneCompatible { background: var(--statut-conforme-teinte); box-shadow: inset 0 0 0 1px rgb(11 122 75 / 0.25); }
+/* Hors limite : hachures rouges claires, lisibles sans dépendre de la teinte seule (#103). */
+.zoneHors { background: repeating-linear-gradient(-45deg, rgb(194 38 29 / 0.28) 0 2px, var(--statut-violation-teinte) 2px 6px); }
+.pisteRemplie { left: 0; border-radius: var(--rayon-pilule); background: var(--encre-900); }
 .pisteHorsLimite { background: var(--statut-violation); }
+.repereLimite { width: 2px; margin-left: -1px; background: var(--encre-900); }
 .entreeCurseur {
   position: absolute;
   left: 0;
   right: 0;
-  top: 23px;
+  top: 0;
   width: 100%;
-  height: 22px;
+  height: 24px;
   margin: 0;
   background: transparent;
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
 }
-.entreeCurseur::-webkit-slider-runnable-track { height: 22px; background: transparent; }
-.entreeCurseur::-moz-range-track { height: 22px; background: transparent; }
+.entreeCurseur::-webkit-slider-runnable-track { height: 24px; background: transparent; }
+.entreeCurseur::-moz-range-track { height: 24px; background: transparent; }
 .entreeCurseur::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 11px;
-  border: 2px solid var(--encre-900);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--trait-moyen);
   background: var(--fond-carte);
+  box-shadow: 0 1px 2px rgb(17 17 17 / 0.12), 0 4px 12px rgb(17 17 17 / 0.12);
   cursor: grab;
   transition: box-shadow var(--transition), transform var(--transition);
 }
 .entreeCurseur::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 11px;
-  border: 2px solid var(--encre-900);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--trait-moyen);
   background: var(--fond-carte);
+  box-shadow: 0 1px 2px rgb(17 17 17 / 0.12), 0 4px 12px rgb(17 17 17 / 0.12);
   cursor: grab;
   transition: box-shadow var(--transition), transform var(--transition);
 }
 /* Retour visuel (#103) : halo au survol, poignée agrandie pendant le glissement. */
-.entreeCurseur:hover::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(26, 23, 18, 0.1); }
-.entreeCurseur:hover::-moz-range-thumb { box-shadow: 0 0 0 6px rgba(26, 23, 18, 0.1); }
-.entreeCurseur:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.15); box-shadow: 0 0 0 8px rgba(26, 23, 18, 0.14); }
-.entreeCurseur:active::-moz-range-thumb { cursor: grabbing; transform: scale(1.15); box-shadow: 0 0 0 8px rgba(26, 23, 18, 0.14); }
+.entreeCurseur:hover::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgb(17 17 17 / 0.06), 0 4px 12px rgb(17 17 17 / 0.14); }
+.entreeCurseur:hover::-moz-range-thumb { box-shadow: 0 0 0 6px rgb(17 17 17 / 0.06), 0 4px 12px rgb(17 17 17 / 0.14); }
+.entreeCurseur:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.1); }
+.entreeCurseur:active::-moz-range-thumb { cursor: grabbing; transform: scale(1.1); }
 .entreeCurseur:focus-visible { outline: none; }
 .entreeCurseur:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
 .entreeCurseur:focus-visible::-moz-range-thumb { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
-.zones { position: absolute; left: 0; right: 0; top: 50px; height: 6px; }
-.zones span { position: absolute; top: 0; height: 6px; min-width: 2px; }
-.zoneCompatible { background: var(--statut-conforme); }
-/* Zone hors limite hachurée en rouge (#103) : la teinte seule était à 1,1:1 sur le papier. */
-.zoneHors,
-.carreHors {
-  background: repeating-linear-gradient(-45deg, var(--statut-violation) 0 2px, var(--statut-violation-teinte) 2px 5px);
-  outline: 1px solid var(--statut-violation);
-  outline-offset: -1px;
-}
-.graduations { position: absolute; left: 0; right: 0; top: 62px; }
+.graduations { position: absolute; left: 0; right: 0; top: 30px; }
 .graduations span {
   position: absolute;
   transform: translateX(-50%);
   color: var(--encre-500);
-  font-family: var(--police-mono);
   font-size: 12px;
   line-height: 16px;
   white-space: nowrap;
 }
-.graduations span:first-child { transform: translateX(-11px); }
-.graduations span:last-child { transform: translateX(calc(-100% + 11px)); }
+.graduations span:first-child { transform: translateX(-12px); }
+.graduations span:nth-child(6) { transform: translateX(calc(-100% + 12px)); }
+.graduations .graduationLimite { top: 0; color: var(--encre-900); font-weight: 600; background: var(--fond-papier); padding: 0 4px; z-index: 1; }
 
-.legendeZones { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--encre-700); font-size: 13px; line-height: 18px; }
-.legendeZones li { display: inline-flex; align-items: center; gap: 6px; }
-.carreCompatible { width: 16px; height: 6px; background: var(--statut-conforme); }
-.carreHors { width: 16px; height: 6px; }
+.raccourcis {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-creux);
+}
+.raccourci {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--rayon-pilule);
+  background: none;
+  color: var(--encre-700);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.raccourci:hover { color: var(--encre-900); }
+.raccourci:active { transform: translateY(1px); }
+.raccourci[aria-pressed='true'] { background: var(--fond-carte); color: var(--encre-900); box-shadow: 0 1px 3px rgb(17 17 17 / 0.14); }
+.raccourciMax {
+  padding: 1px 6px;
+  border-radius: var(--rayon-pilule);
+  background: var(--statut-conforme-teinte);
+  color: var(--statut-conforme);
+  font-size: 11px;
+  line-height: 14px;
+}
 
 .lignesPanier { display: flex; flex-direction: column; }
 .lignePanier {
@@ -185,8 +208,8 @@
 .totalFaux { display: inline-flex; align-items: center; gap: 6px; color: var(--statut-violation); font-weight: 600; }
 
 /* Tableau compact « actuel → avec la décision » (#103), à la place des grandes cartes. */
+/* Tableau « actuel → avec la décision » : la colonne de la décision ressort, le statut suit la limite. */
 .tableauEffets {
-  /* position: relative garde l'en-tête « Statut » (masqué, en position absolue) dans la zone qui défile. */
   position: relative;
   overflow-x: auto;
   background: var(--fond-carte);
@@ -195,14 +218,16 @@
 }
 .tableauEffets table { width: 100%; border-collapse: collapse; }
 .tableauEffets th,
-.tableauEffets td { padding: 8px 12px; text-align: right; vertical-align: middle; white-space: nowrap; }
+.tableauEffets td { padding: 12px 16px; text-align: right; vertical-align: middle; white-space: nowrap; }
 .tableauEffets th:first-child { text-align: left; white-space: normal; }
-.tableauEffets thead th { padding-top: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--trait-fin); }
+.tableauEffets thead th { padding-top: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--trait-fin); }
 .tableauEffets tbody tr + tr { border-top: 1px solid var(--trait-fin); }
 .tableauEffets tbody th { display: flex; flex-direction: column; font-weight: 400; }
-.ligneViolation { background: var(--statut-violation-teinte); box-shadow: inset 3px 0 0 var(--statut-violation); }
-.ligneViolation th .c-500 { color: var(--encre-700); }
-.celluleStatut { width: 1%; }
+.colonneApres { background: var(--fond-sourdine); }
+.ligneViolation th:first-child { box-shadow: inset 3px 0 0 var(--statut-violation); }
+.ligneViolation .colonneApres { background: var(--statut-violation-teinte); }
+.celluleLimite { width: 1%; }
+.limiteEtStatut { display: inline-flex; align-items: center; gap: 8px; }
 /* Le chiffre « avec la décision » clignote quand il change (clé React = valeur). */
 .valeurApres { display: inline-block; padding: 0 4px; border-radius: var(--rayon-petit); animation: changement 0.6s ease-out; }
 @keyframes changement {
@@ -231,8 +256,8 @@
   .apercu { position: static; }
 }
 @media (max-width: 599px) {
-  .repereLimite span { font-size: 12px; }
   .tableauEffets th,
-  .tableauEffets td { padding: 6px 8px; }
+  .tableauEffets td { padding: 8px 10px; }
+  .chiffreTaille { font-size: 52px; line-height: 56px; }
   .tableauEffets thead th { white-space: normal; }
 }

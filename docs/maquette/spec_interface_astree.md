@@ -589,29 +589,27 @@ La recherche est la fonction principale de l'écran : elle passe en tête, sur t
   - à droite : « Effet sur votre Pacte », fixe au défilement (`position: sticky`).
 
   Tant que l'aperçu n'est pas calculé (chargement, panier non précalculé), la grille garde une seule colonne de 776 px. Sous 1024 px, tout s'empile : réglage, effet, messages, actions.
-- **Taille (Robert, Mateo) :**
-  - grand pourcentage, en rouge s'il dépasse le maximum conforme ;
-  - montant « ≈ X $ sur Y $ » + Fictif ;
-  - raccourcis ; celui du maximum conforme porte un ✓ vert et le libellé « max. conforme » ;
-  - curseur 0–50 % (`input type=range` accessible, `aria-valuetext="30 %, hors limite du Pacte"`), avec un repère « Limite du Pacte · X % » ;
-  - la piste se remplit en encre jusqu'à la poignée, **en rouge** quand la taille dépasse le maximum conforme (#103) ; la poignée prend un halo au survol et grossit pendant le glissement ;
-  - bande de zones sous la piste : vert jusqu'au maximum conforme, **hachures rouges** au-delà (rayures `--statut-violation` sur `--statut-violation-teinte`, bord rouge : la teinte seule était à 1,1:1 sur le papier) ;
-  - légende des zones ;
-  - ligne « Financement simulé : réduction proportionnelle de vos positions. » (sans bouton : la démonstration ne précalcule que ce financement, #96).
+- **Taille (tout profil qui teste un titre, #105) :**
+  - en-tête de section avec Fictif à droite ; grand pourcentage (Inter 600, 64 px, signe % plus petit en `--encre-500`), en rouge s'il dépasse le maximum conforme ; montant « ≈ X $ sur Y $ » dessous ;
+  - **état écrit** avec un point coloré : « Compatible avec votre Pacte jusqu'à X % » (vert) ou « Au-delà de votre limite : compatible jusqu'à X % » (rouge) ;
+  - curseur 0–50 % (`input type=range` accessible, `aria-valuetext="30 %, hors limite du Pacte"`), poignée blanche ronde de 24 px avec ombre. **Une seule piste** de 8 px : zones compatibles en `--statut-conforme-teinte`, zones hors limite hachurées en rouge pâle, remplissage encre jusqu'à la poignée (**rouge** au-delà du maximum conforme, #103), repère vertical de 2 px au maximum conforme ;
+  - graduations 0 à 50 % sous la piste, et « max. X % » en gras au maximum conforme (la graduation trop proche s'efface) ;
+  - raccourcis en **contrôle segmenté** (fond `--fond-creux`, option choisie en blanc avec ombre) ; celui du maximum conforme porte une pastille verte « max. » ;
+  - une ligne grise : « Au-delà, la chute observée dépasse −X % ou une autre règle mesurable est enfreinte. Financement simulé : réduction proportionnelle de vos positions. » (sans bouton : la démonstration ne précalcule que ce financement, #96).
 - **Panier (Amira) :**
   - une ligne par titre : monogramme, nom, classe, pas-à-pas « − 25 % + » (pas de 5 %), bouton retirer ;
   - « Ajouter un titre » ;
   - « Total 100 % », avec une erreur claire si le total ≠ 100 %.
 - **« Effet sur votre Pacte » :**
-  - un **tableau compact** (#103, à la place des grandes cartes « avant → après ») : colonnes Indicateur, Actuel, « Avec 30 % de TSLA » (ou « Avec le panier »), Limite du Pacte, Statut. Une ligne par indicateur (`effetsSurLePacte`, `domaine/decision.ts`), avec une précision sous le libellé :
+  - un **tableau compact** (#103, à la place des grandes cartes « avant → après ») : colonnes Indicateur, Actuel, « Avec 30 % de TSLA » (ou « Avec le panier », colonne sur fond `--fond-sourdine`), Limite du Pacte suivie de l'icône de statut (#105, plus de colonne Statut séparée). Une ligne par indicateur (`effetsSurLePacte`, `domaine/decision.ts`), avec une précision sous le libellé :
     - chaque plafond du Pacte concerné (« part du portefeuille », limite « max. 25 % » ou « exclu ») ;
     - chute maximale (« pire baisse depuis un sommet », limite du Pacte) ;
     - rendement annualisé (« par an sur 5 ans »), volatilité (« annualisée »), rendement en 2022 (« rejeu de l'année de crise ») : sans limite, la cellule affiche « — » ;
-    - une ligne en violation a un fond `--statut-violation-teinte`, une barre rouge de 3 px à gauche et son chiffre « avec la décision » en rouge ;
+    - une ligne en violation a une barre rouge de 3 px à gauche, sa cellule « avec la décision » sur `--statut-violation-teinte` et son chiffre en rouge ;
     - le chiffre « avec la décision » s'éclaire brièvement en `--accent-bleu-teinte` quand le curseur le change ;
-  - puis le graphique de recul comparé : ligne actuelle `--trait-moyen` (3,3:1 ; `--encre-300` n'atteignait que 2,4:1), ligne avec la décision `--encre-900`, ligne pointillée de la limite du Pacte, zone sous la limite en `--statut-violation` à 22 % d'opacité, point le plus bas annoté, annotation « N séances sous votre limite » si applicable ;
+  - puis le graphique de recul comparé (#105) : ligne actuelle `--donnee-secondaire` de 1,25 px (3,4:1), ligne avec la décision `--donnee-principale` de 1,75 px avec une aire « sous l'eau » en dégradé indigo, ligne pointillée rouge de la limite du Pacte, zone sous la limite en `--statut-violation` à 12 % d'opacité, point le plus bas annoté, annotation « N séances sous votre limite » si applicable ;
   - légende, puis provenance « Rejeu sur les prix réels, en CAD. Le passé ne prédit pas l'avenir. »
-- **Message :** violation ou avertissement ESG, avec bouton de correction. « Ramener à 9 % » règle le curseur.
+- **Message :** violation ou avertissement ESG, sur fond teinte arrondi sans bordure (#105), avec bouton de correction. « Ramener à 9 % » règle le curseur.
 - **Actions :** « Annuler » (tertiaire) et « Soumettre au Tribunal » (primaire).
 - **Mise à jour en direct :** tout l'écran se recalcule quand la taille ou le panier change, à partir des tables précalculées.
 

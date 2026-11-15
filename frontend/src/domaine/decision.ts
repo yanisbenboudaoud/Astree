@@ -188,7 +188,7 @@ export function messagesDecision(
       messages.push({
         type: 'Violation',
         titre: `Vos valeurs : en conflit avec votre Pacte (§${numero})`,
-        corps: `Une source du dossier documente une controverse pour ${nomTitre(t)} : ${doc!.valeurAffichee.replace(/^[^:]+:\s*/, '')}. Votre Pacte pose la règle « ${regle.libelle} ». ${SUITE}`,
+        corps: `Une source du dossier documente une controverse pour ${nomTitre(t)} : ${doc!.valeurAffichee.replace(/^[^:]+:\s*/, '')}. Votre Pacte pose la règle «\u00a0${regle.libelle}\u00a0». ${SUITE}`,
         source: `${doc!.titre} · consultée le ${date(doc!.dateConsultation)}`,
       });
     } else if (sansSource.length) {
@@ -196,7 +196,7 @@ export function messagesDecision(
       messages.push({
         type: 'À vérifier',
         titre: `Vos valeurs : à vérifier (Pacte §${numero})`,
-        corps: `Le dossier ne contient aucune source sur ${noms} pour la règle « ${regle.libelle} ». Sans source documentée, le Greffier ne pourra pas conclure.`,
+        corps: `Le dossier ne contient aucune source sur ${noms} pour la règle «\u00a0${regle.libelle}\u00a0». Sans source documentée, le Greffier ne pourra pas conclure.`,
         aide: 'Vous pouvez continuer : le Tribunal signalera la lacune.',
       });
     }

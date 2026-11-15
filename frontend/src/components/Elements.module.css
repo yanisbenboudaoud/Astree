@@ -42,18 +42,19 @@
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  padding: 18px 20px;
-  border: 1px solid;
-  border-radius: var(--rayon-moyen);
+  padding: 20px 22px;
+  border: 0;
+  border-radius: var(--rayon);
 }
-.messageViolation { background: var(--statut-violation-teinte); border-color: var(--statut-violation); }
-.messageVerifier { background: var(--statut-verifier-teinte); border-color: var(--statut-verifier); }
+.messageViolation { background: var(--statut-violation-teinte); }
+.messageVerifier { background: var(--statut-verifier-teinte); }
 .messageViolation .iconeMessage,
 .messageViolation .titreMessage { color: var(--statut-violation); }
 .messageVerifier .iconeMessage,
 .messageVerifier .titreMessage { color: var(--statut-verifier); }
 .iconeMessage { flex: none; display: inline-flex; }
 .texteMessage { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.texteMessage > .t-corps { color: var(--encre-700); }
 .correction { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-top: 6px; }
 
 .retour {

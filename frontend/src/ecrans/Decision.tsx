@@ -8,7 +8,7 @@ import type { DecisionUI, EntreeSimulation, Profil, TablePanier, TablePosition }
 import { chargerTablePanier, chargerTablePosition, nomTitre, titre as titreDe } from '../api/donnees';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
-import { Provenance, Statut } from '../components/Etiquettes';
+import { IconeStatut, Provenance } from '../components/Etiquettes';
 import { LienRetour, Message, Monogramme, Section } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { GraphiqueRecul } from '../components/graphiques/GraphiqueRecul';
@@ -32,8 +32,8 @@ function raccourcis(maxConforme: number | null, tailleDefaut: number): number[] 
   return [...valeurs].filter((v) => v > 0 && v <= 50).sort((a, b) => a - b).slice(0, 5);
 }
 
-/** Position d'une valeur sur le curseur, alignée sur le centre de la poignée (22 px). */
-const position = (v: number) => `calc(11px + (100% - 22px) * ${v / 50})`;
+/** Position d'une valeur sur le curseur, alignée sur le centre de la poignée (24 px). */
+const position = (v: number) => `calc(12px + (100% - 24px) * ${v / 50})`;
 
 function BlocTaille({ profil, decision, table, onTaille }: {
   profil: Profil;
@@ -57,38 +57,46 @@ function BlocTaille({ profil, decision, table, onTaille }: {
     return runs;
   }, [table]);
 
+  const etatCompatible = max === null
+    ? 'Aucune taille ne respecte les règles mesurables de votre Pacte'
+    : horsLimite
+      ? `Au-delà de votre limite : compatible jusqu'à ${max} %`
+      : max >= 50 ? 'Compatible avec votre Pacte sur toute la plage' : `Compatible avec votre Pacte jusqu'à ${max} %`;
+  const detailHors = seuil !== undefined
+    ? `Au-delà, la chute observée dépasse ${seuilTexte(seuil)} ou une autre règle mesurable est enfreinte.`
+    : 'Au-delà, une règle mesurable du Pacte est enfreinte.';
+
   return (
-    <Section id="titre-taille" titre="Taille de la position">
-      <div className={styles.valeurEtRaccourcis}>
-        <div className={styles.valeurTaille}>
-          <p className={`t-affiche ${horsLimite ? styles.horsLimite : ''}`} aria-live="polite">
-            {decision.taille}{' '}%
-            <span className="visuellement-cache">{horsLimite ? ', hors limite du Pacte' : ', compatible avec le Pacte'}</span>
-          </p>
-          <p className={styles.montantTaille}>
-            <span className="t-petit c-700">≈ {dollars((decision.taille / 100) * profil.capital)} sur {dollars(profil.capital)}</span>
-            <Provenance type="Fictif" />
-          </p>
-        </div>
-        <div className={styles.raccourcis} role="group" aria-label="Tailles rapides">
-          {raccourcis(max, tailleDefaut).map((v) => (
-            <button key={v} type="button" className={styles.raccourci} aria-pressed={decision.taille === v} onClick={() => onTaille(v)}>
-              {v === max && max < 50 && <Icone nom="check" taille={14} className={styles.iconeConforme} />}
-              {v}{' '}%{v === max && max < 50 ? ' · max. conforme' : ''}
-            </button>
-          ))}
-        </div>
+    <Section id="titre-taille" titre="Taille de la position" droite={<Provenance type="Fictif" />}>
+      <div className={styles.valeurTaille}>
+        <p className={`${styles.chiffreTaille} ${horsLimite ? styles.horsLimite : ''}`} aria-live="polite">
+          {decision.taille}<span className={styles.uniteTaille}>%</span>
+          <span className="visuellement-cache">{horsLimite ? ', hors limite du Pacte' : ', compatible avec le Pacte'}</span>
+        </p>
+        <p className="t-corps c-500">≈ {dollars((decision.taille / 100) * profil.capital)} sur {dollars(profil.capital)}</p>
       </div>
 
+      <p className={`t-petit-fort ${styles.etatTaille} ${horsLimite ? styles.etatHors : styles.etatCompatible}`}>
+        <span className={styles.pointEtat} aria-hidden="true" />
+        {etatCompatible}
+      </p>
+
       <div className={styles.curseur}>
-        {max !== null && max < 50 && (
-          <div className={styles.repereLimite} style={{ left: position(max) }} aria-hidden="true">
-            <span className="t-petit-fort">Limite du Pacte · {max}{' '}%</span>
-          </div>
-        )}
+        {/* Une seule piste : zones compatibles en vert pâle, hors limite hachurées, remplissage jusqu'à la taille choisie. */}
         <div className={styles.piste} aria-hidden="true">
-          {/* Retour visuel (#103) : la piste se remplit en rouge au-delà de la limite du Pacte. */}
-          <div className={`${styles.pisteRemplie} ${horsLimite ? styles.pisteHorsLimite : ''}`} style={{ width: position(decision.taille) }} />
+          {zones.map((z, i) => {
+            const debut = i === 0 ? 0 : zones[i - 1].fin;
+            const fin = i === zones.length - 1 ? 50 : z.fin;
+            return (
+              <span
+                key={z.debut}
+                className={z.compatible ? styles.zoneCompatible : styles.zoneHors}
+                style={{ left: `${(debut / 50) * 100}%`, width: `${((fin - debut) / 50) * 100}%` }}
+              />
+            );
+          })}
+          <span className={`${styles.pisteRemplie} ${horsLimite ? styles.pisteHorsLimite : ''}`} style={{ width: `${(decision.taille / 50) * 100}%` }} />
+          {max !== null && max < 50 && <span className={styles.repereLimite} style={{ left: `${(max / 50) * 100}%` }} />}
         </div>
         <label htmlFor={idCurseur} className="visuellement-cache">Taille de la position en {decision.ticker}, de 0 à 50 %</label>
         <input
@@ -102,35 +110,30 @@ function BlocTaille({ profil, decision, table, onTaille }: {
           aria-valuetext={`${decision.taille} %, ${horsLimite ? 'hors limite du Pacte' : 'compatible avec le Pacte'}`}
           className={styles.entreeCurseur}
         />
-        <div className={styles.zones} aria-hidden="true">
-          {zones.map((z, i) => {
-            // Chaque zone commence là où la précédente finit (2 px d'écart), comme sur la maquette.
-            const debut = i === 0 ? z.debut : zones[i - 1].fin;
-            return (
-              <span
-                key={z.debut}
-                className={z.compatible ? styles.zoneCompatible : styles.zoneHors}
-                style={{ left: i === 0 ? position(debut) : `calc(${position(debut)} + 2px)`, width: `calc((100% - 22px) * ${(z.fin - debut) / 50} - ${i === 0 ? 0 : 2}px)` }}
-              />
-            );
-          })}
-        </div>
         <div className={styles.graduations} aria-hidden="true">
-          {[0, 10, 20, 30, 40, 50].map((v) => <span key={v} style={{ left: position(v) }}>{v}{' '}%</span>)}
+          {[0, 10, 20, 30, 40, 50].map((v) => (
+            // Une graduation trop proche du repère « max. » s'efface pour ne pas le chevaucher.
+            <span key={v} style={{ left: position(v), visibility: max !== null && max < 50 && max % 10 !== 0 && Math.abs(v - max) < 5 ? 'hidden' : undefined }}>{v}{' '}%</span>
+          ))}
+          {max !== null && max < 50 && max % 10 !== 0 && (
+            <span className={styles.graduationLimite} style={{ left: position(max) }}>max. {max}{' '}%</span>
+          )}
         </div>
       </div>
 
-      <ul className={styles.legendeZones}>
-        <li><span className={styles.carreCompatible} aria-hidden="true" />Compatible : {max === null ? 'aucune taille' : `0 à ${max} %`}</li>
-        {(max === null || max < 50) && (
-          <li>
-            <span className={styles.carreHors} aria-hidden="true" />
-            {seuil !== undefined ? `Au-delà, la chute observée dépasse ${seuilTexte(seuil)} ou une autre règle mesurable` : 'Au-delà, une règle mesurable du Pacte est enfreinte'}
-          </li>
-        )}
-      </ul>
+      <div className={styles.raccourcis} role="group" aria-label="Tailles rapides">
+        {raccourcis(max, tailleDefaut).map((v) => (
+          <button key={v} type="button" className={styles.raccourci} aria-pressed={decision.taille === v} onClick={() => onTaille(v)}>
+            {v}{' '}%
+            {v === max && max < 50 && <span className={styles.raccourciMax}>max.</span>}
+          </button>
+        ))}
+      </div>
 
-      <p className="t-petit c-500">Financement simulé : réduction proportionnelle de vos positions.</p>
+      <p className="t-petit c-500">
+        {(max === null || max < 50) && <>{detailHors} </>}
+        Financement simulé : réduction proportionnelle de vos positions.
+      </p>
     </Section>
   );
 }
@@ -202,12 +205,20 @@ function LigneEffet({ effet }: { effet: Effet }) {
         {effet.detail && <span className="t-petit c-500">{effet.detail}</span>}
       </th>
       <td className="t-tableau c-700">{effet.avant}</td>
-      <td>
+      <td className={styles.colonneApres}>
         {/* La clé change avec la valeur : le chiffre clignote quand le curseur le modifie (#103). */}
         <span key={effet.apres} className={`t-tableau-fort ${styles.valeurApres} ${violation ? styles.horsLimite : ''}`}>{effet.apres}</span>
       </td>
-      <td className="t-tableau c-700">{effet.limite ?? <span className="c-500" aria-label="aucune limite">—</span>}</td>
-      <td className={styles.celluleStatut}>{effet.statut && <Statut type={effet.statut} />}</td>
+      <td className={styles.celluleLimite}>
+        {effet.limite
+          ? (
+            <span className={styles.limiteEtStatut}>
+              <span className="t-tableau c-700">{effet.limite}</span>
+              {effet.statut && <IconeStatut type={effet.statut} taille={16} />}
+            </span>
+          )
+          : <span className="c-500" aria-label="aucune limite">—</span>}
+      </td>
     </tr>
   );
 }
@@ -229,9 +240,8 @@ function BlocEffets({ profil, entree, decision, libelleGraphique }: { profil: Pr
             <tr>
               <th scope="col" className="t-petit c-500">Indicateur</th>
               <th scope="col" className="t-petit c-500">Actuel</th>
-              <th scope="col" className="t-petit-fort">{libelleGraphique}</th>
+              <th scope="col" className={`t-petit-fort ${styles.colonneApres}`}>{libelleGraphique}</th>
               <th scope="col" className="t-petit c-500">Limite du Pacte</th>
-              <th scope="col"><span className="visuellement-cache">Statut</span></th>
             </tr>
           </thead>
           <tbody>

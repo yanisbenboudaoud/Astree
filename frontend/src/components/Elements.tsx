@@ -43,13 +43,13 @@ interface ProprietesMessage {
   aide?: string;
 }
 
-/** Message : barre gauche de 4 px, fond teinte, icône de 22 px, bouton de correction compact. */
+/** Message : fond teinte arrondi, icône de 20 px, bouton de correction compact. */
 export function Message({ type, titre, children, correction, aide }: ProprietesMessage) {
   const violation = type === 'Violation';
   return (
     <section className={`${styles.message} ${violation ? styles.messageViolation : styles.messageVerifier}`} aria-label={`${type} : ${titre}`}>
       <span className={styles.iconeMessage}>
-        <Icone nom={violation ? 'interdit' : 'alerte'} taille={22} />
+        <Icone nom={violation ? 'interdit' : 'alerte'} taille={20} />
       </span>
       <div className={styles.texteMessage}>
         <h2 className={`t-intertitre ${styles.titreMessage}`}>

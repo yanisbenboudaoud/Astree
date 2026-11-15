@@ -36,6 +36,13 @@ Une refonte du style seulement, sans changer le parcours ni les données. Le sty
   - Les règles sont **toujours visibles**, avec leur statut écrit (Respectée, Enfreinte, À juger), au lieu du bouton « Voir les N règles ».
   - Le Pacte vécu (`PacteVecu`) devient un pied de carte cliquable, au lieu d'un encadré gris imbriqué.
   - Le journal devient une frise verticale : un point coloré par statut et le statut en toutes lettres (« Conforme au Pacte »), au lieu des seules coches.
+- **Écran Décision** (`ecrans/Decision.tsx`, `Decision.module.css`) :
+  - bloc Taille recomposé : grand chiffre, état écrit avec un point coloré (« Compatible avec votre Pacte jusqu'à 11 % »), **une seule piste** qui porte les zones (vert pâle, hachures rouges), le remplissage et le repère du maximum, poignée blanche ombrée, « max. 11 % » sous la piste ;
+  - tailles rapides en contrôle segmenté, avec une pastille « max. » ; la légende des zones et la bande sous la piste sont retirées ;
+  - tableau des effets : la colonne de la décision ressort sur fond gris très clair, et le statut devient une icône après la limite (plus de colonne Statut) ;
+  - `Message` (`components/Elements`) : fond teinte arrondi sans bordure ;
+  - `GraphiqueRecul` : aire « sous l'eau » en dégradé sous la courbe de la décision, traits plus fins ;
+  - les guillemets « » des messages ESG (`domaine/decision.ts`) sont collés au texte par des espaces insécables, pour ne plus rester seuls en fin de ligne.
 - **Correctif : décision sur un titre pour un profil en mode panier.** Amira est en mode panier, et `scripts/build_ui_series.py` ne lui générait que la table du panier. Choisir « Un titre » (#99) laissait donc l'écran Décision sur « Chargement de la simulation… » indéfiniment.
   - Le script génère maintenant les tables d'une position pour **tous** les profils (`decisions/amira/`, 31 titres).
   - `ecrans/Decision.tsx` affiche « Simulation indisponible : aucune simulation précalculée pour ce titre et ce profil » quand une table manque, au lieu d'attendre.

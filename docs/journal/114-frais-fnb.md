@@ -1,6 +1,6 @@
 # #114 — Frais de gestion des FNB
 
-- **Issue** : #114 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #114 · **PR** : #132 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

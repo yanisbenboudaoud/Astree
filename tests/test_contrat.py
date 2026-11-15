@@ -102,6 +102,38 @@ def test_simulation_obligatoire_absente_rejetee(contrat):
     assert "trace : la pièce obligatoire simuler_portefeuille est absente" in valider_contrat(contrat)
 
 
+def appel_refuse(sortie):
+    return {"etape": "orchestrateur", "outil": "rechercher_documents",
+            "raison": "Le Pacte contient un critère non financier.",
+            "entree": {"ticker": "TSLA", "critere": "controverse_esg_importante"}, "sortie": sortie}
+
+
+def test_appel_d_outil_refuse_accepte(contrat):
+    """Un outil en erreur ne crée pas de pièce : le procès continue (#65)."""
+    contrat["trace"].append(appel_refuse("Erreur : Aucun document sur TSLA : source manquante"))
+    assert valider_contrat(contrat) == []
+
+
+@pytest.mark.parametrize("sortie", ["P99", "Erreur : ", "rien"])
+def test_sortie_ni_piece_ni_erreur_rejetee(contrat, sortie):
+    contrat["trace"].append(appel_refuse(sortie))
+    assert valider_contrat(contrat) == [f"trace/{len(contrat['trace']) - 1} : la sortie « {sortie} » "
+                                        "n'est ni une pièce ni une erreur d'outil"]
+
+
+def test_simulation_obligatoire_en_erreur_rejetee(contrat):
+    for etape in contrat["trace"]:
+        if etape["outil"] == "simuler_portefeuille":
+            etape["sortie"] = "Erreur : taille impossible"
+    assert "trace : la pièce obligatoire simuler_portefeuille est absente" in valider_contrat(contrat)
+
+
+def test_meme_prefixe_d_erreur_que_l_orchestrateur():
+    from contrat.valider import PREFIXE_ERREUR_OUTIL
+    from pipeline.orchestrateur import PREFIXE_ERREUR
+    assert PREFIXE_ERREUR_OUTIL == PREFIXE_ERREUR
+
+
 def test_panier_dont_les_poids_ne_totalisent_pas_un_rejete():
     contrat = charger_exemple("contrat_amira.json")
     contrat["decision"]["panier"][0]["poids"] = 0.5

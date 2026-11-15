@@ -235,7 +235,7 @@ Règles du contrat :
 - `statut` d'un contrôle : `conforme`, `violation` ou `a_verifier`. `etiquette` : `fait`, `hypothese` ou `fictif`. `type` d'une pièce : `calculee` (outil Python) ou `documentaire` (extrait de document, V3).
 - `pacte.regles` reprend les règles du fichier profil (section 3), sans les justifications. `controles[].regle` est l'`id` d'une règle du Pacte, ou l'un des contrôles du système : `verifier_chiffres`, `performance_passee`, `biais_survivant`, `interpretation_demande` (Agent Profil : demande incomplète ou ambiguë, toujours `a_verifier`).
 - Chaque argument cite au moins une pièce. Un argument dont un chiffre est introuvable dans ses pièces (section 4 ter) va dans `arguments_rejetes`, avec `cote` (`requisitoire` ou `plaidoirie`), son texte, ses pièces et la `raison` du rejet.
-- Dans `trace`, les appels de l'orchestrateur ont `etape: "orchestrateur"` et une `raison` courte, sans chiffre. Une pièce ajoutée d'office par Python a la raison « Pièce obligatoire ajoutée d'office ».
+- Dans `trace`, les appels de l'orchestrateur ont `etape: "orchestrateur"` et une `raison` courte, sans chiffre. Une pièce ajoutée d'office par Python a la raison « Pièce obligatoire ajoutée d'office ». Un appel refusé ou en erreur (outil non autorisé, raison invalide, titre hors univers, source manquante…) ne crée pas de pièce : sa `sortie` est « Erreur : <motif> ». La simulation obligatoire, elle, doit avoir produit une pièce.
 - Les valeurs des pièces et de `comparaison` sont brutes (au moins 4 décimales) ; seul `valeur_affichee` est arrondi.
 - `verdict` est rempli par l'interface quand l'utilisateur choisit : `maintenu`, `modifie` ou `pacte_ajuste`.
 

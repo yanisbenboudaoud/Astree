@@ -12,7 +12,7 @@ import { adapterEchange } from '../api/adaptateur';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { ChargementTribunal, DossierInstruit, type PropsChargement } from '../components/ChargementTribunal';
-import { IconeStatut, PastillePiece, Provenance, Statut } from '../components/Etiquettes';
+import { IconeStatut, PastillePiece, Provenance } from '../components/Etiquettes';
 import { LienRetour, Message } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { TiroirPiece } from '../components/TiroirPiece';
@@ -21,6 +21,8 @@ import { date } from '../lib/format';
 import { libelleDecision } from '../domaine/decision';
 import { resultatCalibrage } from '../domaine/calibrage';
 import { phaseEnRelecture } from '../domaine/progression';
+import { LIBELLES_COURTS, accroche, regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
+import { GROUPES, bilanGreffier, type Groupe } from '../domaine/bilan';
 import { donneesCalibrage } from '../api/donnees';
 import { questionsSuggerees, repondre, type QuestionSuggeree } from '../domaine/questions';
 import { useEtatProfil } from '../state/store';
@@ -32,79 +34,190 @@ const DUREE_ETAPE_RELECTURE_MS = 500;
 /** Toutes les phases cochées restent visibles un instant avant le résultat. */
 const DUREE_FIN_MS = 800;
 
+const TONS_BILAN = { violation: styles.bilanViolation, a_juger: styles.bilanAJuger, conforme: styles.bilanConforme };
+const COMPTES_BILAN: Record<Groupe, string> = { enfreint: styles.tonEnfreint, a_juger: styles.tonAJuger, verifie: styles.tonVerifie };
+const STATUT_DU_GROUPE: Record<Groupe, 'Violation' | 'À vérifier' | 'Conforme'> = { enfreint: 'Violation', a_juger: 'À vérifier', verifie: 'Conforme' };
+const LIBELLES_COMPTES: Record<Groupe, (n: number) => string> = {
+  enfreint: (n) => (n > 1 ? 'enfreints' : 'enfreint'),
+  a_juger: () => 'à juger',
+  verifie: (n) => (n > 1 ? 'vérifiés' : 'vérifié'),
+};
+
 function mouvementReduit(): boolean {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
 
-/**
- * Première phrase d'un argument, pour la ligne repliée. Une phrase finit sur « . », « ! » ou « ? »
- * suivi d'une majuscule : « déc. 2021 » ou « −15,1 % » ne coupent pas.
- */
 /** Espaces insécables dans « 188 291 $ » et « −29,0 % » : un montant n'est jamais coupé en fin de ligne. */
 export function sansCoupure(texte: string): string {
   return texte.replace(/(\d) (?=\d{3}(?!\d))/g, '$1\u202f').replace(/(\d) (?=[$%])/g, '$1\u00a0');
 }
 
-export function accroche(texte: string): { tete: string; suite: string } {
-  const fin = texte.search(/[.!?»](?=\s+[A-ZÀÂÉÈÊÎÔÛÇ«])/);
-  if (fin < 0) return { tete: texte, suite: '' };
-  return { tete: texte.slice(0, fin + 1), suite: texte.slice(fin + 1).trim() };
-}
-
-function CarteArgument({ argument, numero, surligne, ouvertAuDepart, onOuvrir }: {
+/** Un argument sur la scène : sa conclusion en gras, la preuve dessous, puis ses pièces. */
+function Plaidoyer({ argument, surligne, onOuvrir }: {
   argument: Argument;
-  numero: number;
   surligne: boolean;
-  ouvertAuDepart: boolean;
   onOuvrir: (code: string, el: HTMLElement) => void;
 }) {
-  const [ouvert, setOuvert] = useState(ouvertAuDepart);
-  const deplie = ouvert || surligne;
+  const [preuve, setPreuve] = useState(false);
   const { tete, suite } = accroche(sansCoupure(argument.texte));
-  const id = `argument-${argument.camp}-${numero}`;
+  const ouverte = preuve || surligne;
   return (
-    <li className={`${styles.argument} ${deplie ? styles.argumentOuvert : ''} ${surligne ? styles.argumentSurligne : ''}`}>
-      <button type="button" className={styles.teteArgument} aria-expanded={deplie} aria-controls={id} onClick={() => setOuvert((o) => !o)}>
-        <span className={styles.numeroArgument} aria-hidden="true">{numero}</span>
-        <span className={`t-corps ${styles.accroche}`}>
-          <span className="visuellement-cache">{argument.camp}, argument {numero} : </span>
-          {tete}
-        </span>
-        <Icone nom={deplie ? 'chevron-haut' : 'chevron-bas'} taille={16} />
-      </button>
-      <div id={id} hidden={!deplie} className={styles.corpsArgument}>
-        {suite && <p className="t-corps c-700">{suite}</p>}
-        <p className={styles.provenanceArgument}>
-          <Provenance type={argument.provenance} />
-          {argument.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={onOuvrir} />)}
-        </p>
-      </div>
-    </li>
+    <article className={`${styles.plaidoyer} ${surligne ? styles.plaidoyerSurligne : ''}`}>
+      <p className={`t-corps ${styles.conclusion}`}>{tete}</p>
+      {suite && ouverte && <p className={`t-petit c-700 ${styles.preuve}`}>{suite}</p>}
+      <p className={styles.provenanceArgument}>
+        <Provenance type={argument.provenance} />
+        {argument.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={onOuvrir} />)}
+        {suite && (
+          <button type="button" className={styles.voirPreuve} aria-expanded={ouverte} onClick={() => setPreuve((p) => !p)}>
+            {ouverte ? 'Masquer' : 'Voir la preuve'}
+          </button>
+        )}
+      </p>
+    </article>
   );
 }
 
-function Camp({ camp, args, surlignes, onOuvrir, limite }: {
+/** Un côté de la barre : le Procureur (contre) ou l'Avocat (pour), et ce qu'il plaide sur ce point. */
+function Tribune({ camp, args, surlignes, onOuvrir }: {
   camp: 'Procureur' | 'Avocat';
-  args: Argument[];
+  args: ArgumentNumerote[];
+  surlignes: Set<string>;
+  onOuvrir: (code: string, el: HTMLElement) => void;
+}) {
+  const procureur = camp === 'Procureur';
+  return (
+    <div className={`${styles.tribune} ${procureur ? styles.tribuneProcureur : styles.tribuneAvocat}`}>
+      <div className={styles.enteteTribune}>
+        <span className={styles.blason} aria-hidden="true">{procureur ? 'P' : 'A'}</span>
+        <span className={styles.roleTribune}>
+          <span className={styles.nomCamp}>{camp}</span>
+          <span className="t-petit c-500">{procureur ? 'contre la décision' : 'pour la décision'}</span>
+        </span>
+      </div>
+      {args.length ? (
+        <div className={styles.plaidoyers}>
+          {args.map(({ argument, numero }) => (
+            <Plaidoyer key={argument.texte} argument={argument} surligne={surlignes.has(`${camp}-${numero}`)} onOuvrir={onOuvrir} />
+          ))}
+        </div>
+      ) : (
+        <p className={styles.silence}>{procureur ? 'Le Procureur' : 'L’Avocat'} garde le silence sur ce point.</p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Le débat en salle d'audience : un point à la fois, sans défilement. Le sommaire liste les
+ * points (deux pastilles disent quel camp a parlé) ; la scène met le Procureur et l'Avocat
+ * face à face de part et d'autre de la balance. Flèches ← → pour passer d'un point à l'autre.
+ */
+function Debat({ procureur, avocat, surlignes, onOuvrir, limite }: {
+  procureur: Argument[];
+  avocat: Argument[];
   surlignes: Set<string>;
   onOuvrir: (code: string, el: HTMLElement) => void;
   limite?: string;
 }) {
-  const id = `camp-${camp}`;
+  const points = useMemo(() => regrouperDebat(procureur, avocat), [procureur, avocat]);
+  const [rang, setRang] = useState(0);
+  const onglets = useRef<(HTMLButtonElement | null)[]>([]);
+  const actuel = points[Math.min(rang, points.length - 1)];
+
+  // Une pièce ouverte amène sur le premier point dont un argument la cite.
+  const cleSurlignes = [...surlignes].join(',');
+  useEffect(() => {
+    if (!cleSurlignes) return;
+    const cles = new Set(cleSurlignes.split(','));
+    const cible = points.findIndex((p) => [...p.procureur.map((a) => `Procureur-${a.numero}`), ...p.avocat.map((a) => `Avocat-${a.numero}`)]
+      .some((cle) => cles.has(cle)));
+    if (cible >= 0) setRang(cible);
+  }, [cleSurlignes, points]);
+
+  // L'onglet du point affiché reste visible dans la bande, même sur téléphone ; pas au
+  // chargement, pour ne pas faire défiler la page jusqu'au débat.
+  const premierAffichage = useRef(true);
+  useEffect(() => {
+    if (premierAffichage.current) {
+      premierAffichage.current = false;
+      return;
+    }
+    onglets.current[rang]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  }, [rang]);
+
+  if (!actuel) return null;
+  const borner = (r: number) => (r + points.length) % points.length;
+  const aller = (nouveau: number, focus = false) => {
+    setRang(borner(nouveau));
+    if (focus) onglets.current[borner(nouveau)]?.focus();
+  };
+  // Les flèches partent du rang courant, même après plusieurs clics rapides.
+  const decaler = (pas: number) => setRang((r) => borner(r + pas));
+  const auClavier = (evenement: React.KeyboardEvent) => {
+    const sauts: Record<string, number> = { ArrowRight: rang + 1, ArrowLeft: rang - 1, Home: 0, End: points.length - 1 };
+    if (!(evenement.key in sauts)) return;
+    evenement.preventDefault();
+    aller(sauts[evenement.key], true);
+  };
+
   return (
-    <section className={`${styles.camp} ${camp === 'Procureur' ? styles.procureur : styles.avocat}`} aria-labelledby={id}>
-      <div className={styles.enteteCamp}>
-        <h2 className="t-panneau" id={id}>{camp}</h2>
-        <p className="t-petit c-500">
-          {camp === 'Procureur' ? 'contre la décision' : 'pour la décision'} · {args.length} argument{args.length > 1 ? 's' : ''}
+    <section className={styles.debat} aria-labelledby="titre-debat">
+      <h2 className="visuellement-cache" id="titre-debat">L’audience : le débat point par point</h2>
+      <div className={styles.enteteDebat}>
+      <div className={styles.sommaire} role="tablist" aria-label="Points du débat" onKeyDown={auClavier}>
+        {points.map((point, i) => (
+          <button
+            key={point.theme}
+            ref={(el) => { onglets.current[i] = el; }}
+            type="button"
+            role="tab"
+            id={`onglet-${point.theme}`}
+            aria-selected={i === rang}
+            aria-controls="scene-debat"
+            tabIndex={i === rang ? 0 : -1}
+            className={`${styles.onglet} ${i === rang ? styles.ongletActif : ''}`}
+            onClick={() => aller(i)}
+          >
+            <span className={styles.numeroOnglet}>{i + 1}</span>
+            <span>{LIBELLES_COURTS[point.theme]}</span>
+            <span className={styles.voix} aria-hidden="true">
+              <span className={`${styles.voixProcureur} ${point.procureur.length ? '' : styles.voixMuette}`} />
+              <span className={`${styles.voixAvocat} ${point.avocat.length ? '' : styles.voixMuette}`} />
+            </span>
+          </button>
+        ))}
+      </div>
+        <p className={styles.legendeDebat}>
+          <span className={styles.legendeProcureur}>Procureur · contre · {procureur.length}</span>
+          <span className={styles.legendeAvocat}>Avocat · pour · {avocat.length}</span>
         </p>
       </div>
-      <ol className={styles.arguments}>
-        {args.map((a, i) => (
-          <CarteArgument key={a.texte} argument={a} numero={i + 1} ouvertAuDepart={i === 0}
-            surligne={surlignes.has(`${camp}-${i + 1}`)} onOuvrir={onOuvrir} />
-        ))}
-      </ol>
+
+      <div id="scene-debat" role="tabpanel" aria-labelledby={`onglet-${actuel.theme}`} className={styles.scene}>
+        <div className={styles.enteteScene}>
+          <div className={styles.questionScene}>
+            <p className={styles.compteurPoint}>Point {rang + 1} sur {points.length}</p>
+            <h3 className={`t-h2 ${styles.question}`} aria-live="polite">{actuel.question}</h3>
+          </div>
+          <div className={styles.navigationScene}>
+            <button type="button" className={styles.fleche} onClick={() => decaler(-1)} aria-label="Point précédent">
+              <Icone nom="fleche-gauche" taille={18} />
+            </button>
+            <button type="button" className={styles.fleche} onClick={() => decaler(1)} aria-label="Point suivant">
+              <Icone nom="fleche-droite" taille={18} />
+            </button>
+          </div>
+        </div>
+        <div key={actuel.theme} className={styles.arene}>
+          <Tribune camp="Procureur" args={actuel.procureur} surlignes={surlignes} onOuvrir={onOuvrir} />
+          <div className={styles.barre} aria-hidden="true">
+            <span className={styles.balance}><Icone nom="balance" taille={22} /></span>
+          </div>
+          <Tribune camp="Avocat" args={actuel.avocat} surlignes={surlignes} onOuvrir={onOuvrir} />
+        </div>
+      </div>
+
       {limite && (
         <p className={styles.limite}>
           <Icone nom="alerte" taille={16} />
@@ -390,7 +503,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
     procureur.forEach((a, i) => a.pieces.includes(pieceOuverte.code) && surlignes.add(`Procureur-${i + 1}`));
     avocat.forEach((a, i) => a.pieces.includes(pieceOuverte.code) && surlignes.add(`Avocat-${i + 1}`));
   }
-  const comptes = (['Violation', 'À vérifier', 'Conforme'] as const).map((s) => ({ statut: s, n: resultat.controles.filter((c) => c.statut === s).length }));
+  const bilan = bilanGreffier(resultat.controles, resultat.contrat);
   const manquantes = resultat.controles.filter((c) => /source manquante/i.test(c.texte)).length;
   const principal = resultat.controles.find((c) => c.paragraphe !== undefined && c.statut === 'Violation');
   const reglePrincipale = principal && resultat.contrat.pacte.regles.find((r) => r.id === principal.regle);
@@ -445,46 +558,68 @@ export function Tribunal({ profil }: { profil: Profil }) {
             <h1 className="t-h1">{resultat.titre}</h1>
           </div>
 
-          <section className={styles.bilan} aria-labelledby="titre-bilan">
+          <section className={`${styles.bilan} ${TONS_BILAN[bilan.ton]}`} aria-labelledby="titre-bilan">
+            <span className={styles.iconeBilan} aria-hidden="true">
+              <Icone nom={bilan.ton === 'violation' ? 'interdit' : bilan.ton === 'a_juger' ? 'alerte' : 'check'} taille={20} />
+            </span>
             <div className={styles.resume}>
-              <div className={styles.comptes}>
-                <h2 className="t-intertitre" id="titre-bilan">Bilan du Greffier</h2>
-                {comptes.filter(({ n }) => n > 0).map(({ statut, n }) => (
-                  <span key={statut} className={styles.compte}>
-                    <span className="t-tableau-fort">{n}</span>
-                    <Statut type={statut} />
+              <p className={styles.surtitreBilan}>Le Greffier a vérifié votre décision · calcul Python, sans IA</p>
+              <h2 className={`t-panneau ${styles.verdictBilan}`} id="titre-bilan">{bilan.verdict}</h2>
+              {bilan.explication && <p className="t-corps c-700">{bilan.explication}</p>}
+            </div>
+            <div className={styles.coteBilan}>
+              <p className={styles.comptesBilan}>
+                {GROUPES.filter((g) => bilan.comptes[g.id] > 0).map((g) => (
+                  <span key={g.id} className={`${styles.compteBilan} ${COMPTES_BILAN[g.id]}`}>
+                    {bilan.comptes[g.id]} {LIBELLES_COMPTES[g.id](bilan.comptes[g.id])}
                   </span>
                 ))}
-              </div>
-              <p className="t-corps">{resultat.constat}</p>
+              </p>
+              <button type="button" className={styles.voirControles} aria-expanded={controlesOuverts} aria-controls="liste-controles" onClick={() => setControlesOuverts((o) => !o)}>
+                {controlesOuverts ? 'Masquer le détail' : 'Voir le détail'}
+                <Icone nom={controlesOuverts ? 'chevron-haut' : 'chevron-bas'} taille={14} />
+              </button>
+            </div>
+            <div id="liste-controles" className={styles.controles} hidden={!controlesOuverts}>
               {reglePrincipale && (
-                <p className="t-petit c-700">
+                <p className={`t-petit c-700 ${styles.rappelRegle}`}>
                   Règle que vous avez signée le {date(resultat.contrat.pacte.date_signature)} (Pacte §{principal!.paragraphe}) :
                   « {reglePrincipale.libelle} ».
                 </p>
               )}
+              {GROUPES.map((g) => {
+                const items = bilan.controles.filter((c) => c.groupe === g.id);
+                if (!items.length) return null;
+                return (
+                  <div key={g.id} className={styles.groupeControles}>
+                    <p className={styles.titreGroupe}>
+                      <span className={`t-petit-fort ${COMPTES_BILAN[g.id]}`}>{g.titre} · {items.length}</span>
+                      <span className="t-petit c-500">{g.aide}</span>
+                    </p>
+                    <ul className={styles.listeControles}>
+                      {items.map((c) => (
+                        <li key={`${c.regle}-${c.titre}`} className={styles.controle}>
+                          <IconeStatut type={STATUT_DU_GROUPE[c.groupe]} taille={16} />
+                          <span className={styles.texteControle}>
+                            <span className="t-petit-fort">
+                              {c.titre}
+                              {c.paragraphe !== undefined && <span className="c-500"> · Pacte §{c.paragraphe}</span>}
+                            </span>
+                            {c.detail && <span className="t-petit c-700">{c.detail}</span>}
+                          </span>
+                          <span className={styles.piecesControle}>
+                            {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
             </div>
-            <button type="button" className={styles.voirControles} aria-expanded={controlesOuverts} aria-controls="liste-controles" onClick={() => setControlesOuverts((o) => !o)}>
-              {controlesOuverts ? 'Masquer les contrôles' : `Voir les ${resultat.controles.length} contrôles`}
-              <Icone nom={controlesOuverts ? 'chevron-haut' : 'chevron-bas'} taille={14} />
-            </button>
-            <ol id="liste-controles" className={styles.controles} hidden={!controlesOuverts}>
-              {resultat.controles.map((c) => (
-                <li key={`${c.regle}-${c.texte}`} className={styles.controle}>
-                  <Statut type={c.statut} />
-                  <span className="t-petit">{c.texte}</span>
-                  <span className={styles.piecesControle}>
-                    {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}
-                  </span>
-                </li>
-              ))}
-            </ol>
           </section>
 
-          <div className={styles.debat}>
-            <Camp camp="Procureur" args={procureur} surlignes={surlignes} onOuvrir={ouvrirPiece} />
-            <Camp camp="Avocat" args={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} limite={resultat.limiteAvocat} />
-          </div>
+          <Debat procureur={procureur} avocat={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} limite={resultat.limiteAvocat} />
 
           {(resultat.argumentsRejetes.length > 0 || resultat.corrections.length > 0) && (
             <section className={styles.rejetes} aria-labelledby="titre-rejetes">

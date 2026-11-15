@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { accroche, sansCoupure } from '../ecrans/Tribunal';
+import { accroche } from '../domaine/debat';
+import { sansCoupure } from '../ecrans/Tribunal';
 
 describe('accroche d’un argument (ligne repliée)', () => {
   it('coupe après la première phrase', () => {

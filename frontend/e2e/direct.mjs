@@ -1,0 +1,121 @@
+/**
+ * Vérification du mode direct (#14) : de vrais procès sur la Lambda, depuis le navigateur.
+ * Robert (« 30 % en TSLA ») et Amira (panier crypto et tech, le procès le plus long),
+ * jusqu'au verdict signé et archivé dans S3 (POST /verdict).
+ *
+ * Coûte des appels Bedrock (quelques cents par procès) et ajoute deux verdicts à la
+ * jurisprudence des profils (verdicts/<profil>/ du bucket).
+ *
+ *   frontend\.env.local : VITE_USE_MOCKS=false et VITE_API_URL=<Function URL>
+ *   npm run dev            (sur http://localhost:5173, l'origine autorisée par le CORS)
+ *   node e2e/direct.mjs [dossier_captures]
+ */
+import { createRequire } from 'node:module';
+import { mkdirSync } from 'node:fs';
+import { chromium } from 'playwright-core';
+
+const require = createRequire(import.meta.url);
+const BASE = 'http://localhost:5173';
+const DOSSIER = process.argv[2] ?? 'e2e/captures';
+const DELAI_PROCES_MS = 180_000; // Lambda : 300 s au plus ; procès mesurés de 26 à 44 s
+mkdirSync(DOSSIER, { recursive: true });
+
+const problemes = [];
+const bilan = [];
+let navigateur;
+for (const canal of ['msedge', 'chrome']) {
+  try { navigateur = await chromium.launch({ channel: canal }); break; } catch { /* canal suivant */ }
+}
+if (!navigateur) throw new Error('Ni Edge ni Chrome trouvés.');
+
+async function nouvellePage() {
+  const page = await navigateur.newPage({ viewport: { width: 1440, height: 900 } });
+  const appels = [];
+  page.on('console', (m) => { if (['error', 'warning'].includes(m.type())) problemes.push(`console ${m.type()} : ${m.text()}`); });
+  page.on('pageerror', (e) => problemes.push(`erreur de page : ${e.message}`));
+  page.on('response', (r) => {
+    if (r.url().includes('.lambda-url.')) appels.push({ route: new URL(r.url()).pathname, statut: r.status(), id: r.headers()['x-proces-id'] });
+  });
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => sessionStorage.clear());
+  return { page, appels };
+}
+
+async function axe(page, ecran) {
+  await page.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
+  // eslint-disable-next-line no-undef
+  const violations = await page.evaluate(async () => (await axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] })).violations.map((v) => v.id));
+  for (const v of violations) problemes.push(`axe, ${ecran} : ${v}`);
+}
+
+async function attendreProces(page, profil, appels) {
+  const debut = Date.now();
+  if (await page.getByText(/procès enregistré/).count()) problemes.push(`${profil} : l'interface est en mode démonstration (VITE_USE_MOCKS)`);
+  await page.waitForSelector('text=Bilan du Greffier', { timeout: DELAI_PROCES_MS });
+  const duree = Math.round((Date.now() - debut) / 1000);
+  const tribunal = appels.find((a) => a.route === '/tribunal');
+  const audience = await page.locator('p.t-etiquette').first().textContent();
+  const constat = await page.locator('section[aria-labelledby="titre-bilan"] p.t-corps').textContent();
+  if (!tribunal || tribunal.statut !== 200) problemes.push(`${profil} : POST /tribunal a répondu ${tribunal?.statut}`);
+  if (/n° —/.test(audience ?? '')) problemes.push(`${profil} : identifiant du procès illisible (CORS ExposeHeaders x-proces-id ?)`);
+  if (/procès enregistré/.test(audience ?? '')) problemes.push(`${profil} : procès rejoué au lieu d'un vrai procès`);
+  return { duree, id: tribunal?.id, audience: audience?.trim(), constat: constat?.trim() };
+}
+
+async function signer(page, profil, appels, choix) {
+  await page.getByRole('button', { name: /Rendre mon verdict/ }).click();
+  await page.waitForSelector('text=Quelle est votre décision');
+  for (const motif of choix) {
+    const option = page.getByRole('radio', { name: motif });
+    if (await option.count()) { await option.check(); break; }
+  }
+  await page.getByRole('button', { name: /Signer le verdict/ }).click();
+  await page.waitForURL(`**/${profil}/portefeuille?archive=1`, { timeout: 30_000 });
+  const verdict = appels.find((a) => a.route === '/verdict');
+  if (!verdict || verdict.statut !== 200) problemes.push(`${profil} : POST /verdict a répondu ${verdict?.statut}`);
+  return verdict?.statut;
+}
+
+try {
+  // Robert : 30 % en TSLA
+  {
+    const { page, appels } = await nouvellePage();
+    await page.goto(`${BASE}/robert/portefeuille`, { waitUntil: 'networkidle' });
+    await page.getByRole('combobox').fill('tes');
+    await page.getByRole('combobox').press('Enter');
+    await page.waitForSelector('text=Effet sur votre Pacte');
+    await page.getByRole('button', { name: /Soumettre au Tribunal/ }).click();
+    const proces = await attendreProces(page, 'robert', appels);
+    await axe(page, 'Robert · tribunal en direct');
+    await page.screenshot({ path: `${DOSSIER}/direct-robert-tribunal.png`, fullPage: true });
+    const verdict = await signer(page, 'robert', appels, [/Ramener la position/, /Renoncer/]);
+    bilan.push({ profil: 'robert', ...proces, verdict });
+    await page.close();
+  }
+  // Amira : panier BTC, ETH, NVDA, QQQ à 25 % (le procès le plus long)
+  {
+    const { page, appels } = await nouvellePage();
+    await page.goto(`${BASE}/amira/portefeuille`, { waitUntil: 'networkidle' });
+    const champ = page.getByRole('combobox');
+    for (const q of ['bit', 'eth', 'nvd', 'qqq']) { await champ.fill(q); await page.waitForTimeout(100); await champ.press('Enter'); }
+    await page.getByRole('button', { name: /Instruire le panier/ }).click();
+    await page.waitForSelector('text=Effet sur votre Pacte');
+    await page.getByRole('button', { name: /Soumettre au Tribunal/ }).click();
+    const proces = await attendreProces(page, 'amira', appels);
+    await axe(page, 'Amira · tribunal en direct');
+    await page.screenshot({ path: `${DOSSIER}/direct-amira-tribunal.png`, fullPage: true });
+    const verdict = await signer(page, 'amira', appels, [/Réallouer seulement/, /Garder mon portefeuille/]);
+    bilan.push({ profil: 'amira', ...proces, verdict });
+    await page.close();
+  }
+} catch (e) {
+  problemes.push(`parcours interrompu : ${e.message}`);
+} finally {
+  await navigateur.close();
+}
+
+for (const b of bilan) {
+  console.log(`${b.profil} : procès ${b.id} en ${b.duree} s · ${b.audience} · ${b.constat} · POST /verdict ${b.verdict}`);
+}
+console.log(problemes.length ? `\n${problemes.length} problème(s) :\n- ${problemes.join('\n- ')}` : 'Mode direct vérifié : vrais procès, verdicts archivés, CORS, axe-core et console.');
+process.exit(problemes.length ? 1 : 0);

@@ -188,6 +188,66 @@ def test_verdict_invalide_400(corps, s3):
     assert lambda_tribunal.handler(evenement("/verdict", corps))["statusCode"] == 400
 
 
+# --- /question (contre-interrogatoire, #55) -------------------------------------------
+
+ECHANGE = {"question": "Et à 15 % ?", "pieces_ajoutees": ["P7"], "requisitoire": [], "plaidoirie": [],
+           "arguments_rejetes": [], "controle_chiffres": {"statut": "a_verifier", "regle": "verifier_chiffres",
+                                                          "message": "x"}, "trace": []}
+
+
+@pytest.fixture
+def faux_interroger(monkeypatch):
+    appels = []
+
+    def interroger(contrat, question):
+        appels.append((contrat, question))
+        if question == "vide":
+            raise lambda_tribunal.QuestionInvalide("Question vide : posez une question sur le procès")
+        return {**contrat, "pieces": [{"id": "P7", "titre": "Simulation à 15 %"}],
+                "contre_interrogatoire": [ECHANGE]}
+    monkeypatch.setattr(lambda_tribunal, "interroger", interroger)
+    return appels
+
+
+def test_question_repond_et_rearchive_le_proces(s3, faux_proces, faux_interroger):
+    identifiant = lambda_tribunal.handler(
+        evenement("/tribunal", {"profil": "robert", "demande": "x"}))["headers"]["X-Proces-Id"]
+
+    statut, contenu = reponse(lambda_tribunal.handler(
+        evenement("/question", {"id": identifiant, "question": "Et à 15 % ?"})))
+
+    assert statut == 200
+    assert contenu["echange"] == ECHANGE
+    assert contenu["pieces"] == [{"id": "P7", "titre": "Simulation à 15 %"}]
+    assert faux_interroger[0] == (CONTRAT, "Et à 15 % ?")  # le procès archivé, relu dans S3
+    archive = s3.objets[f"traces/{identifiant[:10]}/{identifiant}.json"]
+    assert archive["contre_interrogatoire"] == [ECHANGE]  # réarchivé au même endroit
+
+
+def test_question_pour_un_proces_inconnu_404(s3, faux_interroger):
+    statut, _ = reponse(lambda_tribunal.handler(
+        evenement("/question", {"id": "2026-11-14-000000000000", "question": "Et à 15 % ?"})))
+    assert statut == 404 and faux_interroger == []
+
+
+@pytest.mark.parametrize("corps", [
+    {"id": "../traces/autre", "question": "Et à 15 % ?"},   # identifiant hors format
+    {"id": "2026-11-14-000000000000", "question": "   "},  # question vide
+    {"id": "2026-11-14-000000000000"},                     # question absente
+])
+def test_question_invalide_400_sans_appel(corps, s3, faux_interroger):
+    assert lambda_tribunal.handler(evenement("/question", corps))["statusCode"] == 400
+    assert faux_interroger == []
+
+
+def test_question_refusee_par_le_pipeline_400(s3, faux_proces, faux_interroger):
+    identifiant = lambda_tribunal.handler(
+        evenement("/tribunal", {"profil": "robert", "demande": "x"}))["headers"]["X-Proces-Id"]
+    statut, contenu = reponse(lambda_tribunal.handler(
+        evenement("/question", {"id": identifiant, "question": "vide"})))
+    assert statut == 400 and "Question vide" in contenu["erreur"]
+
+
 # --- Lecture des CSV dans S3 (pipeline/donnees.py) ------------------------------------
 
 
@@ -228,3 +288,80 @@ def test_lire_csv_s3_objet_absent_erreur_lisible(monkeypatch):
         monkeypatch.setattr(donnees.boto3, "client", lambda service: client)
         with pytest.raises(donnees.ErreurDonnees, match="NoSuchKey"):
             donnees.lire_csv("absent.csv")
+
+
+# --- /verifier : « Trompez le Greffier » (#69) -------------------------------------------
+
+ID_PROCES = "2026-11-15-0123456789ab"
+CONTRAT_ARCHIVE = {
+    "persona": "robert",
+    "decision": {"type": "position", "ticker": "TSLA", "taille": 0.30, "financement": "proportionnel"},
+    "pieces": [
+        {"id": "P2", "type": "calculee", "valeurs": {"pire_baisse": -0.289679, "pire_baisse_actuelle": -0.077574}},
+        {"id": "P3", "type": "calculee", "valeurs": {"rendement_2022_apres": -0.237129}},
+    ],
+}
+
+
+@pytest.fixture
+def proces_archive(s3, monkeypatch):
+    s3.objets[lambda_tribunal.cle_trace(ID_PROCES)] = CONTRAT_ARCHIVE
+    monkeypatch.setattr(lambda_tribunal, "_appels_verifier", {})
+    monkeypatch.setattr(lambda_tribunal, "juger_decision", lambda *a: pytest.fail("aucun procès attendu"))
+    monkeypatch.setattr(lambda_tribunal, "interroger", lambda *a: pytest.fail("aucun appel Bedrock attendu"))
+    return s3
+
+
+def verifier(texte, pieces, identifiant=ID_PROCES):
+    corps = {"id": identifiant, "texte": texte, "pieces": pieces}
+    return reponse(lambda_tribunal.handler(evenement("/verifier", corps)))
+
+
+def test_verifier_accepte_un_vrai_chiffre_de_la_piece_citee(proces_archive):
+    statut, contenu = verifier("Avec 30 % en TSLA, la pire baisse passe à −29,0 %.", ["P2"])
+    assert statut == 200 and contenu["valide"] and contenu["compte"] == "2/2"
+    assert contenu["nombres"][1] == {"texte": "−29,0 %", "trouve": True, "sources": ["P2"], "motif": None}
+
+
+def test_verifier_rejette_un_chiffre_invente_avec_son_motif(proces_archive):
+    statut, contenu = verifier("TSLA ferait chuter le portefeuille à −40 %.", ["P2"])
+    assert statut == 200 and not contenu["valide"]
+    assert contenu["motif"] == "« −40 % » introuvable dans P2"
+
+
+def test_verifier_signale_la_piece_qui_contient_le_chiffre(proces_archive):
+    _, contenu = verifier("En 2022, le portefeuille aurait fait −23,7 %.", ["P2"])
+    assert "présent dans P3, pièce non citée" in contenu["motif"]
+
+
+def test_verifier_proces_inconnu_404(proces_archive):
+    statut, contenu = verifier("−29,0 %", ["P2"], identifiant="2026-11-15-ffffffffffff")
+    assert statut == 404 and "Aucun procès archivé" in contenu["erreur"]
+
+
+@pytest.mark.parametrize("corps, message", [
+    ({"id": ID_PROCES, "texte": "x" * 601, "pieces": ["P2"]}, "trop long"),
+    ({"id": ID_PROCES, "texte": " ", "pieces": ["P2"]}, "texte"),
+    ({"id": "pas-un-id", "texte": "−29,0 %", "pieces": ["P2"]}, "id"),
+    ({"id": ID_PROCES, "texte": "−29,0 %", "pieces": ["P2; DROP"]}, "pieces"),
+    ({"id": ID_PROCES, "texte": "−29,0 %", "pieces": [f"P{i}" for i in range(11)]}, "pieces"),
+])
+def test_verifier_requete_invalide_400(corps, message, proces_archive):
+    statut, contenu = reponse(lambda_tribunal.handler(evenement("/verifier", corps)))
+    assert statut == 400 and message in contenu["erreur"]
+
+
+def test_verifier_debit_limite_par_adresse(proces_archive):
+    for _ in range(lambda_tribunal.DEBIT_MAX_VERIFIER):
+        assert verifier("−29,0 %", ["P2"])[0] == 200
+    statut, contenu = verifier("−29,0 %", ["P2"])
+    assert statut == 429 and "Trop de vérifications" in contenu["erreur"]
+
+
+def test_fenetre_de_debit_glissante(monkeypatch):
+    monkeypatch.setattr(lambda_tribunal, "_appels_verifier", {})
+    for i in range(lambda_tribunal.DEBIT_MAX_VERIFIER):
+        assert not lambda_tribunal.trop_de_verifications("1.2.3.4", maintenant=float(i))
+    assert lambda_tribunal.trop_de_verifications("1.2.3.4", maintenant=59.0)
+    assert not lambda_tribunal.trop_de_verifications("5.6.7.8", maintenant=59.0)
+    assert not lambda_tribunal.trop_de_verifications("1.2.3.4", maintenant=61.0)

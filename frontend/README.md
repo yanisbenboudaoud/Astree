@@ -20,6 +20,8 @@ npm run dev          # http://localhost:5173
 | `npm run build` | Vérification des types, puis compilation dans `dist/` |
 | `npm test` | Tests vitest : chiffres de l'annexe E, formats, adaptateur du contrat, questions, Verdict |
 | `npm run verifier` | Parcours de bout en bout des 3 profils (Robert au clavier seul), axe-core sur chaque écran, débordement à 1440 et 1280 px, erreurs de console. Demande `npm run dev` dans un autre terminal et Edge ou Chrome installé. Captures dans `e2e/captures/` |
+| `npm run verifier:greffier` | « Trompez le Greffier » : 4 exemples, argument tapé, réponse en moins d'une seconde, axe-core (gratuit, sans Bedrock) |
+| `npm run verifier:direct` | Mode direct : deux vrais procès sur la Lambda par l'interface, verdicts signés et archivés (Bedrock, quelques cents) |
 | `npm run series` | Régénère les séries et les tables (`scripts/build_ui_series.py`) |
 
 ## D'où viennent les chiffres
@@ -50,14 +52,16 @@ Le script réutilise le code du pipeline : l'interface affiche exactement les ch
 
 La couche `src/api/` isole les écrans du backend : les composants ne lisent que les types de `src/api/types.ts` (annexe D.7).
 
-- **Mode démonstration** (défaut, `VITE_USE_MOCKS=true`) : `src/api/tribunal.ts` rejoue un procès **réellement tenu** par le pipeline (`python -m pipeline <profil> "<demande>"`, Bedrock Sonnet 5.5), enregistré tel quel dans `src/data/proces/` et validé par `python -m contrat.valider`. Il est rejoué seulement s'il juge exactement la décision soumise ; sinon, l'écran le dit et propose la décision enregistrée. Aucun procès n'est inventé.
+- **Mode démonstration** (défaut, `VITE_USE_MOCKS=true`) : `src/api/tribunal.ts` rejoue un procès **réellement tenu par la Lambda** et archivé dans S3, copié tel quel dans `src/data/proces/<id>.json` et validé par `python -m contrat.valider` : Robert à 30 % et à 25 % de TSLA (ce dernier contient un argument corrigé par le Greffier), Amira (panier à 25 %), Mateo (10 % de XOM). Un procès est rejoué seulement s'il juge exactement la décision soumise ; sinon, l'écran le dit et propose la décision enregistrée. Aucun procès n'est inventé.
 - **Mode direct** : copier `.env.example` en `.env.local` et définir :
   ```
   VITE_USE_MOCKS=false
   VITE_API_URL=https://<id>.lambda-url.us-east-1.on.aws
   ```
   L'interface envoie `POST /tribunal` `{profil, demande}` (la demande est rédigée par `demandeDecision`, ex. « Je veux mettre 30 % de mon portefeuille en Tesla (TSLA) »), lit l'identifiant du procès dans l'en-tête `x-proces-id`, puis envoie `POST /verdict` `{id, verdict}` à la signature.
-  **Prérequis côté AWS** (`deploiement/README.md`, « Point d'accès ») : Function URL en type `NONE`, CORS limité au domaine de l'interface, `ExposeHeaders: x-proces-id`.
+  L'adresse s'obtient avec `aws lambda get-function-url-config --function-name alphaforge-tribunal --query FunctionUrl` (elle n'est pas dans le dépôt). Relancer `npm run dev` après avoir modifié `.env.local`.
+  **Côté AWS, c'est fait (#14)** : Function URL en type `NONE`, CORS limité à `http://localhost:5173` et `ExposeHeaders: x-proces-id` (`deploiement/README.md`, « Point d'accès »). L'interface doit donc tourner sur ce port ; pour un autre domaine, `deploiement\deployer.py --url-seulement --origine <domaine>`.
+  **Vérifier** : `npm run verifier:direct` (avec `npm run dev` en mode direct) joue deux vrais procès par l'interface, Robert puis Amira, et signe leurs verdicts. Cela coûte quelques cents de Bedrock et ajoute deux verdicts à la jurisprudence.
 
 Le même adaptateur (`src/api/adaptateur.ts`) traduit le contrat dans les deux modes.
 
@@ -66,7 +70,7 @@ Le même adaptateur (`src/api/adaptateur.ts`) traduit le contrat dans les deux m
 Écran `/:profil/pacte-vecu` (« Revivez 4 jours », lien depuis la carte « Votre Pacte ») : de vrais jours de baisse, en dollars, la courbe arrêtée au jour J. L'utilisateur répond « je reste » ou « je vends » ; `src/domaine/calibrage.ts` rejoue la dichotomie de `pipeline/calibrage.py` (un test vérifie qu'il trouve le même seuil que Python). Une fois terminé, tous les écrans reçoivent le profil au seuil mesuré (`App.tsx`), et les tables de décision sont rejugées avec ce seuil (même comparaison que le Greffier ; les séances sous la limite, comptées avec l'ancien seuil, ne sont plus affichées).
 
 - **Mode direct** : les réponses partent avec `POST /tribunal` (`calibrage.reponses`) ; la Lambda recalcule tout en Python.
-- **Mode démonstration** : seul le procès enregistré avec les réponses de démonstration du profil (`*_vecu.json`, `"calibrage": true` dans `index.json`) peut être rejoué ; avec d'autres réponses, l'écran le dit. Le bouton « Utiliser les réponses de démonstration » les applique (étiquette Fictif).
+- **Mode démonstration** : seul un procès enregistré avec exactement les mêmes réponses (`"calibrage": true` dans `index.json`) peut être rejoué ; sinon, l'écran le dit. Le bouton « Utiliser les réponses de démonstration » applique celles du profil (étiquette Fictif). Pour enregistrer un tel procès sur la Lambda : `deploiement/tester_function_url.py <profil> "<demande>" --calibrage-demo --sortie …`, puis copier le contrat sous son identifiant dans `src/data/proces/`.
 
 ## Organisation
 
@@ -85,6 +89,13 @@ e2e/verifier.mjs  vérification de bout en bout (playwright-core + axe-core)
 ```
 
 Ajouter un profil : un fichier `personas/<id>.json`, puis `npm run series`. Une entrée dans `src/data/profils_ui.json` est facultative (textes de l'écran d'entrée, journal fictif) : la logique ne teste jamais un nom de profil.
+
+## « Essayez de tromper le Greffier » (#69)
+
+Sur l'écran Tribunal, n'importe qui peut écrire un argument chiffré, citer des pièces et le faire vérifier par le Greffier (`POST /verifier`, outil 6 `verifier_chiffres`, Python seul) : chaque nombre s'affiche trouvé, avec sa pièce, ou introuvable, avec le motif exact. Quatre exemples prêts, écrits à partir des pièces du procès affiché (`src/domaine/pieges.ts`) : un vrai chiffre, un chiffre inventé, un arrondi faux, la mauvaise pièce. Le même écran montre les vrais arguments que le Greffier a renvoyés pendant le procès, avec le motif et la version corrigée.
+
+- Disponible dans les deux modes dès que `VITE_API_URL` est défini, car les procès enregistrés ont leur identifiant S3. Aucun appel Bedrock : gratuit.
+- `npm run verifier:greffier` (avec `npm run dev`) vérifie les 4 exemples, un argument tapé au clavier, la réponse en moins d'une seconde, axe-core et l'affichage d'une correction réelle.
 
 ## Accessibilité
 

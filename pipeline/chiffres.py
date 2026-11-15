@@ -20,6 +20,10 @@ Règles appliquées (numéros de la section 4 ter) :
 8. argument refusé : renvoyé une fois à son agent, puis rejeté (``trier_arguments``) ;
 9. compte rendu : ``controle_verifier_chiffres``.
 
+``trier_arguments`` applique aussi le contrôle du cadre « simulation seulement »
+(``pipeline.cadre_simulation``, #60) : un argument qui conseille une transaction ou
+promet un rendement suit la même boucle, et les deux motifs partent dans la même relance.
+
 Le dossier a le format de ``pipeline.debat`` : ``decision``, ``pieces`` et
 ``periode`` (``[debut, fin]`` en dates ISO).
 """
@@ -31,6 +35,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Callable, Iterator
+
+from pipeline.cadre_simulation import VerificationCadre, verifier_cadre_simulation
 
 # --- Extraction -----------------------------------------------------------------
 
@@ -283,6 +289,46 @@ def _motif(nombre: NombreCite, citees: list[str], admises: Sources, non_citees: 
     return motif
 
 
+def detailler_argument(argument: dict[str, Any], dossier: dict[str, Any]) -> dict[str, Any]:
+    """La vérification d'un argument, nombre par nombre, pour l'afficher (« Trompez le Greffier », #69).
+
+    Mêmes règles et même verdict que ``verifier_argument`` ; en plus, pour chaque nombre :
+    où il a été trouvé (pièce citée, « décision » ou « période ») ou, s'il est introuvable,
+    son motif exact.
+
+    Returns:
+        ``valide``, ``motif`` (None si l'argument est prouvé), ``nombres`` (``texte``,
+        ``trouve``, ``sources``, ``motif``) et ``compte`` (« 2/3 »).
+    """
+    verification = verifier_argument(argument, dossier)
+    pieces = {piece["id"]: piece for piece in dossier["pieces"]}
+    citees = [p for p in dict.fromkeys(argument.get("pieces", [])) if p in pieces]
+    par_source = {id_piece: sources_piece(pieces[id_piece]) for id_piece in citees}
+    decision, periode = Sources(), Sources()
+    decision.ajouter(dossier["decision"])
+    periode.ajouter(list(dossier["periode"]))
+    par_source.update({"décision": decision, "période": periode})
+
+    admises = sources_toujours_admises(dossier)
+    for id_piece in citees:
+        admises.nombres += par_source[id_piece].nombres
+        admises.dates += par_source[id_piece].dates
+    non_citees = {i: sources_piece(p) for i, p in pieces.items() if i not in citees}
+
+    nombres = []
+    for nombre in verification.nombres:
+        sources = [nom for nom, valeurs in par_source.items() if correspond(nombre, valeurs)]
+        nombres.append({
+            "texte": nombre.texte,
+            "trouve": bool(sources),
+            "sources": sources,
+            "motif": None if sources or not citees else _motif(nombre, citees, admises, non_citees),
+        })
+    trouves = sum(n["trouve"] for n in nombres)
+    return {"valide": verification.valide, "motif": verification.motif, "nombres": nombres,
+            "compte": f"{trouves}/{len(nombres)}"}
+
+
 # --- Tri des arguments et compte rendu ------------------------------------------
 
 @dataclass
@@ -293,6 +339,8 @@ class TriArguments:
     rejetes: list[dict[str, Any]]   # format « arguments_rejetes » du contrat
     nombres_verifies: int           # nombres des arguments valides (une date compte pour un)
     relances: int
+    rejetes_chiffres: int = 0       # rejetés pour un chiffre introuvable
+    rejetes_cadre: int = 0          # rejetés pour un conseil ou une promesse (#60)
 
 
 def trier_arguments(
@@ -303,6 +351,10 @@ def trier_arguments(
 ) -> TriArguments:
     """Vérifie les arguments d'un côté ; un argument refusé est renvoyé **une fois** à son agent.
 
+    Deux vérifications par argument : ses chiffres (``verifier_argument``) et le cadre
+    « simulation seulement » (``verifier_cadre_simulation``, #60). Un argument qui échoue
+    à l'une ou à l'autre est renvoyé avec tous ses motifs, en une seule relance.
+
     Args:
         arguments: arguments du Procureur ou de l'Avocat (etiquette, texte, pieces).
         cote: « requisitoire » ou « plaidoirie ».
@@ -311,32 +363,44 @@ def trier_arguments(
             ``pipeline.debat.corriger_argument`` (l'orchestrateur garde la trace).
             None : aucun renvoi, l'argument refusé est rejeté tout de suite.
     """
-    valides, rejetes, nombres, relances = [], [], 0, 0
+    tri = TriArguments([], [], 0, 0)
     for argument in arguments:
-        verification = verifier_argument(argument, dossier)
-        if not verification.valide and corriger is not None:
-            relances += 1
-            argument = corriger(argument, verification.motif)
-            verification = verifier_argument(argument, dossier)
-        if verification.valide:
-            valides.append(argument)
-            nombres += len(verification.nombres)
-        else:
-            rejetes.append({
-                "cote": cote,
-                "etiquette": argument["etiquette"],
-                "texte": argument["texte"],
-                "pieces": list(argument["pieces"]),
-                "raison": verification.motif,
-            })
-    return TriArguments(valides, rejetes, nombres, relances)
+        chiffres, cadre, motif = _verifier(argument, dossier)
+        if motif and corriger is not None:
+            tri.relances += 1
+            argument = corriger(argument, motif)
+            chiffres, cadre, motif = _verifier(argument, dossier)
+        if not motif:
+            tri.valides.append(argument)
+            tri.nombres_verifies += len(chiffres.nombres)
+            continue
+        tri.rejetes.append({
+            "cote": cote,
+            "etiquette": argument["etiquette"],
+            "texte": argument["texte"],
+            "pieces": list(argument["pieces"]),
+            "raison": motif,
+        })
+        tri.rejetes_chiffres += int(not chiffres.valide)
+        tri.rejetes_cadre += int(not cadre.valide)
+    return tri
+
+
+def _verifier(
+    argument: dict[str, Any], dossier: dict[str, Any]
+) -> tuple[VerificationArgument, VerificationCadre, str | None]:
+    """Chiffres et cadre d'un argument, et le motif commun (None si l'argument passe les deux)."""
+    chiffres = verifier_argument(argument, dossier)
+    cadre = verifier_cadre_simulation(argument)
+    motif = " ; ".join(m for m in (chiffres.motif, cadre.motif) if m) or None
+    return chiffres, cadre, motif
 
 
 def controle_verifier_chiffres(*tris: TriArguments) -> dict[str, Any]:
     """Contrôle de synthèse du contrat (« 17/17 chiffres, 7 arguments »)."""
     nombres = sum(t.nombres_verifies for t in tris)
     arguments = sum(len(t.valides) for t in tris)
-    rejetes = sum(len(t.rejetes) for t in tris)
+    rejetes = sum(t.rejetes_chiffres for t in tris)
     if arguments == 0:
         return {"statut": "a_verifier", "regle": "verifier_chiffres",
                 "message": "Aucun argument vérifié : rien à afficher"}

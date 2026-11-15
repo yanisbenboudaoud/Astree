@@ -127,7 +127,7 @@ def test_id_de_regle_en_double_refuse(tmp_path, robert):
     assert "id de règle en double : preserver_capital" in erreurs_au_chargement(tmp_path, robert)
 
 
-@pytest.mark.parametrize("id_reserve", ["verifier_chiffres", "horizon_ans"])
+@pytest.mark.parametrize("id_reserve", ["verifier_chiffres", "cadre_simulation", "horizon_ans"])
 def test_id_de_regle_reserve_refuse(tmp_path, robert, id_reserve):
     robert["pacte"]["regles"][2]["id"] = id_reserve
     assert "id réservé" in erreurs_au_chargement(tmp_path, robert)

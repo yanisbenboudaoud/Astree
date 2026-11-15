@@ -1,0 +1,81 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  background: var(--fond-carte);
+  border: 1px solid var(--trait-fin);
+  border-radius: 4px;
+}
+.entete { display: flex; flex-direction: column; gap: 4px; }
+.formulaire { display: flex; flex-direction: column; gap: 8px; }
+.exemples { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 6px; }
+.exemple {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--trait-moyen);
+  border-radius: 17px;
+  background: var(--fond-papier);
+  color: var(--encre-900);
+  font-size: 13px;
+  line-height: 18px;
+}
+.exemple:hover { border-color: var(--encre-700); }
+.texte {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--encre-500);
+  border-radius: 3px;
+  background: var(--fond-papier);
+  font-size: 15px;
+  line-height: 22px;
+  resize: vertical;
+}
+.texte::placeholder { color: var(--encre-500); opacity: 1; }
+.texte:focus { outline: none; border: 2px solid var(--accent-bleu); padding: 9px 11px; }
+.compteur { align-self: flex-end; }
+.pieces { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.pieces legend { float: left; margin-right: 8px; padding: 0; }
+.piece {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--trait-moyen);
+  border-radius: 2px;
+  background: var(--fond-carte);
+  cursor: pointer;
+}
+.piece:has(input:checked) { border-color: var(--accent-bleu); background: var(--accent-bleu-teinte); }
+.piece:has(input:focus-visible) { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
+.piece input { margin: 0; accent-color: var(--accent-bleu); }
+.verifier { align-self: flex-start; margin-top: 4px; }
+
+.erreur { color: var(--statut-violation); font-weight: 600; }
+.resultat { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; border-left: 4px solid; border-radius: 2px; }
+.accepte { background: var(--statut-conforme-teinte); border-color: var(--statut-conforme); }
+.rejete { background: var(--statut-violation-teinte); border-color: var(--statut-violation); }
+.verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.accepte .verdict > svg, .accepte .verdict .t-intertitre { color: var(--statut-conforme); }
+.rejete .verdict > svg, .rejete .verdict .t-intertitre { color: var(--statut-violation); }
+.nombres { display: flex; flex-direction: column; gap: 6px; }
+.nombre { display: grid; grid-template-columns: 120px auto 1fr; align-items: center; gap: 10px; }
+.etat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  padding: 3px 9px 3px 7px;
+  border-radius: 2px;
+  background: var(--fond-carte);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+}
+.trouve { color: var(--statut-conforme); }
+.introuvable { color: var(--statut-violation); }
+
+@media (max-width: 599px) {
+  .nombre { grid-template-columns: 1fr; gap: 2px; }
+}

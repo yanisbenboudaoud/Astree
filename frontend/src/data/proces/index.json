@@ -1,11 +1,9 @@
 {
-  "description": "Procès réellement tenus par le pipeline (python -m pipeline <profil> \"<demande>\", Amazon Bedrock, modèle us.anthropic.claude-sonnet-5-5), enregistrés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct. Chaque contrat passe python -m contrat.valider. Les entrées « calibrage » sont tenues avec les réponses préenregistrées du Pacte vécu (#68) : python -m pipeline <profil> \"<demande>\" --calibrage-demo.",
+  "description": "Procès réellement tenus par la Lambda du Tribunal (POST /tribunal, Bedrock us.anthropic.claude-sonnet-5-5) et archivés dans S3 (traces/<date>/<id>.json), copiés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct, seulement pour la décision qu'ils ont jugée. Leur identifiant permet à « Trompez le Greffier » (POST /verifier) de les relire dans S3. Chaque contrat passe python -m contrat.valider.",
   "proces": [
-    {"fichier": "robert.json", "profil": "robert", "audience": "0142", "enregistreLe": "2026-11-14"},
-    {"fichier": "amira.json", "profil": "amira", "audience": "0143", "enregistreLe": "2026-11-14"},
-    {"fichier": "mateo.json", "profil": "mateo", "audience": "0144", "enregistreLe": "2026-11-14"},
-    {"fichier": "robert_vecu.json", "profil": "robert", "audience": "0145", "enregistreLe": "2026-11-15", "calibrage": true},
-    {"fichier": "amira_vecu.json", "profil": "amira", "audience": "0146", "enregistreLe": "2026-11-15", "calibrage": true},
-    {"fichier": "mateo_vecu.json", "profil": "mateo", "audience": "0147", "enregistreLe": "2026-11-15", "calibrage": true}
+    {"procesId": "2026-11-15-dfad1e96d34e", "profil": "robert", "note": "30 % en TSLA"},
+    {"procesId": "2026-11-15-5944335b5a5c", "profil": "robert", "note": "25 % en TSLA : un argument du Procureur renvoyé par le Greffier puis corrigé"},
+    {"procesId": "2026-11-15-741f038b00f1", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %"},
+    {"procesId": "2026-11-14-51c84bd19c16", "profil": "mateo", "note": "10 % en XOM"}
   ]
 }

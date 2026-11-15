@@ -53,7 +53,12 @@
     },
     "limites": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
     "trace": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/etape_trace"}},
-    "avertissement": {"type": "string", "minLength": 1}
+    "avertissement": {"type": "string", "minLength": 1},
+    "contre_interrogatoire": {
+      "description": "Facultatif (#55) : une entrée par question libre posée après le procès. Les pièces créées pour y répondre sont ajoutées au champ « pieces ».",
+      "type": "array",
+      "items": {"$ref": "#/$defs/echange_contre_interrogatoire"}
+    }
   },
 
   "$defs": {
@@ -220,7 +225,7 @@
     },
 
     "controle": {
-      "description": "« regle » est l'id d'une règle du Pacte ou un contrôle du système (verifier_chiffres, performance_passee, biais_survivant, interpretation_demande).",
+      "description": "« regle » est l'id d'une règle du Pacte ou un contrôle du système (verifier_chiffres, cadre_simulation, performance_passee, biais_survivant, interpretation_demande).",
       "type": "object",
       "additionalProperties": false,
       "required": ["statut", "regle", "message"],
@@ -247,6 +252,23 @@
       "if": {"properties": {"etape": {"const": "orchestrateur"}}},
       "then": {"required": ["raison"]},
       "else": {"properties": {"raison": false}}
+    },
+
+    "echange_contre_interrogatoire": {
+      "description": "Une question de l'utilisateur et les réponses du Procureur et de l'Avocat, vérifiées par le Greffier (#55).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question", "pieces_ajoutees", "requisitoire", "plaidoirie", "arguments_rejetes",
+                   "controle_chiffres", "trace"],
+      "properties": {
+        "question": {"type": "string", "minLength": 1, "maxLength": 500},
+        "pieces_ajoutees": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id_piece"}},
+        "requisitoire": {"type": "array", "items": {"$ref": "#/$defs/argument"}},
+        "plaidoirie": {"type": "array", "items": {"$ref": "#/$defs/argument"}},
+        "arguments_rejetes": {"type": "array", "items": {"$ref": "#/$defs/argument_rejete"}},
+        "controle_chiffres": {"$ref": "#/$defs/controle"},
+        "trace": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/etape_trace"}}
+      }
     }
   }
 }

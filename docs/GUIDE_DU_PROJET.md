@@ -151,7 +151,7 @@ Ajouter un quatrième profil ne demande **aucun code** : on écrit seulement un 
 | 1. **Agent Profil** | `pipeline/agent_profil.py` | Oui | Charge le Pacte (pièce P1) et transforme la phrase de l'utilisateur en décision précise : quel titre, quelle taille, comment c'est financé. Si la phrase est ambiguë, il le signale. |
 | 2. **Orchestrateur** | `pipeline/orchestrateur.py` | Oui | Choisit lui-même les outils à appeler (au plus 8 appels) et donne une raison courte, sans chiffre, pour chacun. Chaque résultat devient une pièce. Python ajoute d'office la simulation de la décision si le LLM l'a oubliée. |
 | 3. **Procureur et Avocat** | `pipeline/debat.py` | Oui | Deux LLM, appelés en même temps, écrivent 2 à 4 arguments chacun, contre et pour, en citant les pièces. Ils n'ont accès à aucun outil. |
-| 4. **Greffier** | `pipeline/greffier.py`, `pipeline/chiffres.py` | **Non** | Contrôle chaque règle du Pacte (conforme, violation, à vérifier), puis chaque chiffre de chaque argument. Un argument faux est renvoyé une fois, puis rejeté. |
+| 4. **Greffier** | `pipeline/greffier.py`, `pipeline/chiffres.py`, `pipeline/cadre_simulation.py` | **Non** | Contrôle chaque règle du Pacte (conforme, violation, à vérifier), puis chaque chiffre de chaque argument, et vérifie qu'aucun argument ne conseille une transaction ni ne promet l'avenir. Un argument faux est renvoyé une fois, puis rejeté. |
 | 5. **Contrat** | `pipeline/tribunal.py` | Non | Assemble tout dans le contrat JSON. |
 | 6. **Verdict** | L'utilisateur, dans l'interface | — | Maintenir, modifier ou ajuster le Pacte. Le choix est archivé. |
 
@@ -501,20 +501,18 @@ Deux règles d'équipe : aucune mention de l'assistant de code dans les commits 
 - Les 3 cas généraux (décision incohérente, diversification, critères ESG), démontrés avec les 3 profils.
 - Les 7 outils, le Greffier (Pacte et chiffres), l'Orchestrateur, le Procureur et l'Avocat.
 - La jurisprudence (#56) : la mémoire des verdicts.
-- Le Pacte vécu (#68) : la pire baisse tolérée mesurée sur de vrais jours de marché, avec 3 procès réels enregistrés.
+- Le Pacte vécu (#68) : la pire baisse tolérée mesurée sur de vrais jours de marché.
 - Le déploiement AWS : Lambda, Bedrock, S3, Function URL, vérifiés avec de vrais procès.
-- L'interface Astrée, en mode démonstration avec 3 procès réels enregistrés.
+- L'interface Astrée : en mode démonstration avec 3 procès réels enregistrés, ou en direct sur la Lambda (#14).
 
 **Ce qui reste ouvert** (issues sur GitHub) :
 
 | Issue | Sujet |
 |---|---|
-| #14 | Interface : la brancher en direct sur la Lambda. La Function URL est encore protégée (type `AWS_IAM`) : il faut l'ouvrir au navigateur avec un CORS limité au domaine de l'interface. |
 | #18 | Livrables : README final, documentation technique, vidéo, one pager |
 | #55 | Contre-interrogatoire : poser une question libre au Tribunal |
 | #57 | Export du procès-verbal (dossier de convenance) |
-| #58 | Démo : montrer le Greffier qui rejette un chiffre inventé |
-| #59, #60, #61, #69 | Améliorations proposées (scénarios, contrôle du cadre, points de bascule, « Trompez le Greffier ») |
+| #61 | « Qu'est-ce qui changerait la réponse ? » : points de bascule par règle |
 
 La liste à jour est toujours sur GitHub, onglet *Issues*.
 

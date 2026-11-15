@@ -15,9 +15,11 @@ l'orchestrateur ait demandé l'outil ou non : le curseur de l'écran Décision
 en a besoin dans tous les cas.
 
 Le Greffier passe en dernier : ``verifier_pacte`` contrôle chaque règle du
-Pacte, puis ``verifier_chiffres`` vérifie chaque argument du débat. Un argument
-refusé est renvoyé **une fois** à son agent (``corriger_argument``), puis rangé
-dans ``arguments_rejetes`` s'il échoue encore (CLAUDE.md, section 4 ter).
+Pacte, puis chaque argument du débat est vérifié : ses chiffres
+(``verifier_chiffres``, CLAUDE.md, section 4 ter) et le cadre « simulation
+seulement » (``verifier_cadre_simulation`` : aucun conseil, aucune promesse,
+#60). Un argument refusé est renvoyé **une fois** à son agent
+(``corriger_argument``), puis rangé dans ``arguments_rejetes`` s'il échoue encore.
 """
 
 from __future__ import annotations
@@ -25,6 +27,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from pipeline.agent_profil import chemin_profil, lancer_agent_profil
+from pipeline.cadre_simulation import controle_cadre_simulation
 from pipeline.calibrage import calibrer
 from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
 from pipeline.debat import corriger_argument, debattre
@@ -120,7 +123,7 @@ def juger_decision(
     debat = debattre(dossier)
     contrat["trace"] += debat.trace
 
-    # Greffier, en dernier : règles du Pacte, puis chiffres des arguments.
+    # Greffier, en dernier : règles du Pacte, puis chiffres et cadre des arguments.
     controles_pacte = controler_pacte(profil.profil, profil.decision, instruction, contrat["pieces"])
     contrat["trace"].append({
         "etape": "greffier",
@@ -131,18 +134,18 @@ def juger_decision(
     requisitoire = verifier_cote(debat.requisitoire, "requisitoire", "procureur", dossier, contrat["trace"])
     plaidoirie = verifier_cote(debat.plaidoirie, "plaidoirie", "avocat", dossier, contrat["trace"])
     controle_chiffres = controle_verifier_chiffres(requisitoire, plaidoirie)
-    contrat["trace"].append({
-        "etape": "greffier",
-        "outil": "verifier_chiffres",
-        "entree": f"{len(debat.requisitoire) + len(debat.plaidoirie)} arguments",
-        "sortie": controle_chiffres["message"],
-    })
+    controle_cadre = controle_cadre_simulation(requisitoire, plaidoirie)
+    nombre_arguments = f"{len(debat.requisitoire) + len(debat.plaidoirie)} arguments"
+    for outil, controle in (("verifier_chiffres", controle_chiffres), ("verifier_cadre_simulation", controle_cadre)):
+        contrat["trace"].append(
+            {"etape": "greffier", "outil": outil, "entree": nombre_arguments, "sortie": controle["message"]}
+        )
 
     contrat["requisitoire"] = requisitoire.valides
     contrat["plaidoirie"] = plaidoirie.valides
     contrat["arguments_rejetes"] = requisitoire.rejetes + plaidoirie.rejetes
     performance = controle_performance_passee(requisitoire.valides + plaidoirie.valides)
-    contrat["controles"] += [*controles_pacte, controle_chiffres,
+    contrat["controles"] += [*controles_pacte, controle_chiffres, controle_cadre,
                              *([performance] if performance else []), controle_biais_survivant()]
     contrat["hypotheses"] = [periode_analyse(), *HYPOTHESES_DONNEES, *profil.hypotheses,
                              *hypotheses_proces(vecu.seuil if vecu else None)]
@@ -160,7 +163,7 @@ def hypotheses_proces(seuil_mesure: float | None) -> list[str]:
 
 
 def verifier_cote(arguments, cote, role, dossier, trace):
-    """``verifier_chiffres`` sur un côté du débat, avec une relance par argument refusé.
+    """Chiffres et cadre d'un côté du débat, avec une relance par argument refusé.
 
     Chaque relance ajoute l'étape de trace de ``corriger_argument``.
     """

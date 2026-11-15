@@ -13,6 +13,8 @@ import { IconeStatut, PastillePiece, Provenance, Statut } from '../components/Et
 import { LienRetour, Message } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { TiroirPiece } from '../components/TiroirPiece';
+import { TrompezLeGreffier } from '../components/TrompezLeGreffier';
+import { date } from '../lib/format';
 import { libelleDecision } from '../domaine/decision';
 import { resultatCalibrage } from '../domaine/calibrage';
 import { donneesCalibrage } from '../api/donnees';
@@ -302,7 +304,8 @@ export function Tribunal({ profil }: { profil: Profil }) {
   }
   const comptes = (['Violation', 'À vérifier', 'Conforme'] as const).map((s) => ({ statut: s, n: resultat.controles.filter((c) => c.statut === s).length }));
   const manquantes = resultat.controles.filter((c) => /source manquante/i.test(c.texte)).length;
-  const corrections = resultat.trace.filter((e) => e.appel.startsWith('argument renvoyé')).length;
+  const principal = resultat.controles.find((c) => c.paragraphe !== undefined && c.statut === 'Violation');
+  const reglePrincipale = principal && resultat.contrat.pacte.regles.find((r) => r.id === principal.regle);
   const contexteQuestions = { profil, resultat, decision, table: tablePosition, pieces };
   const questions = questionsSuggerees(contexteQuestions);
   const dejaPosees = new Set(etat.reponses.map((r) => r.question));
@@ -346,6 +349,12 @@ export function Tribunal({ profil }: { profil: Profil }) {
                 ))}
               </div>
               <p className="t-corps">{resultat.constat}</p>
+              {reglePrincipale && (
+                <p className="t-petit c-700">
+                  Règle que vous avez signée le {date(resultat.contrat.pacte.date_signature)} (Pacte §{principal!.paragraphe}) :
+                  « {reglePrincipale.libelle} ».
+                </p>
+              )}
             </div>
             <button type="button" className={styles.voirControles} aria-expanded={controlesOuverts} aria-controls="liste-controles" onClick={() => setControlesOuverts((o) => !o)}>
               {controlesOuverts ? 'Masquer les contrôles' : `Voir les ${resultat.controles.length} contrôles`}
@@ -369,15 +378,27 @@ export function Tribunal({ profil }: { profil: Profil }) {
             <Camp camp="Avocat" args={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} limite={resultat.limiteAvocat} />
           </div>
 
-          {(resultat.argumentsRejetes.length > 0 || corrections > 0) && (
+          {(resultat.argumentsRejetes.length > 0 || resultat.corrections.length > 0) && (
             <section className={styles.rejetes} aria-labelledby="titre-rejetes">
-              <h2 className="t-intertitre" id="titre-rejetes">Arguments contrôlés par le Greffier</h2>
-              {corrections > 0 && (
+              <h2 className="t-intertitre" id="titre-rejetes">Arguments contrôlés par le Greffier pendant ce procès</h2>
+              {resultat.corrections.length > 0 && (
                 <p className="t-petit c-700">
-                  {corrections} argument{corrections > 1 ? 's' : ''} renvoyé{corrections > 1 ? 's' : ''} à son agent parce qu'un chiffre n'était pas
-                  dans ses pièces, puis corrigé{corrections > 1 ? 's' : ''} : la version affichée a passé la vérification.
+                  Cas réel : l'agent a écrit un chiffre absent de ses pièces. Le Greffier l'a renvoyé une fois avec le motif
+                  exact ; seule la version corrigée, qui a passé la vérification, est affichée dans le débat.
                 </p>
               )}
+              {resultat.corrections.map((c) => (
+                <div key={c.original} className={styles.correction}>
+                  <p className="t-petit-fort">{c.camp} · version renvoyée</p>
+                  <p className={`t-petit ${styles.versionRenvoyee}`}>« {c.original} »</p>
+                  <p className={styles.motifCorrection}>
+                    <IconeStatut type="Violation" taille={14} />
+                    <span className="t-petit-fort">Motif du Greffier : {c.motif}</span>
+                  </p>
+                  <p className="t-petit-fort">Version corrigée, acceptée</p>
+                  <p className="t-petit">« {c.corrige} »</p>
+                </div>
+              ))}
               {resultat.argumentsRejetes.map((a) => (
                 <p key={a.texte} className={styles.rejete}>
                   <IconeStatut type="Violation" taille={14} />
@@ -386,6 +407,8 @@ export function Tribunal({ profil }: { profil: Profil }) {
               ))}
             </section>
           )}
+
+          <TrompezLeGreffier resultat={resultat} pieces={pieces} />
 
           <div className={styles.replis}>
             <Repli id="repli-trace" titre="Comment le Tribunal a travaillé" sousTitre={`${resultat.trace.length} étapes tracées : profil, outils choisis par l'orchestrateur, plaidoiries, contrôle`}>
@@ -442,7 +465,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
             {noteQuestion && (
               <p className="t-petit c-700" role="status">
                 Les questions libres passeront par l'orchestrateur Bedrock, qui choisira ses outils et ajoutera des pièces au dossier.
-                Ce branchement n'est pas encore dans le contrat du pipeline : les questions suggérées ci-dessus sont calculées par le Greffier.
+                Le pipeline sait déjà y répondre (route /question, #55), mais l'interface ne l'appelle pas encore : les questions suggérées ci-dessus sont calculées par le Greffier.
               </p>
             )}
             {etat.reponses.length > 0 && (

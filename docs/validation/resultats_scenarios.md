@@ -4,7 +4,7 @@ Fichier généré par `python -m validation` (issue #15) : ne pas le modifier à
 Partie calculée du procès (Pacte, simulation, Greffier, taille maximale) sur les données du dépôt,
 sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèle et les vrais outils.
 
-**Bilan : 39 réussis, 0 en échec, 1 en attente.**
+**Bilan : 46 réussis, 0 en échec, 0 en attente.**
 
 ## 1. Même décision, profils différents
 
@@ -14,7 +14,7 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Profil audacieux + 30 % TSLA | aucune violation (environ −42,6 % pour un seuil de −45 %) | aucune violation ; pire baisse −42,6 % ; taille max 30,0 % | ✅ |
 | Profil ESG + 30 % TSLA | violation de pire_baisse_max (seuil −20 %) | violations : pire_baisse_max ; pire baisse −33,3 % ; taille max 11,0 % | ✅ |
 | Profil ESG + 10 % XOM | aucune violation financière ; règle ESG à vérifier (source manquante) | aucune violation ; pire baisse −10,0 % ; taille max 10,0 % ; controverses_esg : a_verifier | ✅ |
-| Profil audacieux + panier crypto-tech (100 %) | 3 violations | en attente de #16 : simuler_portefeuille ne simule pas encore les réallocations | ⏸ |
+| Profil audacieux + panier crypto-tech (100 % réalloué) | 3 violations : pire baisse, crypto et tech + crypto | violations : pire_baisse_max, plafond_crypto, pas_exclusivement_tech ; pire baisse −61,9 % ; taille max 28,0 % | ✅ |
 
 ## 2. Changer un seuil (profil prudent, 30 % TSLA)
 
@@ -49,7 +49,7 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Portefeuille après la décision : pire baisse | identique : la pire baisse de la période est atteinte en 2022 | période complète −29,0 % ; 2022 seule −29,0 % | ✅ |
 | Portefeuille après la décision : volatilité annualisée | plus élevée en 2022 (année de crise) | période complète 19,0 % ; 2022 seule 21,7 % | ✅ |
 
-## 5. Robustesse du Greffier (verifier_chiffres)
+## 5. Robustesse du Greffier (verifier_chiffres et cadre_simulation)
 
 | Scénario | Attendu | Obtenu | |
 |---|---|---|---|
@@ -59,6 +59,12 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Mauvaise pièce citée : « La pire chute observée passe de −7,8 % à −29,0 %. » (P3) | rejeté | rejeté : « −7,8 % » introuvable dans P3 (présent dans P1, pièce non citée) ; « −29,0 % » introuvable dans P3 (présent dans P1, pièce non citée) | ✅ |
 | Signe manquant : « Si 2022 se répétait, le portefeuille ferait 2,6 %. » (P2) | rejeté | rejeté : « 2,6 % » introuvable dans P2 : valeur négative, écrire le signe « − » | ✅ |
 | Nombre dérivé : « La pire chute serait 21 points de plus qu'aujourd'hui. » (P1) | rejeté | rejeté : « 21 » introuvable dans P1 | ✅ |
+| Conseil personnalisé : « La pire chute passe à −29,0 % : vous devriez vendre TSLA. » (P1) | rejeté | rejeté : Conseil personnalisé : « vous devriez » (le Tribunal ne recommande aucune transaction : exposer ce que montrent les pièces et laisser l'utilisateur décider) | ✅ |
+| Impératif : « Limitez TSLA : la pire chute passe de −7,8 % à −29,0 %. » (P1) | rejeté | rejeté : Conseil personnalisé : « Limitez » (le Tribunal ne recommande aucune transaction : exposer ce que montrent les pièces et laisser l'utilisateur décider) | ✅ |
+| Promesse : « Le rendement annualisé de +12,0 % va continuer à progresser. » (P1) | rejeté | rejeté : Promesse ou prévision sur l'avenir : « va continuer à progresser » (le passé ne prédit pas l'avenir : décrire ce que montrent les pièces, ou un scénario au conditionnel avec l'étiquette « hypothese ») | ✅ |
+| Prévision au futur : « Avec 30 % en TSLA, la pire chute de −29,0 % se répétera. » (P1) | rejeté | rejeté : Promesse ou prévision sur l'avenir : « répétera » (le passé ne prédit pas l'avenir : décrire ce que montrent les pièces, ou un scénario au conditionnel avec l'étiquette « hypothese ») | ✅ |
+| Promesse niée : « Le rendement annualisé passe à +12,0 %, mais le passé ne prédit pas l'avenir. » (P1) | accepté | accepté | ✅ |
+| Citation du Pacte : « Vous avez écrit : « Préserver mon capital ». » (P3) | accepté | accepté | ✅ |
 
 ## 6. Garde-fous de l'orchestrateur
 
@@ -85,3 +91,39 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Reste jusqu'à −20,0 % | seuil ≥ −20,0 % ; violation | seuil −16,0 % en 4 questions ; violation | ✅ |
 | Reste jusqu'à −32,0 % | seuil ≥ −32,0 % ; conforme | seuil −31,4 % en 4 questions ; conforme | ✅ |
 | Reste jusqu'à −60,0 % | seuil ≥ −60,0 % ; conforme | seuil −50,5 % en 4 questions ; conforme | ✅ |
+
+## Graphique : taille maximale compatible selon le seuil
+
+![Taille maximale compatible selon le seuil de pire baisse](sensibilite_seuil.svg)
+
+Profil prudent, 30 % en TSLA, financement proportionnel. Chaque point est calculé par `rechercher_taille_max` (#21) avec un seuil de pire baisse différent.
+
+<details><summary>Valeurs du graphique</summary>
+
+| Seuil de pire baisse | Taille maximale compatible |
+|---|---|
+| −8,0 % | 1,0 % |
+| −9,0 % | 5,0 % |
+| −10,0 % | 7,0 % |
+| −11,0 % | 8,0 % |
+| −12,0 % | 9,0 % |
+| −13,0 % | 11,0 % |
+| −14,0 % | 12,0 % |
+| −15,0 % | 13,0 % |
+| −16,0 % | 14,0 % |
+| −17,0 % | 15,0 % |
+| −18,0 % | 16,0 % |
+| −19,0 % | 18,0 % |
+| −20,0 % | 19,0 % |
+| −21,0 % | 20,0 % |
+| −22,0 % | 21,0 % |
+| −23,0 % | 22,0 % |
+| −24,0 % | 23,0 % |
+| −25,0 % | 25,0 % |
+| −26,0 % | 26,0 % |
+| −27,0 % | 27,0 % |
+| −28,0 % | 28,0 % |
+| −29,0 % | 30,0 % |
+| −30,0 % | 30,0 % |
+
+</details>

@@ -1,6 +1,6 @@
 # #85 — Tolérance contre capacité : signaler les contradictions du questionnaire
 
-- **Issue** : #85 · **PR** : #PR_A_RENSEIGNER · **Statut** : terminée
+- **Issue** : #85 · **PR** : #93 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

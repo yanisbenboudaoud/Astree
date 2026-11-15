@@ -83,6 +83,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `config/categories.json` | Catégories (`tech`, `crypto`) des règles `plafond`, communes à tous les profils | [003](docs/journal/003-pacte-generique.md) |
 | `validation/` | Scénarios de validation et de sensibilité : même décision pour plusieurs profils, seuils, hypothèses, période, robustesse du Greffier, garde-fous, profil inventé. `python -m validation` | [015](docs/journal/015-scenarios-validation.md) |
 | `tests/` | Un fichier de test par module (`test_donnees.py` ↔ `pipeline/donnees.py`). `pytest -m bedrock` pour les vrais appels | — |
+| `docs/guide_jurisprudence.md` | Guide pas à pas de la jurisprudence (#56) et de la correction du validateur (#65) : la boucle complète sur un vrai procès, les choix, les limites, et des questions pour vérifier sa compréhension | [056](docs/journal/056-jurisprudence.md), [065](docs/journal/065-valider-erreurs-outil.md) |
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](docs/journal/000-fondations.md) |
 | `docs/validation/resultats_scenarios.md` | Tableau des résultats des scénarios (généré par `python -m validation`) | [015](docs/journal/015-scenarios-validation.md) |
 | `docs/exemples/` | Faux contrats valides (cas 1 et 2), utilisés par l'équipe interface | [002](docs/journal/002-contrat-json.md) |

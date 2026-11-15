@@ -25,7 +25,7 @@ from unittest import mock
 import pandas as pd
 
 from pipeline import categories as module_categories
-from pipeline import macro
+from pipeline import frais, macro
 from pipeline.calibrage import RESTE, VEND, calibrer, episodes_de_baisse, prochaine_question
 from pipeline.chiffres import trier_arguments
 from pipeline.donnees import ErreurDonnees
@@ -618,6 +618,38 @@ def scenarios_macro() -> list[Resultat]:
     return resultats
 
 
+# --- 11. Frais de gestion des FNB (#114) -------------------------------------------------
+
+def scenarios_frais() -> list[Resultat]:
+    """Coût annuel des frais des FNB, ajouté à la pièce de simulation sans être déduit."""
+    groupe = "11. Frais de gestion des FNB (profil prudent, 30 % TSLA)"
+    robert = profil("robert")
+    portefeuille, decision = robert["portefeuille"], position("TSLA", 0.30)
+    valeurs = piece_simulation("P2", portefeuille, decision, capital=robert["capital_fictif_cad"])["valeurs"]
+    a_la_main = sum(ligne["poids"] * (frais.ratio_frais(ligne["ticker"]) or 0) for ligne in portefeuille)
+    resultats = [
+        Resultat(groupe, "Coût annuel des frais du portefeuille actuel",
+                 "moyenne des ratios des FNB pondérée par les poids ; actions sans frais de gestion",
+                 f"{formater_pourcentage(valeurs['frais_annuels_actuels'], 3).lstrip('+')} par an, "
+                 f"soit {valeurs['frais_annuels_cad_actuels']} $",
+                 round(a_la_main, 6) == valeurs["frais_annuels_actuels"]),
+        Resultat(groupe, "Coût annuel après la décision",
+                 "plus bas : TSLA, action détenue en direct, n'a pas de frais de gestion",
+                 f"{valeurs['frais_annuels_cad_actuels']} $ → {valeurs['frais_annuels_cad']} $ par an",
+                 valeurs["frais_annuels"] < valeurs["frais_annuels_actuels"]),
+    ]
+    sans_tlt = {**frais.charger_frais(), "fnb": [f for f in frais.charger_frais()["fnb"] if f["ticker"] != "TLT"]}
+    with mock.patch("pipeline.frais.charger_frais", return_value=sans_tlt):
+        inconnu = piece_simulation("P2", portefeuille, position("TLT", 0.10), capital=robert["capital_fictif_cad"])["valeurs"]
+    resultats.append(Resultat(
+        groupe, "FNB absent du relevé des frais (10 % en TLT)",
+        "jamais deviné : aucun coût après la décision, le titre est signalé",
+        f"frais_inconnus : {', '.join(inconnu.get('frais_inconnus', []))}",
+        inconnu.get("frais_inconnus") == ["TLT"] and "frais_annuels" not in inconnu,
+    ))
+    return resultats
+
+
 GROUPES = [
     scenarios_profils,
     scenarios_seuil,
@@ -628,6 +660,7 @@ GROUPES = [
     scenarios_profil_invente,
     scenarios_pacte_vecu,
     scenarios_macro,
+    scenarios_frais,
 ]
 
 

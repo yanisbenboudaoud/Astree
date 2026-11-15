@@ -44,8 +44,9 @@ from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
 from pipeline.debat import corriger_argument, debattre
 from pipeline.greffier import controle_biais_survivant, controle_performance_passee, verifier_pacte
 from pipeline.donnees import HYPOTHESES_DONNEES, seances_americaines
+from pipeline.frais import HYPOTHESE_FRAIS
 from pipeline.macro import HYPOTHESE_TAUX_SANS_RISQUE
-from pipeline.sources import sources_du_proces
+from pipeline.sources import VALEURS_FRAIS, sources_du_proces
 from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.llm import converser_avec_outils
 from pipeline.orchestrateur import RAISON_D_OFFICE, instruire_dossier
@@ -240,6 +241,8 @@ def juger_decision(
                              *hypotheses_proces(vecu.seuil if vecu else None)]
     if any("taux_sans_risque_moyen" in piece["valeurs"] for piece in contrat["pieces"]):
         contrat["hypotheses"].append(HYPOTHESE_TAUX_SANS_RISQUE)
+    if any(cle in piece["valeurs"] for piece in contrat["pieces"] for cle in VALEURS_FRAIS):
+        contrat["hypotheses"].append(HYPOTHESE_FRAIS)
     if vecu is not None:
         contrat["limites"].append(LIMITE_PACTE_VECU)
     contrat["sources"] = sources_du_proces(contrat)

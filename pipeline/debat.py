@@ -188,6 +188,8 @@ Règles sur le fond :
 - « part_usd » (après la décision) et « part_usd_actuelle » : part du portefeuille cotée en
   dollars américains, dont la valeur en CAD varie aussi avec le taux de change. C'est un
   risque de devise, distinct du risque des titres eux-mêmes. Une part s'écrit sans signe (37 %).
+- Les frais de gestion des FNB sont déjà prélevés dans les rendements des pièces : ne les
+  retranche jamais d'un rendement ; cite leur coût annuel tel que la pièce le donne.
 - Le passé ne prédit pas l'avenir : ne présente jamais une performance passée comme une
   promesse (règle B).
 - Pour citer une règle du Pacte, reprends son libellé et cite la pièce du Pacte.

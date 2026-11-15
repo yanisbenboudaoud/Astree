@@ -2,7 +2,9 @@
 
 Trois routes, en POST, avec un corps JSON :
 
-- ``/tribunal`` ``{"profil": "<id>", "demande": "<texte>"}`` : fait le procès
+- ``/tribunal`` ``{"profil": "<id>", "demande": "<texte>"}`` : fait le procès. Champ
+  facultatif ``"calibrage": {"reponses": {"<id de question>": "<réponse>"}}`` : les
+  réponses du Pacte vécu (#68), datées du jour par la Lambda.
   (``juger_decision``) et renvoie le contrat JSON tel quel. Le contrat est archivé
   dans S3 (``traces/<date>/<id>.json``) et son identifiant est renvoyé dans
   l'en-tête ``X-Proces-Id`` : le format du contrat ne change pas.
@@ -44,6 +46,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from pipeline.agent_profil import ProfilInconnu
+from pipeline.calibrage import ErreurCalibrage
 from pipeline.chiffres import detailler_argument
 from pipeline.contre_interrogatoire import QuestionInvalide, interroger, pieces_de_l_echange
 from pipeline.donnees import ErreurDonnees, seances_americaines
@@ -53,6 +56,7 @@ from pipeline.tribunal import bornes_periode, juger_decision
 
 VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # CLAUDE.md, section 5
 LONGUEUR_MAX_DEMANDE = 2000  # une demande d'investissement tient en quelques phrases
+REPONSES_MAX_CALIBRAGE = 20  # le Pacte vécu pose une dizaine de questions au plus
 FORMAT_ID = re.compile(r"\d{4}-\d{2}-\d{2}-[0-9a-f]{12}")
 EN_TETE_ID = "X-Proces-Id"
 
@@ -126,9 +130,12 @@ def _tribunal(corps: dict[str, Any]) -> dict[str, Any]:
         raise RequeteInvalide("Champ « demande » manquant : la décision à juger, en une phrase")
     if len(demande) > LONGUEUR_MAX_DEMANDE:
         raise RequeteInvalide(f"Demande trop longue : {LONGUEUR_MAX_DEMANDE} caractères au plus")
+    calibrage = _lire_calibrage(corps.get("calibrage"))
 
     try:
-        contrat = juger_decision(profil, demande)
+        contrat = juger_decision(profil, demande, calibrage=calibrage)
+    except ErreurCalibrage as erreur:
+        return _reponse(400, {"erreur": str(erreur)})
     except ProfilInconnu as erreur:
         return _reponse(404, {"erreur": str(erreur)})
     except PacteInvalide as erreur:
@@ -148,6 +155,17 @@ def _tribunal(corps: dict[str, Any]) -> dict[str, Any]:
         # Le procès a coûté des appels Bedrock : on le renvoie quand même, sans identifiant.
         print(f"Archivage du procès impossible : {erreur}")
     return _reponse(200, contrat, en_tetes)
+
+
+def _lire_calibrage(brut: Any) -> dict[str, Any] | None:
+    """Réponses du Pacte vécu (#68), datées du jour (UTC) ; None si le champ est absent."""
+    if brut is None:
+        return None
+    reponses = brut.get("reponses") if isinstance(brut, dict) else None
+    if (not isinstance(reponses, dict) or not reponses or len(reponses) > REPONSES_MAX_CALIBRAGE
+            or not all(isinstance(c, str) and isinstance(v, str) for c, v in reponses.items())):
+        raise RequeteInvalide("Champ « calibrage » invalide : {\"reponses\": {\"<id de question>\": \"<réponse>\"}}")
+    return {"reponses": reponses, "date": datetime.now(timezone.utc).date().isoformat(), "etiquette": "fait"}
 
 
 def _verdict(corps: dict[str, Any]) -> dict[str, Any]:

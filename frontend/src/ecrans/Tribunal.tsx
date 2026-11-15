@@ -16,6 +16,8 @@ import { TiroirPiece } from '../components/TiroirPiece';
 import { TrompezLeGreffier } from '../components/TrompezLeGreffier';
 import { date } from '../lib/format';
 import { libelleDecision } from '../domaine/decision';
+import { resultatCalibrage } from '../domaine/calibrage';
+import { donneesCalibrage } from '../api/donnees';
 import { questionsSuggerees, repondre, type QuestionSuggeree } from '../domaine/questions';
 import { useEtatProfil } from '../state/store';
 import { useTables } from '../state/useTables';
@@ -132,7 +134,7 @@ function Repli({ titre, sousTitre, children, id }: { titre: string; sousTitre: s
   );
 }
 
-function NonEnregistre({ profil, decision, enregistree, onRejouer }: { profil: Profil; decision: DecisionUI; enregistree: DecisionUI | null; onRejouer: () => void }) {
+function NonEnregistre({ profil, decision, enregistree, onRejouer, raisonPacteVecu }: { profil: Profil; decision: DecisionUI; enregistree: DecisionUI | null; onRejouer: () => void; raisonPacteVecu?: string }) {
   return (
     <div className={styles.corps}>
       <LienRetour vers={`/${profil.id}/decision`}>Décision</LienRetour>
@@ -141,9 +143,13 @@ function NonEnregistre({ profil, decision, enregistree, onRejouer }: { profil: P
           En mode démonstration, Astrée rejoue des procès réellement tenus par les agents Bedrock, sans rien inventer.
           Pour juger cette décision, il faut le Tribunal en direct (VITE_USE_MOCKS=false et l'adresse de la Lambda).
         </p>
+        {raisonPacteVecu && <p>{raisonPacteVecu}</p>}
       </Message>
       <div className={styles.actions}>
         <Bouton variante="tertiaire" fleche={false} vers={`/${profil.id}/decision`}>Retour à la décision</Bouton>
+        {raisonPacteVecu && (
+          <Bouton variante="secondaire" vers={`/${profil.id}/pacte-vecu`}>Revoir mes réponses</Bouton>
+        )}
         {enregistree && (
           <Bouton variante="primaire" onClick={onRejouer}>Voir le procès de « {libelleDecision(enregistree)} »</Bouton>
         )}
@@ -158,7 +164,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
   const [params, setParams] = useSearchParams();
   const { etat, definirTribunal, definirDecision, ajouterReponse } = useEtatProfil(profil.id);
   const { decision, tribunal } = etat;
-  const { tablePosition } = useTables(profil.id, decision);
+  const { tablePosition } = useTables(profil, decision);
   const [animer, setAnimer] = useState(false);
   const [etapesVisibles, setEtapesVisibles] = useState(0);
   const [debut] = useState(Date.now());
@@ -167,19 +173,28 @@ export function Tribunal({ profil }: { profil: Profil }) {
   const [controlesOuverts, setControlesOuverts] = useState(false);
   const declencheur = useRef<HTMLElement | null>(null);
   const resultat = tribunal.resultat;
+  // Réponses du Pacte vécu (#68), seulement s'il est terminé : le Tribunal les recalcule en Python.
+  const donnees = donneesCalibrage(profil.id);
+  const reponsesCalibrage = etat.calibrage?.reponses;
+  const reponsesPacteVecu = useMemo(
+    () => (donnees && reponsesCalibrage && resultatCalibrage(donnees, reponsesCalibrage).complet ? reponsesCalibrage : null),
+    [donnees, reponsesCalibrage],
+  );
 
   const lancer = useCallback(() => {
     if (!decision) return;
     setAnimer(true);
     setEtapesVisibles(0);
     definirTribunal({ statut: 'chargement' });
-    jugerDecision(profil.id, decision)
+    jugerDecision(profil.id, decision, undefined, reponsesPacteVecu)
       .then((r) => definirTribunal({ statut: 'pret', resultat: r }))
       .catch((e: unknown) => {
-        if (e instanceof ProcesNonEnregistre) definirTribunal({ statut: 'non_enregistre', decisionEnregistree: e.decisionEnregistree });
+        if (e instanceof ProcesNonEnregistre) {
+          definirTribunal({ statut: 'non_enregistre', decisionEnregistree: e.decisionEnregistree, erreur: e.raisonPacteVecu });
+        }
         else definirTribunal({ statut: 'erreur', erreur: e instanceof Error ? e.message : String(e) });
       });
-  }, [decision, definirTribunal, profil.id]);
+  }, [decision, definirTribunal, profil.id, reponsesPacteVecu]);
 
   // Un seul procès par décision : en mode direct, chaque appel coûte des appels Bedrock.
   // (Le mode strict de React exécute les effets deux fois en développement.)
@@ -248,6 +263,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
         <NonEnregistre
           profil={profil}
           decision={decision}
+          raisonPacteVecu={tribunal.erreur}
           enregistree={tribunal.decisionEnregistree ?? null}
           onRejouer={() => tribunal.decisionEnregistree && definirDecision(tribunal.decisionEnregistree)}
         />

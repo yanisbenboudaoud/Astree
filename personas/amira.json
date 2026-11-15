@@ -59,5 +59,12 @@
       {"ticker": "SHOP.TO", "poids": 0.1}
     ],
     "part_reallouee": 1.0
+  },
+  "calibrage_demo": {
+    "date": "2026-11-15",
+    "reste_jusqu_a": -0.45,
+    "capacite": "attendre",
+    "crypto": "reste",
+    "justification": "Réponses fictives : limite fixée au seuil déclaré du Pacte (−45 %) ; horizon long, elle peut attendre."
   }
 }

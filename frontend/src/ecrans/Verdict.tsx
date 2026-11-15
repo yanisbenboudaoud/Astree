@@ -26,7 +26,7 @@ export function Verdict({ profil }: { profil: Profil }) {
   const navigate = useNavigate();
   const { etat, modifierVerdict, signer } = useEtatProfil(profil.id);
   const { decision, tribunal, verdict } = etat;
-  const { tablePosition, entree } = useTables(profil.id, decision);
+  const { tablePosition, entree } = useTables(profil, decision);
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
   const idRaison = useId();

@@ -39,6 +39,11 @@ export function pourcent(ratio: number, { decimales = 1, signe = false }: Option
   return `${signe && positif ? '+' : ''}${texte}${FINE}%`;
 }
 
+/** Seuil du Pacte : entier s'il est rond (−0.12 → « −12 % »), sinon au dixième (seuil mesuré −0.1016 → « −10,2 % »). */
+export function seuil(ratio: number): string {
+  return pourcent(ratio, { decimales: Number.isInteger(Math.round(ratio * 1e6) / 1e4) ? 0 : 1 });
+}
+
 /** Part d'un poids en points entiers : 0.3 → « 30 % ». */
 export function part(ratio: number): string {
   return pourcent(ratio, { decimales: Number.isInteger(Math.round(ratio * 1000) / 10) ? 0 : 1 });

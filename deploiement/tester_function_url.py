@@ -12,6 +12,7 @@ Usage (depuis la racine du dépôt) ::
 
     .venv\\Scripts\\python -X utf8 deploiement\\tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"
     .venv\\Scripts\\python -X utf8 deploiement\\tester_function_url.py amira "…" --sortie contrat.json
+    .venv\\Scripts\\python -X utf8 deploiement\\tester_function_url.py robert "…" --calibrage-demo   # Pacte vécu (#68)
 
 Chaque appel fait un vrai procès : quelques appels Bedrock payants.
 """
@@ -29,6 +30,14 @@ from pathlib import Path
 import boto3
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
+
+RACINE = Path(__file__).resolve().parent.parent
+if str(RACINE) not in sys.path:
+    sys.path.insert(0, str(RACINE))
+
+from pipeline.agent_profil import chemin_profil  # noqa: E402
+from pipeline.calibrage import reponses_demo  # noqa: E402
+from pipeline.pacte import charger_pacte  # noqa: E402
 
 REGION = "us-east-1"
 FONCTION = "alphaforge-tribunal"
@@ -83,13 +92,17 @@ def main(arguments: list[str] | None = None) -> int:
     lecteur.add_argument("demande", help="la décision à juger, en une phrase")
     lecteur.add_argument("--fonction", default=FONCTION, help=f"nom de la Lambda ({FONCTION})")
     lecteur.add_argument("--sortie", type=Path, help="fichier où écrire la réponse JSON")
+    lecteur.add_argument("--calibrage-demo", action="store_true",
+                         help="envoie les réponses préenregistrées du Pacte vécu du profil (#68)")
     lecteur.add_argument("--verdict", choices=["maintenu", "modifie", "pacte_ajuste"],
                          help="envoie aussi ce verdict à /verdict pour le procès archivé (#13)")
     options = lecteur.parse_args(arguments)
 
     adresse = adresse_function_url(options.fonction)
-    statut, duree, contenu, identifiant = envoyer(f"{adresse}/tribunal",
-                                                 {"profil": options.profil, "demande": options.demande})
+    corps = {"profil": options.profil, "demande": options.demande}
+    if options.calibrage_demo:
+        corps["calibrage"] = {"reponses": reponses_demo(charger_pacte(chemin_profil(options.profil)))[0]}
+    statut, duree, contenu, identifiant = envoyer(f"{adresse}/tribunal", corps)
     print(f"HTTP {statut} en {duree:.1f} s · procès archivé : {identifiant or 'non'}")
     print(resumer(contenu))
     if options.sortie:

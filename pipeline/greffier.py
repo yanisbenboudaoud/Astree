@@ -81,7 +81,10 @@ def controler_pire_baisse_max(regle: dict[str, Any], contexte: dict[str, Any]) -
         statut, message = "violation", f"{texte} au-delà du seuil {formater_pourcentage(seuil)}"
     else:
         statut, message = "conforme", f"{texte} dans la limite du seuil {formater_pourcentage(seuil)}"
-    return _controle(statut, regle, message, [piece["id"], contexte["id_piece_pacte"]])
+    pieces = [piece["id"], contexte["id_piece_pacte"]]
+    if regle.get("piece"):  # seuil mesuré par le Pacte vécu (#68) : sa pièce le prouve
+        pieces.append(regle["piece"])
+    return _controle(statut, regle, message, pieces)
 
 
 def controler_plafond(regle: dict[str, Any], contexte: dict[str, Any]) -> dict[str, Any]:

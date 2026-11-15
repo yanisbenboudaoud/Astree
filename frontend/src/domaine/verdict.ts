@@ -4,7 +4,7 @@
  */
 import type { VerdictContrat } from '../api/contrat';
 import type { DecisionUI, EntreeSimulation, Profil, ResultatTribunal, Statut, TablePosition } from '../api/types';
-import { correlation, part, pourcent } from '../lib/format';
+import { correlation, part, pourcent, seuil as seuilTexte } from '../lib/format';
 import { entreePosition, libelleDecision } from './decision';
 import { libelleCategories, paragraphe, pireStatut } from './pacte';
 
@@ -47,7 +47,7 @@ function phraseEngagement(profil: Profil, ctx: ContexteVerdict, idRegle: string)
   const apres = ctx.resultat.contrat.comparaison.apres;
   if (!regle) return 'une règle de mon Pacte est enfreinte';
   if (regle.type === 'pire_baisse_max') {
-    return `la pire chute observée (${pourcent(apres.pire_baisse)}) dépasse ma limite de ${pourcent(regle.seuil ?? 0, { decimales: 0 })}`;
+    return `la pire chute observée (${pourcent(apres.pire_baisse)}) dépasse ma limite de ${seuilTexte(regle.seuil ?? 0)}`;
   }
   if (regle.type === 'plafond') {
     const nom = libelleCategories(regle.categories ?? []).toLowerCase();

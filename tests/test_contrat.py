@@ -136,6 +136,29 @@ def test_simulation_obligatoire_en_erreur_rejetee(contrat):
     assert "trace : la pièce obligatoire simuler_portefeuille est absente" in valider_contrat(contrat)
 
 
+def seuil_mesure(contrat, type_piece):
+    """Règle de pire baisse au seuil mesuré par le Pacte vécu (#68), prouvé par une pièce P2."""
+    regle = next(r for r in contrat["pacte"]["regles"] if r["type"] == "pire_baisse_max")
+    regle.update({"provenance": "Mesurée sur vos réponses du 2026-11-15", "etiquette": "fait", "piece": "P2"})
+    piece = next(p for p in contrat["pieces"] if p["id"] == "P2")
+    piece["type"] = type_piece
+    return contrat
+
+
+def test_seuil_mesure_prouve_par_une_piece_declaree_accepte(contrat):
+    assert valider_contrat(seuil_mesure(contrat, "declaree")) == []
+
+
+def test_seuil_mesure_prouve_par_une_autre_piece_rejete(contrat):
+    assert valider_contrat(seuil_mesure(contrat, "calculee")) == [
+        "pacte/regles/0 : la pièce P2 du seuil mesuré n'est pas une pièce declaree"]
+
+
+def test_provenance_sans_piece_rejetee(contrat):
+    contrat["pacte"]["regles"][0]["provenance"] = "Mesurée sur vos réponses"
+    assert valider_contrat(contrat)
+
+
 def test_meme_prefixe_d_erreur_que_l_orchestrateur():
     from contrat.valider import PREFIXE_ERREUR_OUTIL
     from pipeline.orchestrateur import PREFIXE_ERREUR

@@ -1,0 +1,8 @@
+{
+  "description": "Paramètres du Pacte vécu (#68) : les niveaux de baisse proposés à l'utilisateur et les séries où l'on cherche un vrai jour de marché pour chacun. Communs à tous les profils.",
+  "etiquette": "hypothese",
+  "niveaux": [-0.05, -0.10, -0.15, -0.20, -0.25, -0.30, -0.35, -0.40, -0.45, -0.50],
+  "justification_niveaux": "De −5 % à −50 % par pas de 5 points : couvre les seuils des trois profils de test (−12 %, −20 %, −45 %). Dix niveaux se départagent en 4 questions au plus par dichotomie.",
+  "series_reference": ["XIU.TO", "SPY", "QQQ", "NVDA"],
+  "justification_series": "Pour chaque niveau, on prend le premier jour où le portefeuille du profil a baissé d'au moins ce niveau depuis un sommet. S'il n'a jamais baissé autant, on prend le premier jour où une série de référence l'a fait, dans cet ordre : indices larges (S&P/TSX 60, S&P 500), puis plus volatils (Nasdaq-100, NVIDIA) pour les baisses profondes. Toutes sont des titres de l'univers, en CAD."
+}

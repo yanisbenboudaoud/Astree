@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { EntreeJournal, Profil } from '../api/types';
-import { configUi, nomTitre } from '../api/donnees';
+import { configUi, donneesCalibrage, nomTitre } from '../api/donnees';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { GraphiqueValeur } from '../components/graphiques/GraphiqueValeur';
 import { Recherche } from '../components/Recherche';
@@ -10,8 +10,9 @@ import { Bouton } from '../components/Bouton';
 import { IconeStatut, Provenance, Statut } from '../components/Etiquettes';
 import { Jauge, Monogramme, Section } from '../components/Elements';
 import { Icone } from '../components/Icone';
-import { compte, date, dollars, jourMois, part, pourcent } from '../lib/format';
+import { compte, date, dollars, jourMois, part, pourcent, seuil as seuilTexte } from '../lib/format';
 import { bilanPacte, regleCle, seuilPireBaisse, statutUi, valeurRegle } from '../domaine/pacte';
+import { regleMesuree } from '../domaine/calibrage';
 import { useEtatProfil } from '../state/store';
 import styles from './Portefeuille.module.css';
 
@@ -37,7 +38,7 @@ function Indicateurs({ profil }: { profil: Profil }) {
             <dd className={styles.jaugeIndicateur}>
               <Jauge valeur={utilisation} libelle={`Chute maximale : ${pourcent(utilisation, { decimales: 0 })} de la limite de votre Pacte`} />
             </dd>
-            <dd className="t-petit c-500">{pourcent(utilisation, { decimales: 0 })} de votre limite de {pourcent(seuil, { decimales: 0 })}</dd>
+            <dd className="t-petit c-500">{pourcent(utilisation, { decimales: 0 })} de votre limite de {seuilTexte(seuil)}</dd>
           </>
         )}
       </div>
@@ -95,6 +96,23 @@ function Positions({ profil }: { profil: Profil }) {
   );
 }
 
+function PacteVecu({ profil }: { profil: Profil }) {
+  const mesuree = regleMesuree(profil);
+  if (!donneesCalibrage(profil.id)) return null;
+  return (
+    <div className={styles.pacteVecu}>
+      {mesuree ? (
+        <p className="t-petit c-700">{mesuree.provenance}.</p>
+      ) : (
+        <p className="t-petit c-700">Votre limite de pire baisse est une hypothèse. Revivez de vrais jours de marché pour la mesurer.</p>
+      )}
+      <Bouton variante="tertiaire" compact fleche={false} vers={`/${profil.id}/pacte-vecu`}>
+        {mesuree ? 'Revoir mes réponses' : 'Revivez 4 jours de marché'}
+      </Bouton>
+    </div>
+  );
+}
+
 function CartePacte({ profil }: { profil: Profil }) {
   const [ouvert, setOuvert] = useState(false);
   const cle = regleCle(profil);
@@ -115,6 +133,7 @@ function CartePacte({ profil }: { profil: Profil }) {
         </div>
       )}
       <p className="t-petit c-500">{detail}</p>
+      <PacteVecu profil={profil} />
       <Bouton variante="tertiaire" compact fleche={false} aria-expanded={ouvert} aria-controls="regles-pacte" onClick={() => setOuvert((o) => !o)} className={styles.voirRegles}>
         {ouvert ? 'Masquer les règles' : `Voir les ${regles.length} règles`}
       </Bouton>
@@ -122,7 +141,10 @@ function CartePacte({ profil }: { profil: Profil }) {
         {regles.map((r, i) => (
           <li key={r.id}>
             <span className="t-trace c-500">§{i + 1}</span>
-            <span className="t-petit">{r.libelle}</span>
+            <span className="t-petit">
+              {r.libelle}
+              {r.provenance && <span className="c-500"> · {r.provenance}</span>}
+            </span>
             <IconeStatut type={statutUi(r.statut)} taille={14} />
           </li>
         ))}

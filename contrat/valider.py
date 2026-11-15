@@ -55,6 +55,11 @@ def erreurs_renvois(contrat):
                 if id_piece not in pieces_connues:
                     erreurs.append(f"{champ}/{i} : pièce {id_piece} inexistante")
 
+    for i, regle in enumerate(contrat["pacte"]["regles"]):
+        piece = next((p for p in contrat["pieces"] if p["id"] == regle.get("piece")), None)
+        if "piece" in regle and (piece is None or piece["type"] != "declaree"):
+            erreurs.append(f"pacte/regles/{i} : la pièce {regle['piece']} du seuil mesuré n'est pas une pièce declaree")
+
     ids_regles = {regle["id"] for regle in contrat["pacte"]["regles"]}
     regles_controlees = set()
     for i, controle in enumerate(contrat["controles"]):

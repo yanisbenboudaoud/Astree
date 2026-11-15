@@ -488,7 +488,6 @@ export function Tribunal({ profil }: { profil: Profil }) {
               <div className={styles.resume}>
                 <p className={styles.surtitreBilan}>Le Greffier a vérifié votre décision · calcul Python, sans IA</p>
                 <h2 className={`t-panneau ${styles.verdictBilan}`} id="titre-bilan">{bilan.verdict}</h2>
-                {bilan.explication && <p className="t-corps c-700">{sansCoupure(bilan.explication)}</p>}
               </div>
             </div>
 
@@ -507,7 +506,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
                           {c.titre}
                           {c.paragraphe !== undefined && <span className="c-500"> · §{c.paragraphe}</span>}
                         </span>
-                        {c.detail && c.detail !== bilan.explication && <span className="t-petit c-700">{sansCoupure(c.detail)}</span>}
+                        {c.detail && <span className="t-petit c-700">{sansCoupure(c.detail)}</span>}
                       </span>
                       <span className={styles.piecesControle}>
                         {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}
@@ -525,7 +524,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
                       <li key={p.regle} className={styles.ligneBascule}>
                         <span className="t-corps-fort">{sansCoupure(p.message)}</span>
                         <span className={styles.provenanceArgument}>
-                          <span className="t-petit c-500">Règle « {p.libelle} »</span>
+                          <span className="t-petit c-500">{p.paragraphe !== undefined ? `§${p.paragraphe} · ` : ''}Règle « {p.libelle} »</span>
                           {p.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={ouvrirPiece} />)}
                         </span>
                       </li>

@@ -1,17 +1,17 @@
 /** Écran Portefeuille (annexe D.2), avec la recherche (D.3) et la confirmation après signature (C.6). */
 import { useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import type { EntreeJournal, Profil } from '../api/types';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import type { EntreeJournal, Profil, ReglePacte } from '../api/types';
 import { configUi, donneesCalibrage, nomTitre, rechercheUi } from '../api/donnees';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { GraphiqueValeur } from '../components/graphiques/GraphiqueValeur';
 import { Recherche } from '../components/Recherche';
 import { Bouton } from '../components/Bouton';
-import { IconeStatut, Provenance, Statut } from '../components/Etiquettes';
+import { Provenance } from '../components/Etiquettes';
 import { Jauge, Monogramme, Section } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { compte, date, dollars, jourMois, part, pourcent, seuil as seuilTexte } from '../lib/format';
-import { bilanPacte, regleCle, seuilPireBaisse, statutUi, valeurRegle } from '../domaine/pacte';
+import { bilanPacte, regleCle, seuilPireBaisse } from '../domaine/pacte';
 import { regleMesuree } from '../domaine/calibrage';
 import { useEtatProfil } from '../state/store';
 import styles from './Portefeuille.module.css';
@@ -137,69 +137,104 @@ function Positions({ profil }: { profil: Profil }) {
   );
 }
 
+/** Ligne du bas de la carte du Pacte : la limite de pire baisse est-elle supposée ou mesurée (Pacte vécu, #68) ? */
 function PacteVecu({ profil }: { profil: Profil }) {
   const mesuree = regleMesuree(profil);
   if (!donneesCalibrage(profil.id)) return null;
   return (
-    <div className={styles.pacteVecu}>
-      {mesuree ? (
-        <p className="t-petit c-700">{mesuree.provenance}.</p>
-      ) : (
-        <p className="t-petit c-700">Votre limite de pire baisse est une hypothèse. Revivez de vrais jours de marché pour la mesurer.</p>
-      )}
-      <Bouton variante="tertiaire" compact fleche={false} vers={`/${profil.id}/pacte-vecu`}>
-        {mesuree ? 'Revoir mes réponses' : 'Revivez 4 jours de marché'}
-      </Bouton>
+    <Link className={styles.pacteVecu} to={`/${profil.id}/pacte-vecu`}>
+      <span className={styles.textePacteVecu}>
+        <span className="t-petit-fort">{mesuree ? 'Limite mesurée' : 'Limite supposée'}</span>
+        <span className="t-petit c-500">{mesuree ? `${mesuree.provenance}.` : 'Mesurez-la sur 4 vrais jours de marché.'}</span>
+      </span>
+      <span className={`t-petit-fort ${styles.actionPacteVecu}`}>
+        {mesuree ? 'Revoir' : 'Commencer'}
+        <Icone nom="fleche-droite" taille={14} />
+      </span>
+    </Link>
+  );
+}
+
+/** Le chiffre clé du Pacte : la valeur actuelle de la règle la plus proche de sa limite, et sa jauge. */
+function RegleCle({ regle }: { regle: ReglePacte }) {
+  const baisse = regle.type === 'pire_baisse_max';
+  const limite = baisse ? regle.seuil : regle.max;
+  const valeur = regle.valeur ?? 0;
+  const utilisation = regle.utilisation ?? 0;
+  const enViolation = regle.statut === 'violation';
+  return (
+    <div className={styles.regleCle}>
+      <p className="t-petit c-500">{baisse ? 'Pire baisse observée' : regle.libelle}</p>
+      <p className={styles.chiffreCle}>
+        <span className={enViolation ? styles.chiffreViolation : undefined}>{baisse ? pourcent(valeur) : part(valeur)}</span>
+        {limite !== undefined && <span className={styles.limiteCle}>/ {baisse ? seuilTexte(limite) : part(limite)}</span>}
+      </p>
+      <span
+        className={`${styles.jaugePacte} ${enViolation ? styles.jaugeViolation : ''}`}
+        role="meter"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(utilisation * 100)}
+        aria-label={`${regle.libelle} : ${pourcent(utilisation, { decimales: 0 })} de la limite utilisée`}
+      >
+        <span style={{ width: `${Math.min(1, Math.max(0, utilisation)) * 100}%` }} />
+      </span>
+      <p className={`t-petit c-500 ${styles.bornesJauge}`}>
+        <span>{pourcent(utilisation, { decimales: 0 })} de la limite utilisée</span>
+        {limite !== undefined && <span>Limite {baisse ? seuilTexte(limite) : part(limite)}</span>}
+      </p>
     </div>
   );
 }
 
+const STATUT_REGLE: Record<ReglePacte['statut'], string> = { conforme: 'Respectée', violation: 'Enfreinte', a_verifier: 'À juger' };
+const COULEUR_STATUT: Record<ReglePacte['statut'], string> = { conforme: styles.couleurConforme, violation: styles.couleurViolation, a_verifier: styles.couleurVerifier };
+
 function CartePacte({ profil }: { profil: Profil }) {
-  const [ouvert, setOuvert] = useState(false);
   const cle = regleCle(profil);
   const bilan = bilanPacte(profil);
   const regles = profil.pacte.regles;
-  const detail = [cle ? valeurRegle(cle) : null, `${compte(bilan.verifiees, 'règle vérifiée', 'règles vérifiées')}`, bilan.aJuger ? `${bilan.aJuger} à juger par vous` : null]
-    .filter(Boolean).join(' · ');
   return (
     <section className={styles.cartePacte} aria-labelledby="titre-pacte">
       <div className={styles.entetePacte}>
-        <h2 className="t-panneau" id="titre-pacte">Votre Pacte</h2>
-        <Statut type={bilan.statut} />
-      </div>
-      {cle && (
-        <div className={styles.regleCle}>
-          <p className="t-corps-fort">{cle.libelle}</p>
-          <Jauge valeur={cle.utilisation ?? 0} libelle={`${cle.libelle} : ${pourcent(cle.utilisation ?? 0, { decimales: 0 })} de la limite utilisée`} />
+        <div className={styles.titrePacte}>
+          <h2 className="t-panneau" id="titre-pacte">Votre Pacte</h2>
+          <p className="t-petit c-500">Signé le {date(profil.pacte.dateSignature)}</p>
         </div>
-      )}
-      <p className="t-petit c-500">{detail}</p>
-      <PacteVecu profil={profil} />
-      <Bouton variante="tertiaire" compact fleche={false} aria-expanded={ouvert} aria-controls="regles-pacte" onClick={() => setOuvert((o) => !o)} className={styles.voirRegles}>
-        {ouvert ? 'Masquer les règles' : `Voir les ${regles.length} règles`}
-      </Bouton>
-      <ol id="regles-pacte" className={styles.regles} hidden={!ouvert}>
+        <span className={`t-petit-fort ${styles.etatPacte} ${bilan.violations ? styles.etatViolation : styles.etatConforme}`}>
+          <span className={styles.point} aria-hidden="true" />
+          {bilan.violations ? compte(bilan.violations, 'règle enfreinte', 'règles enfreintes') : 'Respecté'}
+        </span>
+      </div>
+      {cle && <RegleCle regle={cle} />}
+      <ol className={styles.regles} aria-label="Règles du Pacte">
         {regles.map((r, i) => (
           <li key={r.id}>
-            <span className="t-trace c-500">§{i + 1}</span>
-            <span className="t-petit">
-              {r.libelle}
-              {r.provenance && <span className="c-500"> · {r.provenance}</span>}
+            <span className={`t-petit c-500 ${styles.numeroRegle}`}>§{i + 1}</span>
+            <span className={styles.texteRegle}>
+              <span className="t-petit">{r.libelle}</span>
+              {r.provenance && <span className="t-petit c-500">{r.provenance}</span>}
             </span>
-            <IconeStatut type={statutUi(r.statut)} taille={14} />
+            <span className={`t-etiquette ${styles.statutRegle} ${COULEUR_STATUT[r.statut]}`}>{STATUT_REGLE[r.statut]}</span>
           </li>
         ))}
-        <li className="t-petit c-500">Signé le {date(profil.pacte.dateSignature)}. Les règles sans calcul possible sont à juger par vous.</li>
       </ol>
+      <PacteVecu profil={profil} />
     </section>
   );
 }
+
+const LIBELLE_JOURNAL: Record<EntreeJournal['statut'], string> = {
+  conforme: 'Conforme au Pacte',
+  violation: 'En conflit avec le Pacte',
+  a_verifier: 'À vérifier',
+};
 
 function Journal({ entrees }: { entrees: EntreeJournal[] }) {
   const [tout, setTout] = useState(false);
   const visibles = tout ? entrees : entrees.slice(0, 3);
   return (
-    <section className={`section ${styles.journal}`} aria-labelledby="titre-journal">
+    <section className={styles.journal} aria-labelledby="titre-journal">
       <div className={styles.enteteJournal}>
         <h2 className="t-panneau" id="titre-journal">Journal des décisions</h2>
         {entrees.length > 3 && (
@@ -208,15 +243,18 @@ function Journal({ entrees }: { entrees: EntreeJournal[] }) {
           </Bouton>
         )}
       </div>
-      <ul>
+      <ol className={styles.frise}>
         {visibles.map((e) => (
-          <li key={`${e.date}-${e.texte}`} className={`${styles.entree} ${e.nouveau ? styles.entreeNouvelle : ''}`}>
-            <span className={`t-trace c-500 ${styles.dateJournal}`}>{jourMois(e.date)}</span>
-            <span className="t-corps">{e.texte}</span>
-            <IconeStatut type={statutUi(e.statut)} />
+          <li key={`${e.date}-${e.texte}`} className={`${styles.entree} ${COULEUR_STATUT[e.statut]} ${e.nouveau ? styles.entreeNouvelle : ''}`}>
+            <span className={styles.point} aria-hidden="true" />
+            <span className={styles.texteEntree}>
+              <span className="t-corps">{e.texte}</span>
+              <span className={`t-petit ${styles.statutEntree}`}>{LIBELLE_JOURNAL[e.statut]}</span>
+            </span>
+            <time className="t-petit c-500" dateTime={e.date}>{jourMois(e.date)}</time>
           </li>
         ))}
-      </ul>
+      </ol>
     </section>
   );
 }

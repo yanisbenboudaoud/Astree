@@ -105,35 +105,126 @@
 .montantLigne { width: 120px; text-align: right; flex: none; }
 .poids { width: 64px; text-align: right; flex: none; }
 
+/* Carte du Pacte : en-tête, chiffre clé et sa jauge, règles toujours visibles, Pacte vécu en pied de carte. */
 .cartePacte {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 24px;
-  background: var(--fond-sourdine);
+  background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
   border-radius: var(--rayon);
+  box-shadow: 0 1px 2px rgb(17 17 17 / 0.04);
+  overflow: hidden;
 }
-.entetePacte { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.regleCle { display: flex; flex-direction: column; gap: 6px; }
-.voirRegles { align-self: flex-start; }
-.regles { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--trait-fin); padding-top: 12px; }
-.regles[hidden] { display: none; }
-.regles li { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px; }
-.regles li:last-child { display: block; }
+.entetePacte {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 24px 0;
+}
+.titrePacte { display: flex; flex-direction: column; gap: 2px; }
+.etatPacte { display: inline-flex; align-items: center; gap: 7px; padding-top: 4px; white-space: nowrap; }
+.point { flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.etatConforme { color: var(--statut-conforme); }
+.etatViolation { color: var(--statut-violation); }
 
-.journal { display: flex; flex-direction: column; gap: 6px; padding-top: 16px; }
-.enteteJournal { display: flex; align-items: center; justify-content: space-between; }
-.entree {
-  display: grid;
-  grid-template-columns: 64px 1fr auto;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 8px 10px 0;
-  border-bottom: 1px solid var(--trait-fin);
+.regleCle { display: flex; flex-direction: column; gap: 6px; padding: 24px 24px 22px; }
+.chiffreCle { display: flex; align-items: baseline; gap: 8px; }
+.chiffreCle > span:first-child {
+  font-family: var(--police-titre);
+  font-weight: 600;
+  font-size: 36px;
+  line-height: 40px;
+  letter-spacing: -0.04em;
 }
-.entreeNouvelle { background: var(--accent-bleu-teinte); padding-left: 8px; border-radius: var(--rayon-petit); }
-.dateJournal { white-space: nowrap; }
+.chiffreViolation { color: var(--statut-violation); }
+.limiteCle { color: var(--encre-500); font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+.jaugePacte {
+  position: relative;
+  display: block;
+  height: 6px;
+  margin-top: 10px;
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-creux);
+  overflow: hidden;
+}
+.jaugePacte > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--rayon-pilule);
+  background: linear-gradient(90deg, #8c9af0, var(--donnee-principale));
+  transform-origin: left;
+  animation: remplir 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.jaugeViolation > span { background: var(--statut-violation); }
+@keyframes remplir { from { transform: scaleX(0); } }
+.bornesJauge { display: flex; justify-content: space-between; gap: 12px; }
+
+.regles { display: flex; flex-direction: column; padding: 4px 24px 8px; border-top: 1px solid var(--trait-fin); }
+.regles li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 0;
+}
+.regles li + li { border-top: 1px solid var(--trait-fin); }
+.numeroRegle { font-variant-numeric: tabular-nums; }
+.texteRegle { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.statutRegle { white-space: nowrap; }
+.couleurConforme { --couleur-statut: var(--statut-conforme); }
+.couleurViolation { --couleur-statut: var(--statut-violation); }
+.couleurVerifier { --couleur-statut: var(--statut-verifier); }
+.statutRegle { color: var(--couleur-statut); }
+
+/* Pied de carte cliquable : toute la ligne mène au Pacte vécu. */
+.pacteVecu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--trait-fin);
+  background: var(--fond-sourdine);
+  color: var(--encre-900);
+  text-decoration: none;
+  transition: box-shadow var(--transition);
+}
+.pacteVecu:hover { box-shadow: inset 0 0 0 999px rgb(17 17 17 / 0.025); }
+.pacteVecu:focus-visible { outline-offset: -3px; }
+.textePacteVecu { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.actionPacteVecu { display: inline-flex; align-items: center; gap: 6px; flex: none; color: var(--accent-bleu); }
+.actionPacteVecu svg { transition: transform var(--transition); }
+.pacteVecu:hover .actionPacteVecu svg { transform: translateX(3px); }
+
+/* Journal : une frise verticale, un point coloré par statut, le statut écrit en toutes lettres. */
+.journal { display: flex; flex-direction: column; gap: 14px; padding: 4px 4px 0; }
+.enteteJournal { display: flex; align-items: center; justify-content: space-between; }
+.frise { position: relative; display: flex; flex-direction: column; }
+.frise::before {
+  content: '';
+  position: absolute;
+  left: 3.5px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: var(--trait-fin);
+}
+.entree {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px;
+  padding: 10px 0;
+}
+.entree .point { margin-top: 7px; background: var(--couleur-statut); box-shadow: 0 0 0 4px var(--fond-papier); }
+.texteEntree { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.statutEntree { color: var(--couleur-statut); }
+.entree time { padding-top: 2px; white-space: nowrap; }
+/* Nouvelle entrée (après un verdict) : surlignée en bleu clair à droite du point, titre en gras. */
+.entreeNouvelle { background: linear-gradient(90deg, transparent 18px, var(--accent-bleu-teinte) 18px); border-radius: 0 var(--rayon-petit) var(--rayon-petit) 0; padding-right: 8px; }
+.entreeNouvelle .texteEntree > span:first-child { font-weight: 600; }
 
 @media (max-width: 1023px) {
   .grille { grid-template-columns: 1fr; }
@@ -148,12 +239,3 @@
   .montant { flex-direction: column; align-items: flex-start; }
 }
 
-.pacteVecu {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 10px 12px;
-  background: var(--fond-creux);
-  border-radius: var(--rayon);
-}

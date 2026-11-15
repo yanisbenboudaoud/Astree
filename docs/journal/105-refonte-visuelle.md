@@ -24,6 +24,12 @@ Une refonte du style seulement, sans changer le parcours ni les données. Le sty
   - `GraphiqueValeur.tsx` : ajout d'un `<linearGradient id="degrade-valeur">` pour l'aire ;
   - `Graphiques.module.css` : courbe de valeur et courbe « avec la décision » en indigo, « Actuel » en gris, limite du Pacte et pire baisse en rouge, repères en pointillés légers, bulle de lecture avec ombre.
 - **Portefeuille** (`ecrans/Portefeuille.tsx`) : la barre de répartition prend les couleurs `--categorie-*` (`TEINTES`) au lieu des nuances d'encre, avec des segments arrondis et des puces rondes dans la légende.
+- **Carte « Votre Pacte » et journal** (`ecrans/Portefeuille.tsx`, `Portefeuille.module.css`) : la carte est recomposée.
+  - En-tête : « Signé le … » et un état en point coloré au lieu de la pastille.
+  - Chiffre clé (`RegleCle`) : la valeur de la règle la plus proche de sa limite en grand (« −15,1 % / −20 % »), une jauge arrondie et ses deux bornes écrites.
+  - Les règles sont **toujours visibles**, avec leur statut écrit (Respectée, Enfreinte, À juger), au lieu du bouton « Voir les N règles ».
+  - Le Pacte vécu (`PacteVecu`) devient un pied de carte cliquable, au lieu d'un encadré gris imbriqué.
+  - Le journal devient une frise verticale : un point coloré par statut et le statut en toutes lettres (« Conforme au Pacte »), au lieu des seules coches.
 - **Entrée** : initiale en bleu dans un rond, cartes et panneau « Construire mon Pacte » plus aérés.
 - **Spec** (`docs/maquette/spec_interface_astree.md`) : annexe A (couleurs, règle d'usage des données, typographie, rayons, ombres, sections, composants) et passages de D.2 et D.3 qui décrivaient l'ancien style.
 

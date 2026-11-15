@@ -552,8 +552,8 @@ La recherche est la fonction principale de l'écran : elle passe en tête, sur t
   - Ligne de provenance : Fait + « Calculé sur les prix réels du 12 nov. 2021 au 12 nov. 2026, en CAD. »
   - « Vos positions » : barre de répartition par groupe, légende à pastilles, puis la liste. Chaque ligne affiche monogramme, nom, « ticker · groupe », valeur et poids. Pas de colonnes rendement ou volatilité par titre.
 - **Colonne latérale** (la recherche n'y est plus) :
-  - Carte « Votre Pacte » : statut Conforme, règle clé avec jauge, détail + « 4 règles respectées », lien « Voir les 4 règles ».
-  - « Journal des décisions » : 2 entrées + « Tout voir ».
+  - Carte « Votre Pacte » (#105) : titre et « Signé le … », état à droite (point vert « Respecté » ou point rouge « N règles enfreintes ») ; chiffre clé de la règle la plus proche de sa limite (« Pire baisse observée −15,1 % / −20 % », 36 px), jauge arrondie avec « 76 % de la limite utilisée » et « Limite −20 % » ; **toutes les règles visibles** (§n, libellé, provenance éventuelle, statut écrit en couleur : Respectée, Enfreinte, À juger) ; pied de carte cliquable vers le Pacte vécu (« Limite supposée · Mesurez-la sur 4 vrais jours de marché · Commencer → », ou « Limite mesurée · … · Revoir »).
+  - « Journal des décisions » (#105) : frise verticale, un point coloré par statut, texte de la décision, statut en toutes lettres (« Conforme au Pacte », « En conflit avec le Pacte », « À vérifier »), date à droite ; 3 entrées puis « Tout voir ».
 - **Sous 1024 px :** la colonne latérale passe sous la colonne principale ; le bandeau de recherche reste en tête.
 
 ### D.3 Recherche (combobox ARIA)

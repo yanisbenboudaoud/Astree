@@ -3,10 +3,10 @@
  * procès enregistrés. Aucun nom de profil dans la logique : les tests vérifient qu'elle
  * lit le Pacte et le contrat.
  */
-import contratRobert from '../data/proces/2026-11-15-dfad1e96d34e.json';
+import contratRobert from '../data/proces/2026-11-15-648546b5401b.json';
 import contratRobert25 from '../data/proces/2026-11-15-5944335b5a5c.json';
 import contratMateo from '../data/proces/2026-11-14-51c84bd19c16.json';
-import contratAmira from '../data/proces/2026-11-15-741f038b00f1.json';
+import contratAmira from '../data/proces/2026-11-15-46e0edfd53b7.json';
 import { pieges } from '../domaine/pieges';
 import { jugerDecision, ProcesNonEnregistre } from '../api/tribunal';
 import tsla from '../data/generated/decisions/robert/TSLA.json';
@@ -66,7 +66,7 @@ describe('adaptateur du contrat', () => {
   it('arguments, pièces et contrôles triés par gravité', () => {
     expect(resultat.titre).toBe(`Robert c. « 30${FINE}% en TSLA »`);
     expect(resultat.arguments.filter((a) => a.camp === 'Procureur')).toHaveLength(4);
-    expect(resultat.arguments.filter((a) => a.camp === 'Avocat')).toHaveLength(3);
+    expect(resultat.arguments.filter((a) => a.camp === 'Avocat')).toHaveLength(4);
     expect(resultat.controles[0].statut).toBe('Violation');
     expect(resultat.controles[0].paragraphe).toBe(1);
     expect(resultat.constat).toBe(`Pire baisse ${MOINS}29,0 % au-delà du seuil ${MOINS}12,0 % (Pacte §1).`);
@@ -159,21 +159,23 @@ describe('options du Verdict', () => {
 
 describe('contre-interrogatoire (#55)', () => {
   const contrat = contratRobert as ContratTribunal;
-  const simulation15 = { ...contrat.pieces[1], id: 'P7', titre: 'Simulation à 15 %', valeur_affichee: '−16,4 % max · +11,0 %/an' };
+  // Pièce ajoutée par la question : numérotée à la suite du dossier enregistré.
+  const nouvelle = `P${contrat.pieces.length + 1}`;
+  const simulation15 = { ...contrat.pieces[1], id: nouvelle, titre: 'Simulation à 15 %', valeur_affichee: '−16,4 % max · +11,0 %/an' };
   const echange = {
     question: 'Et si je mettais 15 % au lieu de 30 % ?',
-    pieces_ajoutees: ['P7'],
-    requisitoire: [{ etiquette: 'fait' as const, texte: 'À 15 %, la pire baisse simulée serait de −16,4 %.', pieces: ['P1', 'P7'] }],
-    plaidoirie: [{ etiquette: 'fait' as const, texte: 'Le rendement annuel serait de +11,0 %.', pieces: ['P7'] }],
+    pieces_ajoutees: [nouvelle],
+    requisitoire: [{ etiquette: 'fait' as const, texte: 'À 15 %, la pire baisse simulée serait de −16,4 %.', pieces: ['P1', nouvelle] }],
+    plaidoirie: [{ etiquette: 'fait' as const, texte: 'Le rendement annuel serait de +11,0 %.', pieces: [nouvelle] }],
     arguments_rejetes: [],
     controle_chiffres: { statut: 'conforme' as const, regle: 'verifier_chiffres', message: 'Chiffres cités vérifiés contre leurs pièces : 3/3 chiffres, 2 arguments' },
-    trace: [{ etape: 'orchestrateur', outil: 'simuler_portefeuille', raison: 'Simuler la taille demandée.', entree: { taille: 0.15 }, sortie: 'P7' }],
+    trace: [{ etape: 'orchestrateur', outil: 'simuler_portefeuille', raison: 'Simuler la taille demandée.', entree: { taille: 0.15 }, sortie: nouvelle }],
   };
 
   it('adapte la réponse : arguments des deux camps, pièce ajoutée citée, contrôle du Greffier', () => {
     const resultat = adapterEchange(echange, [...contrat.pieces, simulation15]);
     expect(resultat.arguments.map((a) => a.camp)).toEqual(['Procureur', 'Avocat']);
-    expect(resultat.piecesAjoutees.map((p) => p.code)).toEqual(['P7']);
+    expect(resultat.piecesAjoutees.map((p) => p.code)).toEqual([nouvelle]);
     expect(resultat.piecesAjoutees[0].citeePar).toEqual(['Procureur · réponse 1', 'Avocat · réponse 1']);
     expect(resultat.controle).toContain('3/3 chiffres');
   });
@@ -181,14 +183,14 @@ describe('contre-interrogatoire (#55)', () => {
   it('un procès relu avec ses questions archivées les affiche et les cite', () => {
     const avecQuestion = adapter({ ...contrat, pieces: [...contrat.pieces, simulation15], contre_interrogatoire: [echange] }, 'Robert', decisionRobert);
     expect(avecQuestion.echanges).toHaveLength(1);
-    expect(avecQuestion.pieces.find((p) => p.code === 'P7')!.citeePar).toContain('Procureur · question 1, réponse 1');
+    expect(avecQuestion.pieces.find((p) => p.code === nouvelle)!.citeePar).toContain('Procureur · question 1, réponse 1');
   });
 });
 
 describe('procès enregistrés (mode démonstration)', () => {
   it('rejoue le procès qui juge exactement la décision, avec son identifiant S3', async () => {
     const trente = await jugerDecision('robert', decisionRobert);
-    expect(trente.procesId).toBe('2026-11-15-dfad1e96d34e');
+    expect(trente.procesId).toBe('2026-11-15-648546b5401b');
     const vingtCinq = await jugerDecision('robert', { type: 'position', ticker: 'TSLA', taille: 25 });
     expect(vingtCinq.procesId).toBe('2026-11-15-5944335b5a5c');
     expect(vingtCinq.audience).toBe(numeroAudience('2026-11-15-5944335b5a5c'));

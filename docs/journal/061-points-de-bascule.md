@@ -1,6 +1,6 @@
 # #61 — « Qu'est-ce qui changerait la réponse ? » : points de bascule par règle
 
-- **Issue** : #61 · **PR** : #75 · **Statut** : terminée côté code ; procès de démo à refaire par la Lambda après la fusion
+- **Issue** : #61 · **PR** : #75, #81 (procès de démo) · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
@@ -39,9 +39,20 @@ Dans un procès (`juger_decision`), rien à faire : la pièce est versée d'offi
 1. Profil prudent, « 30 % en Tesla », 28 s : pièce P7 ; le Procureur la cite (« La règle de pire baisse serait respectée jusqu'à 9 % en TSLA, ou avec un seuil de −29,0 % inscrit au Pacte à la place de −12 % »), l'Avocat aussi. `verifier_chiffres` : 34/34 chiffres, 7 arguments, 0 rejeté.
 2. Profil audacieux, panier crypto-tech à 100 %, 36 s : 3 points de bascule ; le Procureur cite P7 deux fois ; 33/33 chiffres, 7 arguments, 0 rejeté.
 
-**Lambda déployée** (`deployer.py` depuis cette branche, puis `tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"`) : HTTP 200 en 20,5 s, procès archivé `2026-11-15-1e35809282d3`. Le contrat passe `valider_contrat` ; la pièce P7 est versée d'office et citée par 3 arguments. Avant le déploiement, le code en ligne était celui de `main` avant #72 : aucun travail non fusionné n'a été écrasé. **Attention** : quelques minutes plus tard, la Lambda a été redéployée depuis la branche de #78 (fusionnée depuis), sans #61. Le code en ligne ne produit donc plus les points de bascule ; il faut redéployer `main` après la fusion.
+**Lambda déployée** (`deployer.py` depuis cette branche, puis `tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"`) : HTTP 200 en 20,5 s, procès archivé `2026-11-15-1e35809282d3`. Le contrat passe `valider_contrat` ; la pièce P7 est versée d'office et citée par 3 arguments. Avant le déploiement, le code en ligne était celui de `main` avant #72 : aucun travail non fusionné n'a été écrasé. Quelques minutes plus tard, la Lambda a été redéployée depuis la branche de #78, sans #61. **Après la fusion de #75**, `main` a été redéployé (le code en ligne était exactement `main` avant #75 : rien d'autre n'a changé).
 
-**Interface** : `npm run verifier` passe sans problème (23 écrans, axe-core). L'encadré a été vérifié avec un vrai procès, le temps de la vérification, à 1440 et à 390 px : 1 point pour Robert, 3 pour le panier d'Amira. Le lien de la pièce ouvre son tiroir.
+**Procès de démo refaits par la Lambda** (#81), copiés tels quels depuis S3 dans `frontend/src/data/proces/`. Les quatre passent `contrat.valider`, avec `cadre_simulation` conforme et aucun argument rejeté :
+
+| Procès | Remplace | Points de bascule |
+|---|---|---|
+| Robert, 30 % en TSLA : `2026-11-15-648546b5401b` | `2026-11-15-dfad1e96d34e` | conforme jusqu'à 9 %, ou seuil −29,0 % au lieu de −12,0 % |
+| Amira, panier à 25 % : `2026-11-15-46e0edfd53b7` | `2026-11-15-741f038b00f1` | pire baisse 42 %, crypto 28 %, tech et crypto 50 % |
+| Robert, Pacte vécu (−10,2 %) : `2026-11-15-9ef77e91e564` | `2026-11-15-cd9914bdb1af` | conforme jusqu'à **7 %**, ou seuil −29,0 % au lieu de −10,2 % |
+| Amira, Pacte vécu (−40,6 %) : `2026-11-15-8675e97ab622` | `2026-11-15-2a7b5ce951aa` | pire baisse **26 %**, crypto 28 %, tech et crypto 50 % |
+
+Le Pacte vécu déplace bien le point de bascule : le seuil mesuré remplace celui de l'équipe. Les procès de Mateo, sans point de bascule (sa seule violation est documentaire), et de Robert à 25 % (argument corrigé par le Greffier) restent tels quels. `src/test/bascule.test.ts` vérifie les procès enregistrés.
+
+**Interface** : `npm run verifier` passe sans problème (23 écrans, axe-core). Il vérifie maintenant que l'encadré s'affiche au Verdict de Robert, avec 3 points pour le panier d'Amira. L'encadré a aussi été vérifié à 390 px, et le lien de la pièce ouvre son tiroir.
 
 ## Choix faits en cours de route
 - **Pièce d'office, pas un outil de l'orchestrateur** : elle n'a aucun paramètre à choisir et doit être là à chaque violation. Un outil aurait été un faux choix qui consomme le budget d'appels. L'orchestrateur garde `taille_max_compatible` pour explorer. Le pourquoi est dans `docs/CHOIX_CONCEPTION.md`, choix 10 bis.
@@ -53,6 +64,5 @@ Dans un procès (`juger_decision`), rien à faire : la pièce est versée d'offi
 
 ## Limites et suite
 - Seules les règles calculables ont un point de bascule. Pour le cas 3 (profil ESG + XOM, critère documentaire), le champ est vide.
-- **Procès de démo** : pendant ce travail, `main` est passé à de vrais procès de la Lambda, archivés dans S3 et nommés d'après leur identifiant (#74, #76). Ils datent d'avant #61 : sans le champ, l'encadré du Verdict n'apparaît pas encore en démonstration. Un premier réenregistrement local, fait sur l'ancienne convention, a été remplacé par ces fichiers à la fusion. À faire après la fusion de #75 : déployer `main`, puis refaire par la Lambda les procès de Robert à 30 % et du panier d'Amira (`tester_function_url.py … --sortie`). Il faudra remplacer leurs fichiers et `index.json`, ajuster `src/test/domaine.test.ts`, et faire contrôler l'encadré par `e2e/verifier.mjs`. Les procès de Mateo (sans point de bascule) et de Robert à 25 % (argument corrigé par le Greffier) peuvent rester tels quels.
-- Le champ reste facultatif dans le schéma. On pourra le rendre obligatoire quand les procès enregistrés l'auront tous et qu'aucune branche en cours ne fabriquera plus de contrat sans lui.
+- Le champ reste facultatif dans le schéma. Les procès de Mateo et de Robert à 25 % ne l'ont pas ; on pourra le rendre obligatoire quand tous les procès enregistrés l'auront.
 - Un seuil qui suffit sur la période passée ne protège pas d'une baisse future plus forte : la pièce le dit dans ses `limites`.

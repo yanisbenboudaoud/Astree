@@ -1,6 +1,6 @@
 # #172 — Le bulletin du Greffier : chaque contrôle affiche son taux de réussite mesuré
 
-- **Issue** : #172 · **PR** : à venir · **Statut** : terminée (la mesure de l'orchestrateur, #167, entrera au bulletin à la prochaine lecture S3)
+- **Issue** : #172 · **PR** : #181 · **Statut** : terminée (la mesure de l'orchestrateur, #167, entrera au bulletin à la prochaine lecture S3)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

@@ -22,12 +22,12 @@
   padding: 24px 28px;
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
-  border-radius: 4px;
+  border-radius: var(--rayon);
   cursor: pointer;
   transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
 }
 /* Retour visuel (#103) : la carte se soulève au survol et s'enfonce à l'appui. */
-.carte:hover { border-color: var(--encre-900); box-shadow: var(--ombre-survol); transform: translateY(-2px); }
+.carte:hover { border-color: var(--encre-300); box-shadow: var(--ombre-survol); transform: translateY(-2px); }
 .carte:active { transform: translateY(0); box-shadow: none; }
 .carte:has(:focus-visible) { border-color: var(--accent-bleu); }
 .identite { display: flex; align-items: center; gap: 16px; }
@@ -39,9 +39,11 @@
   width: 44px;
   height: 44px;
   border-radius: 22px;
-  background: var(--fond-creux);
+  background: var(--accent-bleu-teinte);
+  color: var(--accent-bleu);
   font-family: var(--police-titre);
-  font-size: 22px;
+  font-weight: 600;
+  font-size: 20px;
 }
 .caracteristiques {
   display: flex;
@@ -73,9 +75,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px 28px;
-  background: var(--fond-carte);
+  padding: 28px 32px;
+  background: var(--fond-sourdine);
   border: 1px solid var(--trait-fin);
-  border-radius: 4px;
+  border-radius: var(--rayon);
 }
 .texteConstruire { display: flex; flex-direction: column; gap: 8px; max-width: 720px; }

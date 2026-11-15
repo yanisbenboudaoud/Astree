@@ -5,7 +5,7 @@
   padding: 20px;
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
-  border-radius: 4px;
+  border-radius: var(--rayon);
 }
 .entete { display: flex; flex-direction: column; gap: 4px; }
 .formulaire { display: flex; flex-direction: column; gap: 8px; }
@@ -25,7 +25,7 @@
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--encre-500);
-  border-radius: 3px;
+  border-radius: var(--rayon-moyen);
   background: var(--fond-papier);
   font-size: 15px;
   line-height: 22px;
@@ -43,7 +43,7 @@
   height: 30px;
   padding: 0 10px 0 8px;
   border: 1px solid var(--trait-moyen);
-  border-radius: 2px;
+  border-radius: var(--rayon-petit);
   background: var(--fond-carte);
   cursor: pointer;
 }
@@ -53,7 +53,7 @@
 .verifier { align-self: flex-start; margin-top: 4px; }
 
 .erreur { color: var(--statut-violation); font-weight: 600; }
-.resultat { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; border-left: 4px solid; border-radius: 2px; }
+.resultat { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; border-left: 4px solid; border-radius: var(--rayon-petit); }
 .accepte { background: var(--statut-conforme-teinte); border-color: var(--statut-conforme); }
 .rejete { background: var(--statut-violation-teinte); border-color: var(--statut-violation); }
 .verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -67,7 +67,7 @@
   gap: 6px;
   justify-self: start;
   padding: 3px 9px 3px 7px;
-  border-radius: 2px;
+  border-radius: var(--rayon-petit);
   background: var(--fond-carte);
   font-weight: 600;
   font-size: 12px;

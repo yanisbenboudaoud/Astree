@@ -73,60 +73,70 @@ La maquette de référence est dans Figma (page « V2 · Prototype simplifié »
 
 ### A.1 Couleurs (variables CSS)
 
+Style épuré (refonte #105, inspirée des applications de placement grand public) : fond blanc, encre presque noire, surfaces gris très clair, une seule famille sans empattement. Contrastes mesurés sur `#FFFFFF`. Source : `frontend/src/styles/tokens.css`.
+
 ```css
 :root{
-  --fond-papier:#F2EEE5;   /* fond de page */
-  --fond-carte:#FAF8F3;    /* cartes, champs, éléments interactifs */
-  --fond-creux:#E9E3D6;    /* zones en retrait, monogrammes, pistes de jauge */
-  --encre-900:#1A1712;     /* texte principal (15,4:1) */
-  --encre-700:#3F3A31;     /* texte secondaire (9,8:1) */
-  --encre-500:#675F52;     /* texte tertiaire (5,4:1) */
-  --encre-300:#A39A89;     /* décoratif uniquement (jamais pour du texte) */
-  --encre-200:#BDB4A2;     /* décoratif uniquement : teintes de la barre de répartition (#103) */
-  --trait-fin:#CBC3B2;     /* filets et bords de cartes, décoratifs (1,5:1 sur le papier) */
-  --trait-moyen:#8A8171;   /* bords qui montrent un état ou un contrôle : pastilles, champs, boutons (3,3:1, #103) */
-  --accent-bleu:#1E3A5C;   /* liens, sélection, focus */
-  --accent-bleu-teinte:#DCE4EE;
-  --statut-violation:#A1281D; --statut-violation-teinte:#F5DDD8;
-  --statut-verifier:#8A5800;  --statut-verifier-teinte:#F4E5C2;
-  --statut-conforme:#2B6A3E;  --statut-conforme-teinte:#DDEBDF;
-  --camp-procureur:#6B2F55;   --camp-procureur-teinte:#EEDFE8;
-  --camp-avocat:#1F5A61;      --camp-avocat-teinte:#DAE9EA;
-  --inverse-texte:#F2EEE5;
+  --fond-papier:#FFFFFF;   /* fond de page */
+  --fond-carte:#FFFFFF;    /* cartes, champs, éléments interactifs */
+  --fond-creux:#F4F4F2;    /* zones en retrait, monogrammes, pistes de jauge, bandeau de simulation */
+  --fond-sourdine:#F7F7F5; /* grands panneaux posés sur la page : recherche, carte du Pacte, « Construire mon Pacte » */
+  --encre-900:#111111;     /* texte principal (18,9:1) */
+  --encre-700:#3A3A3A;     /* texte secondaire (11,3:1) */
+  --encre-500:#626262;     /* texte tertiaire (6,1:1) */
+  --encre-300:#B5B5B5;     /* décoratif uniquement (jamais pour du texte) */
+  --encre-200:#DCDCDC;     /* décoratif uniquement */
+  --trait-fin:#E8E8E5;     /* filets et bords de cartes, décoratifs */
+  --trait-moyen:#8A8A8A;   /* bords qui montrent un état ou un contrôle : pastilles, champs, boutons (3,4:1, #103) */
+  --accent-bleu:#2747C9;   /* liens, sélection, focus (7,3:1) */
+  --accent-bleu-teinte:#EEF1FD;
+  --statut-violation:#C2261D; --statut-violation-teinte:#FDEEED;   /* 5,6:1 */
+  --statut-verifier:#9A5B00;  --statut-verifier-teinte:#FDF3E1;    /* 5,2:1 */
+  --statut-conforme:#0B7A4B;  --statut-conforme-teinte:#E7F6EE;    /* 5,4:1 */
+  --camp-procureur:#A3245C;   --camp-procureur-teinte:#FCEDF3;     /* 6,9:1 */
+  --camp-avocat:#0B6E79;      --camp-avocat-teinte:#E5F4F5;        /* 5,7:1 */
+  --inverse-texte:#FFFFFF;
+  /* Données (#105) */
+  --donnee-principale:#4C5FD5; /* courbe de valeur, courbe « avec la décision », remplissage de jauge (5,4:1) */
+  --donnee-secondaire:#8A8A8A; /* courbe « Actuel » (3,4:1) */
+  --categorie-1:#4C5FD5; --categorie-2:#17A2B8; --categorie-3:#F2A93B;
+  --categorie-4:#A35BD6; --categorie-5:#5CB85C; --categorie-6:#EF7B6C; /* barre de répartition, toujours avec sa légende chiffrée */
 }
 ```
 
 **Règle d'usage : une couleur = un sens.**
-- Rouge, ocre et vert sont réservés aux statuts du Greffier.
-- Prune et pétrole sont réservés aux deux camps (Procureur, Avocat).
+- Rouge, ambre et vert sont réservés aux statuts du Greffier.
+- Framboise et sarcelle sont réservés aux deux camps (Procureur, Avocat).
 - Le bleu est réservé à la sélection, au focus et aux liens.
+- L'indigo `--donnee-principale` porte les données (courbes, jauges) ; le gris `--donnee-secondaire` l'état actuel ; la limite du Pacte et la pire baisse sont tracées en rouge (#105). Les couleurs de catégorie servent seulement à la barre de répartition, dont la légende donne le libellé et le pourcentage.
 - Les gains et pertes s'écrivent en encre, avec un signe et ▲/▼ (pas en vert ou rouge).
 - Un trait qui porte une information (bord de contrôle, pastille d'étape à venir, courbe « Actuel ») atteint au moins 3:1 sur le papier et sur les cartes (WCAG 1.4.11) : `--trait-moyen` ou plus foncé, jamais `--trait-fin`, `--encre-200` ni `--encre-300` (#103).
 
 ### A.2 Typographie (Google Fonts)
 
-Polices :
-- **Newsreader** : titres et grands chiffres.
-- **Atkinson Hyperlegible Next** : interface et texte courant.
-- **Atkinson Hyperlegible Mono** : chiffres de tableaux, tickers, traces.
+Polices (#105) :
+- **Inter** : titres, interface, texte courant et chiffres. Les chiffres sont en chasse fixe (`font-variant-numeric: tabular-nums` sur `body`) pour rester alignés dans les tableaux.
+- **JetBrains Mono** : traces seulement (`--police-code`).
+
+`--police-titre`, `--police-texte` et `--police-mono` pointent toutes vers Inter ; les classes `.t-*` de `base.css` gardent leurs noms.
 
 | Style | Police | Graisse | Taille / interligne | Approche |
 |---|---|---|---|---|
-| Titre/Affiche | Newsreader | 400 | 56 / 60 | −1,5 % |
-| Titre/H1 | Newsreader | 400 | 40 / 46 | −1 % |
-| Titre/H2 | Newsreader | 500 | 24 / 30 | −0,5 % |
-| Titre/Panneau | Newsreader | 500 | 20 / 26 | −0,25 % |
-| Titre/Citation | Newsreader | 400 italique | 18 / 26 | 0 |
-| Texte/Intertitre | Atkinson Next | 600 | 16 / 22 | 0 |
-| Texte/Corps | Atkinson Next | 400 | 15 / 22 | 0 |
-| Texte/Corps fort | Atkinson Next | 600 | 15 / 22 | 0 |
-| Texte/Petit | Atkinson Next | 400 | 13 / 18 | 0 |
-| Texte/Petit fort | Atkinson Next | 600 | 13 / 18 | 0 |
-| Texte/Étiquette | Atkinson Next | 600 | 12 / 16 | +1 % |
-| Chiffre/Moyen | Newsreader | 400 | 28 / 32 | −0,5 % |
-| Chiffre/Tableau | Atkinson Mono | 400 | 14 / 20 | 0 |
-| Chiffre/Tableau fort | Atkinson Mono | 500 | 14 / 20 | 0 |
-| Code/Trace | Atkinson Mono | 400 | 12 / 16 | 0 |
+| Titre/Affiche | Inter | 600 | 52 / 58 | −3,5 % |
+| Titre/H1 | Inter | 600 | 38 / 44 | −3 % |
+| Titre/H2 | Inter | 600 | 24 / 30 | −2 % |
+| Titre/Panneau | Inter | 600 | 19 / 26 | −1,5 % |
+| Titre/Citation | Inter | 400 italique, `--encre-700` | 17 / 26 | 0 |
+| Texte/Intertitre | Inter | 600 | 16 / 22 | −0,5 % |
+| Texte/Corps | Inter | 400 | 15 / 22 | 0 |
+| Texte/Corps fort | Inter | 600 | 15 / 22 | 0 |
+| Texte/Petit | Inter | 400 | 13 / 18 | 0 |
+| Texte/Petit fort | Inter | 600 | 13 / 18 | 0 |
+| Texte/Étiquette | Inter | 600 | 12 / 16 | +1 % |
+| Chiffre/Moyen | Inter | 600 | 28 / 32 | −3 % |
+| Chiffre/Tableau | Inter (chasse fixe) | 400 | 14 / 20 | 0 |
+| Chiffre/Tableau fort | Inter (chasse fixe) | 600 | 14 / 20 | 0 |
+| Code/Trace | JetBrains Mono | 400 | 12 / 16 | 0 |
 
 ### A.3 Espacement, grille, formes
 
@@ -138,27 +148,27 @@ Polices :
 - **Chargement du Tribunal et Verdict :** deux colonnes 7 : 5, gouttière de 48 ; la colonne de droite reste fixe au défilement.
 - **Tribunal :** deux colonnes égales (Procureur | Avocat) séparées de 32 px.
 - En dessous de 1024 px, toutes ces grilles s'empilent sur une colonne.
-- **Rayons :** 2 à 4 px (pastilles de question 17 px, menu de profil 20 px). Pas d'ombre au repos : seules les cartes et boutons cliquables prennent `--ombre-survol` (`0 2px 10px` encre à 10 %) au survol, et la liste flottante de recherche a une ombre portée.
-- **Retours visuels (#103) :** au survol, un élément cliquable se détache (bord plus foncé, ombre de survol ou fond `--fond-creux`) ; à l'appui, il s'enfonce de 1 px (`translateY(1px)`). Durée commune : `--transition` (120 ms, `ease-out`). Les transitions portent seulement sur `transform`, `box-shadow` et `border-color`, jamais sur `color` ni sur le `background-color` d'un élément qui contient du texte : axe-core mesure le contraste pendant le fondu et échoue sur l'état intermédiaire. Avec `prefers-reduced-motion`, transitions et animations deviennent instantanées (`base.css`).
-- **Sections :** chaque section commence par un filet `1.5px solid var(--encre-900)` en haut, avec 18–20 px d'espace au-dessus du titre (Titre/Panneau).
-- **Cartes :** réservées aux éléments interactifs ou sélectionnables : fond `--fond-carte`, bordure `1px --trait-fin`, rayon 4.
+- **Rayons (#105) :** `--rayon` 16 px (cartes et panneaux), `--rayon-moyen` 12 px (menus, liste de recherche, messages, monogrammes), `--rayon-petit` 8 px (pièces, petits éléments), `--rayon-pilule` pour les boutons, le champ de recherche, les étiquettes de statut et de provenance, le sélecteur titre / panier et le menu de profil. Pas d'ombre au repos : les cartes et boutons cliquables prennent `--ombre-survol` (`0 4px 20px` encre à 8 %) au survol ; menus et liste de recherche ont `--ombre-flottante`.
+- **Retours visuels (#103) :** au survol, un élément cliquable se détache (bord plus foncé, ombre de survol ou fond `--fond-creux`) ; à l'appui, il s'enfonce de 1 px (`translateY(1px)`). Durée commune : `--transition` (140 ms, `ease-out`). Les transitions portent seulement sur `transform`, `box-shadow` et `border-color`, jamais sur `color` ni sur le `background-color` d'un élément qui contient du texte : axe-core mesure le contraste pendant le fondu et échoue sur l'état intermédiaire. Avec `prefers-reduced-motion`, transitions et animations deviennent instantanées (`base.css`).
+- **Sections (#105) :** chaque section commence par un filet fin `1px solid var(--trait-fin)` en haut, avec 24 px d'espace au-dessus du titre (Titre/Panneau) : l'espace sépare plus que le trait.
+- **Cartes :** réservées aux éléments interactifs ou sélectionnables : fond `--fond-carte`, bordure `1px --trait-fin`, rayon 16. Les grands panneaux d'information (recherche, Pacte) prennent `--fond-sourdine`.
 - **Responsive :** au minimum un desktop entre 1280 et 1440 px. En dessous de 1024 px, empile les colonnes (sans régression du parcours).
 
 ### A.4 Composants
 
 | Composant | Spécification |
 |---|---|
-| **Bandeau de simulation** | Hauteur 28, fond `--encre-900`, texte Petit `--inverse-texte` centré, icône fiole 13 px. |
-| **En-tête** | Barre de 64 px, filet bas `--trait-fin`, padding horizontal `--marge-page` (48 px dès 1024 px, #103). Gauche : logo (carré encre de 26 px avec une balance dessinée en traits papier) et « Astrée » en Titre/Panneau. Centre : étapes de la procédure **uniquement pendant une décision**. Droite : « Aide » (icône ?) et **menu de profil** (pastille ronde à bordure `--trait-moyen` : avatar encre de 28 px avec l'initiale, prénom, chevron). Le menu propose « Changer de profil », qui ramène à l'Entrée. **Pas de sélecteur de profil permanent.** |
-| **Étapes de la procédure** | Décision → Tribunal → Verdict. Pastille de 26 px : *faite* = contour encre + ✓ ; *courante* = fond encre + numéro papier ; *à venir* = contour `--trait-moyen` + numéro `--encre-500`. Les étapes sont reliées par des traits de 24 px. Attribut `aria-current="step"` sur l'étape courante. |
-| **Provenance** | Trois variantes, toujours avec le mot. **Fait** : fond `--fond-creux`, bordure pleine, glyphe ● plein. **Hypothèse** : bordure tirets `3/2`, glyphe ◐ demi-plein. **Fictif** : bordure pointillés, glyphe ○ vide. Texte en Étiquette, padding 2/8, rayon 2. |
-| **Statut** | Violation (icône 🚫 dessinée, rouge), À vérifier (triangle ⚠ dessiné, ocre), Conforme (✓, vert). Fond de la teinte correspondante, texte en Étiquette de la couleur pleine. |
-| **Bouton** | Hauteur 44 (grande) ou 36 (compacte). *Primaire* : fond encre, texte papier, flèche →. *Secondaire* : fond carte, bordure 1,5 encre. *Tertiaire* : lien bleu souligné. **Un seul primaire par écran.** Le focus est un anneau bleu de 2 px décalé de 2 px. Survol (#103) : le primaire passe en `--encre-700` avec l'ombre de survol et sa flèche avance de 3 px ; le tertiaire prend un fond `--accent-bleu-teinte` et se souligne. Appui : enfoncement de 1 px. Désactivé : ni ombre, ni mouvement. |
+| **Bandeau de simulation** | Hauteur 28, fond `--fond-creux`, texte Petit `--encre-700` centré, icône fiole 13 px. |
+| **En-tête** | Barre de 72 px, fond blanc, filet bas `--trait-fin`, padding horizontal `--marge-page` (48 px dès 1024 px, #103). Gauche : logo (carré encre de 26 px avec une balance dessinée en traits papier) et « Astrée » en Titre/Panneau. Centre : étapes de la procédure **uniquement pendant une décision**. Droite : « Aide » (icône ?) et **menu de profil** (pastille ronde à bordure `--trait-moyen` : avatar encre de 28 px avec l'initiale, prénom, chevron). Le menu propose « Changer de profil », qui ramène à l'Entrée. **Pas de sélecteur de profil permanent.** |
+| **Étapes de la procédure** | Décision → Tribunal → Verdict. Pastille de 26 px : *faite* = contour et ✓ `--statut-conforme` sur sa teinte ; *courante* = fond encre + numéro papier ; *à venir* = contour `--trait-moyen` + numéro `--encre-500`. Les étapes sont reliées par des traits de 24 px. Attribut `aria-current="step"` sur l'étape courante. |
+| **Provenance** | Trois variantes, toujours avec le mot. **Fait** : fond `--fond-creux`, bordure pleine, glyphe ● plein. **Hypothèse** : bordure tirets `3/2`, glyphe ◐ demi-plein. **Fictif** : bordure pointillés, glyphe ○ vide. Texte en Étiquette, padding 2/8, en pilule. |
+| **Statut** | Violation (icône 🚫 dessinée, rouge), À vérifier (triangle ⚠ dessiné, ocre), Conforme (✓, vert). Fond de la teinte correspondante, texte en Étiquette de la couleur pleine, en pilule. |
+| **Bouton** | En pilule, hauteur 48 (grande) ou 36 (compacte). *Primaire* : fond encre, texte blanc, flèche →. *Secondaire* : fond carte, bordure 1 px `--trait-moyen` (encre au survol). *Tertiaire* : lien bleu souligné. **Un seul primaire par écran.** Le focus est un anneau bleu de 2 px décalé de 2 px. Survol (#103) : le primaire s'éclaircit légèrement avec l'ombre de survol et sa flèche avance de 3 px ; le tertiaire prend un fond `--accent-bleu-teinte` et se souligne. Appui : enfoncement de 1 px. Désactivé : ni ombre, ni mouvement. |
 | **Pièce** | Pastille « 📄 P4 » : icône document de 12 px + code en Mono 12, bordure `--trait-moyen`, fond carte. C'est un bouton qui ouvre le tiroir de la pièce. Au survol : bord encre et fond `--fond-creux`. |
-| **Monogramme** | Carré de 36 px, rayon 4, fond `--fond-creux`, ticker court en Mono 12 (sans `.TO` ni `-USD`). **Pas de logos d'entreprises.** |
-| **Jauge** | Piste de 6 px `--fond-creux`, remplissage `--encre-700`, repère de limite de 2×12 px en encre. |
-| **Message** | Barre gauche de 4 px, fond teinte, icône de 22 px, titre en Intertitre de la couleur pleine, corps encre, bouton de correction en secondaire compact. Variantes : Violation et À vérifier. |
-| **Champ** | Hauteur 44 à 48 (56 pour la recherche du Portefeuille, D.3), fond carte, bordure `--encre-500`. Au focus : bordure 2 px `--accent-bleu`. Libellé visible au-dessus quand il y a la place ; sinon `aria-label` et texte indicatif avec exemple. |
+| **Monogramme** | Carré de 36 px, rayon 12, fond `--fond-creux`, ticker court en 12 gras (sans `.TO` ni `-USD`). **Pas de logos d'entreprises.** |
+| **Jauge** | Piste de 6 px arrondie `--fond-creux`, remplissage `--donnee-principale`, repère de limite de 2×12 px en encre. |
+| **Message** | Bordure 1 px de la couleur pleine, rayon 12, fond teinte, icône de 22 px, titre en Intertitre de la couleur pleine, corps encre, bouton de correction en secondaire compact. Variantes : Violation et À vérifier. |
+| **Champ** | Hauteur 44 à 48 (56 et en pilule pour la recherche du Portefeuille, D.3), fond carte, bordure `--trait-moyen`. Au focus : bordure 2 px `--accent-bleu` et halo `--accent-bleu-teinte`. Libellé visible au-dessus quand il y a la place ; sinon `aria-label` et texte indicatif avec exemple. |
 
 ---
 
@@ -536,9 +546,9 @@ La recherche est la fonction principale de l'écran : elle passe en tête, sur t
 
   Pastilles numérotées de 26 px à contour papier ; la première est pleine. Sous 1024 px, les étapes passent sous la recherche.
 - **Colonne principale :**
-  - Valeur : « Valeur du portefeuille », montant en Newsreader 44 / 48 (36 / 40 sous 600 px) + Fictif, ligne « ▲ 233 034 $ (+55,9 %) depuis le 12 nov. 2021 », mention « Sur 5 ans ».
-  - Graphique de valeur : courbe encre de 1,75 px, aire à 6 % d'opacité, axe en k$ à droite, pastille encre de la valeur actuelle au bout de la courbe, point le plus bas marqué avec son libellé, années en abscisse. **Pas de bascule ni de choix de période** (simplification voulue).
-  - 3 indicateurs **compacts** séparés par des filets verticaux : libellé au-dessus, puis chiffre (Newsreader 24 / 28) et contexte sur la même ligne (« par an sur 5 ans », jauge de 72 px + « 65 % de votre limite de −12 % », « annualisée »).
+  - Valeur : « Valeur du portefeuille », montant en Inter 600 48 / 52 (36 / 40 sous 600 px) + Fictif, ligne « ▲ 233 034 $ (+55,9 %) depuis le 12 nov. 2021 », mention « Sur 5 ans ».
+  - Graphique de valeur : courbe `--donnee-principale` de 2,25 px, aire en dégradé de la même couleur (22 % en haut, transparente en bas, #105), axe en k$ à droite, pastille `--donnee-principale` de la valeur actuelle au bout de la courbe, point le plus bas marqué avec son libellé, années en abscisse. **Pas de bascule ni de choix de période** (simplification voulue).
+  - 3 indicateurs **compacts** séparés par des filets verticaux : libellé au-dessus, puis chiffre (Inter 600 24 / 28) et contexte sur la même ligne (« par an sur 5 ans », jauge de 72 px + « 65 % de votre limite de −12 % », « annualisée »).
   - Ligne de provenance : Fait + « Calculé sur les prix réels du 12 nov. 2021 au 12 nov. 2026, en CAD. »
   - « Vos positions » : barre de répartition par groupe, légende à pastilles, puis la liste. Chaque ligne affiche monogramme, nom, « ticker · groupe », valeur et poids. Pas de colonnes rendement ou volatilité par titre.
 - **Colonne latérale** (la recherche n'y est plus) :
@@ -548,17 +558,17 @@ La recherche est la fonction principale de l'écran : elle passe en tête, sur t
 
 ### D.3 Recherche (combobox ARIA)
 
-- **Bandeau (#103)** (`components/Recherche.tsx`) : bloc encre (`--encre-900`, texte papier) en haut du Portefeuille, padding 32 / 36, rayon 4 ; grille « recherche | complément de 360 px », gouttière de 48. De haut en bas :
+- **Bandeau (#103)** (`components/Recherche.tsx`) : panneau clair (`--fond-sourdine`, bordure `--trait-fin`, texte encre, #105) en haut du Portefeuille, padding 32 / 36, rayon 16 ; grille « recherche | complément de 360 px », gouttière de 48. De haut en bas :
   - surtitre en Étiquette majuscule « Étape 1 · Décision » ;
   - titre-question (un H2 au style Titre/H1) tiré de `profils_ui.json` : « Quelle décision voulez-vous tester ? » (mode titre) ou « Quel panier voulez-vous tester ? » (mode panier) ; mêmes textes par défaut pour un profil sans textes propres ;
   - le choix du mode, aligné à droite du titre ;
   - l'aide, puis, en mode panier, les pastilles du panier ;
-  - le champ de **56 px** (texte 17 px, icône loupe de 20 px), halo papier au survol, bord bleu de 2 px au focus ;
+  - le champ de **56 px** en pilule (texte 17 px, icône loupe de 20 px), bord encre et ombre de survol au survol, bord bleu de 2 px et halo `--accent-bleu-teinte` au focus ;
   - les **titres suggérés en un clic**, précédés de « Essayer : » (mode titre : un clic ouvre la Décision) ou « Ajouter : » (mode panier : un clic ajoute au panier ; un titre déjà ajouté est désactivé avec ✓). Pastilles de 32 px : nom + ticker court en Mono. La liste vient de `suggestionsDe` : les titres de la décision de démonstration du profil, puis TSLA, NVDA, XOM, BTC-USD, sans doublon, 5 au plus ;
-  - en mode panier, « Instruire le panier (N titres) » à partir de 2 titres.
+  - en mode panier, « Instruire le panier (N titres) » (bouton primaire) à partir de 2 titres.
 - **Filtrage :** sur les 31 actifs de `assets_universe.csv`, par début de mot dans le nom ou par début de ticker, insensible aux accents et à la casse.
 - **Résultats :**
-  - liste de suggestions sous le champ, en couche flottante (fond carte, texte encre) avec bordure `--encre-700` et ombre portée, au-dessus du reste de la page ;
+  - liste de suggestions sous le champ, en couche flottante (fond carte, texte encre, rayon 12) avec bordure `--trait-fin` et `--ombre-flottante`, au-dessus du reste de la page ;
   - en-tête « N résultat(s) pour « … » » ;
   - chaque ligne : monogramme, nom avec la partie tapée en gras, « TICKER · classe · bourse · devise · secteur », volatilité annualisée en CAD à droite ;
   - la ligne active a un fond `--fond-creux` et une barre bleue de 3 px à gauche.

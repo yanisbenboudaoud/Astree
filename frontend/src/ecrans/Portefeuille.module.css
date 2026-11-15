@@ -12,7 +12,7 @@
   align-items: center;
   gap: 14px;
   padding: 14px 20px;
-  border-radius: 4px;
+  border-radius: var(--rayon);
   background: var(--encre-900);
   color: var(--inverse-texte);
 }
@@ -50,7 +50,7 @@
 .montant { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .blocValeur { display: flex; flex-direction: column; gap: 4px; }
 .chiffre { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.chiffreValeur { font-family: var(--police-titre); font-weight: 400; font-size: 44px; line-height: 48px; letter-spacing: -0.015em; }
+.chiffreValeur { font-family: var(--police-titre); font-weight: 600; font-size: 48px; line-height: 52px; letter-spacing: -0.04em; }
 .variation { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 /* Indicateurs compacts (#103) : chiffre et contexte sur la même ligne. */
@@ -64,7 +64,7 @@
 .indicateur:first-child { padding-left: 0; }
 .indicateur + .indicateur { border-left: 1px solid var(--trait-fin); }
 .valeurIndicateur { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
-.chiffreIndicateur { font-family: var(--police-titre); font-size: 24px; line-height: 28px; letter-spacing: -0.005em; }
+.chiffreIndicateur { font-family: var(--police-titre); font-weight: 600; font-size: 24px; line-height: 28px; letter-spacing: -0.03em; }
 .jaugeIndicateur { display: inline-block; width: 72px; align-self: center; }
 
 /* Étapes du parcours, à droite de la recherche (fond encre). */
@@ -77,21 +77,22 @@
   width: 26px;
   height: 26px;
   border-radius: 13px;
-  border: 1.25px solid var(--inverse-texte);
+  border: 1px solid var(--trait-moyen);
   font-family: var(--police-mono);
+  font-weight: 600;
   font-size: 12px;
 }
-.etapesParcours li:first-child .numeroEtape { background: var(--inverse-texte); color: var(--encre-900); }
+.etapesParcours li:first-child .numeroEtape { background: var(--encre-900); border-color: var(--encre-900); color: var(--inverse-texte); }
 .texteEtape { display: flex; flex-direction: column; gap: 2px; padding-top: 3px; }
-.texteEtape .t-petit { opacity: 0.85; }
+.texteEtape .t-petit { color: var(--encre-500); }
 .provenance { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .groupeDroite { display: inline-flex; align-items: center; gap: 10px; }
-.repartition { display: flex; gap: 2px; height: 10px; }
-.repartition span { display: block; height: 10px; min-width: 2px; }
+.repartition { display: flex; gap: 3px; height: 10px; }
+.repartition span { display: block; height: 10px; min-width: 2px; border-radius: var(--rayon-pilule); }
 .legende { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 .legende li { display: inline-flex; align-items: center; gap: 6px; }
-.carre { width: 10px; height: 10px; }
+.carre { width: 10px; height: 10px; border-radius: 50%; }
 .liste { display: flex; flex-direction: column; }
 .ligne {
   display: flex;
@@ -108,10 +109,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 20px;
-  background: var(--fond-carte);
+  padding: 24px;
+  background: var(--fond-sourdine);
   border: 1px solid var(--trait-fin);
-  border-radius: 4px;
+  border-radius: var(--rayon);
 }
 .entetePacte { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .regleCle { display: flex; flex-direction: column; gap: 6px; }
@@ -131,7 +132,7 @@
   padding: 10px 8px 10px 0;
   border-bottom: 1px solid var(--trait-fin);
 }
-.entreeNouvelle { background: var(--accent-bleu-teinte); padding-left: 8px; }
+.entreeNouvelle { background: var(--accent-bleu-teinte); padding-left: 8px; border-radius: var(--rayon-petit); }
 .dateJournal { white-space: nowrap; }
 
 @media (max-width: 1023px) {

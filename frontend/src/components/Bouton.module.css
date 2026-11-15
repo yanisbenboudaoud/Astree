@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 3px;
+  border-radius: var(--rayon-pilule);
   border: 0;
   font-family: var(--police-texte);
   font-weight: 600;
@@ -16,20 +16,20 @@
 }
 .bouton svg { transition: transform var(--transition); }
 .bouton:active:not(:disabled):not([aria-disabled='true']) { transform: translateY(1px); }
-.grand { height: 44px; font-size: 15px; line-height: 22px; padding: 0 20px; }
-.compact { height: 36px; font-size: 13px; line-height: 18px; padding: 0 14px; }
+.grand { height: 48px; font-size: 15px; line-height: 22px; padding: 0 24px; }
+.compact { height: 36px; font-size: 13px; line-height: 18px; padding: 0 16px; }
 
 .primaire { background: var(--encre-900); color: var(--inverse-texte); }
-.primaire:hover { background: var(--encre-700); box-shadow: var(--ombre-survol); }
+.primaire:hover { background: #2b2b2b; box-shadow: var(--ombre-survol); }
 .primaire:hover svg:last-child,
 .inverse:hover svg:last-child { transform: translateX(3px); }
 
 .secondaire {
   background: var(--fond-carte);
   color: var(--encre-900);
-  border: 1.5px solid var(--encre-900);
+  border: 1px solid var(--trait-moyen);
 }
-.secondaire:hover { background: var(--fond-creux); }
+.secondaire:hover { background: var(--fond-creux); border-color: var(--encre-900); }
 
 .tertiaire {
   background: none;
@@ -44,9 +44,9 @@
 .inverse {
   background: var(--fond-carte);
   color: var(--encre-900);
-  border: 1.5px solid var(--fond-carte);
+  border: 1px solid var(--fond-carte);
 }
-.inverse:hover { background: var(--fond-papier); }
+.inverse:hover { background: var(--fond-creux); }
 .inverse:focus-visible { outline-color: var(--inverse-texte); }
 
 .bouton[aria-disabled='true'],

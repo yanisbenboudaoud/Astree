@@ -104,6 +104,13 @@ export function GraphiqueValeur({ serie, pointBas }: ProprietesGraphiqueValeur) 
         onFocus={() => setActif((courant) => courant ?? serie.length - 1)}
         onBlur={() => setActif(null)}
       >
+        <defs>
+          {/* Aire en dégradé : couleur des données en haut, transparente en bas. */}
+          <linearGradient id="degrade-valeur" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" className={styles.degradeHaut} />
+            <stop offset="100%" className={styles.degradeBas} />
+          </linearGradient>
+        </defs>
         {graduations(domaine[0], domaine[1], pas).map((v) => (
           <g key={v}>
             <line x1={0} x2={largeurTrace} y1={y(v)} y2={y(v)} className={styles.repere} />
@@ -115,7 +122,7 @@ export function GraphiqueValeur({ serie, pointBas }: ProprietesGraphiqueValeur) 
         <circle cx={xBas} cy={yBas} r={3.5} className={`${styles.pointBas} ${styles.apparition}`} />
         <text x={Math.min(xBas - 4, largeurTrace - 140)} y={yBas - 36} className={`${styles.annotation} ${styles.apparition}`}>{etiquetteBas}</text>
         <g transform={`translate(${largeurTrace + 8}, ${y(derniere) - 9})`}>
-          <rect width={56} height={20} rx={2} className={styles.pastilleValeur} />
+          <rect width={56} height={20} rx={10} className={styles.pastilleValeur} />
           <text x={28} y={14} textAnchor="middle" className={styles.texteInverse}>{kiloDollars(derniere)}</text>
         </g>
         {debutsAnnees(serie.map(([d]) => d)).map(({ annee, date: d }) => (
@@ -126,7 +133,7 @@ export function GraphiqueValeur({ serie, pointBas }: ProprietesGraphiqueValeur) 
             <line x1={lecture.x} x2={lecture.x} y1={HAUT_TRACE} y2={HAUT_TRACE + HAUTEUR_TRACE} className={styles.repereLecture} />
             <circle cx={lecture.x} cy={lecture.y} r={4.5} className={styles.pointLecture} />
             <g transform={`translate(${bulleAGauche ? lecture.x - 10 - LARGEUR_BULLE : lecture.x + 10}, ${HAUT_TRACE})`}>
-              <rect width={LARGEUR_BULLE} height={44} rx={2} className={styles.bulle} />
+              <rect width={LARGEUR_BULLE} height={44} rx={8} className={styles.bulle} />
               <text x={10} y={18} className={styles.bulleDate}>{dateFr(lecture.date)}</text>
               <text x={10} y={36} className={styles.bulleValeur}>{dollars(lecture.valeur)}</text>
             </g>

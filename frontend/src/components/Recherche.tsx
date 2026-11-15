@@ -266,7 +266,7 @@ export function Recherche({ profil, mode, titre, aide, placeholder, panier, onIn
         )}
 
         {enPanier && panier.length >= 2 && (
-          <Bouton variante="inverse" fleche onClick={onInstruirePanier} className={styles.instruirePanier}>
+          <Bouton variante="primaire" fleche onClick={onInstruirePanier} className={styles.instruirePanier}>
             Instruire le panier ({panier.length} titres)
           </Bouton>
         )}

@@ -1,6 +1,6 @@
 # #115 — Plusieurs horizons dans un même portefeuille (poches)
 
-- **Issue** : #115 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #115 · **PR** : #152 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

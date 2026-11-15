@@ -46,6 +46,13 @@ class FauxS3:
         return {"Body": Corps(self.objets[Key])}
 
 
+@pytest.fixture(autouse=True)
+def debits_remis_a_zero(monkeypatch):
+    """Chaque test part de compteurs vides : les tests appellent tous depuis la même adresse."""
+    for journal in ("_appels_tribunal", "_appels_question", "_appels_verifier", "_appels_progression"):
+        monkeypatch.setattr(lambda_tribunal, journal, {})
+
+
 @pytest.fixture
 def s3(monkeypatch):
     faux = FauxS3()
@@ -382,6 +389,46 @@ def test_verifier_debit_limite_par_adresse(proces_archive):
         assert verifier("−29,0 %", ["P2"])[0] == 200
     statut, contenu = verifier("−29,0 %", ["P2"])
     assert statut == 429 and "Trop de vérifications" in contenu["erreur"]
+
+
+# --- Débit de /tribunal et /question (#136) ------------------------------------------
+
+
+def depuis(adresse, evt):
+    evt["requestContext"]["http"]["sourceIp"] = adresse
+    return evt
+
+
+def test_tribunal_debit_limite_par_adresse_sans_appel_bedrock(faux_proces, s3):
+    corps = {"profil": "robert", "demande": "30 % en Tesla"}
+    for _ in range(lambda_tribunal.DEBIT_MAX_TRIBUNAL):
+        assert lambda_tribunal.handler(depuis("1.2.3.4", evenement("/tribunal", corps)))["statusCode"] == 200
+    statut, contenu = reponse(lambda_tribunal.handler(depuis("1.2.3.4", evenement("/tribunal", corps))))
+    assert statut == 429
+    assert f"{lambda_tribunal.DEBIT_MAX_TRIBUNAL} par minute au plus" in contenu["erreur"]
+    assert len(faux_proces) == lambda_tribunal.DEBIT_MAX_TRIBUNAL  # le procès refusé n'a rien lancé
+    # Une autre adresse garde son propre compte.
+    assert lambda_tribunal.handler(depuis("5.6.7.8", evenement("/tribunal", corps)))["statusCode"] == 200
+
+
+def test_tribunal_les_demandes_refusees_comptent_aussi(faux_proces, monkeypatch):
+    """Le seuil est vérifié avant tout : même le procès en arrière-plan (#90) n'est pas lancé."""
+    monkeypatch.setattr(lambda_tribunal, "_demarrer_proces", lambda *a: pytest.fail("aucun procès attendu"))
+    for _ in range(lambda_tribunal.DEBIT_MAX_TRIBUNAL):
+        assert lambda_tribunal.handler(evenement("/tribunal", {"profil": "robert"}))["statusCode"] == 400
+    corps = {"profil": "robert", "demande": "30 % en Tesla", "progression": True}
+    assert lambda_tribunal.handler(evenement("/tribunal", corps))["statusCode"] == 429
+
+
+def test_question_debit_limite_par_adresse_sans_appel_bedrock(proces_archive):
+    """``proces_archive`` fait échouer le test si ``interroger`` (Bedrock) est appelé."""
+    for _ in range(lambda_tribunal.DEBIT_MAX_QUESTION):
+        corps = {"id": "pas-un-id", "question": "Et à 15 % ?"}
+        assert lambda_tribunal.handler(evenement("/question", corps))["statusCode"] == 400
+    corps = {"id": ID_PROCES, "question": "Et à 15 % ?"}
+    statut, contenu = reponse(lambda_tribunal.handler(evenement("/question", corps)))
+    assert statut == 429
+    assert f"{lambda_tribunal.DEBIT_MAX_QUESTION} par minute au plus" in contenu["erreur"]
 
 
 def test_fenetre_de_debit_glissante(monkeypatch):

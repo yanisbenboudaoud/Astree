@@ -12,7 +12,9 @@
 5. **Function URL** : créée si elle manque, en ``NONE`` (un navigateur ne sait pas signer
    une requête AWS) avec un **CORS limité aux origines de l'interface** (#14) et la
    permission publique que Lambda exige : ``lambda:InvokeFunctionUrl`` et
-   ``lambda:InvokeFunction`` seulement par la Function URL.
+   ``lambda:InvokeFunction`` seulement par la Function URL. Les origines sont
+   ``http://localhost:5173``, le site hébergé (distribution CloudFront ``alphaforge-interface``,
+   lue sur le compte à chaque lancement, #136) et les ``--origine``.
 
 Les paramètres sont ceux vérifiés dans #22 (``deploiement/README.md``). Aucune clé :
 les identifiants viennent de ``aws login``.
@@ -22,7 +24,7 @@ Usage (depuis la racine du dépôt) ::
     .venv\\Scripts\\python -X utf8 deploiement\\deployer.py              # construit le zip puis déploie
     .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --sans-donnees
     .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --url-seulement   # étape 5 seule
-    .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --url-seulement --origine https://mon-domaine
+    .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --url-seulement --origine http://localhost:5175
 """
 
 from __future__ import annotations
@@ -56,9 +58,10 @@ CONFIGURATION = {
     "MemorySize": 1024,
     "Layers": [COUCHE_PANDAS],
 }
-# Origines autorisées à appeler la Function URL depuis un navigateur (#14) : l'interface
-# tourne en local (npm run dev). Ajouter un domaine avec --origine quand elle sera hébergée.
+# Origines autorisées à appeler la Function URL depuis un navigateur (#14) : l'interface en
+# local (npm run dev). Le site hébergé (#135) s'y ajoute, lu sur le compte (origines_cors, #136).
 ORIGINES_INTERFACE = ["http://localhost:5173"]
+COMMENTAIRE_INTERFACE = "alphaforge-interface"  # repère la distribution CloudFront du site (#135)
 STATEMENT_URL = "function-url-publique"
 STATEMENT_INVOCATION = "function-url-publique-invocation"
 ROUTES = "/tribunal, /progression, /verdict, /question, /verifier, /proces-verbal, /questionnaire, /profil, /table"  # lambda_tribunal.ROUTES
@@ -157,6 +160,29 @@ def regler_invocation_asynchrone(lam) -> None:
           f"{INVOCATION_ASYNCHRONE['MaximumEventAgeInSeconds']} s d'attente")
 
 
+def trouver_distribution_interface(cf) -> dict | None:
+    """La distribution CloudFront du site hébergé, repérée par son commentaire, ou None."""
+    for page in cf.get_paginator("list_distributions").paginate():
+        for distribution in page["DistributionList"].get("Items", []):
+            if distribution["Comment"] == COMMENTAIRE_INTERFACE:
+                return distribution
+    return None
+
+
+def origines_cors(cf, supplementaires: list[str]) -> list[str]:
+    """Origines du CORS : l'interface locale, le site hébergé **lu sur le compte**, puis les ``--origine``.
+
+    Lues à chaque déploiement (#136) : un redéploiement de la Lambda lancé sans ``--origine``,
+    par n'importe quel membre, garde toujours le site hébergé.
+    """
+    origines = list(ORIGINES_INTERFACE)
+    distribution = trouver_distribution_interface(cf)
+    if distribution is not None:
+        origines.append(f"https://{distribution['DomainName']}")
+    origines += [origine.rstrip("/") for origine in supplementaires]
+    return list(dict.fromkeys(origines))  # sans doublon, dans l'ordre
+
+
 def cors_interface(origines: list[str]) -> dict:
     """CORS de la Function URL : POST seulement, depuis l'interface, en-tête du procès visible.
 
@@ -212,10 +238,10 @@ def main(arguments: list[str] | None = None) -> int:
     lecteur.add_argument("--origine", action="append", default=[],
                          help="origine de l'interface à ajouter au CORS (répétable)")
     options = lecteur.parse_args(arguments)
-    origines = ORIGINES_INTERFACE + [o.rstrip("/") for o in options.origine]
 
     session = boto3.Session(region_name=REGION)
     lam = session.client("lambda")
+    origines = origines_cors(session.client("cloudfront"), options.origine)
     if options.url_seulement:
         print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST : {ROUTES})")
         return 0

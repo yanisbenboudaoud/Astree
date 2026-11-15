@@ -18,6 +18,8 @@ Huit routes, en POST, avec un corps JSON :
     réelle est publiée dans ``progression/<id>.json`` (``pipeline.progression``).
   - Sans ce champ : ancien comportement, la réponse est le contrat (200), à la fin du
     procès. Il sert aux scripts et à une interface pas encore à jour.
+  - Débit limité par adresse IP (#136) : au-delà de ``DEBIT_MAX_TRIBUNAL`` procès par
+    minute, 429 sans aucun appel Bedrock. Même chose pour ``/question``.
 - ``/progression`` ``{"id": "<id>"}`` (#90) : relit S3 et renvoie la progression du procès
   en cours, ou ``{"id", "statut": "termine", "contrat": {...}}`` quand il est archivé.
   Sans Bedrock ; débit limité par adresse IP.
@@ -148,6 +150,15 @@ MODIFICATIONS_MAX = 10
 NOM_PAR_DEFAUT = "Investisseur"
 DEBIT_MAX_PROFIL = 10  # profils créés ou aperçus par minute et par adresse IP
 _appels_profil: dict[str, deque] = {}
+
+# /tribunal et /question (#136) : chaque appel déclenche des appels Bedrock payants, et l'adresse
+# de la Function URL est lisible dans le JavaScript du site hébergé (#135). La concurrence
+# réservée de 2 borne les procès simultanés, pas leur nombre. Seuils : hypothèses de l'équipe
+# (un procès dure de 20 à 50 s, une question de 20 à 40 s : une personne n'en fait pas plus).
+DEBIT_MAX_TRIBUNAL = 3  # procès lancés par minute et par adresse IP
+DEBIT_MAX_QUESTION = 10  # questions par minute et par adresse IP
+_appels_tribunal: dict[str, deque] = {}
+_appels_question: dict[str, deque] = {}
 FORMAT_ID_PROFIL = re.compile(r"[a-z][a-z0-9_]{0,63}")
 
 
@@ -202,11 +213,11 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
     try:
         corps = _lire_corps(event)
         if chemin == "/tribunal":
-            return _tribunal(corps)
+            return _tribunal(corps, adresse)
         if chemin == "/progression":
             return _progression(corps, adresse)
         if chemin == "/question":
-            return _question(corps)
+            return _question(corps, adresse)
         if chemin == "/verifier":
             return _verifier(corps, adresse)
         if chemin == "/questionnaire":
@@ -225,7 +236,11 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
         return _reponse(500, {"erreur": "Archive S3 indisponible"})
 
 
-def _tribunal(corps: dict[str, Any]) -> dict[str, Any]:
+def _tribunal(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
+    # Vérifiée en premier : au-delà du seuil, rien n'est lu ni lancé (aucun appel Bedrock).
+    if trop_d_appels(_appels_tribunal, DEBIT_MAX_TRIBUNAL, adresse):
+        return _reponse(429, {"erreur": f"Trop de procès lancés depuis votre adresse : {DEBIT_MAX_TRIBUNAL} "
+                                        "par minute au plus. Réessayez dans une minute."})
     profil, demande = corps.get("profil"), corps.get("demande")
     if not isinstance(profil, str) or not profil:
         raise RequeteInvalide("Champ « profil » manquant : identifiant d'un profil, ex. « robert »")
@@ -509,7 +524,10 @@ def _absent(erreur: ClientError) -> bool:
     return erreur.response.get("Error", {}).get("Code") in ("NoSuchKey", "404")
 
 
-def _question(corps: dict[str, Any]) -> dict[str, Any]:
+def _question(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
+    if trop_d_appels(_appels_question, DEBIT_MAX_QUESTION, adresse):
+        return _reponse(429, {"erreur": f"Trop de questions posées depuis votre adresse : {DEBIT_MAX_QUESTION} "
+                                        "par minute au plus. Réessayez dans une minute."})
     identifiant, question = corps.get("id"), corps.get("question")
     if not isinstance(identifiant, str) or not FORMAT_ID.fullmatch(identifiant):
         raise RequeteInvalide(f"Champ « id » invalide : celui de l'en-tête {EN_TETE_ID} du procès")

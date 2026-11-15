@@ -1,6 +1,6 @@
 {
   "persona": "mateo",
-  "demande": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)",
+  "demande": "Je veux ajouter 10 % d'Exxon Mobil à mon portefeuille",
   "decision": {
     "type": "position",
     "ticker": "XOM",
@@ -156,29 +156,6 @@
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada, extrait le 2026-11-13",
       "traitement": "Prix adj_close convertis en CAD, calendrier des séances américaines (dernier prix reporté), 2021-11-12 → 2026-11-12 ; rendement annualisé composé, volatilité = écart type quotidien × √252, pire baisse depuis un sommet, temps de récupération du sommet précédant la pire baisse au retour à ce sommet",
       "limites": "Une seule période de 5 ans ; une seule chute observée pour le temps de récupération ; biais du survivant ; le passé ne prédit pas l'avenir"
-    },
-    {
-      "id": "P6",
-      "type": "calculee",
-      "etiquette": "fait",
-      "titre": "Jurisprudence : verdicts passés de ce profil sur la règle « controverses_esg »",
-      "outil": "consulter_jurisprudence",
-      "valeurs": {
-        "regle": "controverses_esg",
-        "proces_archives": 0,
-        "proces_en_violation": 0,
-        "maintenu": 0,
-        "modifie": 0,
-        "pacte_ajuste": 0,
-        "dates_antecedents": [],
-        "decisions_antecedents": [],
-        "regles_violees_antecedents": [],
-        "verdicts_antecedents": []
-      },
-      "valeur_affichee": "Aucun procès archivé pour ce profil",
-      "source": "Archive des verdicts du Tribunal (verdicts/<profil>/), écrite par la route /verdict quand l'utilisateur rend son verdict",
-      "traitement": "Pour chaque procès archivé de ce profil : règles du Pacte en violation et verdict choisi par l'utilisateur. Au plus les 200 procès les plus récents ; les 5 derniers antécédents en violation sont détaillés.",
-      "limites": "Seuls les procès dont l'utilisateur a rendu un verdict sont archivés. Les règles sont comparées par identifiant : le Pacte a pu changer depuis. Un verdict passé ne dit rien de la qualité de la décision prise."
     }
   ],
   "controles": [
@@ -219,7 +196,7 @@
     {
       "statut": "conforme",
       "regle": "verifier_chiffres",
-      "message": "Chiffres cités vérifiés contre leurs pièces : 21/21 chiffres, 7 arguments"
+      "message": "Chiffres cités vérifiés contre leurs pièces : 16/16 chiffres, 7 arguments"
     },
     {
       "statut": "a_verifier",
@@ -269,10 +246,10 @@
     {
       "etape": "agent_profil",
       "outil": "bedrock",
-      "entree": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)",
+      "entree": "Je veux ajouter 10 % d'Exxon Mobil à mon portefeuille",
       "sortie": {
         "type_decision": "position",
-        "actif_mentionne": "Exxon Mobil (XOM)",
+        "actif_mentionne": "Exxon Mobil",
         "ticker": "XOM",
         "taille": 0.1,
         "montant": null,
@@ -288,7 +265,7 @@
       "outil": "valider_decision",
       "entree": {
         "type_decision": "position",
-        "actif_mentionne": "Exxon Mobil (XOM)",
+        "actif_mentionne": "Exxon Mobil",
         "ticker": "XOM",
         "taille": 0.1,
         "montant": null,
@@ -309,7 +286,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Simulation obligatoire de la décision sur toute la période, pour comparer la pire baisse au seuil du Pacte.",
+      "raison": "Simulation complète de la décision pour mesurer la pire baisse et le profil du portefeuille avec la position.",
       "entree": {
         "financement": "proportionnel",
         "periode": "complete",
@@ -321,7 +298,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Rejouer l'année de crise où actions et obligations ont baissé ensemble, car le Pacte fixe une pire baisse tolérée.",
+      "raison": "Rejeu de l'année de crise pour voir le comportement de la position énergétique face à la règle de pire baisse.",
       "entree": {
         "financement": "proportionnel",
         "periode": "2022",
@@ -333,7 +310,7 @@
     {
       "etape": "orchestrateur",
       "outil": "rechercher_documents",
-      "raison": "Le Pacte exclut les entreprises liées à des controverses environnementales ou sociales importantes ; il faut vérifier les documents sur ce titre.",
+      "raison": "Le Pacte exclut les entreprises liées à des controverses environnementales ou sociales importantes, à vérifier pour ce pétrolier.",
       "entree": {
         "critere": "controverse_esg_importante",
         "ticker": "XOM"
@@ -343,20 +320,11 @@
     {
       "etape": "orchestrateur",
       "outil": "indicateurs_actif",
-      "raison": "Juger le risque propre du titre pétrolier : volatilité, baisse maximale et temps de récupération au regard de l'horizon.",
+      "raison": "Juger le risque propre du titre, sa baisse maximale et sa récupération par rapport à l'horizon du Pacte.",
       "entree": {
         "ticker": "XOM"
       },
       "sortie": "P5"
-    },
-    {
-      "etape": "orchestrateur",
-      "outil": "consulter_jurisprudence",
-      "raison": "Une règle documentaire semble en conflit avec la décision ; vérifier si ce profil a déjà connu un conflit semblable et comment il l'a tranché.",
-      "entree": {
-        "regle": "controverses_esg"
-      },
-      "sortie": "P6"
     },
     {
       "etape": "procureur",
@@ -366,21 +334,20 @@
         "P2",
         "P3",
         "P4",
-        "P5",
-        "P6"
+        "P5"
       ],
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Votre Pacte énonce : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». La fiche de XOM documente une poursuite de l'État du Massachusetts sur l'information climatique : le 2022-05-24, la Cour suprême de l'État a refusé de rejeter la poursuite, et des actes de procédure datent encore du 2026-04-15. Il s'agit d'allégations contestées par l'entreprise, sans jugement sur le fond mentionné.",
+          "texte": "Votre Pacte prévoit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Or XOM est associée à une controverse documentée : une poursuite de l'État du Massachusetts sur l'information climatique, toujours en cours. Ce sont des allégations contestées par l'entreprise, sans jugement sur le fond, et la qualification « importante » reste un jugement de l'équipe.",
           "pieces": [
             "P1",
             "P4"
           ]
         },
         {
-          "etiquette": "fait",
-          "texte": "Votre règle « Pire baisse tolérée : −20 % » est respectée par la simulation du portefeuille (−10,0 %). Mais XOM, prise seule, a connu une pire baisse de −19,1 % sur la période, très proche de votre seuil. Cette mesure ne couvre qu'une seule période passée.",
+          "etiquette": "hypothese",
+          "texte": "Votre Pacte fixe « Pire baisse tolérée : −20 % ». XOM seule a connu une pire baisse de −19,1 % sur la période, très proche de ce seuil, alors que le portefeuille simulé avec la décision est à −10,0 %. On peut imaginer qu'une autre période, qui n'est pas dans ces données, ferait franchir le seuil à cette ligne.",
           "pieces": [
             "P1",
             "P2",
@@ -389,10 +356,9 @@
         },
         {
           "etiquette": "hypothese",
-          "texte": "XOM affiche +100,2 % en 2022, année où le portefeuille actuel recule de −10,1 %. La simulation passe de +11,5 %/an à +13,5 %/an, et une part de ce gain pourrait tenir à cette année exceptionnelle, ce qui questionnerait l'« Équilibre entre croissance et stabilité ». Le passé ne prédit pas l'avenir.",
+          "texte": "Votre Pacte demande un « Équilibre entre croissance et stabilité ». XOM affiche +28,8 %/an de rendement mais aussi une volatilité annuelle de +26,0 %, ce qui pourrait pencher du côté de la croissance au détriment de la stabilité. Cette mesure repose sur une seule période passée, qui ne prédit pas l'avenir.",
           "pieces": [
-            "P2",
-            "P3",
+            "P1",
             "P5"
           ]
         }
@@ -406,29 +372,12 @@
         "P2",
         "P3",
         "P4",
-        "P5",
-        "P6"
+        "P5"
       ],
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Avec la décision, la pire baisse simulée du portefeuille est de −10,0 %, alors que la règle du Pacte « Pire baisse tolérée : −20 % » n'est donc pas atteinte ; le portefeuille actuel affichait −15,1 %. Pour XOM seule, la pire baisse observée est de −19,1 %, sur une seule période passée.",
-          "pieces": [
-            "P1",
-            "P2",
-            "P5"
-          ]
-        },
-        {
-          "etiquette": "fait",
-          "texte": "Dans le rejeu de 2022, le portefeuille passe de −10,1 % sans la décision à −2,1 % avec elle. C'est une seule année de crise, qui ne dit pas comment la suivante se déroulerait.",
-          "pieces": [
-            "P3"
-          ]
-        },
-        {
-          "etiquette": "fait",
-          "texte": "Sur la période analysée, le rendement annuel simulé passe de +11,5 % à +13,5 % et la volatilité annuelle de 9,8 % à 9,5 %. Cela peut se lire comme allant dans le sens de la règle « Équilibre entre croissance et stabilité », sans rien garantir pour l'avenir.",
+          "texte": "Avec la décision (10 % en XOM), la pire baisse simulée du portefeuille est de −10,0 %, ce qui reste dans la règle du Pacte « Pire baisse tolérée : −20 % ». Le portefeuille actuel affichait −15,1 % sur la même période, et cette simulation ne vaut que pour une seule période passée.",
           "pieces": [
             "P1",
             "P2"
@@ -436,8 +385,23 @@
         },
         {
           "etiquette": "fait",
-          "texte": "La règle d'exclusion des controverses environnementales ou sociales importantes est concernée, car P4 documente une controverse pour XOM. La pièce précise toutefois qu'il s'agit d'allégations d'une poursuite en cours, contestées par l'entreprise, sans jugement sur le fond mentionné.",
+          "texte": "Dans le rejeu de 2022, le portefeuille actuel perd −10,1 % alors que le portefeuille avec la décision perd −2,1 %. Il s'agit d'une seule année de crise, et la suivante peut être différente.",
           "pieces": [
+            "P3"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Sur la période simulée, le rendement annuel passe de +11,5 % à +13,5 % avec la décision, tandis que la volatilité annuelle passe de 9,8 % à 9,5 %. Ces chiffres décrivent le passé et ne promettent rien pour l'avenir.",
+          "pieces": [
+            "P2"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Sur la controverse ESG, la fiche signale des allégations d'une poursuite en cours, contestées par l'entreprise, sans jugement sur le fond. Elle retient pourtant une controverse importante, et la règle « Exclure les entreprises liées à des controverses environnementales ou sociales importantes » reste donc à trancher par vous.",
+          "pieces": [
+            "P1",
             "P4"
           ]
         }
@@ -458,7 +422,7 @@
       "etape": "greffier",
       "outil": "verifier_chiffres",
       "entree": "7 arguments",
-      "sortie": "Chiffres cités vérifiés contre leurs pièces : 21/21 chiffres, 7 arguments"
+      "sortie": "Chiffres cités vérifiés contre leurs pièces : 16/16 chiffres, 7 arguments"
     }
   ],
   "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.",
@@ -477,19 +441,18 @@
     }
   },
   "taille_max_compatible": 0.1,
-  "points_de_bascule": [],
   "requisitoire": [
     {
       "etiquette": "fait",
-      "texte": "Votre Pacte énonce : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». La fiche de XOM documente une poursuite de l'État du Massachusetts sur l'information climatique : le 2022-05-24, la Cour suprême de l'État a refusé de rejeter la poursuite, et des actes de procédure datent encore du 2026-04-15. Il s'agit d'allégations contestées par l'entreprise, sans jugement sur le fond mentionné.",
+      "texte": "Votre Pacte prévoit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Or XOM est associée à une controverse documentée : une poursuite de l'État du Massachusetts sur l'information climatique, toujours en cours. Ce sont des allégations contestées par l'entreprise, sans jugement sur le fond, et la qualification « importante » reste un jugement de l'équipe.",
       "pieces": [
         "P1",
         "P4"
       ]
     },
     {
-      "etiquette": "fait",
-      "texte": "Votre règle « Pire baisse tolérée : −20 % » est respectée par la simulation du portefeuille (−10,0 %). Mais XOM, prise seule, a connu une pire baisse de −19,1 % sur la période, très proche de votre seuil. Cette mesure ne couvre qu'une seule période passée.",
+      "etiquette": "hypothese",
+      "texte": "Votre Pacte fixe « Pire baisse tolérée : −20 % ». XOM seule a connu une pire baisse de −19,1 % sur la période, très proche de ce seuil, alors que le portefeuille simulé avec la décision est à −10,0 %. On peut imaginer qu'une autre période, qui n'est pas dans ces données, ferait franchir le seuil à cette ligne.",
       "pieces": [
         "P1",
         "P2",
@@ -498,10 +461,9 @@
     },
     {
       "etiquette": "hypothese",
-      "texte": "XOM affiche +100,2 % en 2022, année où le portefeuille actuel recule de −10,1 %. La simulation passe de +11,5 %/an à +13,5 %/an, et une part de ce gain pourrait tenir à cette année exceptionnelle, ce qui questionnerait l'« Équilibre entre croissance et stabilité ». Le passé ne prédit pas l'avenir.",
+      "texte": "Votre Pacte demande un « Équilibre entre croissance et stabilité ». XOM affiche +28,8 %/an de rendement mais aussi une volatilité annuelle de +26,0 %, ce qui pourrait pencher du côté de la croissance au détriment de la stabilité. Cette mesure repose sur une seule période passée, qui ne prédit pas l'avenir.",
       "pieces": [
-        "P2",
-        "P3",
+        "P1",
         "P5"
       ]
     }
@@ -509,23 +471,7 @@
   "plaidoirie": [
     {
       "etiquette": "fait",
-      "texte": "Avec la décision, la pire baisse simulée du portefeuille est de −10,0 %, alors que la règle du Pacte « Pire baisse tolérée : −20 % » n'est donc pas atteinte ; le portefeuille actuel affichait −15,1 %. Pour XOM seule, la pire baisse observée est de −19,1 %, sur une seule période passée.",
-      "pieces": [
-        "P1",
-        "P2",
-        "P5"
-      ]
-    },
-    {
-      "etiquette": "fait",
-      "texte": "Dans le rejeu de 2022, le portefeuille passe de −10,1 % sans la décision à −2,1 % avec elle. C'est une seule année de crise, qui ne dit pas comment la suivante se déroulerait.",
-      "pieces": [
-        "P3"
-      ]
-    },
-    {
-      "etiquette": "fait",
-      "texte": "Sur la période analysée, le rendement annuel simulé passe de +11,5 % à +13,5 % et la volatilité annuelle de 9,8 % à 9,5 %. Cela peut se lire comme allant dans le sens de la règle « Équilibre entre croissance et stabilité », sans rien garantir pour l'avenir.",
+      "texte": "Avec la décision (10 % en XOM), la pire baisse simulée du portefeuille est de −10,0 %, ce qui reste dans la règle du Pacte « Pire baisse tolérée : −20 % ». Le portefeuille actuel affichait −15,1 % sur la même période, et cette simulation ne vaut que pour une seule période passée.",
       "pieces": [
         "P1",
         "P2"
@@ -533,8 +479,23 @@
     },
     {
       "etiquette": "fait",
-      "texte": "La règle d'exclusion des controverses environnementales ou sociales importantes est concernée, car P4 documente une controverse pour XOM. La pièce précise toutefois qu'il s'agit d'allégations d'une poursuite en cours, contestées par l'entreprise, sans jugement sur le fond mentionné.",
+      "texte": "Dans le rejeu de 2022, le portefeuille actuel perd −10,1 % alors que le portefeuille avec la décision perd −2,1 %. Il s'agit d'une seule année de crise, et la suivante peut être différente.",
       "pieces": [
+        "P3"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Sur la période simulée, le rendement annuel passe de +11,5 % à +13,5 % avec la décision, tandis que la volatilité annuelle passe de 9,8 % à 9,5 %. Ces chiffres décrivent le passé et ne promettent rien pour l'avenir.",
+      "pieces": [
+        "P2"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Sur la controverse ESG, la fiche signale des allégations d'une poursuite en cours, contestées par l'entreprise, sans jugement sur le fond. Elle retient pourtant une controverse importante, et la règle « Exclure les entreprises liées à des controverses environnementales ou sociales importantes » reste donc à trancher par vous.",
+      "pieces": [
+        "P1",
         "P4"
       ]
     }

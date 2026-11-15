@@ -84,6 +84,9 @@
 
 .rejetes { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px; border-left: 4px solid var(--encre-700); background: var(--fond-creux); }
 .rejete { display: flex; align-items: flex-start; gap: 8px; }
+.correction { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--fond-carte); border-radius: 2px; }
+.versionRenvoyee { color: var(--encre-700); padding-left: 10px; border-left: 2px solid var(--statut-violation); }
+.motifCorrection { display: flex; align-items: flex-start; gap: 8px; color: var(--statut-violation); padding: 2px 0 6px; }
 
 .replis { display: flex; flex-direction: column; }
 .repli { border-top: 1px solid var(--trait-fin); }

@@ -227,6 +227,11 @@
       "message": "Chiffres cités vérifiés contre leurs pièces : 17/17 chiffres, 8 arguments ; 1 argument rejeté après une relance"
     },
     {
+      "statut": "conforme",
+      "regle": "cadre_simulation",
+      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 8 arguments vérifiés"
+    },
+    {
       "statut": "a_verifier",
       "regle": "performance_passee",
       "message": "Performance passée invoquée : elle ne prédit pas l'avenir"

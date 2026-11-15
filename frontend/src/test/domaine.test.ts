@@ -3,9 +3,12 @@
  * procès enregistrés. Aucun nom de profil dans la logique : les tests vérifient qu'elle
  * lit le Pacte et le contrat.
  */
-import contratRobert from '../data/proces/robert.json';
-import contratMateo from '../data/proces/mateo.json';
-import contratAmira from '../data/proces/amira.json';
+import contratRobert from '../data/proces/2026-11-15-dfad1e96d34e.json';
+import contratRobert25 from '../data/proces/2026-11-15-5944335b5a5c.json';
+import contratMateo from '../data/proces/2026-11-14-51c84bd19c16.json';
+import contratAmira from '../data/proces/2026-11-15-741f038b00f1.json';
+import { pieges } from '../domaine/pieges';
+import { jugerDecision, ProcesNonEnregistre } from '../api/tribunal';
 import tsla from '../data/generated/decisions/robert/TSLA.json';
 import xom from '../data/generated/decisions/mateo/XOM.json';
 import type { ContratTribunal } from '../api/contrat';
@@ -63,18 +66,29 @@ describe('adaptateur du contrat', () => {
   it('arguments, pièces et contrôles triés par gravité', () => {
     expect(resultat.titre).toBe(`Robert c. « 30${FINE}% en TSLA »`);
     expect(resultat.arguments.filter((a) => a.camp === 'Procureur')).toHaveLength(4);
-    expect(resultat.arguments.filter((a) => a.camp === 'Avocat')).toHaveLength(4);
+    expect(resultat.arguments.filter((a) => a.camp === 'Avocat')).toHaveLength(3);
     expect(resultat.controles[0].statut).toBe('Violation');
     expect(resultat.controles[0].paragraphe).toBe(1);
     expect(resultat.constat).toBe(`Pire baisse ${MOINS}29,0 % au-delà du seuil ${MOINS}12,0 % (Pacte §1).`);
   });
 
   it('chaque pièce sait quels arguments la citent', () => {
-    const p5 = resultat.pieces.find((p) => p.code === 'P5')!;
-    expect(p5.citeePar).toEqual(['Procureur · argument 2', 'Procureur · argument 3', 'Avocat · argument 2']);
-    // Points de bascule (#61), cités des deux côtés.
-    const bascule = resultat.pieces.find((p) => p.titre.startsWith('Ce qui changerait la réponse'))!;
-    expect(bascule.citeePar).toEqual(['Procureur · argument 4', 'Avocat · argument 3']);
+    for (const camp of ['Procureur', 'Avocat'] as const) {
+      resultat.arguments.filter((a) => a.camp === camp).forEach((a, i) => {
+        for (const code of a.pieces) {
+          expect(resultat.pieces.find((p) => p.code === code)!.citeePar).toContain(`${camp} · argument ${i + 1}`);
+        }
+      });
+    }
+  });
+
+  it('une correction du Greffier pendant le procès est gardée avec son motif', () => {
+    expect(resultat.corrections).toEqual([]);
+    const avecCorrection = adapter(contratRobert25, 'Robert', { type: 'position', ticker: 'TSLA', taille: 25 });
+    expect(avecCorrection.corrections).toHaveLength(1);
+    expect(avecCorrection.corrections[0].camp).toBe('Procureur');
+    expect(avecCorrection.corrections[0].motif).toBe('« 30 % » introuvable dans P6');
+    expect(avecCorrection.corrections[0].corrige).not.toBe(avecCorrection.corrections[0].original);
   });
 
   it('trace : raison de l’orchestrateur et pièce produite', () => {
@@ -140,5 +154,42 @@ describe('options du Verdict', () => {
     const options = optionsVerdict({ profil: amira, resultat, decision: decisionAmira, table: null, entreeDecision: null });
     expect(options[1].titre).toBe(`Réallouer seulement 28${FINE}%`);
     expect(options[1].statut).toBe('Conforme');
+  });
+});
+
+describe('procès enregistrés (mode démonstration)', () => {
+  it('rejoue le procès qui juge exactement la décision, avec son identifiant S3', async () => {
+    const trente = await jugerDecision('robert', decisionRobert);
+    expect(trente.procesId).toBe('2026-11-15-dfad1e96d34e');
+    const vingtCinq = await jugerDecision('robert', { type: 'position', ticker: 'TSLA', taille: 25 });
+    expect(vingtCinq.procesId).toBe('2026-11-15-5944335b5a5c');
+    expect(vingtCinq.audience).toBe(numeroAudience('2026-11-15-5944335b5a5c'));
+  });
+
+  it('sans procès pour cette décision, propose la décision de démonstration', async () => {
+    await expect(jugerDecision('robert', { ...decisionRobert, taille: 12 })).rejects.toBeInstanceOf(ProcesNonEnregistre);
+    try {
+      await jugerDecision('robert', { ...decisionRobert, taille: 12 });
+    } catch (e) {
+      expect((e as ProcesNonEnregistre).decisionEnregistree).toEqual(decisionRobert);
+    }
+  });
+});
+
+describe('« Trompez le Greffier » : exemples prêts', () => {
+  const exemples = pieges(adapter(contratRobert, 'Robert', decisionRobert));
+
+  it('un vrai chiffre, un inventé, un arrondi faux et la mauvaise pièce, tous sur la pièce de simulation', () => {
+    expect(exemples.map((e) => e.id)).toEqual(['vrai', 'invente', 'arrondi', 'piece']);
+    expect(exemples.every((e) => e.pieces.join() === 'P2')).toBe(true);
+    expect(exemples[0].texte).toContain(`${MOINS}29,0${FINE}%`);
+    expect(exemples[1].texte).toContain(`${MOINS}40${FINE}%`);
+    expect(exemples[2].texte).toContain(`${MOINS}28,9${FINE}%`);
+    expect(exemples[3].texte).toContain(`${MOINS}23,7${FINE}%`);
+  });
+
+  it('aucun exemple sans pièce de simulation', () => {
+    const sansSimulation = adapter({ ...(contratRobert as ContratTribunal), pieces: [] }, 'Robert', decisionRobert);
+    expect(pieges(sansSimulation)).toEqual([]);
   });
 });

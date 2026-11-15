@@ -23,7 +23,7 @@ from typing import Any, Callable, Iterator
 from unittest import mock
 
 from pipeline import categories as module_categories
-from pipeline.chiffres import verifier_argument
+from pipeline.chiffres import trier_arguments
 from pipeline.greffier import verifier_pacte
 from pipeline.indicateurs import calculer_pire_baisse, calculer_volatilite_annuelle
 from pipeline.llm import DemandeOutil, TourOutils
@@ -376,8 +376,12 @@ def scenarios_periode() -> list[Resultat]:
 # --- 5. Robustesse du Greffier -------------------------------------------------------------
 
 def scenarios_greffier() -> list[Resultat]:
-    """Un argument du faux contrat, puis cinq versions fautives injectées."""
-    groupe = "5. Robustesse du Greffier (verifier_chiffres)"
+    """Un argument du faux contrat, puis des versions fautives injectées (chiffres, puis cadre).
+
+    Chaque argument passe par ``trier_arguments``, comme dans un procès : chiffres
+    (``verifier_chiffres``) et cadre « simulation seulement » (``cadre_simulation``, #60).
+    """
+    groupe = "5. Robustesse du Greffier (verifier_chiffres et cadre_simulation)"
     contrat = json.loads(EXEMPLE_ROBERT.read_text(encoding="utf-8"))
     dossier = {"decision": contrat["decision"], "pieces": contrat["pieces"],
                "periode": ["2021-11-12", "2026-11-12"]}
@@ -388,14 +392,20 @@ def scenarios_greffier() -> list[Resultat]:
         ("Mauvaise pièce citée", "La pire chute observée passe de −7,8 % à −29,0 %.", ["P3"], False),
         ("Signe manquant", "Si 2022 se répétait, le portefeuille ferait 2,6 %.", ["P2"], False),
         ("Nombre dérivé", "La pire chute serait 21 points de plus qu'aujourd'hui.", ["P1"], False),
+        ("Conseil personnalisé", "La pire chute passe à −29,0 % : vous devriez vendre TSLA.", ["P1"], False),
+        ("Impératif", "Limitez TSLA : la pire chute passe de −7,8 % à −29,0 %.", ["P1"], False),
+        ("Promesse", "Le rendement annualisé de +12,0 % va continuer à progresser.", ["P1"], False),
+        ("Prévision au futur", "Avec 30 % en TSLA, la pire chute de −29,0 % se répétera.", ["P1"], False),
+        ("Promesse niée", "Le rendement annualisé passe à +12,0 %, mais le passé ne prédit pas l'avenir.", ["P1"], True),
+        ("Citation du Pacte", "Vous avez écrit : « Préserver mon capital ».", ["P3"], True),
     ]
     resultats = []
     for nom, texte, pieces, doit_passer in cas:
-        verification = verifier_argument({"etiquette": "fait", "texte": texte, "pieces": pieces}, dossier)
-        obtenu = "accepté" if verification.valide else f"rejeté : {verification.motif}"
+        tri = trier_arguments([{"etiquette": "fait", "texte": texte, "pieces": pieces}], "requisitoire", dossier)
+        obtenu = "accepté" if tri.valides else f"rejeté : {tri.rejetes[0]['raison']}"
         resultats.append(Resultat(
             groupe, f"{nom} : « {texte} » ({', '.join(pieces)})", "accepté" if doit_passer else "rejeté",
-            obtenu, verification.valide is doit_passer,
+            obtenu, bool(tri.valides) is doit_passer,
         ))
     return resultats
 

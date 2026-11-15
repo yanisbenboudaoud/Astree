@@ -92,6 +92,14 @@ def test_controle_sur_regle_inconnue_rejete(contrat):
     assert "controles/0 : règle « regle_fantome » inconnue du Pacte" in erreurs
 
 
+def test_controle_cadre_simulation_admis_et_facultatif(contrat):
+    """#60 : contrôle du système reconnu ; facultatif, pour que les contrats archivés avant restent valides."""
+    assert any(c["regle"] == "cadre_simulation" for c in contrat["controles"])
+    sans = copy.deepcopy(contrat)
+    sans["controles"] = [c for c in sans["controles"] if c["regle"] != "cadre_simulation"]
+    assert valider_contrat(contrat) == [] and valider_contrat(sans) == []
+
+
 def test_regle_du_pacte_sans_controle_rejetee(contrat):
     contrat["controles"] = [c for c in contrat["controles"] if c["regle"] != "plafond_crypto"]
     assert valider_contrat(contrat) == ["controles : la règle « plafond_crypto » du Pacte n'a aucun contrôle"]

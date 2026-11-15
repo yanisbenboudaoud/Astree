@@ -102,7 +102,7 @@ L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % en TSLA »). Le
 2. **Orchestrateur** (LLM Bedrock, encadré par Python) : **instruit le dossier**. Il lit la décision et le Pacte, **choisit lui-même quels outils Python appeler** (section 4 bis) et avec quels paramètres, et donne une raison courte pour chaque appel. Chaque résultat d'outil devient une **pièce à conviction** numérotée (P1, P2…).
 3. **Procureur** (LLM Bedrock) : argumente **contre** la décision, en citant uniquement des pièces.
 4. **Avocat** (LLM Bedrock) : argumente **pour** la décision, honnêtement, en citant uniquement des pièces. Le Procureur et l'Avocat sont appelés **en parallèle** ; ils ne calculent rien et n'appellent aucun outil.
-5. **Greffier** (Python, sans LLM) : vérifie le Pacte (conforme, violation, à vérifier) et vérifie que **chaque chiffre cité** par le Procureur et l'Avocat existe dans une pièce (règles en section 4 ter). Un argument non prouvé est renvoyé une fois à son agent, puis rejeté.
+5. **Greffier** (Python, sans LLM) : vérifie le Pacte (conforme, violation, à vérifier), vérifie que **chaque chiffre cité** par le Procureur et l'Avocat existe dans une pièce (règles en section 4 ter) et qu'**aucun argument ne conseille ni ne promet** (section 4 quater). Un argument non prouvé ou hors cadre est renvoyé une fois à son agent, puis rejeté.
 6. **Verdict** (l'utilisateur) : maintenir, modifier la décision, ou ajuster son Pacte. Le système ne bloque jamais : il archive la décision avec ses pièces.
 
 ### L'orchestrateur Bedrock et ses garde-fous
@@ -161,6 +161,14 @@ Ce vérificateur porte la promesse du pitch : « aucun chiffre inventé ne passe
 9. **Compte rendu** : le contrôle `verifier_chiffres` affiche « nombres vérifiés / nombres extraits » et le nombre d'arguments (ex. : « 17/17 chiffres, 7 arguments »). Une date compte pour un nombre.
 10. **Tests obligatoires** : au minimum, chaque exemple de cette section (cas qui passent et cas rejetés) est un test unitaire.
 
+## 4 quater. Cadre « simulation seulement » : `cadre_simulation` (Greffier)
+
+Le case demande à la gouvernance de vérifier le cadre du défi (p. 9) et interdit de se présenter comme du conseil financier personnalisé (p. 17). Le Greffier vérifie donc aussi, en Python sans LLM (`pipeline/cadre_simulation.py`), qu'aucun argument (Procureur, Avocat, réponse au contre-interrogatoire) ne contient :
+1. **un conseil** : recommandation ou ordre (« vous devriez », « je recommande », « il faut vendre », « Robert devrait alléger », impératif comme « achetez » ou « ne vendez pas ») ;
+2. **une promesse ou une prévision** sur l'avenir, à la hausse comme à la baisse (« va monter », « rapportera », « devrait rebondir », « se répétera », « garanti », « à coup sûr »).
+
+Ne sont pas visés : les citations entre guillemets (le Pacte cité : « Préserver mon capital »), une prévision **niée** dans la même proposition (« le passé ne prédit pas l'avenir », « rien ne garantit ») le conditionnel d'un scénario (« si 2022 se répétait, le portefeuille ferait… ») et une interrogation indirecte (« le Tribunal ne dit pas s'il faut vendre », la réponse attendue à une demande de conseil au contre-interrogatoire). Un conseil nié reste un conseil. Même boucle que la règle 8 de la section 4 ter, dans la même relance : renvoyé une fois avec le motif, puis `arguments_rejetes`. Compte rendu : le contrôle `cadre_simulation` (« Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés ») ; au contre-interrogatoire, une étape `verifier_cadre_simulation` de la trace de l'échange.
+
 ## 5. Contrat JSON entre le pipeline et l'interface
 
 Le pipeline produit **exactement** ce format, une réponse par audience, quel que soit le profil. Le champ `persona` contient l'identifiant du Pacte utilisé (n'importe quel profil, pas seulement les profils de test). L'exemple ci-dessous illustre le cas général 1 avec le profil de test prudent. L'équipe interface travaille avec le faux JSON `docs/exemples/contrat_robert.json` en attendant. **Ne changez pas ce format sans prévenir toute l'équipe.**
@@ -215,6 +223,7 @@ Conventions : les nombres sont des **décimales** (0.30 = 30 %), en CAD sauf men
     {"statut": "violation", "regle": "pire_baisse_max", "message": "Pire baisse −29,0 % au-delà du seuil −12,0 %", "pieces": ["P1", "P3"]},
     {"statut": "a_verifier", "regle": "preserver_capital", "message": "Règle déclarée, non mesurable par calcul : à juger par l'utilisateur", "pieces": ["P3"]},
     {"statut": "conforme", "regle": "verifier_chiffres", "message": "Chiffres cités vérifiés contre leurs pièces : 17/17 chiffres, 7 arguments"},
+    {"statut": "conforme", "regle": "cadre_simulation", "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés"},
     {"statut": "a_verifier", "regle": "performance_passee", "message": "Performance passée invoquée : elle ne prédit pas l'avenir"}
   ],
   "arguments_rejetes": [
@@ -239,8 +248,8 @@ Règles du contrat :
 - `taille_max_compatible` vaut `null` si même 0 % viole le Pacte. Pour une réallocation, c'est la plus grande part réallouée compatible.
 - `points_de_bascule` (#61) : un objet par règle calculable (`pire_baisse_max`, `plafond`) en violation, et seulement pour elles ; liste vide sans violation. `taille_max` est la plus grande taille (ou part réallouée) où **cette** règle est conforme (`null` si même 0 % la viole) ; `seuil_suffisant` est la valeur simulée après la décision (pire baisse, ou part des catégories du plafond), arrondie du côté permissif ; `message` est écrit par Python ; `pieces` cite la pièce `points_de_bascule`. Champ facultatif dans le schéma, pour que les contrats antérieurs restent valides ; le pipeline le produit toujours.
 - `statut` d'un contrôle : `conforme`, `violation` ou `a_verifier`. `etiquette` : `fait`, `hypothese` ou `fictif`. `type` d'une pièce : `calculee` (outil Python) ou `documentaire` (extrait de document, V3).
-- `pacte.regles` reprend les règles du fichier profil (section 3), sans les justifications. `controles[].regle` est l'`id` d'une règle du Pacte, ou l'un des contrôles du système : `verifier_chiffres`, `performance_passee`, `biais_survivant`, `interpretation_demande` (Agent Profil : demande incomplète ou ambiguë, toujours `a_verifier`).
-- Chaque argument cite au moins une pièce. Un argument dont un chiffre est introuvable dans ses pièces (section 4 ter) va dans `arguments_rejetes`, avec `cote` (`requisitoire` ou `plaidoirie`), son texte, ses pièces et la `raison` du rejet.
+- `pacte.regles` reprend les règles du fichier profil (section 3), sans les justifications. `controles[].regle` est l'`id` d'une règle du Pacte, ou l'un des contrôles du système : `verifier_chiffres`, `cadre_simulation` (Greffier : aucun conseil ni promesse dans les arguments affichés, section 4 quater ; absent des contrats archivés avant #60), `performance_passee`, `biais_survivant`, `interpretation_demande` (Agent Profil : demande incomplète ou ambiguë, toujours `a_verifier`).
+- Chaque argument cite au moins une pièce. Un argument dont un chiffre est introuvable dans ses pièces (section 4 ter), ou qui conseille ou promet (section 4 quater), va dans `arguments_rejetes`, avec `cote` (`requisitoire` ou `plaidoirie`), son texte, ses pièces et la `raison` du rejet.
 - Dans `trace`, les appels de l'orchestrateur ont `etape: "orchestrateur"` et une `raison` courte, sans chiffre. Une pièce ajoutée d'office par Python a la raison « Pièce obligatoire ajoutée d'office ». Un appel refusé ou en erreur (outil non autorisé, raison invalide, titre hors univers, source manquante…) ne crée pas de pièce : sa `sortie` est « Erreur : <motif> ». La simulation obligatoire, elle, doit avoir produit une pièce.
 - Les valeurs des pièces et de `comparaison` sont brutes (au moins 4 décimales) ; seul `valeur_affichee` est arrondi.
 - `verdict` est rempli par l'interface quand l'utilisateur choisit : `maintenu`, `modifie` ou `pacte_ajuste`.

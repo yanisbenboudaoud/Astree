@@ -242,7 +242,7 @@
     },
 
     "controle": {
-      "description": "« regle » est l'id d'une règle du Pacte ou un contrôle du système (verifier_chiffres, performance_passee, biais_survivant, interpretation_demande).",
+      "description": "« regle » est l'id d'une règle du Pacte ou un contrôle du système (verifier_chiffres, cadre_simulation, performance_passee, biais_survivant, interpretation_demande).",
       "type": "object",
       "additionalProperties": false,
       "required": ["statut", "regle", "message"],

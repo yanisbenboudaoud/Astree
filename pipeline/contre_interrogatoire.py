@@ -10,8 +10,9 @@ C'est donc la même boucle que le procès, sur le dossier existant :
    pièces sont numérotées à la suite (P7, P8…).
 2. **Procureur et Avocat**, en parallèle : chacun répond à la question de son
    point de vue, en citant uniquement des pièces.
-3. **Greffier** : ``verifier_chiffres`` sur chaque réponse ; un argument non
-   prouvé est renvoyé une fois à son agent, puis rejeté.
+3. **Greffier** : ``verifier_chiffres`` et le cadre « simulation seulement »
+   (aucun conseil, aucune promesse, #60) sur chaque réponse ; un argument non
+   prouvé ou hors cadre est renvoyé une fois à son agent, puis rejeté.
 
 Le système ne recommande toujours rien : une demande de conseil reçoit une
 réponse qui le dit, et l'utilisateur garde le verdict.
@@ -32,6 +33,7 @@ import copy
 from typing import Any, Callable
 
 from pipeline.agent_profil import chemin_profil
+from pipeline.cadre_simulation import controle_cadre_simulation
 from pipeline.chiffres import controle_verifier_chiffres
 from pipeline.debat import debattre
 from pipeline.llm import converser_avec_outils
@@ -82,12 +84,13 @@ def interroger(
     requisitoire = verifier_cote(debat.requisitoire, "requisitoire", "procureur", dossier, trace)
     plaidoirie = verifier_cote(debat.plaidoirie, "plaidoirie", "avocat", dossier, trace)
     controle = controle_verifier_chiffres(requisitoire, plaidoirie)
-    trace.append({
-        "etape": "greffier",
-        "outil": "verifier_chiffres",
-        "entree": f"{len(debat.requisitoire) + len(debat.plaidoirie)} arguments",
-        "sortie": controle["message"],
-    })
+    # Le cadre (#60) est déjà appliqué par verifier_cote ; son compte rendu va dans la trace,
+    # le format de l'échange ne change pas.
+    cadre = controle_cadre_simulation(requisitoire, plaidoirie)
+    nombre_arguments = f"{len(debat.requisitoire) + len(debat.plaidoirie)} arguments"
+    for outil, compte_rendu in (("verifier_chiffres", controle), ("verifier_cadre_simulation", cadre)):
+        trace.append({"etape": "greffier", "outil": outil, "entree": nombre_arguments,
+                      "sortie": compte_rendu["message"]})
 
     echange = {
         "question": question,

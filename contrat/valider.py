@@ -15,7 +15,8 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 
 CHEMIN_SCHEMA = Path(__file__).with_name("schema_sortie.json")
-CONTROLES_SYSTEME = {"verifier_chiffres", "performance_passee", "biais_survivant", "interpretation_demande"}
+CONTROLES_SYSTEME = {"verifier_chiffres", "cadre_simulation", "performance_passee", "biais_survivant",
+                     "interpretation_demande"}
 TYPES_CALCULABLES = {"pire_baisse_max", "plafond"}  # règles qui ont un point de bascule (#61)
 TOLERANCE_SOMME_POIDS = 1e-6
 # Sortie d'un appel d'outil refusé ou en erreur (orchestrateur, #12) : le procès continue sans pièce.

@@ -160,7 +160,8 @@ def test_interroger_ajoute_les_pieces_et_l_echange(monkeypatch):
     assert echange["pieces_ajoutees"] == [nouvelle]
     assert len(echange["requisitoire"]) == len(echange["plaidoirie"]) == 1
     assert echange["controle_chiffres"]["regle"] == "verifier_chiffres"
-    assert [e["etape"] for e in echange["trace"]] == ["orchestrateur", "procureur", "avocat", "greffier"]
+    assert [e["etape"] for e in echange["trace"]] == ["orchestrateur", "procureur", "avocat", "greffier", "greffier"]
+    assert [e["outil"] for e in echange["trace"][-2:]] == ["verifier_chiffres", "verifier_cadre_simulation"]
     assert all(QUESTION in message for message in recus)
     assert pieces_de_l_echange(complete, echange) == [complete["pieces"][-1]]
     assert "contre_interrogatoire" not in depart  # le contrat reçu n'est pas modifié
@@ -199,6 +200,24 @@ def test_demande_de_conseil_sans_outil(monkeypatch):
     complete = interroger(contrat_de_depart(), "Que dois-je acheter ?", converser=FauxModele([]))
     [echange] = complete["contre_interrogatoire"]
     assert echange["pieces_ajoutees"] == []
+    assert valider_contrat(complete) == []
+
+
+def test_reponse_a_une_demande_de_conseil_acceptee_mais_un_conseil_rejete(monkeypatch):
+    """#60 : « ne dit pas s'il faut vendre » passe ; « vous devriez vendre » est rejeté après une relance."""
+    reponse = {"etiquette": "fait", "pieces": ["P1"],
+               "texte": "Le Tribunal ne vous dit pas s'il faut vendre TSLA : c'est à vous de trancher."}
+    conseil = {"etiquette": "fait", "pieces": ["P1"], "texte": "Vous devriez vendre TSLA."}
+    faux_debat(monkeypatch, lambda role: [reponse] if role == "procureur" else [conseil], correction=conseil)
+    complete = interroger(contrat_de_depart(), "Dois-je vendre TSLA ?", converser=FauxModele([]))
+
+    [echange] = complete["contre_interrogatoire"]
+    assert echange["requisitoire"] == [reponse] and echange["plaidoirie"] == []
+    [rejete] = echange["arguments_rejetes"]
+    assert rejete["cote"] == "plaidoirie" and rejete["raison"].startswith("Conseil personnalisé : « Vous devriez »")
+    assert echange["trace"][-1]["sortie"] == (
+        "Aucun conseil personnalisé ni promesse sur l'avenir : 1 argument vérifié ; "
+        "1 argument rejeté après une relance")
     assert valider_contrat(complete) == []
 
 

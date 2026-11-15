@@ -203,24 +203,40 @@ def valider_piece(piece):
     validateur.validate(piece)
 
 
-def comparer_a_la_maquette(piece, attendue):
-    assert {cle: valeur for cle, valeur in piece.items() if cle != "valeurs"} == {
-        cle: valeur for cle, valeur in attendue.items() if cle != "valeurs"
+def comparer_a_la_maquette(piece, attendue, titre):
+    """Mêmes champs et mêmes chiffres que la maquette ; le titre et la taille simulée en plus (#55)."""
+    assert piece["titre"] == titre
+    assert {cle: valeur for cle, valeur in piece.items() if cle not in ("valeurs", "titre")} == {
+        cle: valeur for cle, valeur in attendue.items() if cle not in ("valeurs", "titre")
     }
     valeurs = {nom: round(v, 4) if isinstance(v, float) else v for nom, v in piece["valeurs"].items()}
+    assert valeurs.pop("taille") == DECISION["taille"]
     assert valeurs == attendue["valeurs"]
 
 
 def test_piece_periode_complete_reproduit_p1():
     piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
     valider_piece(piece)
-    comparer_a_la_maquette(piece, PIECES["P1"])
+    comparer_a_la_maquette(piece, PIECES["P1"], "Simulation du portefeuille avec 30 % en TSLA")
 
 
 def test_piece_rejeu_2022_reproduit_p2():
     piece = piece_simulation("P2", PORTEFEUILLE, DECISION, periode="2022")
     valider_piece(piece)
-    comparer_a_la_maquette(piece, PIECES["P2"])
+    comparer_a_la_maquette(piece, PIECES["P2"], "Rejeu de 2022 avec 30 % en TSLA")
+
+
+@pytest.mark.parametrize(("decision", "titre", "valeur"), [
+    ({"type": "position", "ticker": "TSLA", "taille": 0.15, "financement": "proportionnel"},
+     "Simulation du portefeuille avec 15 % en TSLA", {"taille": 0.15}),
+    ({"type": "position", "ticker": "TSLA", "taille": 0.075, "financement": "depuis_ZST.TO"},
+     "Simulation du portefeuille avec 7,5 % en TSLA, financé par ZST.TO", {"taille": 0.075}),
+])
+def test_la_piece_dit_quelle_taille_a_ete_simulee(decision, titre, valeur):
+    # Contre-interrogatoire (#55) : plusieurs simulations au dossier, chacune doit dire sa taille.
+    piece = piece_simulation("P6", PORTEFEUILLE, decision)
+    assert piece["titre"] == titre
+    assert {cle: piece["valeurs"][cle] for cle in valeur} == valeur
 
 
 @pytest.mark.parametrize(

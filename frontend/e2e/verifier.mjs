@@ -126,7 +126,7 @@ async function robertAuClavier(largeur, suffixe) {
   await page.waitForURL('**/robert/verdict');
   // La navigation est une transition React : on attend que l'écran soit vraiment affiché.
   await page.waitForSelector('text=Quelle est votre décision');
-  if (!(await page.getByText('Ce qui changerait la réponse').count())) problemes.push('verdict : points de bascule absents (#61)');
+  if (!(await page.locator('[data-ajustement]').count())) problemes.push('verdict : points de bascule absents de « Ajuster mon Pacte » (#61)');
   await tabulerJusqua(page, /radio|Maintenir/);
   await page.keyboard.press('Space');
   try {
@@ -189,7 +189,7 @@ async function amira() {
   await verifierEcran(page, 'Amira · tribunal');
   await page.getByRole('button', { name: /Rendre mon verdict/ }).click();
   await page.waitForSelector('text=Quelle est votre décision');
-  const bascules = await page.locator('section', { hasText: 'Ce qui changerait la réponse' }).locator('li').count();
+  const bascules = await page.locator('[data-ajustement]').count();
   if (bascules !== 3) problemes.push(`verdict du panier : ${bascules} points de bascule au lieu de 3 (#61)`);
   await page.getByRole('radio', { name: /Réallouer seulement/ }).check();
   await verifierEcran(page, 'Amira · verdict');

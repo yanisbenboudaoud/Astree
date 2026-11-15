@@ -54,7 +54,7 @@ async function attendreProces(page, profil, appels) {
   if (await page.getByText(/procès enregistré/).count()) problemes.push(`${profil} : l'interface est en mode démonstration (VITE_USE_MOCKS)`);
   // Progression en direct (#90) : la phase en cours doit changer pendant l'attente.
   const phasesVues = new Set();
-  while (!(await page.getByText('Bilan du Greffier').count())) {
+  while (!(await page.locator('#titre-bilan').count())) {
     if (Date.now() - debut > DELAI_PROCES_MS) throw new Error(`${profil} : pas de résultat après ${DELAI_PROCES_MS / 1000} s`);
     const phase = await page.locator('li[aria-current="step"] .t-petit-fort').first().textContent({ timeout: 200 }).catch(() => null);
     if (phase) phasesVues.add(phase);

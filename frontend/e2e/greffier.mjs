@@ -42,7 +42,7 @@ async function ouvrirTribunal(taille) {
   await page.keyboard.press('Home');
   for (let i = 0; i < taille; i += 1) await page.keyboard.press('ArrowRight');
   await page.getByRole('button', { name: /Soumettre au Tribunal/ }).click();
-  await page.waitForSelector('text=Bilan du Greffier', { timeout: 20_000 });
+  await page.waitForSelector('#titre-bilan', { timeout: 20_000 });
 }
 
 async function resultat() {

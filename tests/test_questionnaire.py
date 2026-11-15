@@ -13,7 +13,6 @@ from pipeline.indicateurs import indicateurs_actif
 from pipeline.pacte import erreurs_profil
 from pipeline.questionnaire import (
     ReponsesInvalides,
-    cartes_fourchettes,
     controle_experience,
     detail_bareme,
     main,
@@ -34,21 +33,21 @@ def persona(nom):
 COMME = {
     "robert": {
         "horizon": "3_5", "objectif": "retraite", "retraits": "peu", "coussin": "plus_12",
-        "part_patrimoine": "moitie_trois_quarts", "revenu": "assez_stable", "fourchettes": "equilibre",
+        "part_patrimoine": "moitie_trois_quarts", "revenu": "assez_stable",
         "reaction": "rien", "vecu_2022": "rien", "regard_proches": "prudent", "experience": ["depots", "fonds", "actions"],
         "quiz_baisse": "100", "crypto": "aucune", "concentration": "sans_limite", "exclusions": ["aucune"],
         "regle_perso": "Entreprises établies, modèle compris",
     },
     "amira": {
         "horizon": "plus_15", "objectif": "croissance", "retraits": "non", "coussin": "6_12",
-        "part_patrimoine": "quart_moitie", "revenu": "tres_stable", "fourchettes": "audacieux",
+        "part_patrimoine": "quart_moitie", "revenu": "tres_stable",
         "reaction": "rachete", "vecu_2022": "rachete", "regard_proches": "risques_reflechis",
         "experience": ["fonds", "actions", "crypto"], "quiz_baisse": "100", "crypto": "25",
         "concentration": "trois_quarts", "exclusions": ["aucune"],
     },
     "mateo": {
         "horizon": "5_10", "objectif": "croissance", "retraits": "non", "coussin": "6_12",
-        "part_patrimoine": "quart_moitie", "revenu": "tres_stable", "fourchettes": "actions",
+        "part_patrimoine": "quart_moitie", "revenu": "tres_stable",
         "reaction": "rien", "vecu_2022": "rien", "regard_proches": "prudent", "experience": ["fonds"],
         "quiz_baisse": "100", "crypto": "aucune", "concentration": "sans_limite",
         "exclusions": ["controverses_esg"], "regle_perso": "Équilibre entre croissance et stabilité",
@@ -88,10 +87,10 @@ def test_profil_valide_et_proche_du_profil_de_test(nom):
 
 
 def test_seuils_obtenus_pour_les_profils_de_test():
-    """Seuils tirés des vrais portefeuilles des cartes (écarts avec personas/ documentés dans la fiche 084)."""
-    assert regle(profil_comme("robert"), "pire_baisse_max")["seuil"] == pytest.approx(-0.131)  # Pacte écrit à la main : −12 %
-    assert regle(profil_comme("mateo"), "pire_baisse_max")["seuil"] == pytest.approx(-0.222)   # −20 %
-    assert regle(profil_comme("amira"), "pire_baisse_max")["seuil"] == pytest.approx(-0.382)   # −45 %
+    """Seuils tirés du plafond de capacité (écarts avec personas/ documentés dans la fiche du retrait des cartes)."""
+    assert regle(profil_comme("robert"), "pire_baisse_max")["seuil"] == pytest.approx(-0.15)  # Pacte écrit à la main : −12 %
+    assert regle(profil_comme("mateo"), "pire_baisse_max")["seuil"] == pytest.approx(-0.25)   # −20 %
+    assert regle(profil_comme("amira"), "pire_baisse_max")["seuil"] == pytest.approx(-0.40)   # −45 %
 
 
 def test_regles_des_preferences():
@@ -106,43 +105,31 @@ def test_regles_des_preferences():
 
 def test_justification_cite_les_reponses_decisives():
     justification = regle(profil_comme("robert", horizon="moins_3"), "pire_baisse_max")["justification"]
-    assert "horizon : « Moins de 3 ans »" in justification and "capacité qui décide" in justification
+    assert "horizon : « Moins de 3 ans »" in justification and "capacité à encaisser une baisse" in justification
+    assert "Pacte vécu" in justification  # la baisse vraiment acceptée se mesure ensuite
 
 
 # --- Barème -------------------------------------------------------------------------
 
 
-def test_tolerance_forte_mais_horizon_court_le_plafond_de_capacite_decide():
-    profil = profil_comme("amira", horizon="moins_3")  # tolérance déclarée −38,3 %
+def test_horizon_court_le_plafond_de_capacite_fixe_le_seuil():
+    profil = profil_comme("amira", horizon="moins_3")  # profil audacieux, mais moins de 3 ans d'horizon
     assert regle(profil, "pire_baisse_max")["seuil"] == pytest.approx(-0.10)
-    assert detail_bareme({**COMME["amira"], "horizon": "moins_3"}, DATE)["seuil_retenu"]["decisif"] == "capacite"
+    detail = detail_bareme({**COMME["amira"], "horizon": "moins_3"}, DATE)
+    assert detail["capacite"]["plafond"] == -0.10 and detail["seuil_retenu"]["valeur"] == -0.10
 
 
 def test_le_vecu_2022_l_emporte_sur_la_reaction_imaginee():
-    carte = next(c for c in cartes_fourchettes() if c["id"] == "audacieux")
-    resserre = detail_bareme({**COMME["amira"], "vecu_2022": "vendu", "reaction": "rachete"}, DATE)["tolerance"]
-    assert resserre["resserre"] and resserre["source"] == "vecu_2022"
-    assert resserre["seuil"] == pytest.approx(carte["pire_baisse"] * 0.75, abs=1e-6)
-    garde = detail_bareme({**COMME["amira"], "vecu_2022": "rachete", "reaction": "vend_tout"}, DATE)["tolerance"]
-    assert not garde["resserre"]
+    detail = detail_bareme({**COMME["amira"], "vecu_2022": "vendu", "reaction": "rachete"}, DATE)
+    assert detail["resserrement"]["resserre"] and detail["resserrement"]["source"] == "vecu_2022"
+    assert detail["seuil_retenu"]["valeur"] == pytest.approx(-0.40 * 0.75)  # capacité −40 %, resserrée d'un quart
+    garde = detail_bareme({**COMME["amira"], "vecu_2022": "rachete", "reaction": "vend_tout"}, DATE)
+    assert not garde["resserrement"]["resserre"] and garde["seuil_retenu"]["valeur"] == pytest.approx(-0.40)
 
 
 def test_sans_vecu_2022_la_reaction_decide():
-    tolerance = detail_bareme({**COMME["amira"], "vecu_2022": "pas_investi", "reaction": "vend_partie"}, DATE)["tolerance"]
-    assert tolerance["resserre"] and tolerance["source"] == "reaction"
-
-
-def test_les_cartes_viennent_des_calculs_du_pipeline():
-    for carte in cartes_fourchettes():
-        portefeuille = carte["portefeuille"]
-        neutre = {"type": "position", "ticker": portefeuille[0]["ticker"], "taille": 0.0, "financement": "proportionnel"}
-        attendu = simuler_portefeuille(portefeuille, neutre)["actuel"]["pire_baisse"]
-        assert carte["pire_baisse"] == pytest.approx(attendu, abs=1e-6)
-        assert carte["montant_pire_moment"] == round(carte["capital"] * (1 + carte["pire_baisse"]))
-        if len(portefeuille) == 1:
-            assert carte["pire_baisse"] == pytest.approx(indicateurs_actif(portefeuille[0]["ticker"])["valeurs"]["pire_baisse"], abs=1e-4)
-    baisses = [c["pire_baisse"] for c in cartes_fourchettes()]
-    assert baisses == sorted(baisses, reverse=True)  # du plus prudent au plus audacieux
+    resserrement = detail_bareme({**COMME["amira"], "vecu_2022": "pas_investi", "reaction": "vend_partie"}, DATE)["resserrement"]
+    assert resserrement["resserre"] and resserrement["source"] == "reaction"
 
 
 def test_exclusion_des_energies_fossiles_rend_10_pour_cent_de_xom_en_violation():
@@ -168,16 +155,16 @@ def test_reponse_manquante_aucune_regle_et_un_controle_a_verifier():
     assert any(c["statut"] == "a_verifier" and "Cryptoactifs" in c["message"] for c in controles)
 
 
-def test_sans_carte_pas_de_regle_de_pire_baisse_ni_de_seuil_devine():
-    profil = profil_comme("robert", fourchettes=None)
-    assert regle(profil, "pire_baisse_max") is None
-    assert profil["profil_risque"] == "faible_a_modere"  # déduit du seul plafond de capacité (−15 %)
+def test_le_seuil_de_pire_baisse_est_une_hypothese_du_bareme():
+    detail = next(r for r in detail_bareme(COMME["robert"], DATE)["regles"] if r["id"] == "pire_baisse_max")
+    assert detail["etiquette"] == "hypothese"
+    assert {"horizon", "coussin", "reaction", "vecu_2022"} <= set(detail["reponses"])
 
 
 def test_quiz_faux_signale_sans_penalite():
     detail = detail_bareme({**COMME["robert"], "quiz_baisse": "50"}, DATE)
     assert any("mal comprise" in c["message"] for c in detail["controles"])
-    assert regle(profil_comme("robert", quiz_baisse="50"), "pire_baisse_max")["seuil"] == pytest.approx(-0.131)
+    assert regle(profil_comme("robert", quiz_baisse="50"), "pire_baisse_max")["seuil"] == pytest.approx(-0.15)
 
 
 def test_regle_personnelle_reprise_telle_quelle():
@@ -218,8 +205,14 @@ def test_decision_de_demonstration_facultative():
 def test_questions_pretes_a_afficher():
     liste = questions()
     assert [q["id"] for q in liste][:3] == ["horizon", "objectif", "retraits"]
-    cartes = next(q for q in liste if q["type"] == "cartes")["cartes"]
-    assert all("montant_pire_moment" in c and "valeur_finale" in c for c in cartes)
+    assert len(liste) == 15
+
+
+def test_la_question_des_portefeuilles_n_est_plus_posee():
+    """La question « fourchettes » (cartes de portefeuilles réels) est retirée : le Pacte vécu mesure la tolérance."""
+    assert all(q["id"] != "fourchettes" and q["type"] != "cartes" for q in questions())
+    with pytest.raises(ReponsesInvalides, match="Question inconnue"):
+        profil_comme("robert", fourchettes="equilibre")
 
 
 def test_commande_ecrit_un_profil_valide_et_ne_remplace_rien(tmp_path, capsys):

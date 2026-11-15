@@ -40,13 +40,12 @@ def appeler(chemin, corps, ip="203.0.113.7"):
 # --- /questionnaire ---------------------------------------------------------------------
 
 
-def test_questionnaire_renvoie_les_questions_avec_les_vrais_chiffres_des_cartes():
+def test_questionnaire_renvoie_les_questions():
     statut, corps = appeler("/questionnaire", {})
     assert statut == 200
     par_id = {q["id"]: q for q in corps["questions"]}
-    assert {"horizon", "coussin", "fourchettes", "crypto"} <= set(par_id)
-    for carte in par_id["fourchettes"]["cartes"]:
-        assert carte["pire_baisse"] < 0 and carte["valeur_finale"] > 0
+    assert {"horizon", "coussin", "reaction", "crypto"} <= set(par_id)
+    assert "fourchettes" not in par_id  # question des portefeuilles retirée
 
 
 # --- /profil -------------------------------------------------------------------------------

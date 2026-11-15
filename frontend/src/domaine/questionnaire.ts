@@ -62,7 +62,7 @@ export function questionsPassees(questions: Question[], reponses: Reponses): str
 /** Le libellé de la réponse donnée, tel que la question l'affiche. */
 export function libelleReponse(question: Question, valeur: ValeurReponse): string {
   if (question.type === 'texte') return `« ${String(valeur)} »`;
-  const options = question.type === 'cartes' ? question.cartes ?? [] : question.choix ?? [];
+  const options = question.choix ?? [];
   const ids = Array.isArray(valeur) ? valeur : [valeur];
   return ids.map((id) => options.find((o) => o.id === id)?.libelle ?? id).join(', ');
 }

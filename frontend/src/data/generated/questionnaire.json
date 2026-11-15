@@ -182,125 +182,12 @@
    ]
   },
   {
-   "id": "fourchettes",
-   "nom_court": "Portefeuille choisi",
-   "section": "Tolérance : voulez-vous accepter une baisse ?",
-   "type": "cartes",
-   "libelle": "Voici des portefeuilles réels et ce qu'ils ont vécu sur la période, pour 100 000 $ placés. Lequel auriez-vous choisi ?",
-   "alimente": "seuil déclaré de pire_baisse_max",
-   "justification": "Cinq portefeuilles de l'univers, du plus prudent au plus audacieux. XBB.TO seul n'est pas proposé : en 2022, les obligations ont baissé plus qu'un portefeuille 60/40, ce qui brouillerait l'ordre. Tous les chiffres affichés sont calculés par pipeline.questionnaire.cartes_fourchettes (mêmes calculs que simuler_portefeuille).",
-   "cartes": [
-    {
-     "id": "tres_prudent",
-     "libelle": "Obligations à très court terme",
-     "portefeuille": [
-      {
-       "ticker": "ZST.TO",
-       "poids": 1.0
-      }
-     ],
-     "pire_baisse": -0.004283,
-     "montant_pire_moment": 99572,
-     "valeur_finale": 118273,
-     "capital": 100000,
-     "periode": [
-      "2021-11-12",
-      "2026-11-12"
-     ]
-    },
-    {
-     "id": "equilibre",
-     "libelle": "60 % obligations, 40 % actions canadiennes",
-     "portefeuille": [
-      {
-       "ticker": "XBB.TO",
-       "poids": 0.6
-      },
-      {
-       "ticker": "XIU.TO",
-       "poids": 0.4
-      }
-     ],
-     "pire_baisse": -0.131555,
-     "montant_pire_moment": 86844,
-     "valeur_finale": 133385,
-     "capital": 100000,
-     "periode": [
-      "2021-11-12",
-      "2026-11-12"
-     ]
-    },
-    {
-     "id": "actions",
-     "libelle": "Actions américaines (S&P 500)",
-     "portefeuille": [
-      {
-       "ticker": "SPY",
-       "poids": 1.0
-      }
-     ],
-     "pire_baisse": -0.222457,
-     "montant_pire_moment": 77754,
-     "valeur_finale": 196539,
-     "capital": 100000,
-     "periode": [
-      "2021-11-12",
-      "2026-11-12"
-     ]
-    },
-    {
-     "id": "croissance",
-     "libelle": "Actions technologiques (Nasdaq-100)",
-     "portefeuille": [
-      {
-       "ticker": "QQQ",
-       "poids": 1.0
-      }
-     ],
-     "pire_baisse": -0.320501,
-     "montant_pire_moment": 67950,
-     "valeur_finale": 203804,
-     "capital": 100000,
-     "periode": [
-      "2021-11-12",
-      "2026-11-12"
-     ]
-    },
-    {
-     "id": "audacieux",
-     "libelle": "Croissance et cryptoactifs : 50 % Nasdaq-100, 25 % Bitcoin, 25 % actions canadiennes",
-     "portefeuille": [
-      {
-       "ticker": "QQQ",
-       "poids": 0.5
-      },
-      {
-       "ticker": "BTC-USD",
-       "poids": 0.25
-      },
-      {
-       "ticker": "XIU.TO",
-       "poids": 0.25
-      }
-     ],
-     "pire_baisse": -0.382858,
-     "montant_pire_moment": 61714,
-     "valeur_finale": 199056,
-     "capital": 100000,
-     "periode": [
-      "2021-11-12",
-      "2026-11-12"
-     ]
-    }
-   ]
-  },
-  {
    "id": "reaction",
    "nom_court": "Réaction à une baisse",
    "section": "Tolérance : voulez-vous accepter une baisse ?",
    "type": "choix",
    "libelle": "Votre portefeuille de 100 000 $ vaut 82 000 $ trois mois plus tard. Que faites-vous ?",
-   "alimente": "resserre le seuil déclaré si vous vendez (sauf si votre vécu de 2022 dit le contraire)",
+   "alimente": "resserre le seuil si vous vendez (sauf si votre vécu de 2022 dit le contraire)",
    "choix": [
     {
      "id": "vend_tout",
@@ -558,7 +445,6 @@
     "coussin": "3_6",
     "part_patrimoine": "quart_moitie",
     "revenu": "tres_stable",
-    "fourchettes": "actions",
     "reaction": "rien",
     "vecu_2022": "pas_investi",
     "regard_proches": "risques_reflechis",
@@ -631,7 +517,7 @@
        "type": "pire_baisse_max",
        "seuil": -0.2,
        "libelle": "Pire baisse tolérée : −20,0 %",
-       "justification": "Réponse au questionnaire du 2026-11-14. Le seuil retenu est le plus prudent des deux : tolérance déclarée −22,2 % (carte « Actions américaines (S&P 500) » : pire baisse réelle −22,2 % du 2021-11-12 au 2026-11-12) ; plafond de capacité −20,0 % (coussin de sécurité : « 3 à 6 mois »). C'est la capacité qui décide : seuil −20,0 %, arrondi au dixième de point vers le plus prudent. Barème : hypothèse de l'équipe (config/questionnaire.json)."
+       "justification": "Réponse au questionnaire du 2026-11-14. Le seuil vient de votre capacité à encaisser une baisse : plafond −20,0 % (coussin de sécurité : « 3 à 6 mois »). Seuil −20,0 %, arrondi au dixième de point vers le plus prudent. La baisse que vous acceptez vraiment se mesure ensuite devant de vrais jours de marché (Pacte vécu). Barème : hypothèse de l'équipe (config/questionnaire.json)."
       },
       {
        "id": "plafond_crypto",
@@ -687,7 +573,6 @@
       "coussin": "3_6",
       "part_patrimoine": "quart_moitie",
       "revenu": "tres_stable",
-      "fourchettes": "actions",
       "reaction": "rien",
       "vecu_2022": "pas_investi",
       "regard_proches": "risques_reflechis",
@@ -708,14 +593,11 @@
    "bareme": {
     "date": "2026-11-14",
     "etiquette_bareme": "hypothese",
-    "tolerance": {
-     "pire_baisse_carte": -0.222457,
+    "resserrement": {
      "resserre": false,
+     "cran": 0.25,
      "source": "reaction",
-     "reponse_source": "Je ne touche à rien",
-     "seuil": -0.222457,
-     "carte": "actions",
-     "libelle_carte": "Actions américaines (S&P 500)"
+     "reponse_source": "Je ne touche à rien"
     },
     "capacite": {
      "plafond": -0.2,
@@ -747,7 +629,7 @@
     "seuil_retenu": {
      "valeur": -0.2,
      "brut": -0.2,
-     "decisif": "capacite"
+     "resserre": false
     },
     "profil_risque": "modere",
     "regles": [
@@ -755,16 +637,15 @@
       "id": "pire_baisse_max",
       "etiquette": "hypothese",
       "reponses": {
-       "fourchettes": "actions",
-       "reaction": "rien",
-       "vecu_2022": "pas_investi",
        "horizon": "5_10",
        "retraits": "non",
        "coussin": "3_6",
        "part_patrimoine": "quart_moitie",
-       "revenu": "tres_stable"
+       "revenu": "tres_stable",
+       "reaction": "rien",
+       "vecu_2022": "pas_investi"
       },
-      "explication": "Tolérance −22,2 %, capacité −20,0 % : seuil −20,0 %."
+      "explication": "Capacité −20,0 % : seuil −20,0 %."
      },
      {
       "id": "plafond_crypto",
@@ -859,7 +740,7 @@
        "type": "pire_baisse_max",
        "seuil": -0.2,
        "libelle": "Pire baisse tolérée : −20,0 %",
-       "justification": "Réponse au questionnaire du 2026-11-14. Le seuil retenu est le plus prudent des deux : tolérance déclarée −22,2 % (carte « Actions américaines (S&P 500) » : pire baisse réelle −22,2 % du 2021-11-12 au 2026-11-12) ; plafond de capacité −20,0 % (coussin de sécurité : « 3 à 6 mois »). C'est la capacité qui décide : seuil −20,0 %, arrondi au dixième de point vers le plus prudent. Barème : hypothèse de l'équipe (config/questionnaire.json)."
+       "justification": "Réponse au questionnaire du 2026-11-14. Le seuil vient de votre capacité à encaisser une baisse : plafond −20,0 % (coussin de sécurité : « 3 à 6 mois »). Seuil −20,0 %, arrondi au dixième de point vers le plus prudent. La baisse que vous acceptez vraiment se mesure ensuite devant de vrais jours de marché (Pacte vécu). Barème : hypothèse de l'équipe (config/questionnaire.json)."
       },
       {
        "id": "plafond_crypto",
@@ -915,7 +796,6 @@
       "coussin": "3_6",
       "part_patrimoine": "quart_moitie",
       "revenu": "tres_stable",
-      "fourchettes": "actions",
       "reaction": "rien",
       "vecu_2022": "pas_investi",
       "regard_proches": "risques_reflechis",
@@ -936,14 +816,11 @@
    "bareme": {
     "date": "2026-11-14",
     "etiquette_bareme": "hypothese",
-    "tolerance": {
-     "pire_baisse_carte": -0.222457,
+    "resserrement": {
      "resserre": false,
+     "cran": 0.25,
      "source": "reaction",
-     "reponse_source": "Je ne touche à rien",
-     "seuil": -0.222457,
-     "carte": "actions",
-     "libelle_carte": "Actions américaines (S&P 500)"
+     "reponse_source": "Je ne touche à rien"
     },
     "capacite": {
      "plafond": -0.2,
@@ -975,7 +852,7 @@
     "seuil_retenu": {
      "valeur": -0.2,
      "brut": -0.2,
-     "decisif": "capacite"
+     "resserre": false
     },
     "profil_risque": "modere",
     "regles": [
@@ -983,16 +860,15 @@
       "id": "pire_baisse_max",
       "etiquette": "hypothese",
       "reponses": {
-       "fourchettes": "actions",
-       "reaction": "rien",
-       "vecu_2022": "pas_investi",
        "horizon": "5_10",
        "retraits": "non",
        "coussin": "3_6",
        "part_patrimoine": "quart_moitie",
-       "revenu": "tres_stable"
+       "revenu": "tres_stable",
+       "reaction": "rien",
+       "vecu_2022": "pas_investi"
       },
-      "explication": "Tolérance −22,2 %, capacité −20,0 % : seuil −20,0 %."
+      "explication": "Capacité −20,0 % : seuil −20,0 %."
      },
      {
       "id": "plafond_crypto",

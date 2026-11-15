@@ -25,12 +25,11 @@ from tests.test_questionnaire import COMME, DATE, persona
 RACINE = Path(__file__).resolve().parents[1]
 EXEMPLE = json.loads((RACINE / "docs" / "exemples" / "reponses_questionnaire.json").read_text(encoding="utf-8"))
 
-# Les trois exemples de l'issue #85, chacun à partir de réponses par ailleurs cohérentes.
+# Les exemples de l'issue #85, chacun à partir de réponses par ailleurs cohérentes. Le troisième
+# (carte Nasdaq-100 mais capacité faible) a disparu avec la question des portefeuilles.
 EXEMPLES_ISSUE = {
     # « Je rachète quand ça baisse » mais « en 2022, j'ai vendu ».
     "reaction_contre_vecu_2022": {"reaction": "rachete", "vecu_2022": "vendu"},
-    # Carte Nasdaq-100 (tolérance élevée) mais moins de 3 mois de coussin et horizon de moins de 3 ans.
-    "tolerance_contre_capacite": {"fourchettes": "croissance", "coussin": "moins_3", "horizon": "moins_3"},
     # « Mes proches me disent très prudent » mais crypto jusqu'à 25 %.
     "proches_prudents_contre_crypto": {"regard_proches": "tres_prudent", "crypto": "25"},
 }
@@ -70,22 +69,11 @@ def test_message_cite_les_reponses_telles_qu_affichees():
     assert "« J'en rachète »" in message and "« J'ai vendu »" in message
 
 
-def test_ecart_tolerance_capacite_cite_les_chiffres_et_les_raisons():
-    trouvee = contradictions(reponses(fourchettes="croissance", coussin="moins_3", horizon="moins_3"))[0]
-    assert "−32,1 %" in trouvee["message"] and "−10,0 %" in trouvee["message"]
-    assert "coussin de sécurité" in trouvee["message"].lower() and "horizon" in trouvee["message"].lower()
-    assert trouvee["questions"][0] == "fourchettes"
-
-
-def test_un_seul_cran_d_ecart_n_est_pas_une_contradiction():
-    # Carte S&P 500 (−22,2 %, « modéré ») et coussin de 3 à 6 mois (−20 %, « modéré ») : aucun écart.
-    assert contradictions(reponses(fourchettes="actions", coussin="3_6", horizon="5_10", retraits="non",
-                                   part_patrimoine="quart_moitie", revenu="tres_stable")) == []
-
-
-def test_capacite_plus_large_que_la_tolerance_n_est_pas_une_contradiction():
-    # Être plus prudent que sa situation ne l'exige n'est pas incohérent.
-    assert contradictions(reponses(fourchettes="tres_prudent", horizon="plus_15", coussin="plus_12")) == []
+def test_les_regles_de_contradiction_ne_citent_que_des_questions_posees():
+    from pipeline.questionnaire import charger_config, questions
+    posees = {q["id"] for q in questions()}
+    for paire in charger_config()["contradictions"]["paires"]:
+        assert set(paire["si"]) <= posees, paire["id"]
 
 
 # --- Profil et pièce ---------------------------------------------------------------------
@@ -95,30 +83,29 @@ def test_le_profil_garde_ses_reponses():
     genere = profil()
     assert genere["questionnaire"]["date"] == DATE
     assert genere["questionnaire"]["etiquette"] == "fait"
-    assert genere["questionnaire"]["reponses"]["fourchettes"] == "equilibre"
+    assert genere["questionnaire"]["reponses"]["horizon"] == "3_5"
 
 
 def test_piece_declaree_du_questionnaire():
-    piece = piece_questionnaire(profil(fourchettes="croissance", coussin="moins_3", horizon="moins_3"), "P2")
+    piece = piece_questionnaire(profil(coussin="moins_3", horizon="moins_3", reaction="rachete", vecu_2022="vendu"), "P2")
     assert piece["type"] == "declaree" and piece["etiquette"] == "fait" and piece["id"] == "P2"
     valeurs = piece["valeurs"]
     assert valeurs["date_reponses"] == DATE
-    assert valeurs["tolerance_declaree"] == pytest.approx(-0.320501)
     assert valeurs["capacite_plafond"] == -0.1
-    assert valeurs["seuil_retenu"] == -0.1
-    assert valeurs["contradictions"] == ["tolerance_contre_capacite"]
+    assert valeurs["seuil_retenu"] == -0.075 and valeurs["seuil_resserre"] is True  # vendu en 2022 : un cran
+    assert valeurs["contradictions"] == ["reaction_contre_vecu_2022"]
     assert len(valeurs["questions"]) == len(valeurs["reponses"])
-    assert piece["valeur_affichee"] == "Tolérance −32,1 % · capacité −10,0 % · seuil retenu −10,0 % · 1 contradiction"
+    assert piece["valeur_affichee"] == "Capacité −10,0 % · seuil retenu −7,5 % (resserré) · 1 contradiction"
 
 
 def test_argument_qui_cite_la_piece_passe_verifier_chiffres():
-    piece = piece_questionnaire(profil(fourchettes="croissance", coussin="moins_3", horizon="moins_3"), "P2")
+    piece = piece_questionnaire(profil(coussin="moins_3", horizon="moins_3", reaction="rachete", vecu_2022="vendu"), "P2")
     dossier = {"decision": {"type": "position", "ticker": "TSLA", "taille": 0.3, "financement": "proportionnel"},
                "pieces": [piece], "periode": ["2021-11-12", "2026-11-12"]}
     argument = {"etiquette": "fait", "pieces": ["P2"],
-                "texte": "Le 15 novembre, vous avez déclaré accepter −32,1 %, mais votre capacité est de −10,0 %."}
+                "texte": "Le 15 novembre, votre capacité était de −10,0 %, et le seuil retenu de −7,5 %."}
     assert verifier_argument(argument, dossier).valide
-    faux = {**argument, "texte": "Vous avez déclaré accepter −35,0 %."}
+    faux = {**argument, "texte": "Votre capacité était de −35,0 %."}
     assert not verifier_argument(faux, dossier).valide
 
 
@@ -133,8 +120,8 @@ def test_une_contradiction_donne_un_controle_a_verifier():
 
 
 def test_seuil_mesure_different_du_seuil_declare():
-    genere = profil(fourchettes="actions", coussin="plus_12", horizon="10_15", retraits="non",
-                    part_patrimoine="quart_moitie", revenu="tres_stable")  # seuil déclaré −22,3 %
+    genere = profil(coussin="plus_12", horizon="10_15", retraits="non",
+                    part_patrimoine="quart_moitie", revenu="tres_stable")  # seuil du questionnaire −35,0 %
     calibrage = {"id": "P2", "valeurs": {"seuil_mesure": -0.151}}
     controles = controles_questionnaire(genere, "P3", piece_calibrage=calibrage)
     assert len(controles) == 1

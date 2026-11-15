@@ -1,0 +1,1618 @@
+{
+ "evaluation": "chiffres",
+ "titre": "Trompez le Greffier, 100 fois : taux de détection de verifier_chiffres",
+ "issue": 165,
+ "redige_le": "2026-11-15",
+ "description": "Jeu écrit avant la première mesure, sur les pièces des 7 procès enregistrés (frontend/src/data/proces/). Un piège contient un seul nombre fautif, `piege`, écrit tel que le vérificateur l'extrait ; tous ses autres nombres existent dans les pièces citées. Il est détecté si l'argument est rejeté et que ce nombre est parmi les introuvables. Un argument valide doit être accepté. Les familles sont fixées avant la mesure ; un raté reste dans le rapport, et une règle corrigée se mesure sur un second jeu écrit après la correction.",
+ "periode": [
+  "2021-11-12",
+  "2026-11-12"
+ ],
+ "familles": {
+  "chiffre_altere": {
+   "attendu": "rejete",
+   "libelle": "Chiffre altéré",
+   "description": "Un chiffre d'une pièce citée, modifié (« −26,9 % » au lieu de « −24,9 % »)."
+  },
+  "arrondi_faux": {
+   "attendu": "rejete",
+   "libelle": "Arrondi au-delà de la pièce",
+   "description": "Plus de décimales que la pièce n'en justifie, ou une troncature au lieu d'un arrondi (« −29,03 % », « −28,9 % » pour −0,289679)."
+  },
+  "signe_faux": {
+   "attendu": "rejete",
+   "libelle": "Signe faux",
+   "description": "Signe inversé, ou valeur négative écrite sans signe hors d'un mot de baisse (« le portefeuille ferait 2,6 % »)."
+  },
+  "nombre_derive": {
+   "attendu": "rejete",
+   "libelle": "Nombre dérivé",
+   "description": "Écart, ratio ou variation calculé par l'auteur et absent des pièces (« 2,5 points de plus », « 3 fois plus »)."
+  },
+  "piece_non_citee": {
+   "attendu": "rejete",
+   "libelle": "Chiffre d'une pièce non citée",
+   "description": "Chiffre exact, mais qui n'existe que dans une pièce que l'argument ne cite pas."
+  },
+  "date_absente": {
+   "attendu": "rejete",
+   "libelle": "Date absente",
+   "description": "Date, mois ou année qui ne correspond à aucune date des pièces citées, de la décision ou de la période."
+  },
+  "mauvaise_grandeur": {
+   "attendu": "rejete",
+   "hors_promesse": true,
+   "libelle": "Chiffre exact, mauvaise grandeur",
+   "description": "Limite connue, mesurée à part : un chiffre qui existe dans une pièce citée, mais attribué à une autre grandeur (le rendement d'avant présenté comme celui d'après). Le vérificateur contrôle l'existence d'un nombre, pas son sens : ce piège n'est pas un chiffre inventé."
+  },
+  "argument_proces": {
+   "attendu": "accepte",
+   "libelle": "Argument accepté d'un procès",
+   "description": "Réquisitoire et plaidoirie affichés par les 7 procès enregistrés, tels quels."
+  },
+  "arrondi_legitime": {
+   "attendu": "accepte",
+   "libelle": "Arrondi légitime",
+   "description": "Chiffre d'une pièce arrondi correctement, avec moins ou plus de décimales (« −29 % », « −28,97 % »)."
+  },
+  "mot_de_baisse": {
+   "attendu": "accepte",
+   "libelle": "Valeur absolue après un mot de baisse",
+   "description": "Valeur négative écrite sans signe juste après « chute de », « baisse de », « perte de », « recul de »."
+  },
+  "plage": {
+   "attendu": "accepte",
+   "libelle": "Plage",
+   "description": "Deux nombres d'une plage ou d'un « de … à … », vérifiés chacun (« 3 à 5 ans »)."
+  },
+  "ecart_de_piece": {
+   "attendu": "accepte",
+   "libelle": "Écart calculé par Python",
+   "description": "Écart ou rapport que l'outil de simulation a calculé et versé dans la pièce (règle 6 : un nombre dérivé passe s'il existe tel quel dans une pièce)."
+  },
+  "date_legitime": {
+   "attendu": "accepte",
+   "libelle": "Date d'une pièce",
+   "description": "Date ISO, jour et mois, mois et année d'une pièce citée ou de la période."
+  }
+ },
+ "cas": [
+  {
+   "id": "piege-001",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P1",
+    "P2"
+   ],
+   "texte": "Avec 25 % en TSLA, la pire baisse du portefeuille atteint −26,9 %.",
+   "piege": "−26,9 %"
+  },
+  {
+   "id": "piege-002",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Au pire moment, le portefeuille aurait perdu 171 685 $.",
+   "piege": "171 685"
+  },
+  {
+   "id": "piege-003",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "TSLA a mis 3,9 ans à revenir à son sommet.",
+   "piege": "3,9"
+  },
+  {
+   "id": "piege-004",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, le portefeuille a rendu +13,0 % par an.",
+   "piege": "+13,0 %"
+  },
+  {
+   "id": "piege-005",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P8"
+   ],
+   "texte": "TSLA et XIU.TO ont évolué ensemble, avec une corrélation de +0,49.",
+   "piege": "+0,49"
+  },
+  {
+   "id": "piege-006",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "La réallocation a affiché un rendement de +18,9 % par an.",
+   "piege": "+18,9 %"
+  },
+  {
+   "id": "piege-007",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Au pire moment, votre portefeuille de 40 000 $ aurait perdu 25 407 $.",
+   "piege": "25 407"
+  },
+  {
+   "id": "piege-008",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Le bitcoin et l'ether étaient liés, à 0,74.",
+   "piege": "0,74"
+  },
+  {
+   "id": "piege-009",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 10 % en XOM, la pire baisse du portefeuille est de −11,0 %.",
+   "piege": "−11,0 %"
+  },
+  {
+   "id": "piege-010",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "Pris seul, XOM a gagné +110,2 % sur l'année de crise.",
+   "piege": "+110,2 %"
+  },
+  {
+   "id": "piege-011",
+   "famille": "chiffre_altere",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "En 2022, avec 10 % en XOM, votre résultat aurait été de −4 819 $.",
+   "piege": "−4 819"
+  },
+  {
+   "id": "piege-012",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, la pire baisse atteint −29,03 %.",
+   "piege": "−29,03 %"
+  },
+  {
+   "id": "piege-013",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, la pire baisse atteint −28,96 %.",
+   "piege": "−28,96 %"
+  },
+  {
+   "id": "piege-014",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Avec 30 % en TSLA, la pire baisse atteint −28,9 %.",
+   "piege": "−28,9 %"
+  },
+  {
+   "id": "piege-015",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 25 % en TSLA, le rendement annualisé est de +11,75 %.",
+   "piege": "+11,75 %"
+  },
+  {
+   "id": "piege-016",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "TSLA a mis 2,922 ans à revenir à son sommet.",
+   "piege": "2,922"
+  },
+  {
+   "id": "piege-017",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P5"
+   ],
+   "texte": "À 9 % en TSLA, la pire baisse serait de −11,21 %.",
+   "piege": "−11,21 %"
+  },
+  {
+   "id": "piege-018",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "La réallocation a affiché un rendement de +16,87 % par an.",
+   "piege": "+16,87 %"
+  },
+  {
+   "id": "piege-019",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Le bitcoin et l'ether étaient liés, à 0,8446.",
+   "piege": "0,8446"
+  },
+  {
+   "id": "piege-020",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec XOM, le portefeuille a progressé de +13,47 % par an.",
+   "piege": "+13,47 %"
+  },
+  {
+   "id": "piege-021",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "Pris seul, XOM a connu une pire baisse de −19,09 %.",
+   "piege": "−19,09 %"
+  },
+  {
+   "id": "piege-022",
+   "famille": "arrondi_faux",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "XOM a mis 0,52 an à revenir à son sommet.",
+   "piege": "0,52"
+  },
+  {
+   "id": "piege-023",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, au pire moment, le portefeuille ferait 29,0 %.",
+   "piege": "29,0 %"
+  },
+  {
+   "id": "piege-024",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "En 2022, sans la décision, le portefeuille aurait fait 2,6 %.",
+   "piege": "2,6 %"
+  },
+  {
+   "id": "piege-025",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 25 % en TSLA, la pire baisse atteint +24,9 %.",
+   "piege": "+24,9 %"
+  },
+  {
+   "id": "piege-026",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la décision, le rendement annualisé est de −12,0 %.",
+   "piege": "−12,0 %"
+  },
+  {
+   "id": "piege-027",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "Pris seul, TSLA a rendu −5,5 % par an.",
+   "piege": "−5,5 %"
+  },
+  {
+   "id": "piege-028",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "La pire baisse de la réallocation est de 58,5 %.",
+   "piege": "58,5 %"
+  },
+  {
+   "id": "piege-029",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "En 2022, la réallocation aurait rendu +49,3 %.",
+   "piege": "+49,3 %"
+  },
+  {
+   "id": "piege-030",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Lors du rejeu de 2022, le résultat avec XOM aurait été de 3 819 $.",
+   "piege": "3 819"
+  },
+  {
+   "id": "piege-031",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "Pris seul, XOM a rendu −100,2 % sur l'année de crise.",
+   "piege": "−100,2 %"
+  },
+  {
+   "id": "piege-032",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P5"
+   ],
+   "texte": "TSLA a connu une hausse de 70,9 % depuis un sommet.",
+   "piege": "70,9 %"
+  },
+  {
+   "id": "piege-033",
+   "famille": "signe_faux",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Le bitcoin et NVIDIA ont évolué en sens inverse, avec un lien de −0,32.",
+   "piege": "−0,32"
+  },
+  {
+   "id": "piege-034",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la décision, la perte au pire moment est 3,2 fois plus grande.",
+   "piege": "3,2"
+  },
+  {
+   "id": "piege-035",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la décision, le ratio de Sharpe est divisé par 2,1.",
+   "piege": "2,1"
+  },
+  {
+   "id": "piege-036",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, la part en dollars américains augmente de 27 points.",
+   "piege": "27"
+  },
+  {
+   "id": "piege-037",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, les frais annuels baissent de 29,9 %.",
+   "piege": "29,9 %"
+  },
+  {
+   "id": "piege-038",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la réallocation, les frais annuels baissent de 51 %.",
+   "piege": "51 %"
+  },
+  {
+   "id": "piege-039",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la réallocation, la pire baisse est 1,8 fois plus profonde.",
+   "piege": "1,8"
+  },
+  {
+   "id": "piege-040",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "La corrélation bitcoin-ether dépasse celle de bitcoin-NVIDIA de 0,52.",
+   "piege": "0,52"
+  },
+  {
+   "id": "piege-041",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la décision, la part en dollars américains augmente de 5,5 points.",
+   "piege": "5,5"
+  },
+  {
+   "id": "piege-042",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Avec XOM, la perte au pire moment est réduite de 34 %.",
+   "piege": "34 %"
+  },
+  {
+   "id": "piege-043",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Après inflation, le rendement progresse de 2,6 points avec la décision.",
+   "piege": "2,6"
+  },
+  {
+   "id": "piege-044",
+   "famille": "nombre_derive",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "En 2022, la décision aurait coûté 8 fois plus que le portefeuille actuel.",
+   "piege": "8"
+  },
+  {
+   "id": "piege-045",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "Avec 25 % en TSLA, la pire baisse du portefeuille atteint −24,9 %.",
+   "piege": "−24,9 %"
+  },
+  {
+   "id": "piege-046",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P5"
+   ],
+   "texte": "TSLA a mis 2,9 ans à revenir à son sommet.",
+   "piege": "2,9"
+  },
+  {
+   "id": "piege-047",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P1"
+   ],
+   "texte": "Avec 30 % en TSLA, la pire baisse atteint −29,0 %.",
+   "piege": "−29,0 %"
+  },
+  {
+   "id": "piege-048",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "La règle de pire baisse serait respectée jusqu'à 9 % en TSLA.",
+   "piege": "9 %"
+  },
+  {
+   "id": "piege-049",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P1"
+   ],
+   "texte": "Le bitcoin et l'ether ont varié très proches, à 0,84.",
+   "piege": "0,84"
+  },
+  {
+   "id": "piege-050",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Face à de vrais jours de marché, vous avez vendu à −48,4 % sur NVIDIA.",
+   "piege": "−48,4 %"
+  },
+  {
+   "id": "piege-051",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Pris seul, XOM a connu une chute de 19,1 % depuis un sommet.",
+   "piege": "19,1 %"
+  },
+  {
+   "id": "piege-052",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Lors du rejeu, avec 10 % en XOM, votre résultat aurait été de −3 819 $.",
+   "piege": "−3 819"
+  },
+  {
+   "id": "piege-053",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "La règle de pire baisse serait respectée jusqu'à 7 % en TSLA.",
+   "piege": "7 %"
+  },
+  {
+   "id": "piege-054",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "La règle crypto serait respectée jusqu'à 28 % réalloués.",
+   "piege": "28 %"
+  },
+  {
+   "id": "piege-055",
+   "famille": "piece_non_citee",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P1"
+   ],
+   "texte": "Au pire moment, votre portefeuille aurait perdu 17 974 $ avec XOM.",
+   "piege": "17 974"
+  },
+  {
+   "id": "piege-056",
+   "famille": "mauvaise_grandeur",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Sans cette position, la volatilité du portefeuille était de 9,3 %.",
+   "piege": "9,3 %"
+  },
+  {
+   "id": "piege-057",
+   "famille": "mauvaise_grandeur",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la décision, la pire baisse est 3 fois plus profonde qu'avant.",
+   "piege": "3"
+  },
+  {
+   "id": "piege-058",
+   "famille": "mauvaise_grandeur",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, la pire baisse atteint −7,8 %.",
+   "piege": "−7,8 %"
+  },
+  {
+   "id": "piege-059",
+   "famille": "mauvaise_grandeur",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "La réallocation a affiché un rendement de +19,0 % par an.",
+   "piege": "+19,0 %"
+  },
+  {
+   "id": "piege-060",
+   "famille": "mauvaise_grandeur",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec XOM, le portefeuille a rendu +11,5 % par an.",
+   "piege": "+11,5 %"
+  },
+  {
+   "id": "piege-061",
+   "famille": "mauvaise_grandeur",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Avec XOM, la part du portefeuille en dollars américains est de 45 %.",
+   "piege": "45 %"
+  },
+  {
+   "id": "piege-062",
+   "famille": "date_absente",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "TSLA a retrouvé son sommet le 2024-12-06.",
+   "piege": "2024-12-06"
+  },
+  {
+   "id": "piege-063",
+   "famille": "date_absente",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Le portefeuille a touché son creux le 3 janvier 2023.",
+   "piege": "3 janvier 2023"
+  },
+  {
+   "id": "piege-064",
+   "famille": "date_absente",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "La pire baisse du portefeuille date de mars 2020.",
+   "piege": "mars 2020"
+  },
+  {
+   "id": "piege-065",
+   "famille": "date_absente",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Les procès archivés datent du 14 novembre 2026.",
+   "piege": "14 novembre 2026"
+  },
+  {
+   "id": "piege-066",
+   "famille": "date_absente",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P5"
+   ],
+   "texte": "Les procès archivés de ce profil remontent à 2019.",
+   "piege": "2019"
+  },
+  {
+   "id": "piege-067",
+   "famille": "date_absente",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Vous avez répondu aux jours de marché le 2026-11-16.",
+   "piege": "2026-11-16"
+  },
+  {
+   "id": "piege-068",
+   "famille": "date_absente",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "La Cour suprême de l'État a refusé le rejet le 2022-05-25.",
+   "piege": "2022-05-25"
+  },
+  {
+   "id": "piege-069",
+   "famille": "date_absente",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P5"
+   ],
+   "texte": "La dernière consultation du dossier date d'avril 2025.",
+   "piege": "avril 2025"
+  },
+  {
+   "id": "piege-070",
+   "famille": "date_absente",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "Pris seul, XOM a atteint son sommet en octobre 2023.",
+   "piege": "octobre 2023"
+  },
+  {
+   "id": "piege-071",
+   "famille": "date_absente",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Sur la période de 2020 à 2026, la pire baisse atteint −29,0 %.",
+   "piege": "2020"
+  },
+  {
+   "id": "piege-072",
+   "famille": "date_absente",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "Les 2 procès archivés datent du 15 octobre 2026.",
+   "piege": "15 octobre 2026"
+  },
+  {
+   "id": "valide-001",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P1",
+    "P2"
+   ],
+   "texte": "Au pire moment, votre portefeuille de 650 000 $ aurait perdu 161 685 $, contre 50 423 $ sans cette position. Votre règle « Pire baisse tolérée : −12 % » est dépassée : la baisse atteint −24,9 %.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-002",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "Cette position s'écarte de votre règle « Préserver mon capital » : TSLA a connu une chute de 70,9 % depuis un sommet et mis 2,9 ans à y revenir.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-003",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P6",
+    "P1"
+   ],
+   "texte": "Les 3 procès archivés de ce profil étaient en violation de la règle « Pire baisse tolérée : −12 % » : 2 verdicts modifiés, 1 maintenu.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-004",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P5",
+    "P8"
+   ],
+   "texte": "La règle de pire baisse serait respectée jusqu'à une position de 9 % en TSLA, contre 25 % demandés. Avec 9 %, la pire baisse serait de −11,2 %.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-005",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 25 % en TSLA, votre portefeuille a eu un rendement de +11,8 % par an, contre +9,3 % sans cette position. C'est un constat sur une seule période passée, pas une promesse, et les frais des FNB y sont déjà comptés.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-006",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P5",
+    "P1"
+   ],
+   "texte": "Une version plus modeste respecte le Pacte : à 9 % en TSLA, la pire baisse aurait été de −11,2 %, sous la limite de « Pire baisse tolérée : −12 % ». C'est un constat tiré du passé, pas un conseil.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-007",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Sur cette période, TSLA a évolué presque indépendamment de XBB.TO (+0,08) et de JNJ (−0,07). Avec XIU.TO, le lien a été plus marqué (+0,39).",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-008",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Les frais annuels des FNB auraient été de 512 $ avec la décision, contre 682 $ sans. C'est un point modeste en faveur de la décision.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-009",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P1",
+    "P2"
+   ],
+   "texte": "Vous avez écrit « Pire baisse tolérée : −12 % » ; avec 30 % en TSLA, la plus forte chute depuis un sommet atteint −29,0 %. Sans cette position, elle était de −7,8 %.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-010",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P1",
+    "P2"
+   ],
+   "texte": "Au pire moment, votre portefeuille aurait perdu 188 291 $ avec cette position, contre 50 423 $ sans elle. Vous avez écrit : « Préserver mon capital ».",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-011",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P1",
+    "P6"
+   ],
+   "texte": "3 procès archivés avec « 30 % en TSLA » ont tous dépassé la règle « Pire baisse tolérée : −12 % ». Les verdicts rendus : 1 maintenu, 2 modifiés.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-012",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P1",
+    "P4",
+    "P7"
+   ],
+   "texte": "La règle « Pire baisse tolérée : −12 % » serait respectée jusqu'à 9 % en TSLA, contre 30 % dans votre décision. À 9 %, la pire baisse simulée est de −11,2 %.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-013",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, le portefeuille a progressé de +12,0 % par an, contre +9,3 % par an sans cette position. Les frais des fonds sont déjà prélevés dans ces rendements, et il s'agit d'une seule période passée.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-014",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P4",
+    "P1"
+   ],
+   "texte": "Une position de 9 % en TSLA respecterait la règle « Pire baisse tolérée : −12 % », avec −11,2 % au pire moment sur la période passée.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-015",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P7",
+    "P1"
+   ],
+   "texte": "La règle « Crypto : exclue » est respectée ; seule la règle « Pire baisse tolérée : −12 % » est en violation.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-016",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P5",
+    "P1"
+   ],
+   "texte": "La chute de TSLA a duré 2,9 ans avant son retour au sommet, soit moins que l'horizon de 3 à 5 ans de votre Pacte. Il s'agit d'une seule chute observée, et le passé ne prédit pas l'avenir.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-017",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Au pire moment, votre portefeuille aurait perdu 188 291 $ avec 30 % en TSLA, contre 50 423 $ sans cette position.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-018",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P1",
+    "P2",
+    "P3"
+   ],
+   "texte": "Vous avez écrit « Pire baisse tolérée : −10,2 % », mais la pire baisse avec 30 % en TSLA atteint −29,0 %. Dans vos réponses à de vrais jours de marché, vous avez vendu à −16,0 %.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-019",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Ce conflit s'est déjà présenté : 3 procès archivés pour « 30 % en TSLA » violaient la même règle, avec 2 verdicts modifiés et 1 maintenu. Tous datent du 15 novembre 2026.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-020",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P6",
+    "P9"
+   ],
+   "texte": "La règle « Pire baisse tolérée » serait respectée jusqu'à 7 % en TSLA, avec une pire baisse de −9,5 %. Elle le serait aussi avec un seuil de −29,0 % inscrit au Pacte.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-021",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Avec 30 % en TSLA, le portefeuille a rendu +12,0 % par an, contre +9,3 % sans cette position. Après inflation, le rendement réel est de +8,1 % contre +5,5 %, sur une seule période passée qui ne prédit pas l'avenir.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-022",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P9",
+    "P6"
+   ],
+   "texte": "Parmi les règles de votre Pacte que l'on peut calculer, seule celle de la pire baisse est en violation ; « Crypto : exclue » est respectée.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-023",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P6",
+    "P1"
+   ],
+   "texte": "Une position de 7 % en TSLA respecte votre règle de pire baisse, avec −9,5 % au pire moment pour un seuil de −10,2 %.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-024",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-3da0fd68f5e4",
+   "pieces": [
+    "P5"
+   ],
+   "texte": "Après une chute de 70,9 % jusqu'en 2023, TSLA a retrouvé son sommet en 2,9 ans. Ce n'est qu'une seule chute observée, et le passé ne prédit pas l'avenir.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-025",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P1",
+    "P2"
+   ],
+   "texte": "Au pire moment, la pire baisse aurait atteint −58,5 %, au-delà de votre règle « Pire baisse tolérée : −45 % ». Cela correspond à une perte de 23 407 $.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-026",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P1",
+    "P4",
+    "P8"
+   ],
+   "texte": "La décision place 50,0 % du portefeuille en cryptoactifs, au-delà de votre règle « Crypto : 25 % du portefeuille au maximum ». Cette règle serait respectée jusqu'à une réallocation de 28 % du portefeuille.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-027",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P1",
+    "P8"
+   ],
+   "texte": "Technologie et cryptoactifs pèsent 92,3 % du portefeuille, contre 51,5 % avant la décision. Votre règle « Ne pas miser exclusivement sur la tech (tech et crypto : 75 % au maximum) » est dépassée.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-028",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P5"
+   ],
+   "texte": "2 procès archivés, le 15 novembre 2026, portaient sur cette même réallocation en violation des mêmes règles ; les 2 verdicts ont été « modifié ».",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-029",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P4",
+    "P1"
+   ],
+   "texte": "Une réallocation de 28 % au maximum respecte les trois règles du Pacte, avec une pire baisse de −41,0 % contre −45 % tolérée. C'est la règle sur la crypto qui fixe cette limite.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-030",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Chaque position de 10 000 $ représente une part infime des échanges quotidiens, bien en dessous de la limite de 10 % des échanges par jour. Il s'agit d'une moyenne : un jour de crise, les échanges peuvent se tarir.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-031",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Votre portefeuille réalloué aurait rapporté +16,9 % par an, soit +12,9 % après inflation. L'inflation moyenne était de +3,5 % par an.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-032",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "Le bitcoin et NVDA ont varié de façon peu liée, avec une corrélation de 0,32, ce qui répartit un peu le risque. Le bitcoin et l'ether, eux, bougeaient presque ensemble (0,84).",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-033",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P1",
+    "P3"
+   ],
+   "texte": "Au pire moment, votre portefeuille aurait perdu 23 407 $ avec cette décision, contre 13 180 $ sans elle. Votre règle « Pire baisse tolérée : −40,6 % (mesurée) » est dépassée, la baisse atteignant −58,5 %.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-034",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P1",
+    "P9",
+    "P10"
+   ],
+   "texte": "Avec cette décision, la crypto représenterait 50,0 % du portefeuille, alors que votre règle « Crypto : 25 % du portefeuille au maximum » fixe la limite. Cette règle serait respectée jusqu'à une réallocation de 28 % du portefeuille.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-035",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P1",
+    "P9",
+    "P10"
+   ],
+   "texte": "La tech et la crypto atteindraient 92,3 % du portefeuille, au-dessus de votre règle « Ne pas miser exclusivement sur la tech (tech et crypto : 75 % au maximum) ». Cette règle serait respectée jusqu'à une réallocation de 57 % du portefeuille.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-036",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "Le 2026-11-15, 2 procès portaient sur cette même décision, avec les mêmes règles violées ; le verdict choisi fut « modifié » les 2 fois.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-037",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P1",
+    "P5"
+   ],
+   "texte": "Une réallocation de 26 % au lieu de 100 % respecterait les trois règles du Pacte. Sa pire baisse serait de −40,4 %, pour une limite de −40,6 %.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-038",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Cette répartition a affiché un rendement de +16,9 % par an, soit +12,9 % après inflation, sur la période analysée. Le portefeuille actuel affichait +19,0 % par an, et le passé ne prédit pas l'avenir.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-039",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Face à une chute de 73,7 % de la crypto, vous avez répondu rester, alors que 6 000 $ étaient tombés à 1 581 $.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-040",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Entre le bitcoin et NVIDIA, la corrélation a été de 0,32, donc ces deux lignes n'ont pas toujours évolué ensemble. Bitcoin et ether, eux, ont été très liés, à 0,84.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-041",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P1",
+    "P4"
+   ],
+   "texte": "Vous avez écrit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Or XOM fait l'objet d'une poursuite du Massachusetts sur l'information climatique, qui était toujours en cours à la dernière consultation. Ce sont des allégations, contestées par l'entreprise, sans jugement sur le fond.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-042",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P5",
+    "P1"
+   ],
+   "texte": "Seule, XOM a connu une chute de 19,1 % depuis un sommet, tout près de votre règle « Pire baisse tolérée : −20 % ».",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-043",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P5",
+    "P2",
+    "P1"
+   ],
+   "texte": "Les variations d'une année à l'autre de XOM atteignent 26,0 %, contre 9,5 % pour le portefeuille avec la décision, ce qui pèserait sur « Équilibre entre croissance et stabilité ».",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-044",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la décision, la part du portefeuille cotée en dollars américains passe de 45 % à 50,5 %, ce qui l'expose davantage aux variations du taux de change.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-045",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P1",
+    "P2"
+   ],
+   "texte": "La pire baisse du portefeuille avec 10 % en XOM est de −10,0 %, sous la limite de la règle « Pire baisse tolérée : −20 % ». Sans cette position, elle était de −15,1 %.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-046",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Lors du rejeu de 2022, le portefeuille avec 10 % en XOM affiche un résultat de −3 819 $, contre −18 146 $ sans cette position. Il s'agit d'une seule année de crise, qui ne dit rien de la suivante.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-047",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Sur la période analysée, le portefeuille avec XOM a progressé de +13,5 % par an, contre +11,5 % sans cette position. Ce constat décrit le passé et ne prédit rien.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-048",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "La poursuite du Massachusetts contre Exxon Mobil repose sur des allégations contestées par l'entreprise, sans jugement sur le fond mentionné. La qualification de controverse « importante » reste pourtant un jugement de l'équipe, et non celui d'une agence de notation ESG.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-049",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P1",
+    "P5"
+   ],
+   "texte": "Vous avez écrit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». XOM fait l'objet d'une controverse documentée de ce type. L'État du Massachusetts la poursuit sur l'information climatique, une affaire en cours dont la Cour suprême de l'État a refusé le rejet le 2022-05-24. Ce sont des allégations contestées par l'entreprise, et aucun jugement sur le fond n'est mentionné.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-050",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P1",
+    "P6"
+   ],
+   "texte": "Pris seul, XOM a connu une chute de 19,1 % depuis un sommet, plus profonde que la pire baisse que vous tolérez, −15,1 %. Il a fallu 0,5 ans pour revenir à ce sommet.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-051",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "La part de votre portefeuille cotée en dollars américains passe de 45 % à 50,5 % avec la décision. Elle dépend donc davantage du taux de change, un risque distinct de celui des titres eux-mêmes.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-052",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P4",
+    "P6"
+   ],
+   "texte": "En 2022, le portefeuille passe de −10,1 % à −2,1 % avec la décision, grâce à un titre qui a gagné +100,2 %. Si XOM ne connaissait pas une année pareille, cet avantage serait moindre.",
+   "origine": "requisitoire"
+  },
+  {
+   "id": "valide-053",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "Au pire moment, votre portefeuille de 180 000 $ aurait perdu 17 974 $ avec XOM, contre 27 230 $ sans cette position.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-054",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P1",
+    "P2",
+    "P3",
+    "P7"
+   ],
+   "texte": "La plus forte chute depuis un sommet, −10,0 % avec XOM, reste dans votre règle « Pire baisse tolérée : −15,1 % (mesurée) ». La taille de 10 % est aussi la taille maximale compatible avec les règles calculables du Pacte.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-055",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "En 2022, avec 10 % en XOM, votre résultat aurait été de −3 819 $, contre −18 146 $ sans cette position. Il s'agit d'une seule année de crise, et la suivante peut être différente.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-056",
+   "famille": "argument_proces",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P5"
+   ],
+   "texte": "La poursuite visant XOM repose sur des allégations contestées par l'entreprise, sans jugement sur le fond mentionné. Elle est toutefois documentée comme une controverse importante, ce qui touche votre règle d'exclusion des controverses environnementales ou sociales.",
+   "origine": "plaidoirie"
+  },
+  {
+   "id": "valide-057",
+   "famille": "arrondi_legitime",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, la pire baisse atteint −29 %."
+  },
+  {
+   "id": "valide-058",
+   "famille": "arrondi_legitime",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, la pire baisse atteint −28,97 %."
+  },
+  {
+   "id": "valide-059",
+   "famille": "arrondi_legitime",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 25 % en TSLA, le portefeuille a rendu +12 % par an."
+  },
+  {
+   "id": "valide-060",
+   "famille": "arrondi_legitime",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P7"
+   ],
+   "texte": "Le bitcoin et l'ether étaient liés, à 0,845."
+  },
+  {
+   "id": "valide-061",
+   "famille": "arrondi_legitime",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "XOM a mis 0,51 an à revenir à son sommet."
+  },
+  {
+   "id": "valide-062",
+   "famille": "mot_de_baisse",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, le portefeuille aurait connu une chute de 29 %."
+  },
+  {
+   "id": "valide-063",
+   "famille": "mot_de_baisse",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Au pire moment, la position mène à une perte de 161 685 $."
+  },
+  {
+   "id": "valide-064",
+   "famille": "mot_de_baisse",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "La réallocation aurait connu une baisse de 58,5 % au pire moment."
+  },
+  {
+   "id": "valide-065",
+   "famille": "mot_de_baisse",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec XOM, le portefeuille aurait subi un recul de 10,0 % au pire moment."
+  },
+  {
+   "id": "valide-066",
+   "famille": "mot_de_baisse",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "En 2022, sans la décision, le portefeuille aurait connu une baisse de 2,6 %."
+  },
+  {
+   "id": "valide-067",
+   "famille": "plage",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P1"
+   ],
+   "texte": "Votre Pacte prévoit un horizon de 3 à 5 ans."
+  },
+  {
+   "id": "valide-068",
+   "famille": "plage",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P1"
+   ],
+   "texte": "Votre Pacte prévoit un horizon de 8 à 12 ans."
+  },
+  {
+   "id": "valide-069",
+   "famille": "plage",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P5",
+    "P2"
+   ],
+   "texte": "Entre 9 % et 25 % en TSLA, la pire baisse passe de −11,2 % à −24,9 %."
+  },
+  {
+   "id": "valide-070",
+   "famille": "plage",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P9"
+   ],
+   "texte": "Selon la règle, la réallocation compatible va de 28 % à 57 %."
+  },
+  {
+   "id": "valide-071",
+   "famille": "plage",
+   "proces": "2026-11-15-b04a4cbd233e",
+   "pieces": [
+    "P3"
+   ],
+   "texte": "La part du portefeuille cotée en dollars canadiens passe de 55 % à 49,5 %."
+  },
+  {
+   "id": "valide-072",
+   "famille": "ecart_de_piece",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 25 % en TSLA, le rendement gagne 2,5 points par an."
+  },
+  {
+   "id": "valide-073",
+   "famille": "ecart_de_piece",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, la pire baisse s'aggrave de 21,2 points."
+  },
+  {
+   "id": "valide-074",
+   "famille": "ecart_de_piece",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec 30 % en TSLA, la volatilité est multipliée par 3,4."
+  },
+  {
+   "id": "valide-075",
+   "famille": "ecart_de_piece",
+   "proces": "2026-11-15-5ba5343b2165",
+   "pieces": [
+    "P2"
+   ],
+   "texte": "Avec la réallocation, la perte au pire moment augmente de 10 227 $."
+  },
+  {
+   "id": "valide-076",
+   "famille": "date_legitime",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "TSLA a atteint son sommet le 3 janvier 2022 et son creux en janv. 2023."
+  },
+  {
+   "id": "valide-077",
+   "famille": "date_legitime",
+   "proces": "2026-11-15-032ec3367b19",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "TSLA a retrouvé son sommet le 2024-12-05, en décembre 2024."
+  },
+  {
+   "id": "valide-078",
+   "famille": "date_legitime",
+   "proces": "2026-11-15-fcb6ce39f184",
+   "pieces": [
+    "P1"
+   ],
+   "texte": "Votre Pacte a été signé le 14 novembre."
+  },
+  {
+   "id": "valide-079",
+   "famille": "date_legitime",
+   "proces": "2026-11-15-c7c4bcc1736b",
+   "pieces": [
+    "P4"
+   ],
+   "texte": "La Cour suprême de l'État a statué en mai 2022 sur la poursuite."
+  },
+  {
+   "id": "valide-080",
+   "famille": "date_legitime",
+   "proces": "2026-11-15-30993c3a1ebf",
+   "pieces": [
+    "P6"
+   ],
+   "texte": "Ces 2 procès archivés datent du 15 novembre 2026."
+  }
+ ]
+}

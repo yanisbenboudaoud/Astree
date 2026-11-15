@@ -504,4 +504,9 @@ def executer(arguments: list[str]) -> tuple[str, str]:
     mesures = mesurer(lecture.contrats.values())
     chemin = RACINE / "docs" / "validation" / "evaluation_orchestrateur.md"
     chemin.write_text(rapport(lecture, mesures, charger_plan(), charger_resultats()), encoding="utf-8")
+    if "--local" not in arguments:
+        # Bulletin du Greffier (#172) : seulement sur la lecture complète (S3), pour qu'une lecture
+        # locale de quelques procès n'écrase pas la mesure faite sur tous les procès tenus.
+        from validation.bulletin import mesure_orchestrateur, ranger_mesure
+        ranger_mesure(*mesure_orchestrateur(mesures, lecture.date_lecture))
     return str(chemin.relative_to(RACINE)), f"{mesures.nb_proces} procès lus le {lecture.date_lecture}"

@@ -267,6 +267,8 @@ def main(arguments: list[str]) -> int:
     comparaisons = comparer(releves)
     CHEMIN_RAPPORT.parent.mkdir(parents=True, exist_ok=True)
     CHEMIN_RAPPORT.write_text(rapport(releves, comparaisons), encoding="utf-8")
+    from validation.bulletin import mesure_externe, ranger_mesure
+    ranger_mesure(*mesure_externe(releves, comparaisons))  # bulletin du Greffier (#172)
     hors_seuil = [c for c in comparaisons if not c.dans_le_seuil]
     print(f"{len(comparaisons) - len(hors_seuil)}/{len(comparaisons)} rendements annuels dans le seuil "
           f"→ {CHEMIN_RAPPORT.relative_to(RACINE)}")

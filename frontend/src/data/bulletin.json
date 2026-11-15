@@ -1,0 +1,94 @@
+{
+ "description": "Bulletin du Greffier (#172) : taux mesurés par les évaluations de docs/validation/, écrits par Python (validation/bulletin.py). L'interface les affiche sans rien calculer. Ne pas modifier à la main : relancer la commande d'évaluation.",
+ "depot": "https://github.com/yanisbenboudaoud/Datathon2026/blob/main/",
+ "mesures": {
+  "cadre_simulation": {
+   "issue": 166,
+   "jeu": "cadre",
+   "rapport": "docs/validation/evaluation_cadre.md",
+   "pieges": {
+    "k": 47,
+    "n": 78,
+    "taux": 0.6026,
+    "rates": 31,
+    "ic95": [
+     0.4916,
+     0.7039
+    ]
+   },
+   "legitimes": {
+    "k": 71,
+    "n": 71,
+    "taux": 1.0,
+    "rates": 0,
+    "ic95": [
+     0.9487,
+     1.0
+    ]
+   },
+   "date": "2026-11-15"
+  },
+  "validation_externe": {
+   "issue": 168,
+   "rapport": "docs/validation/validation_externe.md",
+   "seuil_points": 0.25,
+   "fnb": [
+    "XIU.TO",
+    "XBB.TO",
+    "ZST.TO",
+    "AGG",
+    "TLT",
+    "SPY",
+    "ESGV"
+   ],
+   "dans_le_seuil": {
+    "k": 27,
+    "n": 27,
+    "taux": 1.0,
+    "rates": 0,
+    "ic95": [
+     0.8754,
+     1.0
+    ]
+   },
+   "annee_2022": {
+    "k": 7,
+    "n": 7,
+    "taux": 1.0,
+    "rates": 0,
+    "ic95": [
+     0.6457,
+     1.0
+    ]
+   },
+   "ecart_max_points": 0.12,
+   "date": "2026-11-15"
+  },
+  "verifier_chiffres": {
+   "issue": 165,
+   "jeu": "chiffres",
+   "rapport": "docs/validation/evaluation_chiffres.md",
+   "pieges": {
+    "k": 66,
+    "n": 66,
+    "taux": 1.0,
+    "rates": 0,
+    "ic95": [
+     0.945,
+     1.0
+    ]
+   },
+   "legitimes": {
+    "k": 80,
+    "n": 80,
+    "taux": 1.0,
+    "rates": 0,
+    "ic95": [
+     0.9542,
+     1.0
+    ]
+   },
+   "date": "2026-11-15"
+  }
+ }
+}

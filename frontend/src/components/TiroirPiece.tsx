@@ -7,6 +7,7 @@ import type { Piece } from '../api/types';
 import { PastillePiece, Provenance } from './Etiquettes';
 import { Icone } from './Icone';
 import { DEFINITION_PIECE, decouperEnPoints, guidePiece, numeroPiece } from '../domaine/pieces';
+import { epreuveDesDonnees } from '../domaine/bulletin';
 import styles from './TiroirPiece.module.css';
 
 const FOCALISABLES = 'a[href], button:not([disabled]), input, textarea, select, [tabindex]:not([tabindex="-1"])';
@@ -50,6 +51,8 @@ export function TiroirPiece({ piece, onFermer }: { piece: Piece; onFermer: () =>
   const sources = decouperEnPoints(piece.source);
   const traitement = decouperEnPoints(piece.traitement);
   const limites = decouperEnPoints(piece.limites);
+  // Bulletin du Greffier (#172) : les prix d'une simulation ont été confrontés aux émetteurs.
+  const validation = piece.outil === 'simuler_portefeuille' ? epreuveDesDonnees() : null;
 
   return (
     <div className={styles.voile} onMouseDown={(e) => e.target === e.currentTarget && onFermer()}>
@@ -86,6 +89,15 @@ export function TiroirPiece({ piece, onFermer }: { piece: Piece; onFermer: () =>
           <section className={styles.section}>
             <h3 className="t-petit-fort c-500">D’où viennent les données</h3>
             <ul className={styles.points}>{sources.map((s) => <li key={s} className="t-petit">{s}</li>)}</ul>
+          </section>
+        )}
+        {validation && (
+          <section className={styles.section} aria-label="Données vérifiées">
+            <h3 className="t-petit-fort c-500">Données vérifiées</h3>
+            <p className="t-petit">
+              {validation.texte}{' '}
+              <a href={validation.lien} target="_blank" rel="noreferrer">Voir la mesure</a>
+            </p>
           </section>
         )}
         {limites.length > 0 && (

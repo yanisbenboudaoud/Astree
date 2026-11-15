@@ -1,6 +1,6 @@
 # #60 — Greffier : contrôle du cadre « simulation seulement » (aucun conseil personnalisé)
 
-- **Issue** : #60 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #60 · **PR** : #77 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

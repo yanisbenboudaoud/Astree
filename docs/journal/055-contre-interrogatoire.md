@@ -1,6 +1,6 @@
 # #55 — Contre-interrogatoire : question libre de l'utilisateur
 
-- **Issue** : #55 · **PR** : à venir · **Statut** : en cours (branchement dans l'interface à suivre)
+- **Issue** : #55 · **PR** : #72 · **Statut** : en cours (branchement dans l'interface à suivre)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

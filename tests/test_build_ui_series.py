@@ -68,6 +68,31 @@ def test_robert_actuel_et_trente_pour_cent_de_tsla(robert, semaines):
     assert entree["seances"] == {"nombre": 278, "du": "2022-02-23", "au": "2025-05-07"}
 
 
+def test_rendement_reel_identique_a_la_piece_du_tribunal(robert, semaines):
+    """#113 : l'écran Décision affiche le rendement après inflation que le Tribunal citerait."""
+    from pipeline.simulation import piece_simulation
+
+    decision = {"type": "position", "ticker": "TSLA", "taille": 0.30, "financement": "proportionnel"}
+    valeurs = piece_simulation("P1", robert["portefeuille"], decision)["valeurs"]
+    profil = build.construire_profil(robert, build.groupes_univers(), semaines)
+    entree = build.entree_decision(robert["portefeuille"], decision, robert["pacte"]["regles"], semaines)
+
+    assert profil["inflation"]["annuelle"] == pytest.approx(valeurs["inflation_annuelle"], abs=1e-6)
+    assert (profil["inflation"]["moisFin"], profil["inflation"]["publieLe"]) == ("2026-09", "2026-10-31")
+    assert profil["actuel"]["rendementReel"] == pytest.approx(valeurs["rendement_reel_annuel_actuel"], abs=1e-6)
+    assert entree["rendementReel"] == pytest.approx(valeurs["rendement_reel_annuel"], abs=1e-6)
+    assert entree["rendementReel"] < entree["rendement"]
+
+
+def test_sans_donnees_macro_l_ecran_reste_affichable(robert, semaines, monkeypatch):
+    def sans_fichier(*_args, **_kwargs):
+        raise build.ErreurDonnees("macro_rates.csv absent")
+
+    monkeypatch.setattr(build.macro, "inflation", sans_fichier)
+    profil = build.construire_profil(robert, build.groupes_univers(), semaines)
+    assert profil["inflation"] is None and profil["actuel"]["rendementReel"] is None
+
+
 def test_groupes_deduits_de_l_univers_sans_nom_de_profil():
     univers = build.charger_univers().set_index("ticker", drop=False)
     assert build.groupe_du_titre(univers.loc["XBB.TO"]) == "Revenu fixe"

@@ -15,10 +15,18 @@ décimales (0,063), comme toutes les valeurs des pièces : le Greffier convertit
 
 Méthode :
 - **Inflation d'une période** : produit des variations sur 12 mois, une par année
-  entière, en partant du dernier mois de référence disponible à la fin de la période.
-  Ce produit vaut exactement IPC(fin) / IPC(début). L'IPC d'un mois est publié quelques
-  semaines plus tard : pour une période qui finit avant la publication, on s'arrête
-  au dernier mois publié (ex. : septembre 2026 pour une période qui finit en novembre).
+  entière, en partant du dernier mois de référence utilisable à la fin de la période.
+  Ce produit vaut exactement IPC(fin) / IPC(début).
+- **Date de publication** (#113, ``CLAUDE.md`` section 6) : le fichier date l'IPC au mois
+  de référence, pas à sa publication. Statistique Canada publie l'IPC d'un mois vers le
+  troisième mardi du mois suivant ; hypothèse prudente de l'équipe : l'IPC du mois M est
+  connu le **dernier jour du mois M + 1** (``date_publication_ipc``). Un mois n'est
+  utilisé que s'il était publié à la date où la mesure est faite (``connu_le``, par
+  défaut la date d'extraction du fichier) : septembre 2026 pour une période qui finit
+  le 12 novembre 2026, même si le fichier contenait déjà octobre. On mesure après coup
+  une période terminée : l'inflation de 2022 utilise l'IPC de décembre 2022, publié en
+  janvier 2023, bien avant l'extraction. Les taux quotidiens (taux directeur, obligation
+  à 10 ans) sont publiés le jour même : aucun décalage.
 - **Rendement réel** : relation de Fisher, (1 + rendement) / (1 + inflation) − 1.
 - **Taux sans risque** : moyenne du taux directeur sur la période (hypothèse de l'équipe :
   l'équivalent d'un placement liquide en CAD).
@@ -52,6 +60,7 @@ class Inflation:
     annees: int
     mois_debut: str  # « 2021-09 »
     mois_fin: str  # « 2026-09 »
+    publie_le: str  # date de publication supposée de mois_fin, « 2026-10-31 » (la plus tardive utilisée)
 
 
 @lru_cache(maxsize=1)
@@ -73,24 +82,45 @@ def _series() -> dict[str, pd.Series]:
     return series
 
 
-def inflation(debut: pd.Timestamp, fin: pd.Timestamp) -> Inflation:
+@lru_cache(maxsize=1)
+def _date_extraction_macro() -> pd.Timestamp:
+    """Date d'extraction de ``macro_rates.csv`` : la date où les mesures sont faites, par défaut."""
+    return pd.Timestamp(date_extraction(FICHIER_MACRO))
+
+
+def date_publication_ipc(mois_reference: pd.Timestamp) -> pd.Timestamp:
+    """Date de publication supposée de l'IPC d'un mois : le dernier jour du mois suivant.
+
+    Hypothèse prudente : Statistique Canada publie vers le troisième mardi du mois suivant,
+    donc jamais après cette date. Ex. : septembre 2026 → 2026-10-31.
+    """
+    return (pd.Timestamp(mois_reference).to_period("M") + 1).to_timestamp(how="end").normalize()
+
+
+def inflation(debut: pd.Timestamp, fin: pd.Timestamp, connu_le: pd.Timestamp | None = None) -> Inflation:
     """Inflation du Canada sur la période, en années entières de mois de référence.
 
     Args:
         debut, fin: bornes de la période (ex. : première et dernière séance simulées).
+        connu_le: date où la mesure est faite ; seuls les mois publiés à cette date
+            (``date_publication_ipc``) sont utilisés. Par défaut : la date d'extraction
+            de ``macro_rates.csv``.
 
     Raises:
-        ErreurDonnees: période de moins d'un an, ou mois de référence manquant.
+        ErreurDonnees: période de moins d'un an, aucun IPC publié, ou mois de référence manquant.
     """
     debut, fin = pd.Timestamp(debut), pd.Timestamp(fin)
+    connu_le = pd.Timestamp(connu_le) if connu_le is not None else _date_extraction_macro()
     annees = round(((fin.year - debut.year) * 12 + fin.month - debut.month) / 12)
     if annees < 1:
         raise ErreurDonnees("Inflation : la période doit couvrir au moins un an")
     ipc = _series()[SERIE_INFLATION]
-    disponibles = ipc[ipc.index <= fin.to_period("M").to_timestamp()]
+    publication = (ipc.index.to_period("M") + 1).to_timestamp(how="end").normalize()  # date_publication_ipc
+    disponibles = ipc.index[(publication <= connu_le) & (ipc.index <= fin.to_period("M").to_timestamp())]
     if disponibles.empty:
-        raise ErreurDonnees(f"Inflation : aucun IPC publié avant le {fin.date()}")
-    mois_fin = disponibles.index[-1]
+        raise ErreurDonnees(f"Inflation : aucun IPC publié au {connu_le.date()} pour une période "
+                            f"qui finit le {fin.date()}")
+    mois_fin = disponibles[-1]
     cumul = 1.0
     for annee in range(annees):
         mois = mois_fin - pd.DateOffset(years=annee)
@@ -98,7 +128,8 @@ def inflation(debut: pd.Timestamp, fin: pd.Timestamp) -> Inflation:
             raise ErreurDonnees(f"Inflation : IPC de {mois:%Y-%m} absent de {FICHIER_MACRO}")
         cumul *= 1 + ipc[mois]
     mois_debut = mois_fin - pd.DateOffset(years=annees)
-    return Inflation(cumul - 1, cumul ** (1 / annees) - 1, annees, f"{mois_debut:%Y-%m}", f"{mois_fin:%Y-%m}")
+    return Inflation(cumul - 1, cumul ** (1 / annees) - 1, annees, f"{mois_debut:%Y-%m}", f"{mois_fin:%Y-%m}",
+                     f"{date_publication_ipc(mois_fin).date()}")
 
 
 def taux_au(serie: str, date: pd.Timestamp) -> float:

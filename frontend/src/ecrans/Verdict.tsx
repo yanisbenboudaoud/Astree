@@ -3,14 +3,14 @@
  * il archive le choix (POST /verdict en mode direct, journal local en démonstration).
  */
 import { useId, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import type { Profil } from '../api/types';
 import { archiverVerdict } from '../api/tribunal';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { Statut } from '../components/Etiquettes';
 import { LienRetour, Message } from '../components/Elements';
-import { OPTION_PACTE, archivage, optionsVerdict, statutDecision, type OptionVerdict } from '../domaine/verdict';
+import { OPTION_PACTE, archivage, optionsVerdict, pointsDeBascule, statutDecision, type OptionVerdict } from '../domaine/verdict';
 import { useEtatProfil } from '../state/store';
 import { useTables } from '../state/useTables';
 import styles from './Verdict.module.css';
@@ -32,6 +32,7 @@ export function Verdict({ profil }: { profil: Profil }) {
   const idRaison = useId();
   const idJustification = useId();
   const idCompteur = useId();
+  const idBascule = useId();
 
   if (!decision || tribunal.statut !== 'pret' || !tribunal.resultat) return <Navigate to={`/${profil.id}/tribunal`} replace />;
   const resultat = tribunal.resultat;
@@ -40,6 +41,7 @@ export function Verdict({ profil }: { profil: Profil }) {
   const choisie: OptionVerdict | undefined = toutes.find((o) => o.id === verdict.option);
   const statut = statutDecision(profil, resultat);
   const violations = resultat.controles.filter((c) => c.paragraphe !== undefined && c.statut === 'Violation').length;
+  const bascules = pointsDeBascule(resultat);
 
   const raisonBlocage = !choisie
     ? 'Choisissez une option pour signer le verdict.'
@@ -135,6 +137,28 @@ export function Verdict({ profil }: { profil: Profil }) {
             <span className="t-corps c-700">{resultat.constat}</span>
           </p>
         </div>
+
+        {bascules.length > 0 && (
+          <section className={styles.bascule} aria-labelledby={idBascule}>
+            <h2 id={idBascule} className="t-etiquette c-500">Ce qui changerait la réponse</h2>
+            <ul>
+              {bascules.map((p) => (
+                <li key={p.regle} className={styles.point}>
+                  <span className="t-petit-fort">{p.paragraphe ? `§${p.paragraphe} · ` : ''}{p.libelle}</span>
+                  <span className="t-petit c-700">
+                    {p.message}
+                    {p.pieces.map((code) => (
+                      <span key={code}>
+                        {' '}
+                        <Link to={`/${profil.id}/tribunal?piece=${code}`} className={styles.lienPiece} aria-label={`Ouvrir la pièce ${code}`}>{code}</Link>
+                      </span>
+                    ))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <fieldset className={styles.options}>
           <legend className="visuellement-cache">Votre décision sur « {resultat.titre} »</legend>

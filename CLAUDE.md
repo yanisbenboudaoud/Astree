@@ -111,6 +111,7 @@ L'orchestrateur est ce qui rend le système agentique : c'est un LLM qui **déci
 
 - **Il ne calcule rien** : il ne peut qu'appeler les outils 1 à 4 de la liste blanche (section 4 bis). Les outils 5 et 6 appartiennent au Greffier et ne sont jamais appelés par un LLM.
 - **Pièce obligatoire** : la simulation avant / après de la décision (`simuler_portefeuille`). Si l'orchestrateur ne l'a pas demandée, Python l'ajoute d'office et le note dans la trace.
+- **Points de bascule** (#61) : dès qu'une règle calculable du Pacte est en violation, Python ajoute d'office la pièce `points_de_bascule` après l'orchestrateur et avant le débat. Elle répond à « Qu'est-ce qui changerait la réponse ? ». Ce n'est pas un outil de l'orchestrateur : elle n'a aucun paramètre à choisir et doit toujours être là.
 - **Budget** : 8 appels d'outils au maximum par procès (hypothèse à ajuster), puis passage au débat.
 - **Phases fixes** : Profil → Orchestrateur → Procureur et Avocat → Greffier → Verdict. L'orchestrateur choisit les outils, jamais l'ordre des phases ni le verdict. Le Greffier passe toujours en dernier.
 - **Raison visible, courte et sans chiffre** : une phrase par appel, affichée dans la trace. Ce n'est pas le raisonnement interne détaillé du modèle, que l'énoncé demande de ne pas exposer.
@@ -137,6 +138,7 @@ Socle commun : **`charger_donnees`** lit les CSV (local ou S3), convertit en CAD
 | 5 | `verifier_pacte` | Compare les résultats aux règles du Pacte | Greffier | V1 |
 | 6 | `verifier_chiffres` | Vérifie que chaque nombre cité existe dans une pièce (section 4 ter) | Greffier | V1 |
 | 7 | `consulter_jurisprudence` | Verdicts passés du même profil (archives `verdicts/<profil>/` de S3) : violations par règle et choix de l'utilisateur (#56) | Orchestrateur | Bonus |
+| 8 | `points_de_bascule` | Pour chaque règle calculable en violation : la taille où elle serait conforme, et le seuil qui suffirait (la valeur simulée après la décision). Relit la recherche de l'outil 4 (#61) | Python, d'office | Bonus |
 
 Aucun de ces outils n'utilise le LLM. On les développe et teste **en local**, puis le même code est déployé dans Lambda (variable `SOURCE_DONNEES=local|s3`). Les outils 1 à 4 sont décrits à l'orchestrateur comme outils Bedrock (nom, description, schéma JSON des paramètres).
 
@@ -186,6 +188,9 @@ Conventions : les nombres sont des **décimales** (0.30 = 30 %), en CAD sauf men
     "apres":  {"rendement_annuel": 0.1198, "volatilite_annuelle": 0.1897, "pire_baisse": -0.2897, "rendement_2022": -0.2371}
   },
   "taille_max_compatible": 0.09,
+  "points_de_bascule": [
+    {"regle": "pire_baisse_max", "type": "pire_baisse_max", "seuil_actuel": -0.12, "seuil_suffisant": -0.289679, "taille_max": 0.09, "message": "Conforme jusqu'à 9 % en TSLA, ou avec un seuil de −29,0 % au lieu de −12,0 %", "pieces": ["P6"]}
+  ],
   "pieces": [
     {
       "id": "P1",
@@ -232,6 +237,7 @@ Règles du contrat :
 - Le contrat est vérifiable automatiquement : schéma `contrat/schema_sortie.json`, renvois entre champs dans `contrat/valider.py` (`python -m contrat.valider <fichier.json>`). Exemples valides : `docs/exemples/contrat_robert.json` (cas 1) et `docs/exemples/contrat_amira.json` (cas 2).
 - `decision.type` vaut `position` (`ticker`, `taille`, `financement` : `proportionnel` ou `depuis_<ticker>`) ou `reallocation` (`panier` : liste `ticker` + `poids` totalisant 1, `part_reallouee`, prise au prorata de toutes les lignes). Même format que `decision_demo` des fichiers profils, plus `libelle`.
 - `taille_max_compatible` vaut `null` si même 0 % viole le Pacte. Pour une réallocation, c'est la plus grande part réallouée compatible.
+- `points_de_bascule` (#61) : un objet par règle calculable (`pire_baisse_max`, `plafond`) en violation, et seulement pour elles ; liste vide sans violation. `taille_max` est la plus grande taille (ou part réallouée) où **cette** règle est conforme (`null` si même 0 % la viole) ; `seuil_suffisant` est la valeur simulée après la décision (pire baisse, ou part des catégories du plafond), arrondie du côté permissif ; `message` est écrit par Python ; `pieces` cite la pièce `points_de_bascule`. Champ facultatif dans le schéma, pour que les contrats antérieurs restent valides ; le pipeline le produit toujours.
 - `statut` d'un contrôle : `conforme`, `violation` ou `a_verifier`. `etiquette` : `fait`, `hypothese` ou `fictif`. `type` d'une pièce : `calculee` (outil Python) ou `documentaire` (extrait de document, V3).
 - `pacte.regles` reprend les règles du fichier profil (section 3), sans les justifications. `controles[].regle` est l'`id` d'une règle du Pacte, ou l'un des contrôles du système : `verifier_chiffres`, `performance_passee`, `biais_survivant`, `interpretation_demande` (Agent Profil : demande incomplète ou ambiguë, toujours `a_verifier`).
 - Chaque argument cite au moins une pièce. Un argument dont un chiffre est introuvable dans ses pièces (section 4 ter) va dans `arguments_rejetes`, avec `cote` (`requisitoire` ou `plaidoirie`), son texte, ses pièces et la `raison` du rejet.

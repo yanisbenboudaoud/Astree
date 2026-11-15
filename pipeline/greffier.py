@@ -99,7 +99,7 @@ def controler_plafond(regle: dict[str, Any], contexte: dict[str, Any]) -> dict[s
         except TitreHorsUnivers:
             hors_univers.append(ticker)
 
-    nom = _nom_categories(regle["categories"])
+    nom = nom_categories(regle["categories"])
     if hors_univers:
         return _controle(
             "a_verifier", regle,
@@ -183,7 +183,7 @@ def _part(valeur: float) -> str:
     return f"{valeur * 100:.1f}".replace(".", ",") + " %"
 
 
-def _nom_categories(noms: list[str]) -> str:
+def nom_categories(noms: list[str]) -> str:
     """["tech", "crypto"] → « Technologie et cryptoactifs » (libellés de config/categories.json)."""
     definitions = charger_categories()
     libelles = [definitions[nom]["libelle"] for nom in noms]

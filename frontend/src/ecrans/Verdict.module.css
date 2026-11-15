@@ -9,6 +9,18 @@
 .titre { display: flex; flex-direction: column; gap: 8px; }
 .rappel { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
+.bascule {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+  background: var(--fond-creux);
+  border-radius: 4px;
+}
+.bascule ul { display: flex; flex-direction: column; gap: 10px; }
+.point { display: flex; flex-direction: column; gap: 2px; }
+.lienPiece { text-decoration: underline; text-underline-offset: 3px; }
+
 .options { border: 0; padding: 0; margin: 0; min-width: 0; }
 .options ul { display: flex; flex-direction: column; gap: 12px; }
 .option {

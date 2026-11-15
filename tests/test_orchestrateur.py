@@ -292,10 +292,11 @@ def test_juger_decision_enchaine_profil_et_orchestrateur(monkeypatch):
                              converser=FauxModele([demande("indicateurs_actif", ticker="TSLA")]))
     assert contrat["persona"] == "robert"
     assert contrat["decision"]["ticker"] == "TSLA"
-    assert [p["id"] for p in contrat["pieces"]] == ["P1", "P2", "P3"]
+    assert [p["id"] for p in contrat["pieces"]] == ["P1", "P2", "P3", "P4"]
     assert contrat["pieces"][0]["outil"] == "charger_pacte"
+    assert contrat["pieces"][3]["outil"] == "points_de_bascule"  # ajoutée d'office (#61)
     assert [e["etape"] for e in contrat["trace"]] == (
-        ["agent_profil"] * 3 + ["orchestrateur"] * 2 + ["procureur", "avocat"] + ["greffier"]
+        ["agent_profil"] * 3 + ["orchestrateur"] * 3 + ["procureur", "avocat"] + ["greffier"]
         + ["avocat"] + ["greffier"]  # verifier_pacte, relance de l'avocat, verifier_chiffres
     )
     assert contrat["comparaison"]["actuel"]["pire_baisse"] == pytest.approx(-0.0776, abs=5e-5)
@@ -386,6 +387,42 @@ def test_juger_decision_reallocation_contrat_complet(monkeypatch):
     assert contrat["taille_max_compatible"] == 0.11
     statuts = {c["regle"]: c["statut"] for c in contrat["controles"]}
     assert statuts["plafond_crypto"] == "violation"  # 0,15 × 0,8 + 0,2 = 32 % de crypto
+    [point] = contrat["points_de_bascule"]
+    assert point["regle"] == "plafond_crypto" and point["taille_max"] == 0.11
+    assert point["seuil_suffisant"] == pytest.approx(0.15 * 0.8 + 0.2)
+    assert point["message"] == "Conforme jusqu'à 11 % réalloués, ou avec un plafond de 32,0 % au lieu de 25,0 %"
+    assert valider_contrat(contrat) == []
+
+
+def test_points_de_bascule_verses_d_office_avant_le_debat(monkeypatch, faux_debat):
+    """Profil prudent + 30 % TSLA : conforme jusqu'à 9 %, ou avec un seuil de −29,0 % (#61)."""
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
+    vues = []
+    monkeypatch.setattr(tribunal, "debattre",
+                        lambda dossier: vues.append([p["outil"] for p in dossier["pieces"]]) or faux_debat.debattre(dossier))
+    contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla", converser=FauxModele())
+
+    piece = next(p for p in contrat["pieces"] if p["outil"] == "points_de_bascule")
+    assert "points_de_bascule" in vues[0]  # le Procureur et l'Avocat peuvent la citer
+    etape = next(e for e in contrat["trace"] if e["outil"] == "points_de_bascule")
+    assert etape == {"etape": "orchestrateur", "outil": "points_de_bascule", "raison": tribunal.RAISON_POINTS_DE_BASCULE,
+                     "entree": {"regles": ["pire_baisse_max"]}, "sortie": piece["id"]}
+    assert raison_valide(etape["raison"]) and RAISON_D_OFFICE in etape["raison"]
+
+    [point] = contrat["points_de_bascule"]
+    assert point["regle"] == "pire_baisse_max" and point["taille_max"] == 0.09
+    assert point["seuil_suffisant"] == pytest.approx(contrat["comparaison"]["apres"]["pire_baisse"], abs=1e-6)
+    assert point["message"] == "Conforme jusqu'à 9 % en TSLA, ou avec un seuil de −29,0 % au lieu de −12,0 %"
+    assert point["pieces"] == [piece["id"]]
+    assert valider_contrat(contrat) == []
+
+
+def test_sans_violation_ni_piece_ni_point_de_bascule(monkeypatch):
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: {**EXTRACTION_TSLA, "taille": 0.05})
+    contrat = juger_decision("robert", "Je veux mettre 5 % en Tesla", converser=FauxModele())
+    assert contrat["points_de_bascule"] == []
+    assert all(p["outil"] != "points_de_bascule" for p in contrat["pieces"])
+    assert all(e["outil"] != "points_de_bascule" for e in contrat["trace"])
     assert valider_contrat(contrat) == []
 
 

@@ -184,6 +184,21 @@ Les personas de l'énoncé deviennent des **profils de test**. Le code ne teste 
 
 ---
 
+## Choix 10 bis — Les points de bascule : « Qu'est-ce qui changerait la réponse ? »
+
+**Décision.** Dès qu'une règle calculable du Pacte est en violation, Python ajoute d'office une pièce `points_de_bascule` au dossier, avant le débat (#61). Pour chaque règle en violation, elle donne les deux façons de la rendre conforme : **modifier la décision** (la plus grande taille où *cette* règle est respectée) ou **ajuster le Pacte** (le seuil qui suffirait, c'est-à-dire la valeur simulée après la décision). Exemple : 30 % de TSLA pour le profil prudent serait conforme jusqu'à 9 %, ou avec un seuil de −29,0 % au lieu de −12 %. Le contrat les reprend dans le champ `points_de_bascule`, pour l'écran Verdict.
+
+**Pourquoi.**
+- Une explication crédible répond à quatre questions, dont « Qu'est-ce qui changerait la réponse ? » (atelier de la Banque Nationale, « Comprendre l'investisseur », diapo 12). `taille_max_compatible` n'y répondait que pour la taille, et pour toutes les règles à la fois.
+- **Une taille par règle** : pour le panier crypto-tech du profil audacieux, la pire baisse serait respectée jusqu'à 36 % réalloués, le plafond crypto jusqu'à 28 %, le plafond tech et crypto jusqu'à 50 %. L'utilisateur voit quelle règle bloque, et de combien.
+- **Actionnable sans conseiller** : les deux côtés correspondent aux choix de l'écran Verdict (modifier, ajuster le Pacte). Le système dit ce qui changerait la réponse, pas ce qu'il faut faire.
+- **D'office plutôt qu'un outil de l'orchestrateur** : la pièce n'a aucun paramètre à choisir (elle découle de la décision et du Pacte) et doit être présente à chaque violation. En faire un outil aurait été un faux choix, qui consomme le budget d'appels. Elle ne refait aucun calcul : elle relit la recherche de `taille_max_compatible`, jugée par les contrôles du Greffier.
+- **Vérifiable** : le seuil suffisant est arrondi du côté permissif. Un test prouve qu'avec ce seuil à la place du sien, le Greffier rend `conforme` (au plus proche, la pire baisse du panier audacieux, −0,6185554, aurait donné −0,618555, qui laissait la règle en violation).
+
+**Alternative écartée.** Laisser le Procureur ou l'Avocat calculer « il faudrait accepter −29 % » : c'est un nombre dérivé, que le Greffier rejetterait (`CLAUDE.md`, section 4 ter, règle 6). C'est Python qui le calcule.
+
+---
+
 ## Choix 11 — La trace d'exécution
 
 **Décision.** Chaque étape ajoute à la trace ce qu'elle a reçu, l'outil appelé et ce qu'elle a produit. La trace est affichée dans l'interface et stockée dans S3.

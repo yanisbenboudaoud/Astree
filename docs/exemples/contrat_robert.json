@@ -35,6 +35,9 @@
     }
   },
   "taille_max_compatible": 0.09,
+  "points_de_bascule": [
+    {"regle": "pire_baisse_max", "type": "pire_baisse_max", "seuil_actuel": -0.12, "seuil_suffisant": -0.289679, "taille_max": 0.09, "message": "Conforme jusqu'à 9 % en TSLA, ou avec un seuil de −29,0 % au lieu de −12,0 %", "pieces": ["P6"]}
+  ],
   "pieces": [
     {
       "id": "P1",
@@ -123,6 +126,26 @@
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
       "traitement": "simuler_portefeuille répété de 0 % à 30 % par pas de 1 point, financement proportionnel ; plus grande taille qui respecte toutes les règles calculables du Pacte",
       "limites": "Dépend du mode de financement et de la période ; une seule période de 5 ans"
+    },
+    {
+      "id": "P6",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Ce qui changerait la réponse : points de bascule des règles en violation",
+      "outil": "points_de_bascule",
+      "valeurs": {
+        "regles_en_violation": ["pire_baisse_max"],
+        "seuils_du_pacte": [-0.12],
+        "seuils_suffisants": [-0.289679],
+        "tailles_max_par_regle": [0.09],
+        "taille_demandee": 0.3,
+        "taille_max_toutes_regles": 0.09,
+        "pas_de_recherche": 0.01
+      },
+      "valeur_affichee": "Pire baisse : 9 % max ou seuil −29,0 %",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "Pour chaque règle calculable en violation : plus grande taille où elle est conforme (simulation de 0 à la taille demandée par pas de 1 point, même financement, contrôles du Greffier à chaque taille), et seuil qui suffirait : la valeur simulée après la décision (pire baisse, ou part des catégories du plafond)",
+      "limites": "Une seule période passée ; un seuil qui suffit sur cette période ne protège pas d'une baisse future plus forte ; seules les règles calculables (pire baisse, plafonds) ont un point de bascule, pas les règles qualitatives ni documentaires ; ajuster le Pacte reste un choix de l'utilisateur, pas une recommandation"
     }
   ],
   "requisitoire": [
@@ -276,15 +299,22 @@
       "sortie": "P5"
     },
     {
+      "etape": "orchestrateur",
+      "outil": "points_de_bascule",
+      "raison": "Pièce obligatoire ajoutée d'office : une règle calculable du Pacte est en violation",
+      "entree": {"regles": ["pire_baisse_max"]},
+      "sortie": "P6"
+    },
+    {
       "etape": "procureur",
       "outil": "bedrock",
-      "entree": ["P1", "P2", "P3", "P4", "P5"],
+      "entree": ["P1", "P2", "P3", "P4", "P5", "P6"],
       "sortie": "4 arguments"
     },
     {
       "etape": "avocat",
       "outil": "bedrock",
-      "entree": ["P1", "P2", "P3", "P4", "P5"],
+      "entree": ["P1", "P2", "P3", "P4", "P5", "P6"],
       "sortie": "3 arguments"
     },
     {

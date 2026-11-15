@@ -143,3 +143,55 @@ def test_panier_dont_les_poids_ne_totalisent_pas_un_rejete():
 def test_taille_max_nulle_acceptee(contrat):
     contrat["taille_max_compatible"] = None
     assert valider_contrat(contrat) == []
+
+
+# --- Points de bascule (#61) --------------------------------------------------------
+
+
+def test_contrat_sans_points_de_bascule_accepte(contrat):
+    """Champ facultatif : les contrats antérieurs à #61 (procès enregistrés) restent valides."""
+    del contrat["points_de_bascule"]
+    assert valider_contrat(contrat) == []
+
+
+def test_regle_en_violation_sans_point_de_bascule_rejetee(contrat):
+    contrat["points_de_bascule"] = []
+    assert valider_contrat(contrat) == [
+        "points_de_bascule : la règle « pire_baisse_max » est en violation sans point de bascule"]
+
+
+def test_point_de_bascule_sur_une_regle_conforme_rejete(contrat):
+    contrat["points_de_bascule"].append({**contrat["points_de_bascule"][0], "regle": "plafond_crypto", "type": "plafond"})
+    assert valider_contrat(contrat) == ["points_de_bascule/1 : la règle « plafond_crypto » n'est pas en violation"]
+
+
+def test_point_de_bascule_sur_une_regle_non_calculable_rejete(contrat):
+    contrat["points_de_bascule"].append({**contrat["points_de_bascule"][0], "regle": "preserver_capital"})
+    assert valider_contrat(contrat) == [
+        "points_de_bascule/1 : « preserver_capital » n'est pas une règle calculable du Pacte"]
+
+
+def test_point_de_bascule_d_un_autre_type_que_sa_regle_rejete(contrat):
+    contrat["points_de_bascule"][0]["type"] = "plafond"
+    assert valider_contrat(contrat) == ["points_de_bascule/0 : type « plafond » au lieu de « pire_baisse_max »"]
+
+
+def test_point_de_bascule_en_double_rejete(contrat):
+    contrat["points_de_bascule"].append(copy.deepcopy(contrat["points_de_bascule"][0]))
+    assert valider_contrat(contrat) == ["points_de_bascule/1 : règle « pire_baisse_max » en double"]
+
+
+def test_point_de_bascule_cite_une_piece_inexistante_rejete(contrat):
+    contrat["points_de_bascule"][0]["pieces"] = ["P9"]
+    assert valider_contrat(contrat) == ["points_de_bascule/0 : pièce P9 inexistante"]
+
+
+def test_point_de_bascule_sans_piece_rejete(contrat):
+    contrat["points_de_bascule"][0]["pieces"] = []
+    assert valider_contrat(contrat)
+
+
+def test_trois_points_de_bascule_du_cas_2():
+    contrat = charger_exemple("contrat_amira.json")
+    assert [p["regle"] for p in contrat["points_de_bascule"]] == [
+        "pire_baisse_max", "plafond_crypto", "pas_exclusivement_tech"]

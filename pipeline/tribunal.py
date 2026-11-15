@@ -10,6 +10,11 @@ type « position » comme pour une « reallocation » vers un panier (#16).
 l'orchestrateur ait demandé l'outil ou non : le curseur de l'écran Décision
 en a besoin dans tous les cas.
 
+Les **points de bascule** (#61) relisent la même recherche : dès qu'une règle
+calculable du Pacte est en violation, Python verse d'office leur pièce au
+dossier, avant le débat, et remplit le champ ``points_de_bascule`` du contrat
+(ce qui rendrait chaque règle conforme : taille maximale ou seuil suffisant).
+
 Le Greffier passe en dernier : ``verifier_pacte`` contrôle chaque règle du
 Pacte, puis ``verifier_chiffres`` vérifie chaque argument du débat. Un argument
 refusé est renvoyé **une fois** à son agent (``corriger_argument``), puis rangé
@@ -27,11 +32,14 @@ from pipeline.greffier import controle_biais_survivant, controle_performance_pas
 from pipeline.donnees import HYPOTHESES_DONNEES, date_extraction, seances_americaines
 from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.llm import converser_avec_outils
-from pipeline.orchestrateur import instruire_dossier
-from pipeline.taille_max import rechercher_taille_max
+from pipeline.orchestrateur import RAISON_D_OFFICE, instruire_dossier
+from pipeline.points_de_bascule import NOM_OUTIL as OUTIL_POINTS_DE_BASCULE
+from pipeline.points_de_bascule import piece_points_de_bascule, pour_contrat
+from pipeline.taille_max import ResultatRecherche, rechercher_taille_max
 from pipeline.simulation import poids_apres_decision, simuler_portefeuille
 
 ID_PIECE_PACTE = "P1"  # le Pacte est la première pièce ; l'orchestrateur numérote la suite
+RAISON_POINTS_DE_BASCULE = f"{RAISON_D_OFFICE} : une règle calculable du Pacte est en violation"
 
 AVERTISSEMENT = (
     "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé."
@@ -84,11 +92,13 @@ def juger_decision(
 
     instruction = instruire_dossier(profil.decision, profil.profil, premier_numero=2, converser=converser)
     contrat["comparaison"] = comparaison(profil.profil["portefeuille"], profil.decision)
-    contrat["taille_max_compatible"] = rechercher_taille_max(
+    recherche = rechercher_taille_max(
         profil.profil["portefeuille"], profil.decision, profil.profil["pacte"]["regles"]
-    ).taille_max
+    )
+    contrat["taille_max_compatible"] = recherche.taille_max
     contrat["pieces"] += instruction.pieces
     contrat["trace"] += instruction.trace
+    contrat["points_de_bascule"] = verser_points_de_bascule(recherche, profil.decision, contrat)
 
     # Débat : Procureur et Avocat en parallèle, sur les mêmes pièces.
     dossier = {"decision": profil.decision, "pacte": profil.pacte, "pieces": contrat["pieces"],
@@ -122,6 +132,37 @@ def juger_decision(
                              *([performance] if performance else []), controle_biais_survivant()]
     contrat["hypotheses"] = [periode_analyse(), *HYPOTHESES_DONNEES, *profil.hypotheses, *HYPOTHESES_PROCES]
     return contrat
+
+
+def verser_points_de_bascule(
+    recherche: ResultatRecherche,
+    decision: dict[str, Any],
+    contrat: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Verse d'office la pièce des points de bascule (#61) et renvoie le champ du contrat.
+
+    Sans règle calculable en violation : ni pièce ni étape de trace, champ vide.
+    Sinon, la pièce prend le numéro suivant et l'étape de trace porte la raison
+    d'office, comme la simulation obligatoire.
+    """
+    id_piece = prochain_id_piece(contrat["pieces"])
+    piece = piece_points_de_bascule(id_piece, recherche, decision)
+    if piece is None:
+        return []
+    contrat["pieces"].append(piece)
+    contrat["trace"].append({
+        "etape": "orchestrateur",
+        "outil": OUTIL_POINTS_DE_BASCULE,
+        "raison": RAISON_POINTS_DE_BASCULE,
+        "entree": {"regles": piece["valeurs"]["regles_en_violation"]},
+        "sortie": id_piece,
+    })
+    return pour_contrat(recherche, decision, id_piece)
+
+
+def prochain_id_piece(pieces: list[dict[str, Any]]) -> str:
+    """« P7 » si la plus grande pièce est P6."""
+    return f"P{max((int(piece['id'][1:]) for piece in pieces), default=0) + 1}"
 
 
 def verifier_cote(arguments, cote, role, dossier, trace):

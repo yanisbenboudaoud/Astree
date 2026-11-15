@@ -39,6 +39,11 @@
     }
   },
   "taille_max_compatible": 0.28,
+  "points_de_bascule": [
+    {"regle": "pire_baisse_max", "type": "pire_baisse_max", "seuil_actuel": -0.45, "seuil_suffisant": -0.618556, "taille_max": 0.36, "message": "Conforme jusqu'à 36 % réalloués, ou avec un seuil de −61,9 % au lieu de −45,0 %", "pieces": ["P6"]},
+    {"regle": "plafond_crypto", "type": "plafond", "seuil_actuel": 0.25, "seuil_suffisant": 0.5, "taille_max": 0.28, "message": "Conforme jusqu'à 28 % réalloués, ou avec un plafond de 50,0 % au lieu de 25,0 %", "pieces": ["P6"]},
+    {"regle": "pas_exclusivement_tech", "type": "plafond", "seuil_actuel": 0.75, "seuil_suffisant": 1.0, "taille_max": 0.5, "message": "Conforme jusqu'à 50 % réalloués, ou avec un plafond de 100,0 % au lieu de 75,0 %", "pieces": ["P6"]}
+  ],
   "pieces": [
     {
       "id": "P1",
@@ -131,6 +136,26 @@
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
       "traitement": "simuler_portefeuille répété de 0 % à 100 % de part réallouée par pas de 1 point ; plus grande part qui respecte toutes les règles calculables du Pacte",
       "limites": "Dépend de la composition du panier et de la période ; une seule période de 5 ans"
+    },
+    {
+      "id": "P6",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Ce qui changerait la réponse : points de bascule des règles en violation",
+      "outil": "points_de_bascule",
+      "valeurs": {
+        "regles_en_violation": ["pire_baisse_max", "plafond_crypto", "pas_exclusivement_tech"],
+        "seuils_du_pacte": [-0.45, 0.25, 0.75],
+        "seuils_suffisants": [-0.618556, 0.5, 1.0],
+        "tailles_max_par_regle": [0.36, 0.28, 0.5],
+        "taille_demandee": 1.0,
+        "taille_max_toutes_regles": 0.28,
+        "pas_de_recherche": 0.01
+      },
+      "valeur_affichee": "Pire baisse : 36 % max ou seuil −61,9 % · Cryptoactifs : 28 % max ou plafond 50,0 % · Technologie et cryptoactifs : 50 % max ou plafond 100,0 %",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "Pour chaque règle calculable en violation : plus grande part réallouée où elle est conforme (simulation de 0 à la taille demandée par pas de 1 point, même financement, contrôles du Greffier à chaque taille), et seuil qui suffirait : la valeur simulée après la décision (pire baisse, ou part des catégories du plafond)",
+      "limites": "Une seule période passée ; un seuil qui suffit sur cette période ne protège pas d'une baisse future plus forte ; seules les règles calculables (pire baisse, plafonds) ont un point de bascule, pas les règles qualitatives ni documentaires ; ajuster le Pacte reste un choix de l'utilisateur, pas une recommandation"
     }
   ],
   "requisitoire": [
@@ -292,15 +317,22 @@
       "sortie": "P5"
     },
     {
+      "etape": "orchestrateur",
+      "outil": "points_de_bascule",
+      "raison": "Pièce obligatoire ajoutée d'office : une règle calculable du Pacte est en violation",
+      "entree": {"regles": ["pire_baisse_max", "plafond_crypto", "pas_exclusivement_tech"]},
+      "sortie": "P6"
+    },
+    {
       "etape": "procureur",
       "outil": "bedrock",
-      "entree": ["P1", "P2", "P3", "P4", "P5"],
+      "entree": ["P1", "P2", "P3", "P4", "P5", "P6"],
       "sortie": "5 arguments"
     },
     {
       "etape": "avocat",
       "outil": "bedrock",
-      "entree": ["P1", "P2", "P3", "P4", "P5"],
+      "entree": ["P1", "P2", "P3", "P4", "P5", "P6"],
       "sortie": "4 arguments"
     },
     {

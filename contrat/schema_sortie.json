@@ -30,6 +30,11 @@
       "minimum": 0,
       "maximum": 1
     },
+    "points_de_bascule": {
+      "description": "Ce qui changerait la réponse (#61) : un objet par règle calculable du Pacte (pire_baisse_max, plafond) en violation, liste vide sans violation. Facultatif pour les contrats antérieurs ; toujours produit par le pipeline quand la décision est jugée.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/point_de_bascule"}
+    },
     "pieces": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/piece"}},
     "requisitoire": {"type": "array", "items": {"$ref": "#/$defs/argument"}},
     "plaidoirie": {"type": "array", "items": {"$ref": "#/$defs/argument"}},
@@ -193,6 +198,22 @@
         "source": {"type": "string", "minLength": 1},
         "traitement": {"type": "string", "minLength": 1},
         "limites": {"type": "string", "minLength": 1}
+      }
+    },
+
+    "point_de_bascule": {
+      "description": "Deux façons de rendre une règle conforme : la décision ramenée à taille_max (taille ou part réallouée où cette règle est conforme, null si même 0 % la viole), ou le Pacte ajusté à seuil_suffisant (valeur simulée après la décision : pire baisse, ou part des catégories du plafond). Valeurs brutes ; message écrit par Python.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["regle", "type", "seuil_actuel", "seuil_suffisant", "taille_max", "message", "pieces"],
+      "properties": {
+        "regle": {"type": "string", "minLength": 1},
+        "type": {"enum": ["pire_baisse_max", "plafond"]},
+        "seuil_actuel": {"type": "number", "minimum": -1, "maximum": 1},
+        "seuil_suffisant": {"type": "number", "minimum": -1, "maximum": 1},
+        "taille_max": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "message": {"type": "string", "minLength": 1},
+        "pieces": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id_piece"}}
       }
     },
 

@@ -1,6 +1,6 @@
 # #68 — Le Pacte vécu : mesurer les limites de l'investisseur sur de vrais jours de marché
 
-- **Issue** : #68 · **PR** : à renseigner · **Statut** : terminée (mode démonstration vérifié ; mode direct à vérifier une fois la Lambda redéployée et ouverte au navigateur, #14)
+- **Issue** : #68 · **PR** : #78 · **Statut** : terminée (mode démonstration vérifié ; mode direct à vérifier une fois la Lambda redéployée et ouverte au navigateur, #14)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

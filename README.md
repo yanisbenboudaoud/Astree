@@ -65,6 +65,8 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `pipeline/jurisprudence.py` | Outil 7 `consulter_jurisprudence` : relit les verdicts archivés du profil jugé (`verdicts/<profil>/`, local ou S3) et compte, par règle du Pacte, les violations passées et le verdict choisi ; sans archive, « aucun procès archivé » | [056](docs/journal/056-jurisprudence.md) |
 | `pipeline/calibrage.py` | Pacte vécu : `episodes_de_baisse` (un vrai jour de marché par niveau, sans la suite), `prochaine_question` (dichotomie), `calibrer` (seuil mesuré, pièce `declaree`, profil au seuil mesuré), `reponses_demo` | [068](docs/journal/068-pacte-vecu.md) |
 | `config/calibrage.json` | Niveaux de baisse proposés (−5 % à −50 %) et séries de référence du Pacte vécu | [068](docs/journal/068-pacte-vecu.md) |
+| `pipeline/questionnaire.py` | Questionnaire investisseur : `questions()` (prêtes à afficher, cartes calculées sur de vrais portefeuilles), `profil_depuis_reponses` (réponses → fichier profil valide, sans LLM), `detail_bareme` (quelle réponse a produit quelle règle), `controle_experience` ; `python -m pipeline.questionnaire <reponses.json>` | [084](docs/journal/084-questionnaire-investisseur.md) |
+| `config/questionnaire.json` | Les 16 questions, leurs choix et le barème (tolérance, plafonds de capacité, arrondi, tranches de `profil_risque`) ; étiquette `hypothese` | [084](docs/journal/084-questionnaire-investisseur.md) |
 | `pipeline/correlations.py` | Outil 3 `calculer_correlations` (pièce : corrélation de chaque paire de titres) et `calculer_matrice_correlations` (calcul pur) | [016](docs/journal/016-diversification.md) |
 | `pipeline/llm.py` | Client Bedrock commun : `appeler_llm` (texte ou JSON validé), `converser_avec_outils` (*tool use*) | [007](docs/journal/007-client-llm-bedrock.md) |
 | `pipeline/debat.py` | Procureur et Avocat : `debattre` (les deux en parallèle), `corriger_argument` (mode correction) | [011](docs/journal/011-procureur-avocat.md) |
@@ -84,9 +86,9 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md), [065](docs/journal/065-valider-erreurs-outil.md) |
 | `pipeline/pacte.py` | Chargement et validation d'un fichier profil : `charger_pacte`, `pacte_pour_contrat`, `piece_pacte` | [003](docs/journal/003-pacte-generique.md) |
 | `pipeline/categories.py` | Catégories d'un titre : `categories_du_titre` (titre hors univers signalé, jamais deviné) | [003](docs/journal/003-pacte-generique.md) |
-| `personas/*.json` | Profils de test et leur Pacte, au format générique | [003](docs/journal/003-pacte-generique.md) |
+| `personas/*.json` | Profils de test et leur Pacte, au format générique ; un profil peut aussi être écrit par le questionnaire | [003](docs/journal/003-pacte-generique.md), [084](docs/journal/084-questionnaire-investisseur.md) |
 | `personas/schema_pacte.json` | Schéma JSON d'un fichier profil, un sous-schéma par type de règle | [003](docs/journal/003-pacte-generique.md) |
-| `config/categories.json` | Catégories (`tech`, `crypto`) des règles `plafond`, communes à tous les profils | [003](docs/journal/003-pacte-generique.md) |
+| `config/categories.json` | Catégories (`tech`, `crypto`, `energie_fossile`) des règles `plafond`, communes à tous les profils | [003](docs/journal/003-pacte-generique.md), [084](docs/journal/084-questionnaire-investisseur.md) |
 | `validation/` | Scénarios de validation et de sensibilité : même décision pour plusieurs profils, seuils, hypothèses, période, robustesse du Greffier, garde-fous, profil inventé ; graphique de sensibilité. `python -m validation` | [015](docs/journal/015-scenarios-validation.md), [059](docs/journal/059-scenarios-panier-graphique.md) |
 | `tests/` | Un fichier de test par module (`test_donnees.py` ↔ `pipeline/donnees.py`). `pytest -m bedrock` pour les vrais appels | — |
 | `docs/GUIDE_DU_PROJET.md` | Guide complet du projet pour tous les niveaux : l'idée sans jargon, le fonctionnement, la visite de chaque dossier, le chemin d'une demande dans le code, la façon de travailler, l'état et les limites | — |
@@ -94,7 +96,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](docs/journal/000-fondations.md) |
 | `docs/validation/resultats_scenarios.md` | Tableau des résultats des scénarios (généré par `python -m validation`) | [015](docs/journal/015-scenarios-validation.md) |
 | `docs/validation/sensibilite_seuil.svg` | Graphique : taille maximale compatible selon le seuil de pire baisse (généré par `python -m validation`) | [059](docs/journal/059-scenarios-panier-graphique.md) |
-| `docs/exemples/` | Faux contrats valides (cas 1 et 2), utilisés par l'équipe interface | [002](docs/journal/002-contrat-json.md) |
+| `docs/exemples/` | Faux contrats valides (cas 1 et 2), utilisés par l'équipe interface ; `reponses_questionnaire.json`, exemple de réponses au questionnaire | [002](docs/journal/002-contrat-json.md), [084](docs/journal/084-questionnaire-investisseur.md) |
 | `docs/maquette/` | Maquette Figma V2 « Astrée » et sa spec d'implémentation (`spec_interface_astree.md`) ; ancienne maquette et prototype des 4 écrans | [000](docs/journal/000-fondations.md), [014](docs/journal/014-interface-astree.md) |
 | `docs/journal/` | Journal de construction : une fiche par issue, et son modèle | [018](docs/journal/018-livrables-documentation.md) |
 | `.env.example` | Variables à copier dans `.env` | [007](docs/journal/007-client-llm-bedrock.md) |

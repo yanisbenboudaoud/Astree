@@ -66,7 +66,9 @@
   "devise": "CAD",
   "secteur": "Énergie",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "energie_fossile"
+  ],
   "rendement": 0.128042,
   "volatilite": 0.160742,
   "chuteMax": -0.213775,
@@ -85,7 +87,9 @@
   "devise": "CAD",
   "secteur": "Énergie",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "energie_fossile"
+  ],
   "rendement": 0.286765,
   "volatilite": 0.303457,
   "chuteMax": -0.331149,
@@ -384,7 +388,9 @@
   "devise": "USD",
   "secteur": "Énergie",
   "groupe": "Actions américaines",
-  "categories": [],
+  "categories": [
+   "energie_fossile"
+  ],
   "rendement": 0.288328,
   "volatilite": 0.259778,
   "chuteMax": -0.190812,

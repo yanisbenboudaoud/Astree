@@ -16,6 +16,13 @@
       "secteurs": ["Information Technology"],
       "ajouts": ["GOOGL", "AMZN", "QQQ"],
       "justification": "Hypothèse de l'équipe : secteur GICS « Information Technology », plus GOOGL et AMZN (classés ailleurs par le GICS, mais à activité largement technologique) et QQQ (FNB Nasdaq-100 à forte pondération tech, compté en entier par simplicité)."
+    },
+    "energie_fossile": {
+      "libelle": "Énergies fossiles",
+      "classes_actifs": [],
+      "secteurs": ["Energy"],
+      "ajouts": [],
+      "justification": "Secteur GICS « Energy » du fichier d'univers (questionnaire, #84) : XOM (pétrole et gaz intégrés), CNQ.TO (production de pétrole et de gaz) et ENB.TO (transport de pétrole et de gaz par pipelines). Hypothèse de l'équipe : le transport est compté avec la production. Les fonds larges (SPY, XIU.TO…) ne sont pas comptés, même s'ils détiennent des titres de l'énergie."
     }
   }
 }

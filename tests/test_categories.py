@@ -22,7 +22,8 @@ from pipeline.donnees import ErreurDonnees
         ("QQQ", {"tech"}),           # ajout (FNB Nasdaq-100)
         ("BTC-USD", {"crypto"}),     # classe d'actifs crypto
         ("ETH-USD", {"crypto"}),
-        ("XOM", set()),              # dans l'univers, dans aucune catégorie
+        ("XOM", {"energie_fossile"}),  # secteur Energy (#84)
+        ("JNJ", set()),              # dans l'univers, dans aucune catégorie
         ("TSLA", set()),             # Consumer Discretionary, pas dans les ajouts
         ("SPY", set()),
     ],

@@ -1,0 +1,30 @@
+{
+  "id": "investisseur_exemple",
+  "nom": "Investisseur exemple",
+  "date": "2026-11-14",
+  "capital_cad": 120000,
+  "portefeuille": [
+    {"ticker": "XIU.TO", "poids": 0.35},
+    {"ticker": "SPY", "poids": 0.25},
+    {"ticker": "XBB.TO", "poids": 0.30},
+    {"ticker": "ZST.TO", "poids": 0.10}
+  ],
+  "reponses": {
+    "horizon": "5_10",
+    "objectif": "projet",
+    "retraits": "non",
+    "coussin": "3_6",
+    "part_patrimoine": "quart_moitie",
+    "revenu": "tres_stable",
+    "fourchettes": "actions",
+    "reaction": "rien",
+    "vecu_2022": "pas_investi",
+    "regard_proches": "risques_reflechis",
+    "experience": ["fonds", "actions"],
+    "quiz_baisse": "100",
+    "crypto": "aucune",
+    "concentration": "moitie",
+    "exclusions": ["energies_fossiles"],
+    "regle_perso": "Pas de titre que je ne comprends pas"
+  }
+}

@@ -69,32 +69,36 @@ export function profil(id: string): Profil | undefined {
   return PROFILS[id] ?? PROFILS_CREES[id]?.profil;
 }
 
-const CONFIG_PAR_DEFAUT: Required<Pick<ConfigProfilUI, 'recherche'>> = {
-  recherche: {
+/** Textes de la recherche : les mêmes pour tous les profils, selon le mode choisi. */
+const RECHERCHE: Record<ConfigRecherche['mode'], ConfigRecherche> = {
+  position: {
     mode: 'position',
     titre: 'Quelle décision voulez-vous tester ?',
     aide: "Simulez un achat, puis soumettez-le au Tribunal. Rien n'est acheté.",
-    placeholder: 'Nom ou symbole, ex. : Apple ou AAPL',
+    placeholder: 'Nom ou symbole, ex. : Tesla ou TSLA',
+  },
+  panier: {
+    mode: 'panier',
+    titre: 'Quel panier voulez-vous tester ?',
+    aide: "Ajoutez plusieurs titres : le Tribunal juge le panier en entier. Rien n'est acheté.",
+    placeholder: 'Nom ou symbole, ex. : Bitcoin, NVDA',
   },
 };
 
-const RECHERCHE_PANIER_PAR_DEFAUT: ConfigRecherche = {
-  mode: 'panier',
-  titre: 'Quel panier voulez-vous tester ?',
-  aide: "Ajoutez plusieurs titres : le Tribunal juge le panier en entier. Rien n'est acheté.",
-  placeholder: 'Nom ou symbole, ex. : Apple ou AAPL',
-};
+/** Panier de démonstration, commun à tous les profils : son aperçu avant / après est précalculé pour chacun. */
+export const PANIER_DEMO: string[] = profilsUi.panierDemo;
 
-export function configUi(id: string): ConfigProfilUI & typeof CONFIG_PAR_DEFAUT {
-  const config = (profilsUi.profils as Record<string, ConfigProfilUI>)[id] ?? {};
-  return { ...CONFIG_PAR_DEFAUT, ...config } as ConfigProfilUI & typeof CONFIG_PAR_DEFAUT;
+export function configUi(id: string): ConfigProfilUI {
+  return (profilsUi.profils as Record<string, ConfigProfilUI>)[id] ?? {};
 }
 
-/** Textes de la recherche pour un mode : ceux du profil s'il a choisi ce mode, sinon les textes génériques. */
-export function rechercheUi(id: string, mode: ConfigRecherche['mode']): ConfigRecherche {
-  const { recherche } = configUi(id);
-  if (recherche.mode === mode) return recherche;
-  return mode === 'panier' ? RECHERCHE_PANIER_PAR_DEFAUT : CONFIG_PAR_DEFAUT.recherche;
+export function rechercheUi(mode: ConfigRecherche['mode']): ConfigRecherche {
+  return RECHERCHE[mode];
+}
+
+/** Mode de départ de la recherche, lu dans la décision de démonstration du profil (jamais dans son nom). */
+export function modeDeDepart(profil: Profil): ConfigRecherche['mode'] {
+  return profil.decisionDemo?.type === 'reallocation' ? 'panier' : 'position';
 }
 
 export function titre(ticker: string): Titre | undefined {

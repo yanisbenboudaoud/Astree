@@ -108,3 +108,23 @@ def test_rendement_reel_calcule_a_la_main():
 
 def test_source_avec_date_d_extraction():
     assert macro.source_macro().endswith("extrait le 2026-11-13")
+
+
+def test_les_vrais_proces_de_demo_contiennent_le_rendement_reel():
+    """#113, « terminé quand » : un contrat réel (Bedrock) a le rendement réel dans une pièce et passe le validateur."""
+    import json
+    from pathlib import Path
+
+    from contrat.valider import valider_contrat
+
+    dossier = Path(__file__).resolve().parents[1] / "frontend" / "src" / "data" / "proces"
+    index = json.loads((dossier / "index.json").read_text(encoding="utf-8"))["proces"]
+    assert index
+    for entree in index:
+        contrat = json.loads((dossier / f"{entree['procesId']}.json").read_text(encoding="utf-8"))
+        assert valider_contrat(contrat) == [], entree["procesId"]
+        simulations = [p["valeurs"] for p in contrat["pieces"] if "rendement_reel_annuel" in p["valeurs"]]
+        assert simulations, f"{entree['procesId']} : aucune pièce avec le rendement réel"
+        for valeurs in simulations:
+            attendu = macro.rendement_reel(valeurs["rendement_annuel"], valeurs["inflation_annuelle"])
+            assert valeurs["rendement_reel_annuel"] == pytest.approx(attendu, abs=1e-6)

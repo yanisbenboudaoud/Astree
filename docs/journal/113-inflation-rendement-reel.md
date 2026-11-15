@@ -35,15 +35,15 @@ cd frontend && npm test       # tests/inflation.test.ts
 - **Aucune valeur d'IPC avant sa publication** : un IPC d'octobre 2026 ajouté au fichier est ignoré par une mesure faite le 13 novembre, puis utilisé si la mesure est faite le 30 novembre ; septembre 2026 est utilisé le 31 octobre, pas le 30.
 - **Le Greffier** accepte « +5,5 % par an après inflation » et rejette « +8,5 % » (12,0 − 3,5 : nombre dérivé).
 - **L'interface affiche le chiffre du Tribunal** : `rendementReel` des tables = `rendement_reel_annuel` de la pièce.
-- **Vrai procès** (Bedrock, Robert, 30 % en TSLA, 2026-11-15) : P2 contient `inflation_annuelle` 0,035441, `rendement_reel_annuel_actuel` 0,055461 et `rendement_reel_annuel` 0,081464, et P3 le rejeu de 2022 en réel ; le contrat passe `python -m contrat.valider` (22/22 chiffres vérifiés). Il n'est pas enregistré dans `frontend/src/data/proces/` : les procès de démo sont refaits avec les données macro par la branche de redéploiement de #111.
+- **Vrais procès** (« terminé quand ») : les 7 procès de démo enregistrés (Bedrock, refaits par la PR #123) ont le rendement réel dans la pièce de simulation et passent le validateur (`test_les_vrais_proces_de_demo_contiennent_le_rendement_reel`). Dans celui du profil audacieux, l'Avocat le cite : « le portefeuille a affiché +16,9 % par an, soit +12,9 % par an après inflation », vérifié par le Greffier. Un procès local de plus (Robert, 30 % en TSLA) passe aussi `python -m contrat.valider`, avec 22 chiffres vérifiés sur 22.
 
 ## Choix faits en cours de route
 - **Hypothèse prudente de publication** (fin du mois suivant) plutôt que la date exacte de chaque communiqué de Statistique Canada : aucune date de publication n'est fournie, et cette règle ne peut jamais utiliser un mois trop tôt.
 - **Date de la mesure = extraction des données**, pas la fin de la période : on mesure après coup le pouvoir d'achat d'une période terminée. L'inflation de 2022 utilise donc l'IPC de décembre 2022, publié en janvier 2023. Les résultats de #111 sont inchangés.
 - **Pas de changement du contrat** : le rendement réel reste dans les valeurs des pièces ; l'écran Décision le lit dans ses tables, calculées par les mêmes fonctions. Aucun calcul dans le navigateur.
-- **Pas de consigne forçant les agents à citer l'inflation** : ils gardent leurs 2 à 4 arguments les plus forts. Dans le vrai procès ci-dessus, aucun ne l'a citée.
+- **Pas de consigne forçant les agents à citer l'inflation** : ils gardent leurs 2 à 4 arguments les plus forts. La consigne de #111 (« écris « après inflation » ou « réel » ») suffit : l'Avocat du profil audacieux s'en sert.
 
 ## Limites et suite
 - L'inflation est celle de l'IPC canadien global, pas celle de l'investisseur ; ni frais ni impôts (limites de la pièce).
-- Les procès de démo et la Lambda doivent être redéployés pour que les pièces et les tables d'un profil créé (`/profil`, `/table`) contiennent ces valeurs.
+- **Redéployer la Lambda** pour que les tables d'un profil créé (`/profil`, `/table`) contiennent `rendementReel` ; d'ici là, l'écran Décision n'affiche pas la ligne pour ce profil. Les procès de démo n'ont pas à être refaits : seule la phrase du traitement change.
 - Le rendement réel n'apparaît pas encore sur les écrans Portefeuille et Verdict.

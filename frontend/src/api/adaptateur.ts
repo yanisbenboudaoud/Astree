@@ -3,7 +3,7 @@
  * Le même adaptateur sert aux procès enregistrés (mode démonstration) et au Tribunal en direct.
  */
 import type { ContratTribunal, EtapeTraceContrat, EtiquetteContrat } from './contrat';
-import type { Argument, ArgumentRejete, Controle, EtapeTrace, Piece, Provenance, ResultatTribunal } from './types';
+import type { Argument, ArgumentRejete, Controle, Correction, EtapeTrace, Piece, Provenance, ResultatTribunal } from './types';
 import { paragraphe, parGravite, statutUi } from '../domaine/pacte';
 import { part } from '../lib/format';
 
@@ -119,6 +119,14 @@ export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdapt
   const principal = duPacte.find((c) => c.statut === 'Violation') ?? duPacte.find((c) => c.statut === 'À vérifier' && !/non mesurable/i.test(c.texte));
   const constat = principal ? `${principal.texte}.` : "Aucune règle mesurable de votre Pacte n'est enfreinte.";
 
+  const corrections: Correction[] = contrat.trace.flatMap((e) => {
+    if (e.outil !== 'bedrock_correction') return [];
+    const entree = (e.entree ?? {}) as { argument?: unknown; motif?: unknown };
+    const sortie = (e.sortie ?? {}) as { texte?: unknown };
+    if (typeof entree.argument !== 'string' || typeof entree.motif !== 'string' || typeof sortie.texte !== 'string') return [];
+    return [{ camp: e.etape === 'procureur' ? 'Procureur' as const : 'Avocat' as const, original: entree.argument, motif: entree.motif, corrige: sortie.texte }];
+  });
+
   const argumentsRejetes: ArgumentRejete[] = contrat.arguments_rejetes.map((a) => ({
     camp: a.cote === 'requisitoire' ? 'Procureur' : 'Avocat',
     texte: a.texte,
@@ -136,6 +144,7 @@ export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdapt
     trace: contrat.trace.map(etapeTrace),
     questionsSuggerees: [],
     argumentsRejetes,
+    corrections,
     procesId: contexte.procesId,
     contrat,
   };

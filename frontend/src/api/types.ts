@@ -53,6 +53,23 @@ export interface ArgumentRejete {
   raison: string;
 }
 
+/** Réponse de `POST /verifier` (« Trompez le Greffier », #69), nombre par nombre. */
+export interface ResultatVerification {
+  valide: boolean;
+  motif: string | null;
+  nombres: { texte: string; trouve: boolean; sources: string[]; motif: string | null }[];
+  compte: string;
+  dureeMs: number;
+}
+
+/** Argument renvoyé par le Greffier à son agent pendant le procès, puis corrigé (trace `bedrock_correction`). */
+export interface Correction {
+  camp: 'Procureur' | 'Avocat';
+  original: string;
+  motif: string;
+  corrige: string;
+}
+
 export interface ResultatTribunal {
   audience: string;
   titre: string;
@@ -64,6 +81,7 @@ export interface ResultatTribunal {
   trace: EtapeTrace[];
   questionsSuggerees: string[];
   argumentsRejetes: ArgumentRejete[];
+  corrections: Correction[];
   procesId?: string;
   /** Contrat brut, pour le Verdict (taille maximale compatible, pièces de calcul). */
   contrat: ContratTribunal;

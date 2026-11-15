@@ -14,6 +14,10 @@ Trois routes, en POST, avec un corps JSON :
   Relit le procès archivé, répond à la question (orchestrateur, Procureur et Avocat,
   Greffier), réarchive le contrat complété au même endroit et renvoie l'échange et
   les pièces ajoutées.
+- ``/verifier`` ``{"id": "<id>", "texte": "<argument>", "pieces": ["P2", ...]}`` :
+  « Trompez le Greffier » (#69). Vérifie chaque nombre du texte contre les pièces citées
+  du procès archivé (``detailler_argument``, outil 6), **sans Bedrock** : réponse
+  immédiate et gratuite. Texte et débit limités, car le point d'accès est public.
 
 Le pipeline est importé et les CSV sont lus au niveau du module, hors du
 handler : une Lambda déjà démarrée les garde en mémoire (caches de
@@ -32,6 +36,7 @@ import re
 import time
 import traceback
 import uuid
+from collections import deque
 from datetime import datetime, timezone
 from typing import Any
 
@@ -39,16 +44,27 @@ import boto3
 from botocore.exceptions import ClientError
 
 from pipeline.agent_profil import ProfilInconnu
+from pipeline.chiffres import detailler_argument
 from pipeline.contre_interrogatoire import QuestionInvalide, interroger, pieces_de_l_echange
 from pipeline.donnees import ErreurDonnees, seances_americaines
 from pipeline.jurisprudence import cle_verdict
 from pipeline.pacte import PacteInvalide
-from pipeline.tribunal import juger_decision
+from pipeline.tribunal import bornes_periode, juger_decision
 
 VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # CLAUDE.md, section 5
 LONGUEUR_MAX_DEMANDE = 2000  # une demande d'investissement tient en quelques phrases
 FORMAT_ID = re.compile(r"\d{4}-\d{2}-\d{2}-[0-9a-f]{12}")
 EN_TETE_ID = "X-Proces-Id"
+
+# /verifier (#69) : un argument tient en quelques phrases ; le débit est limité par adresse IP
+# et par instance de Lambda (la concurrence réservée de 2 borne le reste).
+LONGUEUR_MAX_ARGUMENT = 600
+PIECES_MAX_ARGUMENT = 10
+FORMAT_PIECE = re.compile(r"P\d{1,3}")
+DEBIT_MAX_VERIFIER = 30  # vérifications par minute et par adresse IP
+FENETRE_DEBIT_S = 60
+ADRESSES_SUIVIES_MAX = 1000
+_appels_verifier: dict[str, deque] = {}
 
 
 class RequeteInvalide(Exception):
@@ -81,8 +97,8 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
     """Appelé par Lambda pour chaque requête de la Function URL (format d'événement 2.0)."""
     methode = event.get("requestContext", {}).get("http", {}).get("method", "")
     chemin = event.get("rawPath", "")
-    if chemin not in ("/tribunal", "/verdict", "/question"):
-        return _reponse(404, {"erreur": "Route inconnue : /tribunal, /verdict ou /question"})
+    if chemin not in ("/tribunal", "/verdict", "/question", "/verifier"):
+        return _reponse(404, {"erreur": "Route inconnue : /tribunal, /verdict, /question ou /verifier"})
     if methode != "POST":
         return _reponse(405, {"erreur": "Seule la méthode POST est acceptée"})
     try:
@@ -91,6 +107,9 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
             return _tribunal(corps)
         if chemin == "/question":
             return _question(corps)
+        if chemin == "/verifier":
+            adresse = event.get("requestContext", {}).get("http", {}).get("sourceIp", "inconnue")
+            return _verifier(corps, adresse)
         return _verdict(corps)
     except RequeteInvalide as erreur:
         return _reponse(400, {"erreur": str(erreur)})
@@ -184,6 +203,52 @@ def _question(corps: dict[str, Any]) -> dict[str, Any]:
         print(f"Archivage de la question impossible : {erreur}")
     return _reponse(200, {"id": identifiant, "echange": echange,
                           "pieces": pieces_de_l_echange(complete, echange)})
+
+
+def _verifier(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
+    """« Trompez le Greffier » : un texte tapé à la main, vérifié contre les pièces du procès."""
+    if trop_de_verifications(adresse):
+        return _reponse(429, {"erreur": f"Trop de vérifications : {DEBIT_MAX_VERIFIER} par minute au plus, "
+                                        "réessayez dans un instant"})
+    identifiant, texte, pieces = corps.get("id"), corps.get("texte"), corps.get("pieces", [])
+    if not isinstance(identifiant, str) or not FORMAT_ID.fullmatch(identifiant):
+        raise RequeteInvalide(f"Champ « id » invalide : celui de l'en-tête {EN_TETE_ID} du procès")
+    if not isinstance(texte, str) or not texte.strip():
+        raise RequeteInvalide("Champ « texte » manquant : l'argument à vérifier")
+    if len(texte) > LONGUEUR_MAX_ARGUMENT:
+        raise RequeteInvalide(f"Texte trop long : {LONGUEUR_MAX_ARGUMENT} caractères au plus")
+    if (not isinstance(pieces, list) or len(pieces) > PIECES_MAX_ARGUMENT
+            or not all(isinstance(p, str) and FORMAT_PIECE.fullmatch(p) for p in pieces)):
+        raise RequeteInvalide(f"Champ « pieces » invalide : une liste d'identifiants « P1 », « P2 »… "
+                              f"({PIECES_MAX_ARGUMENT} au plus)")
+
+    try:
+        contrat = _lire(cle_trace(identifiant))
+    except ClientError as erreur:
+        if erreur.response.get("Error", {}).get("Code") in ("NoSuchKey", "404"):
+            return _reponse(404, {"erreur": f"Aucun procès archivé avec l'identifiant {identifiant}"})
+        raise
+    dossier = {"decision": contrat["decision"], "pieces": contrat["pieces"], "periode": bornes_periode()}
+    resultat = detailler_argument({"texte": texte, "pieces": pieces}, dossier)
+    return _reponse(200, {"id": identifiant, "texte": texte, "pieces": pieces, **resultat})
+
+
+def trop_de_verifications(adresse: str, maintenant: float | None = None) -> bool:
+    """Limite de débit de /verifier : fenêtre glissante d'une minute, par adresse IP.
+
+    En mémoire de l'instance : elle repart de zéro à chaque démarrage de la Lambda. C'est
+    un garde-fou contre une boucle ou un abus, pas une protection complète.
+    """
+    maintenant = time.monotonic() if maintenant is None else maintenant
+    if adresse not in _appels_verifier and len(_appels_verifier) >= ADRESSES_SUIVIES_MAX:
+        _appels_verifier.clear()
+    appels = _appels_verifier.setdefault(adresse, deque())
+    while appels and maintenant - appels[0] >= FENETRE_DEBIT_S:
+        appels.popleft()
+    if len(appels) >= DEBIT_MAX_VERIFIER:
+        return True
+    appels.append(maintenant)
+    return False
 
 
 # --- S3 ------------------------------------------------------------------------

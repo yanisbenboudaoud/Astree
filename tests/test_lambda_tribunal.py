@@ -260,3 +260,80 @@ def test_lire_csv_s3_objet_absent_erreur_lisible(monkeypatch):
         monkeypatch.setattr(donnees.boto3, "client", lambda service: client)
         with pytest.raises(donnees.ErreurDonnees, match="NoSuchKey"):
             donnees.lire_csv("absent.csv")
+
+
+# --- /verifier : « Trompez le Greffier » (#69) -------------------------------------------
+
+ID_PROCES = "2026-11-15-0123456789ab"
+CONTRAT_ARCHIVE = {
+    "persona": "robert",
+    "decision": {"type": "position", "ticker": "TSLA", "taille": 0.30, "financement": "proportionnel"},
+    "pieces": [
+        {"id": "P2", "type": "calculee", "valeurs": {"pire_baisse": -0.289679, "pire_baisse_actuelle": -0.077574}},
+        {"id": "P3", "type": "calculee", "valeurs": {"rendement_2022_apres": -0.237129}},
+    ],
+}
+
+
+@pytest.fixture
+def proces_archive(s3, monkeypatch):
+    s3.objets[lambda_tribunal.cle_trace(ID_PROCES)] = CONTRAT_ARCHIVE
+    monkeypatch.setattr(lambda_tribunal, "_appels_verifier", {})
+    monkeypatch.setattr(lambda_tribunal, "juger_decision", lambda *a: pytest.fail("aucun procès attendu"))
+    monkeypatch.setattr(lambda_tribunal, "interroger", lambda *a: pytest.fail("aucun appel Bedrock attendu"))
+    return s3
+
+
+def verifier(texte, pieces, identifiant=ID_PROCES):
+    corps = {"id": identifiant, "texte": texte, "pieces": pieces}
+    return reponse(lambda_tribunal.handler(evenement("/verifier", corps)))
+
+
+def test_verifier_accepte_un_vrai_chiffre_de_la_piece_citee(proces_archive):
+    statut, contenu = verifier("Avec 30 % en TSLA, la pire baisse passe à −29,0 %.", ["P2"])
+    assert statut == 200 and contenu["valide"] and contenu["compte"] == "2/2"
+    assert contenu["nombres"][1] == {"texte": "−29,0 %", "trouve": True, "sources": ["P2"], "motif": None}
+
+
+def test_verifier_rejette_un_chiffre_invente_avec_son_motif(proces_archive):
+    statut, contenu = verifier("TSLA ferait chuter le portefeuille à −40 %.", ["P2"])
+    assert statut == 200 and not contenu["valide"]
+    assert contenu["motif"] == "« −40 % » introuvable dans P2"
+
+
+def test_verifier_signale_la_piece_qui_contient_le_chiffre(proces_archive):
+    _, contenu = verifier("En 2022, le portefeuille aurait fait −23,7 %.", ["P2"])
+    assert "présent dans P3, pièce non citée" in contenu["motif"]
+
+
+def test_verifier_proces_inconnu_404(proces_archive):
+    statut, contenu = verifier("−29,0 %", ["P2"], identifiant="2026-11-15-ffffffffffff")
+    assert statut == 404 and "Aucun procès archivé" in contenu["erreur"]
+
+
+@pytest.mark.parametrize("corps, message", [
+    ({"id": ID_PROCES, "texte": "x" * 601, "pieces": ["P2"]}, "trop long"),
+    ({"id": ID_PROCES, "texte": " ", "pieces": ["P2"]}, "texte"),
+    ({"id": "pas-un-id", "texte": "−29,0 %", "pieces": ["P2"]}, "id"),
+    ({"id": ID_PROCES, "texte": "−29,0 %", "pieces": ["P2; DROP"]}, "pieces"),
+    ({"id": ID_PROCES, "texte": "−29,0 %", "pieces": [f"P{i}" for i in range(11)]}, "pieces"),
+])
+def test_verifier_requete_invalide_400(corps, message, proces_archive):
+    statut, contenu = reponse(lambda_tribunal.handler(evenement("/verifier", corps)))
+    assert statut == 400 and message in contenu["erreur"]
+
+
+def test_verifier_debit_limite_par_adresse(proces_archive):
+    for _ in range(lambda_tribunal.DEBIT_MAX_VERIFIER):
+        assert verifier("−29,0 %", ["P2"])[0] == 200
+    statut, contenu = verifier("−29,0 %", ["P2"])
+    assert statut == 429 and "Trop de vérifications" in contenu["erreur"]
+
+
+def test_fenetre_de_debit_glissante(monkeypatch):
+    monkeypatch.setattr(lambda_tribunal, "_appels_verifier", {})
+    for i in range(lambda_tribunal.DEBIT_MAX_VERIFIER):
+        assert not lambda_tribunal.trop_de_verifications("1.2.3.4", maintenant=float(i))
+    assert lambda_tribunal.trop_de_verifications("1.2.3.4", maintenant=59.0)
+    assert not lambda_tribunal.trop_de_verifications("5.6.7.8", maintenant=59.0)
+    assert not lambda_tribunal.trop_de_verifications("1.2.3.4", maintenant=61.0)

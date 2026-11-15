@@ -1,6 +1,6 @@
 {
   "persona": "amira",
-  "demande": "Je veux réallouer tout mon portefeuille vers un panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (QQQ)",
+  "demande": "Je veux réallouer tout mon portefeuille vers un panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
   "decision": {
     "type": "reallocation",
     "panier": [
@@ -177,6 +177,29 @@
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada, extrait le 2026-11-13",
       "traitement": "Prix adj_close convertis en CAD, calendrier des séances américaines (dernier prix reporté), 2021-11-12 → 2026-11-12 ; corrélation de Pearson des rendements quotidiens, pour chaque paire de titres",
       "limites": "Une seule période de 5 ans ; les corrélations changent dans le temps et montent souvent en période de crise ; la conversion en CAD ajoute un facteur de change commun aux titres en USD ; les rendements crypto du week-end sont cumulés dans le lundi ; le passé ne prédit pas l'avenir"
+    },
+    {
+      "id": "P6",
+      "type": "calculee",
+      "etiquette": "fait",
+      "titre": "Jurisprudence : verdicts passés de ce profil",
+      "outil": "consulter_jurisprudence",
+      "valeurs": {
+        "regle": "toutes",
+        "proces_archives": 0,
+        "proces_en_violation": 0,
+        "maintenu": 0,
+        "modifie": 0,
+        "pacte_ajuste": 0,
+        "dates_antecedents": [],
+        "decisions_antecedents": [],
+        "regles_violees_antecedents": [],
+        "verdicts_antecedents": []
+      },
+      "valeur_affichee": "Aucun procès archivé pour ce profil",
+      "source": "Archive des verdicts du Tribunal (verdicts/<profil>/), écrite par la route /verdict quand l'utilisateur rend son verdict",
+      "traitement": "Pour chaque procès archivé de ce profil : règles du Pacte en violation et verdict choisi par l'utilisateur. Au plus les 200 procès les plus récents ; les 5 derniers antécédents en violation sont détaillés.",
+      "limites": "Seuls les procès dont l'utilisateur a rendu un verdict sont archivés. Les règles sont comparées par identifiant : le Pacte a pu changer depuis. Un verdict passé ne dit rien de la qualité de la décision prise."
     }
   ],
   "controles": [
@@ -208,7 +231,7 @@
     {
       "statut": "conforme",
       "regle": "verifier_chiffres",
-      "message": "Chiffres cités vérifiés contre leurs pièces : 27/27 chiffres, 7 arguments"
+      "message": "Chiffres cités vérifiés contre leurs pièces : 30/30 chiffres, 7 arguments"
     },
     {
       "statut": "a_verifier",
@@ -258,10 +281,10 @@
     {
       "etape": "agent_profil",
       "outil": "bedrock",
-      "entree": "Je veux réallouer tout mon portefeuille vers un panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (QQQ)",
+      "entree": "Je veux réallouer tout mon portefeuille vers un panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
       "sortie": {
         "type_decision": "reallocation",
-        "actif_mentionne": "25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (QQQ)",
+        "actif_mentionne": "Panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
         "ticker": null,
         "taille": 1.0,
         "montant": null,
@@ -294,7 +317,7 @@
       "outil": "valider_decision",
       "entree": {
         "type_decision": "reallocation",
-        "actif_mentionne": "25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (QQQ)",
+        "actif_mentionne": "Panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
         "ticker": null,
         "taille": 1.0,
         "montant": null,
@@ -348,7 +371,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Pièce obligatoire : mesurer la pire baisse, le rendement et la volatilité du portefeuille après la décision.",
+      "raison": "Mesurer la pire baisse, le rendement et la volatilité du portefeuille une fois la décision appliquée.",
       "entree": {
         "part_reallouee": 1.0,
         "periode": "complete"
@@ -358,7 +381,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont reculé ensemble.",
+      "raison": "Rejouer l'année de crise pour voir comment le panier concentré résiste quand actions et obligations baissent ensemble.",
       "entree": {
         "part_reallouee": 1.0,
         "periode": "2022"
@@ -368,7 +391,7 @@
     {
       "etape": "orchestrateur",
       "outil": "taille_max_compatible",
-      "raison": "Le panier concentré semble dépasser le seuil de pire baisse et le plafond crypto : voir si une réallocation plus modeste serait compatible.",
+      "raison": "Les plafonds et la limite de pire baisse semblent dépassés : voir si une réallocation plus modeste serait compatible avec le Pacte.",
       "entree": {
         "part_reallouee": 1.0
       },
@@ -377,7 +400,7 @@
     {
       "etape": "orchestrateur",
       "outil": "calculer_correlations",
-      "raison": "Le panier concentre cryptoactifs et technologie : vérifier s'ils se diversifient réellement entre eux.",
+      "raison": "Le panier concentre cryptoactifs et technologie : vérifier s'ils se diversifient vraiment entre eux.",
       "entree": {
         "tickers": [
           "BTC-USD",
@@ -389,6 +412,15 @@
       "sortie": "P5"
     },
     {
+      "etape": "orchestrateur",
+      "outil": "consulter_jurisprudence",
+      "raison": "Plusieurs règles sont probablement violées : regarder si ce conflit s'est déjà présenté pour ce profil et comment il a été tranché.",
+      "entree": {
+        "regle": "toutes"
+      },
+      "sortie": "P6"
+    },
+    {
       "etape": "procureur",
       "outil": "bedrock",
       "entree": [
@@ -396,12 +428,13 @@
         "P2",
         "P3",
         "P4",
-        "P5"
+        "P5",
+        "P6"
       ],
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Votre Pacte indique « Pire baisse tolérée : −45 % ». Or la simulation de votre réallocation donne une pire baisse de −58,5 %, contre −32,9 % pour le portefeuille actuel.",
+          "texte": "Vous avez écrit : « Pire baisse tolérée : −45 % ». Or la simulation de votre réallocation affiche une pire baisse de −58,5 %, contre −32,9 % pour votre portefeuille actuel.",
           "pieces": [
             "P1",
             "P2"
@@ -409,7 +442,7 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Votre décision place 25 % sur BTC-USD et 25 % sur ETH-USD, alors que votre Pacte indique « Crypto : 25 % du portefeuille au maximum ». La part réallouable compatible avec vos règles est de 28 %, la règle limitante étant plafond_crypto, contre 100 % demandés.",
+          "texte": "Vous avez écrit : « Crypto : 25 % du portefeuille au maximum ». Votre décision place BTC-USD 25 % et ETH-USD 25 %, deux cryptos, et la règle limitante du calcul est plafond_crypto, qui ramène la part réallouable compatible à 28 % alors que 100 % sont demandés.",
           "pieces": [
             "P1",
             "P4"
@@ -417,14 +450,14 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Dans le rejeu de 2022, le rendement du portefeuille passe de −24,9 % à −49,3 % avec votre décision. Il s'agit d'une seule année de crise passée, qui ne prédit pas l'avenir.",
+          "texte": "Le rejeu de 2022 donne un rendement de −24,9 % pour votre portefeuille actuel, contre −49,3 % avec la décision. Il s'agit d'une seule année, qui n'annonce pas la suivante.",
           "pieces": [
             "P3"
           ]
         },
         {
           "etiquette": "hypothese",
-          "texte": "Les corrélations sont de 0,84 entre BTC-USD et ETH-USD et de 0,77 entre NVDA et QQQ : ces actifs ont tendance à évoluer ensemble. On peut supposer que le panier diversifie moins que ses quatre lignes ne le laissent penser, d'autant que les corrélations montent souvent en période de crise.",
+          "texte": "BTC-USD et ETH-USD affichent une corrélation de 0,84, NVDA et QQQ de 0,77 : la diversification apportée par ce panier pourrait être plus faible qu'il n'y paraît, d'autant que les corrélations tendent à monter en période de crise.",
           "pieces": [
             "P5"
           ]
@@ -439,29 +472,31 @@
         "P2",
         "P3",
         "P4",
-        "P5"
+        "P5",
+        "P6"
       ],
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Une version plus modeste de votre décision respecte le Pacte : la part réallouable maximale compatible est de 28 %, la règle limitante étant « Crypto : 25 % du portefeuille au maximum ». À cette taille, la pire baisse simulée est de −41,0 % pour une tolérance de −45 %, la part crypto de 24,8 % et la part tech et crypto de 64,0 % pour un plafond de 75 %.",
+          "texte": "Une version plus modeste de votre décision respecte les trois règles du Pacte : en réallouant 28 % au maximum, la pire baisse simulée est de −41,0 % face à « Pire baisse tolérée : −45 % », et la part crypto est de 24,8 % face à « Crypto : 25 % du portefeuille au maximum ». La part tech et crypto est alors de 64 %, sous la limite de 75 % de « Ne pas miser exclusivement sur la tech (tech et crypto : 75 % au maximum) ». La réallocation de 100 % demandée, elle, dépasse ces limites.",
           "pieces": [
-            "P1",
-            "P4"
+            "P4",
+            "P1"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Sur la période passée, la simulation du panier donne un rendement annuel de +16,9 %, positif malgré une pire baisse de −58,5 % qui dépasse votre limite de −45 %. C'est un constat sur une seule période et non une promesse pour l'avenir.",
-          "pieces": [
-            "P2"
-          ]
-        },
-        {
-          "etiquette": "fait",
-          "texte": "Les quatre actifs ne bougent pas tous ensemble : la corrélation est de 0,40 entre BTC-USD et QQQ et de 0,34 entre ETH-USD et NVDA. Cette diversification reste partielle, puisqu'elle est de 0,84 entre BTC-USD et ETH-USD et de 0,77 entre NVDA et QQQ, et ces liens peuvent se resserrer en période de crise.",
+          "texte": "Le panier n'est pas un bloc uniforme : sur la période, BTC-USD est corrélé à 0,32 avec NVDA et à 0,40 avec QQQ, ce qui indique des mouvements en partie distincts. Mais BTC-USD et ETH-USD sont corrélés à 0,84, et NVDA et QQQ à 0,77, donc la diversification reste limitée et les corrélations peuvent monter en crise.",
           "pieces": [
             "P5"
+          ]
+        },
+        {
+          "etiquette": "hypothese",
+          "texte": "Votre Pacte indique un horizon de 15 ans ou plus, ce qui pourrait laisser du temps pour absorber des baisses temporaires. Cela ne change pas la règle que vous avez fixée (−45 %), alors que la simulation montre −58,5 % pour la décision à 100 %, et le passé ne garantit aucun rétablissement.",
+          "pieces": [
+            "P1",
+            "P2"
           ]
         }
       ]
@@ -477,26 +512,10 @@
       "sortie": "3 violations"
     },
     {
-      "etape": "avocat",
-      "outil": "bedrock_correction",
-      "entree": {
-        "argument": "Sur la période passée, la simulation du panier donne un rendement annuel de +16,9 %, positif malgré une pire baisse de −58,5 % qui dépasse votre limite de −45 %. C'est un constat sur une seule période et non une promesse pour l'avenir.",
-        "motif": "« −45 % » introuvable dans P2 (présent dans P1, pièce non citée)"
-      },
-      "sortie": {
-        "etiquette": "fait",
-        "texte": "Sur la période passée, la simulation du panier donne un rendement annuel de +16,9 %, avec une pire baisse de −58,5 %, qui dépasse le seuil de pire baisse de −45 % fixé dans votre Pacte. C'est un constat sur une seule période passée et non une promesse pour l'avenir.",
-        "pieces": [
-          "P1",
-          "P2"
-        ]
-      }
-    },
-    {
       "etape": "greffier",
       "outil": "verifier_chiffres",
       "entree": "7 arguments",
-      "sortie": "Chiffres cités vérifiés contre leurs pièces : 27/27 chiffres, 7 arguments"
+      "sortie": "Chiffres cités vérifiés contre leurs pièces : 30/30 chiffres, 7 arguments"
     }
   ],
   "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.",
@@ -518,7 +537,7 @@
   "requisitoire": [
     {
       "etiquette": "fait",
-      "texte": "Votre Pacte indique « Pire baisse tolérée : −45 % ». Or la simulation de votre réallocation donne une pire baisse de −58,5 %, contre −32,9 % pour le portefeuille actuel.",
+      "texte": "Vous avez écrit : « Pire baisse tolérée : −45 % ». Or la simulation de votre réallocation affiche une pire baisse de −58,5 %, contre −32,9 % pour votre portefeuille actuel.",
       "pieces": [
         "P1",
         "P2"
@@ -526,7 +545,7 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Votre décision place 25 % sur BTC-USD et 25 % sur ETH-USD, alors que votre Pacte indique « Crypto : 25 % du portefeuille au maximum ». La part réallouable compatible avec vos règles est de 28 %, la règle limitante étant plafond_crypto, contre 100 % demandés.",
+      "texte": "Vous avez écrit : « Crypto : 25 % du portefeuille au maximum ». Votre décision place BTC-USD 25 % et ETH-USD 25 %, deux cryptos, et la règle limitante du calcul est plafond_crypto, qui ramène la part réallouable compatible à 28 % alors que 100 % sont demandés.",
       "pieces": [
         "P1",
         "P4"
@@ -534,14 +553,14 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Dans le rejeu de 2022, le rendement du portefeuille passe de −24,9 % à −49,3 % avec votre décision. Il s'agit d'une seule année de crise passée, qui ne prédit pas l'avenir.",
+      "texte": "Le rejeu de 2022 donne un rendement de −24,9 % pour votre portefeuille actuel, contre −49,3 % avec la décision. Il s'agit d'une seule année, qui n'annonce pas la suivante.",
       "pieces": [
         "P3"
       ]
     },
     {
       "etiquette": "hypothese",
-      "texte": "Les corrélations sont de 0,84 entre BTC-USD et ETH-USD et de 0,77 entre NVDA et QQQ : ces actifs ont tendance à évoluer ensemble. On peut supposer que le panier diversifie moins que ses quatre lignes ne le laissent penser, d'autant que les corrélations montent souvent en période de crise.",
+      "texte": "BTC-USD et ETH-USD affichent une corrélation de 0,84, NVDA et QQQ de 0,77 : la diversification apportée par ce panier pourrait être plus faible qu'il n'y paraît, d'autant que les corrélations tendent à monter en période de crise.",
       "pieces": [
         "P5"
       ]
@@ -550,25 +569,25 @@
   "plaidoirie": [
     {
       "etiquette": "fait",
-      "texte": "Une version plus modeste de votre décision respecte le Pacte : la part réallouable maximale compatible est de 28 %, la règle limitante étant « Crypto : 25 % du portefeuille au maximum ». À cette taille, la pire baisse simulée est de −41,0 % pour une tolérance de −45 %, la part crypto de 24,8 % et la part tech et crypto de 64,0 % pour un plafond de 75 %.",
+      "texte": "Une version plus modeste de votre décision respecte les trois règles du Pacte : en réallouant 28 % au maximum, la pire baisse simulée est de −41,0 % face à « Pire baisse tolérée : −45 % », et la part crypto est de 24,8 % face à « Crypto : 25 % du portefeuille au maximum ». La part tech et crypto est alors de 64 %, sous la limite de 75 % de « Ne pas miser exclusivement sur la tech (tech et crypto : 75 % au maximum) ». La réallocation de 100 % demandée, elle, dépasse ces limites.",
       "pieces": [
-        "P1",
-        "P4"
+        "P4",
+        "P1"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Sur la période passée, la simulation du panier donne un rendement annuel de +16,9 %, avec une pire baisse de −58,5 %, qui dépasse le seuil de pire baisse de −45 % fixé dans votre Pacte. C'est un constat sur une seule période passée et non une promesse pour l'avenir.",
+      "texte": "Le panier n'est pas un bloc uniforme : sur la période, BTC-USD est corrélé à 0,32 avec NVDA et à 0,40 avec QQQ, ce qui indique des mouvements en partie distincts. Mais BTC-USD et ETH-USD sont corrélés à 0,84, et NVDA et QQQ à 0,77, donc la diversification reste limitée et les corrélations peuvent monter en crise.",
+      "pieces": [
+        "P5"
+      ]
+    },
+    {
+      "etiquette": "hypothese",
+      "texte": "Votre Pacte indique un horizon de 15 ans ou plus, ce qui pourrait laisser du temps pour absorber des baisses temporaires. Cela ne change pas la règle que vous avez fixée (−45 %), alors que la simulation montre −58,5 % pour la décision à 100 %, et le passé ne garantit aucun rétablissement.",
       "pieces": [
         "P1",
         "P2"
-      ]
-    },
-    {
-      "etiquette": "fait",
-      "texte": "Les quatre actifs ne bougent pas tous ensemble : la corrélation est de 0,40 entre BTC-USD et QQQ et de 0,34 entre ETH-USD et NVDA. Cette diversification reste partielle, puisqu'elle est de 0,84 entre BTC-USD et ETH-USD et de 0,77 entre NVDA et QQQ, et ces liens peuvent se resserrer en période de crise.",
-      "pieces": [
-        "P5"
       ]
     }
   ],

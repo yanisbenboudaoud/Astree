@@ -283,6 +283,46 @@ def _motif(nombre: NombreCite, citees: list[str], admises: Sources, non_citees: 
     return motif
 
 
+def detailler_argument(argument: dict[str, Any], dossier: dict[str, Any]) -> dict[str, Any]:
+    """La vérification d'un argument, nombre par nombre, pour l'afficher (« Trompez le Greffier », #69).
+
+    Mêmes règles et même verdict que ``verifier_argument`` ; en plus, pour chaque nombre :
+    où il a été trouvé (pièce citée, « décision » ou « période ») ou, s'il est introuvable,
+    son motif exact.
+
+    Returns:
+        ``valide``, ``motif`` (None si l'argument est prouvé), ``nombres`` (``texte``,
+        ``trouve``, ``sources``, ``motif``) et ``compte`` (« 2/3 »).
+    """
+    verification = verifier_argument(argument, dossier)
+    pieces = {piece["id"]: piece for piece in dossier["pieces"]}
+    citees = [p for p in dict.fromkeys(argument.get("pieces", [])) if p in pieces]
+    par_source = {id_piece: sources_piece(pieces[id_piece]) for id_piece in citees}
+    decision, periode = Sources(), Sources()
+    decision.ajouter(dossier["decision"])
+    periode.ajouter(list(dossier["periode"]))
+    par_source.update({"décision": decision, "période": periode})
+
+    admises = sources_toujours_admises(dossier)
+    for id_piece in citees:
+        admises.nombres += par_source[id_piece].nombres
+        admises.dates += par_source[id_piece].dates
+    non_citees = {i: sources_piece(p) for i, p in pieces.items() if i not in citees}
+
+    nombres = []
+    for nombre in verification.nombres:
+        sources = [nom for nom, valeurs in par_source.items() if correspond(nombre, valeurs)]
+        nombres.append({
+            "texte": nombre.texte,
+            "trouve": bool(sources),
+            "sources": sources,
+            "motif": None if sources or not citees else _motif(nombre, citees, admises, non_citees),
+        })
+    trouves = sum(n["trouve"] for n in nombres)
+    return {"valide": verification.valide, "motif": verification.motif, "nombres": nombres,
+            "compte": f"{trouves}/{len(nombres)}"}
+
+
 # --- Tri des arguments et compte rendu ------------------------------------------
 
 @dataclass

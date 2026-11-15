@@ -31,3 +31,18 @@
 .traitDecision { width: 18px; height: 2.5px; background: var(--encre-900); }
 .carreLimite { width: 14px; height: 10px; background: var(--statut-violation); opacity: 0.22; }
 .traitLimite { width: 18px; border-top: 1.5px dashed var(--encre-900); }
+
+/* Lecture dynamique de la courbe de valeur : repère, point et bulle (date · valeur). */
+.interactif { touch-action: pan-y; cursor: crosshair; }
+.interactif:focus-visible { outline-offset: 4px; }
+.repereLecture { stroke: var(--encre-700); stroke-width: 1; stroke-dasharray: 3 3; }
+.pointLecture { fill: var(--encre-900); stroke: var(--fond-papier); stroke-width: 2; }
+.bulle { fill: var(--fond-carte); stroke: var(--encre-700); stroke-width: 1; }
+.bulleDate { fill: var(--encre-700); font-family: var(--police-texte); font-size: 12px; }
+.bulleValeur { fill: var(--encre-900); font-family: var(--police-mono); font-size: 14px; font-weight: 600; }
+
+/* Tracé de la courbe à l'affichage ; annulé par prefers-reduced-motion (base.css). */
+.dessin { stroke-dasharray: 1; stroke-dashoffset: 1; animation: dessiner 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.apparition { opacity: 0; animation: apparaitre 0.5s ease-out 0.7s forwards; }
+@keyframes dessiner { to { stroke-dashoffset: 0; } }
+@keyframes apparaitre { to { opacity: 1; } }

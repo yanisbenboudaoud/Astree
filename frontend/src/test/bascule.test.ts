@@ -1,10 +1,10 @@
 /**
  * Points de bascule (#61) sur l'écran Verdict : lus dans le contrat, reliés aux règles du Pacte.
  */
-import contratRobert from '../data/proces/2026-11-15-936f0f5659e5.json';
-import contratAmira from '../data/proces/2026-11-15-27349f8e56c6.json';
-import contratRobertVecu from '../data/proces/2026-11-15-dfa3739ea663.json';
-import contratMateo from '../data/proces/2026-11-15-6d8845d00f9f.json';
+import contratRobert from '../data/proces/2026-11-15-13325b58d2b9.json';
+import contratAmira from '../data/proces/2026-11-15-6f16a95962c3.json';
+import contratRobertVecu from '../data/proces/2026-11-15-9c273b4e1dab.json';
+import contratMateo from '../data/proces/2026-11-15-78210ebf41ab.json';
 import type { ContratTribunal, PointDeBasculeContrat } from '../api/contrat';
 import { adapterContrat } from '../api/adaptateur';
 import { pointsDeBascule } from '../domaine/verdict';

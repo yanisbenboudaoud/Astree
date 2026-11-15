@@ -1,6 +1,6 @@
 # #100 — Retirer la question « fourchettes » du questionnaire : seuil tiré de la capacité
 
-- **Issue** : #100 · **PR** : à venir · **Statut** : terminée (Lambda à redéployer après la fusion)
+- **Issue** : #100 · **PR** : #102 · **Statut** : terminée (Lambda à redéployer après la fusion)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

@@ -282,3 +282,57 @@ def test_parametres_de_bedrock_acceptes_tels_quels():
     decision = {"type": "position", **{k: parametres[k] for k in ("ticker", "taille", "financement")}}
     piece = piece_simulation("P2", PORTEFEUILLE, decision, periode=parametres["periode"])
     assert piece["valeur_affichee"] == PIECES["P2"]["valeur_affichee"]
+
+
+# --- Comparaisons concrètes calculées en Python (dollars, écarts, rapports) -----------
+
+
+def test_comparaisons_en_dollars_de_la_periode_complete():
+    piece = piece_simulation("P1", PORTEFEUILLE, DECISION, capital=650000)
+    valider_piece(piece)
+    v = piece["valeurs"]
+    assert v["capital"] == 650000
+    assert v["perte_au_pire_moment_cad"] == pytest.approx(650000 * abs(v["pire_baisse"]), abs=0.5)
+    assert v["perte_au_pire_moment_cad_actuelle"] == pytest.approx(650000 * abs(v["pire_baisse_actuelle"]), abs=0.5)
+    assert v["ecart_perte_au_pire_moment_cad"] == pytest.approx(
+        v["perte_au_pire_moment_cad"] - v["perte_au_pire_moment_cad_actuelle"], abs=1)
+    assert v["ecart_pire_baisse_points"] == pytest.approx(abs(v["pire_baisse"] - v["pire_baisse_actuelle"]) * 100, abs=1e-3)
+    assert v["rapport_volatilite"] == pytest.approx(v["volatilite_annuelle"] / v["volatilite_annuelle_actuelle"], abs=1e-3)
+
+
+def test_comparaisons_du_rejeu_2022():
+    v = piece_simulation("P2", PORTEFEUILLE, DECISION, periode="2022", capital=650000)["valeurs"]
+    assert v["resultat_2022_cad_apres"] == pytest.approx(650000 * v["rendement_2022_apres"], abs=0.5)
+    assert v["resultat_2022_cad_apres"] < 0  # 2022 : une perte garde son signe
+    assert v["ecart_2022_cad"] == pytest.approx(abs(v["resultat_2022_cad_apres"] - v["resultat_2022_cad_actuel"]), abs=1)
+
+
+def test_montants_arrondis_au_dollar():
+    v = piece_simulation("P1", PORTEFEUILLE, DECISION, capital=650000)["valeurs"]
+    assert all(isinstance(v[cle], int) for cle in ("capital", "perte_au_pire_moment_cad", "ecart_perte_au_pire_moment_cad"))
+
+
+def test_sans_capital_la_piece_ne_change_pas():
+    assert "capital" not in piece_simulation("P1", PORTEFEUILLE, DECISION)["valeurs"]
+
+
+def _montant(valeur):
+    """650000 → « 650 000 » (espace de milliers, comme l'écrit un agent)."""
+    return f"{round(valeur):,}".replace(",", " ")
+
+
+def test_une_comparaison_en_dollars_passe_le_greffier():
+    from pipeline.chiffres import verifier_argument
+
+    piece = piece_simulation("P1", PORTEFEUILLE, DECISION, capital=650000)
+    v = piece["valeurs"]
+    dossier = {"decision": DECISION, "pieces": [piece], "periode": ["2021-11-12", "2026-11-12"]}
+    texte = (
+        f"Au pire moment, votre portefeuille de {_montant(v['capital'])} $ aurait perdu "
+        f"{_montant(v['perte_au_pire_moment_cad'])} $, contre {_montant(v['perte_au_pire_moment_cad_actuelle'])} $ "
+        f"sans cette position. Les variations seraient {str(round(v['rapport_volatilite'], 1)).replace('.', ',')} fois plus fortes."
+    )
+    assert verifier_argument({"texte": texte, "pieces": ["P1"]}, dossier).introuvables == []
+    # Un montant inventé reste rejeté.
+    faux = f"Au pire moment, votre portefeuille aurait perdu {_montant(v['perte_au_pire_moment_cad'] + 5000)} $."
+    assert verifier_argument({"texte": faux, "pieces": ["P1"]}, dossier).introuvables

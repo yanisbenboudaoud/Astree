@@ -3,10 +3,10 @@
  * procès enregistrés. Aucun nom de profil dans la logique : les tests vérifient qu'elle
  * lit le Pacte et le contrat.
  */
-import contratRobert from '../data/proces/2026-11-15-648546b5401b.json';
-import contratRobert25 from '../data/proces/2026-11-15-5944335b5a5c.json';
-import contratMateo from '../data/proces/2026-11-14-51c84bd19c16.json';
-import contratAmira from '../data/proces/2026-11-15-46e0edfd53b7.json';
+import contratRobert from '../data/proces/2026-11-15-936f0f5659e5.json';
+import contratRobert25 from '../data/proces/2026-11-15-c1600201b123.json';
+import contratMateo from '../data/proces/2026-11-15-6d8845d00f9f.json';
+import contratAmira from '../data/proces/2026-11-15-27349f8e56c6.json';
 import { pieges } from '../domaine/pieges';
 import { jugerDecision, ProcesNonEnregistre } from '../api/tribunal';
 import tsla from '../data/generated/decisions/robert/TSLA.json';
@@ -66,7 +66,7 @@ describe('adaptateur du contrat', () => {
   it('arguments, pièces et contrôles triés par gravité', () => {
     expect(resultat.titre).toBe(`Robert c. « 30${FINE}% en TSLA »`);
     expect(resultat.arguments.filter((a) => a.camp === 'Procureur')).toHaveLength(4);
-    expect(resultat.arguments.filter((a) => a.camp === 'Avocat')).toHaveLength(4);
+    expect(resultat.arguments.filter((a) => a.camp === 'Avocat')).toHaveLength(3);
     expect(resultat.controles[0].statut).toBe('Violation');
     expect(resultat.controles[0].paragraphe).toBe(1);
     expect(resultat.constat).toBe(`Pire baisse ${MOINS}29,0 % au-delà du seuil ${MOINS}12,0 % (Pacte §1).`);
@@ -85,9 +85,13 @@ describe('adaptateur du contrat', () => {
   it('une correction du Greffier pendant le procès est gardée avec son motif', () => {
     expect(resultat.corrections).toEqual([]);
     const avecCorrection = adapter(contratRobert25, 'Robert', { type: 'position', ticker: 'TSLA', taille: 25 });
-    expect(avecCorrection.corrections).toHaveLength(1);
+    expect(avecCorrection.corrections).toHaveLength(2);
     expect(avecCorrection.corrections[0].camp).toBe('Procureur');
-    expect(avecCorrection.corrections[0].motif).toBe('« 30 % » introuvable dans P6');
+    expect(avecCorrection.corrections[0].motif).toBe(
+      '« 132 206 » introuvable dans P1, P3 : valeur négative, écrire le signe « − » ; '
+      + '« 16 866 » introuvable dans P1, P3 : valeur négative, écrire le signe « − »',
+    );
+    expect(avecCorrection.corrections[1].motif).toBe('« 30 % » introuvable dans P6 (présent dans P7, pièce non citée)');
     expect(avecCorrection.corrections[0].corrige).not.toBe(avecCorrection.corrections[0].original);
   });
 
@@ -190,10 +194,10 @@ describe('contre-interrogatoire (#55)', () => {
 describe('procès enregistrés (mode démonstration)', () => {
   it('rejoue le procès qui juge exactement la décision, avec son identifiant S3', async () => {
     const trente = await jugerDecision('robert', decisionRobert);
-    expect(trente.procesId).toBe('2026-11-15-648546b5401b');
+    expect(trente.procesId).toBe('2026-11-15-936f0f5659e5');
     const vingtCinq = await jugerDecision('robert', { type: 'position', ticker: 'TSLA', taille: 25 });
-    expect(vingtCinq.procesId).toBe('2026-11-15-5944335b5a5c');
-    expect(vingtCinq.audience).toBe(numeroAudience('2026-11-15-5944335b5a5c'));
+    expect(vingtCinq.procesId).toBe('2026-11-15-c1600201b123');
+    expect(vingtCinq.audience).toBe(numeroAudience('2026-11-15-c1600201b123'));
   });
 
   it('sans procès pour cette décision, propose la décision de démonstration', async () => {

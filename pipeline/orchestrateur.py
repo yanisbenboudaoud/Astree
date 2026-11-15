@@ -117,7 +117,8 @@ def outils_du_profil(profil: dict[str, Any], decision: dict[str, Any] | None = N
         description_taille_max = taille_max.decrire_taille_max(tickers_univers, portefeuille)
 
     def executer_simulation(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
-        return simulation.piece_simulation(id_piece, portefeuille, decision_simulee(entree), entree["periode"])
+        return simulation.piece_simulation(id_piece, portefeuille, decision_simulee(entree), entree["periode"],
+                                           capital=profil.get("capital_fictif_cad"))
 
     def executer_taille_max(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
         return taille_max.piece_taille_max(id_piece, portefeuille, decision_simulee(entree), regles)

@@ -160,8 +160,12 @@ respecte pas) :
    décision (ex. : 30 %) et la période d'analyse.
 3. Écris toujours le signe des pourcentages : +12,0 %, −29,0 %. Après « chute de »,
    « baisse de », « perte de » ou « recul de », le signe peut être omis.
-4. Aucun nombre dérivé : pas d'écart, de ratio, de somme ni de « fois plus » que tu
-   aurais calculé. Pour comparer, cite les deux valeurs (« passe de −7,8 % à −29,0 % »).
+4. Aucun nombre dérivé que tu aurais calculé toi-même : pas d'écart, de ratio, de somme ni
+   de « fois plus ». Les comparaisons déjà calculées par Python sont dans les pièces
+   (« perte_au_pire_moment_cad », « ecart_… », « rapport_volatilite », « resultat_2022_cad_… ») :
+   cite-les telles quelles. Sinon, cite les deux valeurs (« passe de −7,8 % à −29,0 % »).
+   Les pertes en dollars et les écarts sont positifs : « une perte de 33 660 $ »,
+   « 3,6 points de plus », « 1,3 fois plus de variations ».
 5. N'écris aucun nombre en lettres (« trois fois », « la moitié ») et n'arrondis pas
    au-delà de ce que permet la règle 2.
 6. Virgule décimale française (−29,0 %). Une date ou une année doit figurer dans les
@@ -186,7 +190,26 @@ Règles sur le fond :
   marché (« reste » ou « vend »), ou à son questionnaire (tolérance déclarée, plafond de
   capacité, seuil retenu). Tu peux les rappeler en citant cette pièce : c'est ce qu'il a
   lui-même répondu, pas une hypothèse.
-- 2 à 4 arguments, une ou deux phrases chacun, du plus fort au plus faible."""
+- 2 à 4 arguments, du plus fort au plus faible, chacun sur une seule idée.
+
+Règles d'écriture (l'utilisateur n'est pas un spécialiste, et l'interface n'affiche d'abord
+que la PREMIÈRE phrase de chaque argument) :
+- La première phrase est la conclusion, compréhensible seule, en 25 mots au plus. Une
+  deuxième phrase facultative apporte la preuve ou la nuance. Jamais plus de deux phrases.
+- Parle de son argent, en dollars quand la pièce les donne : « Au pire moment, votre
+  portefeuille de 180 000 $ aurait perdu 33 660 $, contre 27 180 $ sans cette position. »
+  frappe plus que « la pire baisse simulée passe de −15,1 % à −18,7 % ».
+- Une comparaison à la fois, avec au plus trois chiffres par argument. Mets toujours en
+  regard « avec la décision » et « sans la décision », ou la valeur et la limite du Pacte.
+- Mots de tous les jours : « au pire moment », « la plus forte chute depuis un sommet »,
+  « les variations d'une année à l'autre » ou « l'agitation du portefeuille » plutôt que
+  « volatilité annualisée », « rendement par an » plutôt que « rendement annualisé ».
+- Jamais de nom technique dans le texte : ni clé de pièce (« pire_baisse_max »,
+  « controverse_esg_importante »), ni nom d'outil, ni identifiant de pièce (P1), ni
+  parenthèses d'explication. Une règle du Pacte se cite par son libellé, entre guillemets.
+- Pas de remplissage : ni « il convient de noter », ni « sur la période analysée » répété,
+  ni « simulé » dans chaque phrase. Relis chaque phrase : aucun mot répété par erreur.
+- Montants en dollars tels que la pièce les donne, à l'unité près, sans centimes."""
 
 CONSIGNES = {
     "procureur": (

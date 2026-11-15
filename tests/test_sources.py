@@ -29,7 +29,7 @@ def par_nom(liste):
 def test_robert_toutes_les_sources_utilisees():
     contrat = proces_de_demo("robert")
     liste = par_nom(sources_du_proces(contrat))
-    assert set(liste) == {SOURCES[cle].nom for cle in ("pacte", "prix", "change", "univers", "jurisprudence")}
+    assert set(liste) == {SOURCES[cle].nom for cle in ("pacte", "prix", "change", "univers", "macro", "jurisprudence")}
     assert liste[SOURCES["pacte"].nom]["fichier"] == "personas/robert.json"
     assert liste[SOURCES["pacte"].nom]["date_extraction"] == contrat["pacte"]["date_signature"]
     assert liste[SOURCES["univers"].nom]["controles"] == ["plafond_crypto"]
@@ -68,12 +68,14 @@ def test_pacte_vecu_les_reponses_de_l_investisseur():
 
 def test_les_donnees_macro_apparaissent_avec_la_simulation():
     contrat = copy.deepcopy(proces_de_demo("robert"))
-    assert SOURCES["macro"].nom not in par_nom(sources_du_proces(contrat))  # procès enregistré avant #111
-    simulation = next(p for p in contrat["pieces"] if p["outil"] == "simuler_portefeuille")
-    simulation["valeurs"]["inflation_annuelle"] = 0.0354
+    simulations = [p for p in contrat["pieces"] if p["outil"] == "simuler_portefeuille"]
     macro = par_nom(sources_du_proces(contrat))[SOURCES["macro"].nom]
     assert macro["fichier"] == "macro_rates.csv"
-    assert [u["id"] for u in macro["pieces"]] == [simulation["id"]]
+    assert [u["id"] for u in macro["pieces"]] == [p["id"] for p in simulations]  # période complète et rejeu 2022
+    for piece in simulations:  # sans données macro (procès enregistrés avant #111), la source disparaît
+        for cle in sources.VALEURS_MACRO:
+            piece["valeurs"].pop(cle, None)
+    assert SOURCES["macro"].nom not in par_nom(sources_du_proces(contrat))
 
 
 def test_ordre_fixe_et_contrat_valide():

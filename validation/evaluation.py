@@ -14,7 +14,7 @@ régénère à l'identique.
 Un raté n'est jamais corrigé en silence : il reste dans le rapport. Si une règle est
 corrigée, la mesure suivante se fait sur un second jeu, écrit après la correction.
 
-Usage : ``python -m validation.evaluation chiffres``.
+Usage : ``python -m validation.evaluation chiffres`` (#165) ou ``cadre`` (#166).
 """
 
 from __future__ import annotations
@@ -115,8 +115,11 @@ def cellule(texte: str) -> str:
 # --- Commande ---------------------------------------------------------------------
 
 def _evaluations() -> dict[str, tuple[Callable, Callable]]:
-    from validation import evaluation_chiffres
-    return {"chiffres": (evaluation_chiffres.evaluer, evaluation_chiffres.rapport)}
+    from validation import evaluation_cadre, evaluation_chiffres
+    return {
+        "chiffres": (evaluation_chiffres.evaluer, evaluation_chiffres.rapport),
+        "cadre": (evaluation_cadre.evaluer, evaluation_cadre.rapport),
+    }
 
 
 def evaluer_jeu(nom: str) -> tuple[dict[str, Any], list[ResultatCas], str]:

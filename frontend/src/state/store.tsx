@@ -1,12 +1,13 @@
 /**
  * État de l'interface, conservé par profil (annexe D.1) : décision en cours, panier,
- * procès, réponses du contre-interrogatoire, verdict, journal. Changer de profil ne
+ * procès, réponses du contre-interrogatoire, verdict, journal, réponses du Pacte vécu (#68). Changer de profil ne
  * perd pas l'état des autres. Copie dans sessionStorage quand elle est disponible.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import type { DecisionUI, EntreeJournal, Piece, ResultatTribunal } from '../api/types';
 import type { IdOption } from '../domaine/verdict';
 import type { Reponse } from '../domaine/questions';
+import type { ReponsesCalibrage } from '../domaine/calibrage';
 
 export interface EtatTribunal {
   statut: 'vide' | 'chargement' | 'pret' | 'erreur' | 'non_enregistre';
@@ -30,6 +31,8 @@ export interface EtatProfil {
   verdict: EtatVerdict;
   journal: EntreeJournal[];
   archive: { resume: string; statut: EntreeJournal['statut'] } | null;
+  /** Réponses du Pacte vécu ; null tant que l'utilisateur n'a pas commencé. */
+  calibrage: ReponsesCalibrage | null;
 }
 
 const VERDICT_VIDE: EtatVerdict = { option: null, justification: '', compris: false };
@@ -43,6 +46,7 @@ export const ETAT_INITIAL: EtatProfil = {
   verdict: VERDICT_VIDE,
   journal: [],
   archive: null,
+  calibrage: null,
 };
 
 type Action =
@@ -52,14 +56,15 @@ type Action =
   | { type: 'reponse'; profil: string; reponse: Reponse }
   | { type: 'verdict'; profil: string; verdict: Partial<EtatVerdict> }
   | { type: 'signer'; profil: string; resume: string; entree: EntreeJournal }
-  | { type: 'annuler_signature'; profil: string };
+  | { type: 'annuler_signature'; profil: string }
+  | { type: 'calibrage'; profil: string; calibrage: ReponsesCalibrage | null };
 
 type Etat = Record<string, EtatProfil>;
 
 const memeDecision = (a: DecisionUI | null, b: DecisionUI | null) => JSON.stringify(a) === JSON.stringify(b);
 
 function reducteur(etat: Etat, action: Action): Etat {
-  const courant = etat[action.profil] ?? ETAT_INITIAL;
+  const courant = { ...ETAT_INITIAL, ...etat[action.profil] };
   let suivant: EtatProfil;
   switch (action.type) {
     case 'decision':
@@ -89,6 +94,10 @@ function reducteur(etat: Etat, action: Action): Etat {
         journal: [{ ...action.entree, nouveau: true }, ...courant.journal.map((e) => ({ ...e, nouveau: false }))],
         archive: { resume: action.resume, statut: action.entree.statut },
       };
+      break;
+    case 'calibrage':
+      // Le Pacte change : le procès et le verdict en cours ne valent plus.
+      suivant = { ...courant, calibrage: action.calibrage, tribunal: { statut: 'vide' }, reponses: [], piecesQuestions: [], verdict: VERDICT_VIDE };
       break;
     case 'annuler_signature':
       suivant = { ...courant, journal: courant.journal.filter((e) => !e.nouveau), archive: null };
@@ -138,7 +147,7 @@ export function useEtatProfil(idProfil: string) {
   const contexte = useContext(Contexte);
   if (!contexte) throw new Error('useEtatProfil doit être utilisé sous <FournisseurEtat>');
   const { etat, envoyer } = contexte;
-  const etatProfil = etat[idProfil] ?? ETAT_INITIAL;
+  const etatProfil = useMemo(() => ({ ...ETAT_INITIAL, ...etat[idProfil] }), [etat, idProfil]);
 
   const definirDecision = useCallback((decision: DecisionUI | null) => envoyer({ type: 'decision', profil: idProfil, decision }), [envoyer, idProfil]);
   const definirPanier = useCallback((tickers: string[]) => envoyer({ type: 'panier', profil: idProfil, tickers }), [envoyer, idProfil]);
@@ -147,6 +156,7 @@ export function useEtatProfil(idProfil: string) {
   const modifierVerdict = useCallback((verdict: Partial<EtatVerdict>) => envoyer({ type: 'verdict', profil: idProfil, verdict }), [envoyer, idProfil]);
   const signer = useCallback((resume: string, entree: EntreeJournal) => envoyer({ type: 'signer', profil: idProfil, resume, entree }), [envoyer, idProfil]);
   const annulerSignature = useCallback(() => envoyer({ type: 'annuler_signature', profil: idProfil }), [envoyer, idProfil]);
+  const definirCalibrage = useCallback((calibrage: ReponsesCalibrage | null) => envoyer({ type: 'calibrage', profil: idProfil, calibrage }), [envoyer, idProfil]);
 
-  return { etat: etatProfil, definirDecision, definirPanier, definirTribunal, ajouterReponse, modifierVerdict, signer, annulerSignature };
+  return { etat: etatProfil, definirDecision, definirPanier, definirTribunal, ajouterReponse, modifierVerdict, signer, annulerSignature, definirCalibrage };
 }

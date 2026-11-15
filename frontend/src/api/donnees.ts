@@ -5,11 +5,12 @@
 import univers from '../data/generated/univers.json';
 import libelles from '../data/libelles.json';
 import profilsUi from '../data/profils_ui.json';
-import type { ConfigProfilUI, Profil, TablePanier, TablePosition, Titre } from './types';
+import type { ConfigProfilUI, DonneesCalibrage, Profil, TablePanier, TablePosition, Titre } from './types';
 
 const profilsGeneres = import.meta.glob<Profil>('../data/generated/profils/*.json', { eager: true, import: 'default' });
 const tablesPositions = import.meta.glob<TablePosition>('../data/generated/decisions/*/*.json', { import: 'default' });
 const tablesPaniers = import.meta.glob<TablePanier>('../data/generated/paniers/*.json', { import: 'default' });
+const calibrages = import.meta.glob<DonneesCalibrage>('../data/generated/calibrage/*.json', { eager: true, import: 'default' });
 
 export const TITRES: Titre[] = univers as Titre[];
 export const TITRES_PAR_TICKER: Record<string, Titre> = Object.fromEntries(TITRES.map((t) => [t.ticker, t]));
@@ -59,6 +60,11 @@ export async function chargerTablePosition(idProfil: string, ticker: string): Pr
 export async function chargerTablePanier(idProfil: string): Promise<TablePanier | null> {
   const chargeur = tablesPaniers[`../data/generated/paniers/${idProfil}.json`];
   return chargeur ? chargeur() : null;
+}
+
+/** Jours de marché du Pacte vécu (#68) pour ce profil, ou undefined s'ils n'ont pas été générés. */
+export function donneesCalibrage(idProfil: string): DonneesCalibrage | undefined {
+  return calibrages[`../data/generated/calibrage/${idProfil}.json`];
 }
 
 export function libelleProfilRisque(code: string): string {

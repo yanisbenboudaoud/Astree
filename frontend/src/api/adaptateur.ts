@@ -15,6 +15,7 @@ export function provenanceUi(etiquette: EtiquetteContrat): Provenance {
 
 const ROLES: Record<string, string> = {
   agent_profil: 'Agent Profil',
+  calibrage: 'Pacte vécu',
   orchestrateur: 'Orchestrateur',
   procureur: 'Procureur',
   avocat: 'Avocat',
@@ -57,6 +58,10 @@ export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
     const libelle = typeof sortie === 'object' && sortie !== null && 'libelle' in sortie ? String((sortie as { libelle: string }).libelle) : '';
     appel = `valider_decision → ${libelle}`;
   } else if (etape.etape === 'greffier') appel = `${outil} → ${String(sortie ?? '')}`;
+  else if (etape.etape === 'calibrage') {
+    const n = (etape.entree as { questions?: unknown[] } | undefined)?.questions?.length ?? 0;
+    appel = `${outil} → ${n} réponses de l'utilisateur`;
+  }
   else appel = `${outil}(${parametres(etape.entree)})`;
 
   const idPiece = typeof sortie === 'string' && ID_PIECE.test(sortie) ? sortie : undefined;

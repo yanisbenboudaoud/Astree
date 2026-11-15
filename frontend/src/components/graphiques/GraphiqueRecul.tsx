@@ -4,7 +4,7 @@
  * nombre de séances sous la limite. Tout vient des tables précalculées.
  */
 import type { SeancesSousLimite } from '../../api/types';
-import { moisAnnee, moisLong, pourcent } from '../../lib/format';
+import { moisAnnee, moisLong, pourcent, seuil } from '../../lib/format';
 import { chemin, debutsAnnees, echelleLineaire, graduations, jour, pasRond, useLargeur } from './echelles';
 import styles from './Graphiques.module.css';
 
@@ -48,7 +48,7 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libel
   const resume = [
     `Recul depuis le sommet, actuel et ${libelleDecision.toLowerCase()}.`,
     `Pire chute avec la décision : ${etiquetteCreux}.`,
-    limite !== undefined ? `Limite du Pacte : ${pourcent(limite, { decimales: 0 })}.` : '',
+    limite !== undefined ? `Limite du Pacte : ${seuil(limite)}.` : '',
     annotation ? `${seances!.nombre} séances sous la limite, entre ${moisLong(seances!.du!)} et ${moisLong(seances!.au!)}.` : '',
   ].join(' ');
 
@@ -75,7 +75,7 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libel
           <>
             <line x1={GAUCHE} x2={droite} y1={yLimite} y2={yLimite} className={styles.limite} />
             <text x={droite} y={yLimite + 18} textAnchor="end" className={styles.annotationForte}>
-              Limite · {pourcent(limite!, { decimales: 0 })}
+              Limite · {seuil(limite!)}
             </text>
           </>
         )}
@@ -102,7 +102,10 @@ export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libel
         <li><span className={styles.traitActuel} aria-hidden="true" />Actuel</li>
         <li><span className={styles.traitDecision} aria-hidden="true" />{libelleDecision}</li>
         {annotation && <li><span className={styles.carreLimite} aria-hidden="true" />Sous la limite du Pacte</li>}
-        {limite !== undefined && !annotation && <li><span className={styles.traitLimite} aria-hidden="true" />Limite du Pacte, jamais franchie</li>}
+        {/* Séances inconnues (null) : seuil mesuré par le Pacte vécu, compté en Python avec l'ancien seuil. */}
+        {limite !== undefined && !annotation && (
+          <li><span className={styles.traitLimite} aria-hidden="true" />{seances ? 'Limite du Pacte, jamais franchie' : 'Limite du Pacte'}</li>
+        )}
       </ul>
     </div>
   );

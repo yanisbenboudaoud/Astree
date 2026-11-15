@@ -133,8 +133,12 @@
         "seuil": {"type": "number", "maximum": 0, "minimum": -1},
         "categories": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
         "max": {"$ref": "#/$defs/part"},
-        "critere": {"type": "string", "minLength": 1}
+        "critere": {"type": "string", "minLength": 1},
+        "provenance": {"description": "Seuil mesuré par le Pacte vécu (#68) : d'où il vient, en clair.", "type": "string", "minLength": 1},
+        "etiquette": {"$ref": "#/$defs/etiquette"},
+        "piece": {"description": "Pièce qui prouve le seuil mesuré (type declaree).", "$ref": "#/$defs/id_piece"}
       },
+      "dependentRequired": {"provenance": ["etiquette", "piece"], "piece": ["provenance"]},
       "allOf": [
         {
           "if": {"properties": {"type": {"const": "pire_baisse_max"}}},
@@ -179,7 +183,7 @@
       "required": ["id", "type", "etiquette", "titre", "outil", "valeurs", "valeur_affichee", "source", "traitement", "limites"],
       "properties": {
         "id": {"$ref": "#/$defs/id_piece"},
-        "type": {"enum": ["calculee", "documentaire"]},
+        "type": {"description": "calculee : outil Python ; documentaire : extrait de document ; declaree : réponses de l'utilisateur, horodatées (Pacte vécu, #68).", "enum": ["calculee", "documentaire", "declaree"]},
         "etiquette": {"$ref": "#/$defs/etiquette"},
         "titre": {"type": "string", "minLength": 1},
         "outil": {"type": "string", "minLength": 1},
@@ -234,7 +238,7 @@
       "additionalProperties": false,
       "required": ["etape", "outil", "entree", "sortie"],
       "properties": {
-        "etape": {"enum": ["agent_profil", "orchestrateur", "procureur", "avocat", "greffier"]},
+        "etape": {"enum": ["agent_profil", "calibrage", "orchestrateur", "procureur", "avocat", "greffier"]},
         "outil": {"type": "string", "minLength": 1},
         "raison": {"type": "string", "minLength": 1, "pattern": "^[^0-9]*$"},
         "entree": true,

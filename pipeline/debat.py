@@ -153,6 +153,9 @@ Règles sur le fond :
 - Le passé ne prédit pas l'avenir : ne présente jamais une performance passée comme une
   promesse.
 - Pour citer une règle du Pacte, reprends son libellé et cite la pièce du Pacte.
+- Une pièce de type « declaree » contient les réponses de l'utilisateur à de vrais jours de
+  marché (« reste » ou « vend »). Tu peux les rappeler (date du jour, baisse, réponse) en
+  citant cette pièce : c'est ce qu'il a lui-même répondu, pas une hypothèse.
 - 2 à 4 arguments, une ou deux phrases chacun, du plus fort au plus faible."""
 
 CONSIGNES = {

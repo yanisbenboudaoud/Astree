@@ -52,5 +52,11 @@
     "ticker": "TSLA",
     "taille": 0.3,
     "financement": "proportionnel"
+  },
+  "calibrage_demo": {
+    "date": "2026-11-15",
+    "reste_jusqu_a": -0.12,
+    "capacite": "pas_attendre",
+    "justification": "Réponses fictives : limite fixée au seuil déclaré du Pacte (−12 %) ; horizon court, il ne peut pas attendre longtemps."
   }
 }

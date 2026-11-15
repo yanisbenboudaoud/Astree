@@ -68,9 +68,9 @@ Le système est conçu pour **n'importe quel investisseur**, pas pour trois pers
 
 Chaque profil a un **Pacte** : ses règles, déclarées à l'avance, converties en contraintes vérifiables. Tous les Pactes suivent **le même format** (fichiers `personas/<nom>.json`), donc **ajouter un nouveau profil ne demande aucun code**. Le code ne doit jamais tester un nom de persona (`if persona == "robert"` est interdit) : il lit uniquement les règles du Pacte.
 
-Les seuils sont des **hypothèses** de l'équipe, pas des recommandations réglementaires.
+Les seuils sont des **hypothèses** de l'équipe, pas des recommandations réglementaires. Exception : la **pire baisse** peut être **mesurée** par le Pacte vécu (#68) : l'utilisateur revit de vrais jours de baisse, sans la suite, et répond « je reste » ou « je vends » ; le seuil devient la baisse réelle du dernier jour où il est resté (`pipeline/calibrage.py`, paramètres dans `config/calibrage.json`).
 
-**Format d'un fichier profil** : `id`, `nom`, `etiquette` (`fictif`), `profil_risque`, `horizon_ans`, `capital_fictif_cad`, `portefeuille` (liste `ticker` + `poids`), `decision_demo` et `pacte`. Le `pacte` contient `date_signature` et une liste `regles`. Chaque règle a :
+**Format d'un fichier profil** : `id`, `nom`, `etiquette` (`fictif`), `profil_risque`, `horizon_ans`, `capital_fictif_cad`, `portefeuille` (liste `ticker` + `poids`), `decision_demo`, `pacte` et, facultatif, `calibrage_demo` (réponses préenregistrées du Pacte vécu, étiquette `fictif`, pour une démo reproductible). Le `pacte` contient `date_signature` et une liste `regles`. Chaque règle a :
 - `id` : identifiant unique, repris dans `controles[].regle` du contrat ;
 - `type` : un des types du tableau ci-dessous ;
 - les paramètres de son type ;
@@ -98,6 +98,7 @@ Ajouter un profil = un fichier JSON. Ajouter un type de règle = une fonction da
 
 L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % en TSLA »). Le système ne recommande rien : il **fait le procès de cette décision** et l'utilisateur rend le verdict. C'est ce qui garde la solution du côté de l'aide à la décision, pas du conseil personnalisé.
 
+0. **Pacte vécu** (Python, sans LLM, facultatif, #68) : si l'utilisateur a répondu aux jours de marché revécus, ses réponses sont vérifiées **avant tout appel Bedrock**, la règle de pire baisse prend le seuil mesuré, et ses réponses deviennent la pièce P2, de type `declaree`.
 1. **Agent Profil** (LLM Bedrock + Python) : charge le Pacte du profil (n'importe lequel) et transforme la demande en décision structurée (titre, taille, financement).
 2. **Orchestrateur** (LLM Bedrock, encadré par Python) : **instruit le dossier**. Il lit la décision et le Pacte, **choisit lui-même quels outils Python appeler** (section 4 bis) et avec quels paramètres, et donne une raison courte pour chaque appel. Chaque résultat d'outil devient une **pièce à conviction** numérotée (P1, P2…).
 3. **Procureur** (LLM Bedrock) : argumente **contre** la décision, en citant uniquement des pièces.
@@ -137,6 +138,7 @@ Socle commun : **`charger_donnees`** lit les CSV (local ou S3), convertit en CAD
 | 5 | `verifier_pacte` | Compare les résultats aux règles du Pacte | Greffier | V1 |
 | 6 | `verifier_chiffres` | Vérifie que chaque nombre cité existe dans une pièce (section 4 ter) | Greffier | V1 |
 | 7 | `consulter_jurisprudence` | Verdicts passés du même profil (archives `verdicts/<profil>/` de S3) : violations par règle et choix de l'utilisateur (#56) | Orchestrateur | Bonus |
+| — | `calibrer_pacte` | Pacte vécu : seuil de pire baisse mesuré sur les réponses de l'utilisateur, pièce `declaree` (#68) | Tribunal, avant le procès | Bonus |
 
 Aucun de ces outils n'utilise le LLM. On les développe et teste **en local**, puis le même code est déployé dans Lambda (variable `SOURCE_DONNEES=local|s3`). Les outils 1 à 4 sont décrits à l'orchestrateur comme outils Bedrock (nom, description, schéma JSON des paramètres).
 
@@ -232,10 +234,10 @@ Règles du contrat :
 - Le contrat est vérifiable automatiquement : schéma `contrat/schema_sortie.json`, renvois entre champs dans `contrat/valider.py` (`python -m contrat.valider <fichier.json>`). Exemples valides : `docs/exemples/contrat_robert.json` (cas 1) et `docs/exemples/contrat_amira.json` (cas 2).
 - `decision.type` vaut `position` (`ticker`, `taille`, `financement` : `proportionnel` ou `depuis_<ticker>`) ou `reallocation` (`panier` : liste `ticker` + `poids` totalisant 1, `part_reallouee`, prise au prorata de toutes les lignes). Même format que `decision_demo` des fichiers profils, plus `libelle`.
 - `taille_max_compatible` vaut `null` si même 0 % viole le Pacte. Pour une réallocation, c'est la plus grande part réallouée compatible.
-- `statut` d'un contrôle : `conforme`, `violation` ou `a_verifier`. `etiquette` : `fait`, `hypothese` ou `fictif`. `type` d'une pièce : `calculee` (outil Python) ou `documentaire` (extrait de document, V3).
-- `pacte.regles` reprend les règles du fichier profil (section 3), sans les justifications. `controles[].regle` est l'`id` d'une règle du Pacte, ou l'un des contrôles du système : `verifier_chiffres`, `performance_passee`, `biais_survivant`, `interpretation_demande` (Agent Profil : demande incomplète ou ambiguë, toujours `a_verifier`).
+- `statut` d'un contrôle : `conforme`, `violation` ou `a_verifier`. `etiquette` : `fait`, `hypothese` ou `fictif`. `type` d'une pièce : `calculee` (outil Python), `documentaire` (extrait de document, V3) ou `declaree` (réponses de l'utilisateur au Pacte vécu, horodatées, #68).
+- `pacte.regles` reprend les règles du fichier profil (section 3), sans les justifications. Une règle au seuil mesuré par le Pacte vécu porte aussi `provenance` (texte), `etiquette` et `piece` (la pièce `declaree` qui le prouve). `controles[].regle` est l'`id` d'une règle du Pacte, ou l'un des contrôles du système : `verifier_chiffres`, `performance_passee`, `biais_survivant`, `interpretation_demande` (Agent Profil : demande incomplète ou ambiguë, toujours `a_verifier`).
 - Chaque argument cite au moins une pièce. Un argument dont un chiffre est introuvable dans ses pièces (section 4 ter) va dans `arguments_rejetes`, avec `cote` (`requisitoire` ou `plaidoirie`), son texte, ses pièces et la `raison` du rejet.
-- Dans `trace`, les appels de l'orchestrateur ont `etape: "orchestrateur"` et une `raison` courte, sans chiffre. Une pièce ajoutée d'office par Python a la raison « Pièce obligatoire ajoutée d'office ». Un appel refusé ou en erreur (outil non autorisé, raison invalide, titre hors univers, source manquante…) ne crée pas de pièce : sa `sortie` est « Erreur : <motif> ». La simulation obligatoire, elle, doit avoir produit une pièce.
+- Dans `trace`, les appels de l'orchestrateur ont `etape: "orchestrateur"` et une `raison` courte, sans chiffre. Une pièce ajoutée d'office par Python a la raison « Pièce obligatoire ajoutée d'office ». Un appel refusé ou en erreur (outil non autorisé, raison invalide, titre hors univers, source manquante…) ne crée pas de pièce : sa `sortie` est « Erreur : <motif> ». La simulation obligatoire, elle, doit avoir produit une pièce. L'étape `calibrage` (Pacte vécu) donne les questions posées et les réponses, et sa `sortie` est la pièce `declaree`.
 - Les valeurs des pièces et de `comparaison` sont brutes (au moins 4 décimales) ; seul `valeur_affichee` est arrondi.
 - `verdict` est rempli par l'interface quand l'utilisateur choisit : `maintenu`, `modifie` ou `pacte_ajuste`.
 

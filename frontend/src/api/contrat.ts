@@ -23,11 +23,16 @@ export interface RegleContrat {
   categories?: string[];
   max?: number;
   critere?: string;
+  /** Seuil mesuré par le Pacte vécu (#68) : d'où il vient, son étiquette et la pièce qui le prouve. */
+  provenance?: string;
+  etiquette?: EtiquetteContrat;
+  piece?: string;
 }
 
 export interface PieceContrat {
   id: string;
-  type: 'calculee' | 'documentaire';
+  /** `declaree` : réponses de l'utilisateur au Pacte vécu (#68). */
+  type: 'calculee' | 'documentaire' | 'declaree';
   etiquette: EtiquetteContrat;
   titre: string;
   outil: string;

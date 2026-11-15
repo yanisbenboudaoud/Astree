@@ -1,8 +1,11 @@
 {
-  "description": "Procès réellement tenus par le pipeline (python -m pipeline <profil> \"<demande>\", Amazon Bedrock, modèle us.anthropic.claude-sonnet-5-5), enregistrés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct. Chaque contrat passe python -m contrat.valider.",
+  "description": "Procès réellement tenus par le pipeline (python -m pipeline <profil> \"<demande>\", Amazon Bedrock, modèle us.anthropic.claude-sonnet-5-5), enregistrés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct. Chaque contrat passe python -m contrat.valider. Les entrées « calibrage » sont tenues avec les réponses préenregistrées du Pacte vécu (#68) : python -m pipeline <profil> \"<demande>\" --calibrage-demo.",
   "proces": [
     {"fichier": "robert.json", "profil": "robert", "audience": "0142", "enregistreLe": "2026-11-14"},
     {"fichier": "amira.json", "profil": "amira", "audience": "0143", "enregistreLe": "2026-11-14"},
-    {"fichier": "mateo.json", "profil": "mateo", "audience": "0144", "enregistreLe": "2026-11-14"}
+    {"fichier": "mateo.json", "profil": "mateo", "audience": "0144", "enregistreLe": "2026-11-14"},
+    {"fichier": "robert_vecu.json", "profil": "robert", "audience": "0145", "enregistreLe": "2026-11-15", "calibrage": true},
+    {"fichier": "amira_vecu.json", "profil": "amira", "audience": "0146", "enregistreLe": "2026-11-15", "calibrage": true},
+    {"fichier": "mateo_vecu.json", "profil": "mateo", "audience": "0147", "enregistreLe": "2026-11-15", "calibrage": true}
   ]
 }

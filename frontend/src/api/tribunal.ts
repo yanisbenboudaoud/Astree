@@ -18,19 +18,38 @@ const URL_API = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 const contratsEnregistres = import.meta.glob<ContratTribunal>('../data/proces/*.json', { import: 'default' });
 
 export class ProcesNonEnregistre extends Error {
-  constructor(public readonly decisionEnregistree: DecisionUI | null) {
+  constructor(public readonly decisionEnregistree: DecisionUI | null, public readonly raisonPacteVecu?: string) {
     super('Aucun procès enregistré pour cette décision');
     this.name = 'ProcesNonEnregistre';
   }
 }
+
+interface EntreeIndex {
+  fichier: string;
+  profil: string;
+  audience: string;
+  /** Procès tenu avec les réponses préenregistrées du Pacte vécu (#68). */
+  calibrage?: boolean;
+}
+
+/** Réponses du Pacte vécu enregistrées dans la trace d'un procès (étape « calibrage »). */
+export function reponsesDuContrat(contrat: ContratTribunal): Record<string, string> | null {
+  const etape = contrat.trace.find((e) => e.etape === 'calibrage');
+  const entree = etape?.entree as { questions?: string[]; reponses?: string[] } | undefined;
+  if (!entree?.questions || !entree.reponses) return null;
+  return Object.fromEntries(entree.questions.map((q, i) => [q, entree.reponses![i]]));
+}
+
+const memesReponses = (a: Record<string, string>, b: Record<string, string>) =>
+  JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 
 export function decisionDepuisContrat(decision: DecisionContrat): DecisionUI {
   if (decision.type === 'position') return { type: 'position', ticker: decision.ticker, taille: Math.round(decision.taille * 100) };
   return { type: 'panier', lignes: decision.panier.map((l) => ({ ticker: l.ticker, poids: Math.round(l.poids * 100) })) };
 }
 
-async function contratEnregistre(idProfil: string): Promise<{ contrat: ContratTribunal; audience: string } | null> {
-  const entree = indexProces.proces.find((p) => p.profil === idProfil);
+async function contratEnregistre(idProfil: string, avecCalibrage = false): Promise<{ contrat: ContratTribunal; audience: string } | null> {
+  const entree = (indexProces.proces as EntreeIndex[]).find((p) => p.profil === idProfil && Boolean(p.calibrage) === avecCalibrage);
   const chargeur = entree && contratsEnregistres[`../data/proces/${entree.fichier}`];
   if (!entree || !chargeur) return null;
   return { contrat: await chargeur(), audience: entree.audience };
@@ -52,12 +71,29 @@ async function lireErreur(reponse: Response): Promise<string> {
   return `Le Tribunal a répondu ${reponse.status}`;
 }
 
-export async function jugerDecision(idProfil: string, decision: DecisionUI, signal?: AbortSignal): Promise<ResultatTribunal> {
+/**
+ * @param calibrage réponses du Pacte vécu (#68), quand il est terminé : en direct, la Lambda
+ *   recalcule le seuil en Python ; en démonstration, seul le procès tenu avec ces mêmes
+ *   réponses (celles du profil de test) peut être rejoué.
+ */
+export async function jugerDecision(
+  idProfil: string,
+  decision: DecisionUI,
+  signal?: AbortSignal,
+  calibrage?: Record<string, string> | null,
+): Promise<ResultatTribunal> {
   const profil = profilDe(idProfil);
   const contexte = { nomProfil: profil?.nom ?? idProfil, titreDecision: libelleDecision(decision) };
 
   if (!MODE_DIRECT) {
-    const enregistre = await contratEnregistre(idProfil);
+    const enregistre = await contratEnregistre(idProfil, Boolean(calibrage));
+    const reponsesEnregistrees = enregistre && reponsesDuContrat(enregistre.contrat);
+    if (calibrage && (!reponsesEnregistrees || !memesReponses(calibrage, reponsesEnregistrees))) {
+      throw new ProcesNonEnregistre(
+        null,
+        'Le procès enregistré avec le Pacte vécu utilise les réponses de démonstration du profil. Avec vos propres réponses, il faut le Tribunal en direct.',
+      );
+    }
     if (!enregistre || !correspondAuContrat(decision, enregistre.contrat.decision)) {
       throw new ProcesNonEnregistre(enregistre ? decisionDepuisContrat(enregistre.contrat.decision) : null);
     }
@@ -68,7 +104,7 @@ export async function jugerDecision(idProfil: string, decision: DecisionUI, sign
   const reponse = await fetch(`${URL_API}/tribunal`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ profil: idProfil, demande: demandeDecision(decision) }),
+    body: JSON.stringify({ profil: idProfil, demande: demandeDecision(decision), ...(calibrage ? { calibrage: { reponses: calibrage } } : {}) }),
     signal,
   });
   if (!reponse.ok) throw new Error(await lireErreur(reponse));

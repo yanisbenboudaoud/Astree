@@ -18,6 +18,7 @@ from botocore.stub import Stubber
 from deploiement import lambda_tribunal
 from pipeline import donnees
 from pipeline.agent_profil import ProfilInconnu
+from pipeline.calibrage import ErreurCalibrage
 
 
 class FauxS3:
@@ -58,8 +59,12 @@ CONTRAT = {"persona": "robert", "decision": {"libelle": "30 % en TSLA"}, "verdic
 def faux_proces(monkeypatch):
     appels = []
 
-    def juger(profil, demande):
+    def juger(profil, demande, calibrage=None):
         appels.append((profil, demande))
+        if calibrage is not None:
+            appels.append(("calibrage", calibrage))
+            if "baisse_25" not in calibrage["reponses"]:
+                raise ErreurCalibrage("Calibrage incomplet : réponse attendue à « baisse_25 »")
         if profil == "inconnu":
             raise ProfilInconnu("Aucun profil « inconnu » dans personas/")
         return dict(CONTRAT)
@@ -129,6 +134,29 @@ def test_tribunal_renvoye_meme_si_l_archive_echoue(monkeypatch, faux_proces):
     resultat = lambda_tribunal.handler(evenement("/tribunal", {"profil": "robert", "demande": "x"}))
     assert resultat["statusCode"] == 200  # le procès a coûté des appels Bedrock : on le renvoie
     assert "X-Proces-Id" not in resultat["headers"]
+
+
+def test_tribunal_transmet_le_calibrage_date_du_jour(s3, faux_proces):
+    corps = {"profil": "robert", "demande": "x", "calibrage": {"reponses": {"baisse_25": "vend"}}}
+    assert lambda_tribunal.handler(evenement("/tribunal", corps))["statusCode"] == 200
+    calibrage = faux_proces[1][1]
+    assert calibrage["reponses"] == {"baisse_25": "vend"} and calibrage["etiquette"] == "fait"
+    assert lambda_tribunal.FORMAT_ID.fullmatch(f"{calibrage['date']}-000000000000")
+
+
+@pytest.mark.parametrize("calibrage", [
+    "oui", {"reponses": {}}, {"reponses": {"baisse_25": 1}}, {"reponses": {f"q{i}": "reste" for i in range(21)}},
+])
+def test_tribunal_calibrage_mal_forme_400(calibrage, faux_proces):
+    corps = {"profil": "robert", "demande": "x", "calibrage": calibrage}
+    statut, contenu = reponse(lambda_tribunal.handler(evenement("/tribunal", corps)))
+    assert statut == 400 and "calibrage" in contenu["erreur"] and faux_proces == []
+
+
+def test_tribunal_reponses_incompletes_400(s3, faux_proces):
+    corps = {"profil": "robert", "demande": "x", "calibrage": {"reponses": {"capacite": "attendre"}}}
+    statut, contenu = reponse(lambda_tribunal.handler(evenement("/tribunal", corps)))
+    assert statut == 400 and "baisse_25" in contenu["erreur"]
 
 
 # --- /verdict ----------------------------------------------------------------------

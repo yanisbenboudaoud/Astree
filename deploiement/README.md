@@ -20,7 +20,7 @@ aws login                                                   # une fois par sessi
 
   `--sans-donnees` évite de renvoyer les CSV.
 - [`lambda_tribunal.py`](lambda_tribunal.py) : le point d'entrée (handler `lambda_tribunal.handler`, à la racine du zip). Il expose deux routes :
-  - `POST /tribunal` `{"profil", "demande"}` renvoie le contrat, archivé dans `traces/<date>/<id>.json`, avec l'identifiant dans l'en-tête `x-proces-id` ;
+  - `POST /tribunal` `{"profil", "demande"}`, plus `"calibrage": {"reponses": {…}}` facultatif (Pacte vécu, #68 ; des réponses invalides donnent un 400 sans appel Bedrock), renvoie le contrat, archivé dans `traces/<date>/<id>.json`, avec l'identifiant dans l'en-tête `x-proces-id` ;
   - `POST /verdict` `{"id", "verdict"}` archive le procès avec le choix de l'utilisateur dans `verdicts/<profil>/<id>.json` (relu par l'outil de jurisprudence, #56).
 
 ## Lambda

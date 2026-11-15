@@ -136,6 +136,8 @@ export interface ReglePacte {
   message: string;
   valeur: number | null;
   utilisation: number | null;
+  /** Seuil mesuré par le Pacte vécu (#68) : « Mesurée sur vos réponses du … ». */
+  provenance?: string;
 }
 
 export interface Profil {
@@ -207,6 +209,71 @@ export interface ConfigProfilUI {
   recherche?: { mode: 'position' | 'panier'; titre: string; aide: string; placeholder: string };
   panierDemo?: string[];
   journal?: EntreeJournal[];
+}
+
+// --- Pacte vécu (#68) : frontend/src/data/generated/calibrage/<id>.json ----------
+
+export interface QuestionBaisse {
+  id: string;
+  type: 'baisse';
+  choix: string[];
+  serie: string;
+  date_sommet: string;
+  date_jour: string;
+  baisse: number;
+  valeur_sommet: number;
+  valeur_jour: number;
+  niveau: number;
+  anneesRetour: number | null;
+  /** Valeur en dollars (capital au sommet) jusqu'au jour de l'épisode : rien de la suite. */
+  historique: [string, number][];
+}
+
+export interface QuestionCapacite {
+  id: 'capacite';
+  type: 'capacite';
+  choix: string[];
+  serie: string;
+  date_sommet: string;
+  baisse: number;
+  annees_retour: number | null;
+  horizon_ans: (number | null)[];
+}
+
+export interface QuestionCrypto {
+  id: 'crypto';
+  type: 'crypto';
+  choix: string[];
+  serie: string;
+  date_sommet: string;
+  date_jour: string;
+  baisse: number;
+  part: number;
+  valeur_sommet: number;
+  valeur_jour: number;
+}
+
+export interface QuestionValeurs {
+  id: string;
+  type: 'valeurs';
+  choix: string[];
+  regle: string;
+  libelle: string;
+}
+
+export type QuestionCalibrage = QuestionBaisse | QuestionCapacite | QuestionCrypto | QuestionValeurs;
+
+export interface DonneesCalibrage {
+  profil: string;
+  capital: number;
+  horizonAns: (number | null)[];
+  episodes: QuestionBaisse[];
+  crypto: QuestionCrypto | null;
+  valeurs: QuestionValeurs[];
+  /** Réponses préenregistrées du profil de test (étiquette fictif) et le seuil calculé en Python. */
+  demo: { date: string; reponses: Record<string, string>; seuil: number | null } | null;
+  source: string;
+  limites: string;
 }
 
 /** Décision en cours d'instruction, en points de pourcentage entiers. */

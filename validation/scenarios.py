@@ -22,6 +22,7 @@ from typing import Any, Callable, Iterator
 from unittest import mock
 
 from pipeline import categories as module_categories
+from pipeline.calibrage import RESTE, VEND, calibrer, episodes_de_baisse, prochaine_question
 from pipeline.chiffres import verifier_argument
 from pipeline.greffier import verifier_pacte
 from pipeline.indicateurs import calculer_pire_baisse, calculer_volatilite_annuelle
@@ -392,6 +393,43 @@ def scenarios_profil_invente() -> list[Resultat]:
 
 # --- Exécution et rapport -------------------------------------------------------------------
 
+# --- 9. Le Pacte vécu (#68) ---------------------------------------------------------
+
+LIMITES_VECUES = [0.0, -0.08, -0.12, -0.20, -0.32, -0.60]
+
+
+def reponses_jusqu_a(un_profil: dict[str, Any], limite: float) -> dict[str, str]:
+    """Un utilisateur fictif qui reste tant que la baisse du jour ne dépasse pas ``limite``."""
+    episodes, reponses = episodes_de_baisse(un_profil["portefeuille"]), {}
+    while (question := prochaine_question(un_profil, reponses, episodes)) is not None:
+        if question["type"] == "baisse":
+            reponses[question["id"]] = RESTE if question["baisse"] >= limite else VEND
+        else:
+            reponses[question["id"]] = question["choix"][0]
+    return reponses
+
+
+def scenarios_pacte_vecu() -> list[Resultat]:
+    """Le seuil mesuré suit les réponses, et le Greffier juge 30 % TSLA avec ce seuil."""
+    groupe = "9. Pacte vécu (profil prudent, 30 % TSLA)"
+    resultats = []
+    for limite in LIMITES_VECUES:
+        reponses = reponses_jusqu_a(profil("robert"), limite)
+        mesure = calibrer(profil("robert"), reponses, "2026-11-15", "P2")
+        if mesure.seuil is None:
+            attendu, obtenu = "seuil du Pacte conservé", f"seuil {pourcent(regle(mesure.profil, 'pire_baisse_max')['seuil'])}"
+            ok = regle(mesure.profil, "pire_baisse_max")["seuil"] == regle(profil("robert"), "pire_baisse_max")["seuil"]
+        else:
+            jugement = juger(mesure.profil, position("TSLA", 0.30))
+            statut = "violation" if jugement.pire_baisse < mesure.seuil else "conforme"
+            attendu = f"seuil ≥ {pourcent(limite)} ; {statut}"
+            obtenu = (f"seuil {pourcent(mesure.seuil)} en {len([q for q in reponses if q.startswith('baisse_')])} "
+                      f"questions ; {jugement.statut('pire_baisse_max')}")
+            ok = mesure.seuil >= limite and jugement.statut("pire_baisse_max") == statut
+        resultats.append(Resultat(groupe, f"Reste jusqu'à {pourcent(limite)}", attendu, obtenu, ok))
+    return resultats
+
+
 GROUPES = [
     scenarios_profils,
     scenarios_seuil,
@@ -400,6 +438,7 @@ GROUPES = [
     scenarios_greffier,
     scenarios_orchestrateur,
     scenarios_profil_invente,
+    scenarios_pacte_vecu,
 ]
 
 

@@ -200,10 +200,32 @@ def piece_simulation(
     """
     actuel, apres = _deux_simulations(portefeuille, decision)
     if periode == "complete":
-        return _piece_periode_complete(id_piece, actuel, apres)
+        return _piece_periode_complete(id_piece, actuel, apres, decision)
     if periode == "2022":
-        return _piece_rejeu_2022(id_piece, actuel, apres)
+        return _piece_rejeu_2022(id_piece, actuel, apres, decision)
     raise ErreurSimulation(f"Période « {periode} » inconnue : « complete » ou « 2022 » attendue")
+
+
+def decision_simulee(decision: dict[str, Any]) -> tuple[str, dict[str, float]]:
+    """Ce que la pièce dit de la décision simulée : un libellé pour le titre, et sa taille brute.
+
+    La taille figure dans les ``valeurs`` : un agent peut alors écrire « à 15 % en TSLA »
+    (le Greffier la retrouve dans la pièce) au lieu de deviner quelle taille a été simulée,
+    ce qui compte quand plusieurs simulations sont au dossier (contre-interrogatoire, #55).
+    """
+    if decision["type"] == "reallocation":
+        part = decision["part_reallouee"]
+        return f"réallocation de {_part(part)} du portefeuille", {"part_reallouee": round(part, DECIMALES_VALEURS)}
+    libelle = f"{_part(decision['taille'])} en {decision['ticker']}"
+    if decision["financement"].startswith("depuis_"):
+        libelle += f", financé par {decision['financement'].removeprefix('depuis_')}"
+    return libelle, {"taille": round(decision["taille"], DECIMALES_VALEURS)}
+
+
+def _part(part: float) -> str:
+    """0.15 → « 15 % » ; 0.075 → « 7,5 % » (une décimale au plus, sans signe)."""
+    texte = f"{part * 100:.1f}".rstrip("0").rstrip(".")
+    return f"{texte.replace('.', ',')} %"
 
 
 class _Simulation:
@@ -269,17 +291,20 @@ def _bornes_2022(valeurs: pd.Series) -> list[str]:
 # --- Pièces -------------------------------------------------------------------
 
 
-def _piece_periode_complete(id_piece: str, actuel: _Simulation, apres: _Simulation) -> dict[str, Any]:
+def _piece_periode_complete(id_piece: str, actuel: _Simulation, apres: _Simulation,
+                            decision: dict[str, Any]) -> dict[str, Any]:
     ind_actuel, ind_apres = actuel.indicateurs(), apres.indicateurs()
     debut, fin = apres.valeurs.index[0], apres.valeurs.index[-1]
     annees = round((fin - debut).days / 365.25)
+    libelle, valeurs_decision = decision_simulee(decision)
     return {
         "id": id_piece,
         "type": "calculee",
         "etiquette": "fictif",
-        "titre": "Simulation du portefeuille avec la décision",
+        "titre": f"Simulation du portefeuille avec {libelle}",
         "outil": NOM_OUTIL,
         "valeurs": _arrondir({
+            **valeurs_decision,
             "pire_baisse": ind_apres["pire_baisse"],
             "rendement_annuel": ind_apres["rendement_annuel"],
             "volatilite_annuelle": ind_apres["volatilite_annuelle"],
@@ -300,16 +325,19 @@ def _piece_periode_complete(id_piece: str, actuel: _Simulation, apres: _Simulati
     }
 
 
-def _piece_rejeu_2022(id_piece: str, actuel: _Simulation, apres: _Simulation) -> dict[str, Any]:
+def _piece_rejeu_2022(id_piece: str, actuel: _Simulation, apres: _Simulation,
+                      decision: dict[str, Any]) -> dict[str, Any]:
     rendement_actuel = actuel.indicateurs()["rendement_2022"]
     rendement_apres = apres.indicateurs()["rendement_2022"]
+    libelle, valeurs_decision = decision_simulee(decision)
     return {
         "id": id_piece,
         "type": "calculee",
         "etiquette": "fictif",
-        "titre": "Rejeu de 2022",
+        "titre": f"Rejeu de 2022 avec {libelle}",
         "outil": NOM_OUTIL,
         "valeurs": {
+            **valeurs_decision,
             "periode": _bornes_2022(apres.valeurs),
             **_arrondir({"rendement_2022_actuel": rendement_actuel, "rendement_2022_apres": rendement_apres}),
         },

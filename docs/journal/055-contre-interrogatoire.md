@@ -1,6 +1,6 @@
 # #55 — Contre-interrogatoire : question libre de l'utilisateur
 
-- **Issue** : #55 · **PR** : #72 · **Statut** : en cours (branchement dans l'interface à suivre)
+- **Issue** : #55 · **PR** : #72, #74 · **Statut** : en cours (branchement dans l'interface à suivre)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -10,6 +10,7 @@
   - `QuestionInvalide` : question vide ou trop longue, ou procès sans décision, refusés **avant tout appel au modèle**.
 - **`pipeline/orchestrateur.py`** : `instruire_question` reprend la boucle de `instruire_dossier`, mise en commun dans `_jouer`, avec ses propres consignes (`CONSIGNES_QUESTION`). Le budget est plus petit (`BUDGET_APPELS_QUESTION = 4`), les pièces déjà au dossier sont montrées au modèle pour qu'il ne les recalcule pas, et aucune pièce n'est ajoutée d'office. `instruire_dossier` ne change pas.
 - **`pipeline/debat.py`** : si le dossier porte une `question`, `construire_message` l'ajoute avec la consigne de réponse (`CONSIGNE_QUESTION`) : 1 à 3 arguments, et une demande de conseil reçoit un seul argument, sans chiffre, qui le dit. Sans question, le message est identique.
+- **`pipeline/simulation.py`** (complète la fiche [009](009-simuler-portefeuille.md)) : les pièces de simulation disent quelle décision elles simulent. Le titre devient « Simulation du portefeuille avec 15 % en TSLA » ou « Rejeu de 2022 avec 15 % en TSLA » (`decision_simulee`), et les `valeurs` contiennent la taille simulée (`taille`, ou `part_reallouee` pour une réallocation). Sans cela, avec plusieurs simulations au dossier, les agents ne savaient pas laquelle correspondait à la question et ne pouvaient pas écrire « 15 % », que le Greffier aurait refusé. Les chiffres ne changent pas.
 - **`contrat/schema_sortie.json`** et **`contrat/valider.py`** : champ facultatif `contre_interrogatoire` (définition `echange_contre_interrogatoire`) et ses renvois : pièces ajoutées présentes dans `pieces` et jamais ajoutées deux fois, pièces citées existantes, sorties de l'orchestrateur valides, `controle_chiffres` portant sur `verifier_chiffres`. Les contrats sans ce champ restent valides.
 - **`deploiement/lambda_tribunal.py`** : route `POST /question` `{"id", "question"}`. Elle relit `traces/<date>/<id>.json`, appelle `interroger`, réarchive le contrat complété au même endroit et renvoie `{"id", "echange", "pieces"}`. Erreurs : 400 (identifiant ou question invalide), 404 (procès ou profil inconnu), 422 (Pacte ou données inutilisables), 500 (erreur inattendue, détail dans CloudWatch).
 - **Tests** : `tests/test_contre_interrogatoire.py` (17 tests avec un faux modèle, plus 1 test réel `bedrock`) et 6 tests de la route dans `tests/test_lambda_tribunal.py`.
@@ -30,6 +31,8 @@ pytest -m bedrock tests/test_contre_interrogatoire.py   # vrai appel, payant
 ```
 Les tests vérifient la numérotation à la suite, le budget de 4 appels, l'absence de pièce d'office, le rejet d'un chiffre inventé (« −99,0 % »), l'enchaînement de deux questions, une demande de conseil sans outil, et la validité du contrat complété (`contrat.valider`).
 
+**Vérifié avec Bedrock** (2026-11-15, compte de l'événement), sur le faux contrat du cas 1 : « Et si je mettais 15 % au lieu de 30 % ? ». L'orchestrateur simule 15 % en TSLA sur toute la période et en 2022 (P6, P7). Le Procureur et l'Avocat écrivent 6 arguments, du type « Avec 15 % en TSLA, la pire baisse simulée passe de −29,0 % (à 30 %) à −16,4 %, ce qui dépasse encore la règle […] −12 % ». Le Greffier vérifie 33 chiffres sur 33, et le contrat complété passe `contrat.valider`. Avant la correction des titres de simulation, les mêmes agents écrivaient « si la simulation la plus récente correspond à une position réduite… ».
+
 ## Choix faits en cours de route
 - **Nouvelles pièces dans `pieces`**, plutôt que dans l'échange : les identifiants restent uniques, une question suivante peut les citer, et l'interface les affiche comme les autres pièces.
 - **Trace de l'échange dans l'échange** : la trace du procès reste celle du procès.
@@ -40,4 +43,4 @@ Les tests vérifient la numérotation à la suite, le budget de 4 appels, l'abse
 ## Limites et suite
 - **Interface** (#14) : en mode direct, la case de question libre de l'écran Tribunal doit appeler `/question` et afficher l'échange. Le format est à valider avec Yanis ; à faire dans une deuxième PR.
 - **Déploiement** : redéployer avec `deploiement/deployer.py` pour que la route existe sur la Lambda.
-- Le test réel `bedrock` n'a pas encore été lancé.
+- Le Procureur cite parfois le profil de risque sous sa forme brute (« faible_a_modere ») : à reformuler dans les consignes du débat (#11).

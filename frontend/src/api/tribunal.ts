@@ -20,8 +20,9 @@ import { profil as profilDe } from './donnees';
 import { correspondAuContrat, demandeDecision, libelleDecision } from '../domaine/decision';
 import { estPhase } from '../domaine/progression';
 
-export const MODE_DIRECT = import.meta.env.VITE_USE_MOCKS === 'false';
-const URL_API = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+import { MODE_DIRECT, URL_API, lireErreur } from './config';
+
+export { MODE_DIRECT };
 
 const contratsEnregistres = import.meta.glob<ContratTribunal>('../data/proces/*.json', { import: 'default' });
 
@@ -80,19 +81,6 @@ export async function decisionEnregistree(idProfil: string): Promise<DecisionUI 
   return premier ? decisionDepuisContrat(premier.contrat.decision) : null;
 }
 
-async function lireErreur(reponse: Response): Promise<string> {
-  if (reponse.status === 429) {
-    // Concurrence réservée de 2 (coûts Bedrock) ou limite de débit de /verifier.
-    return 'Le Tribunal est occupé : deux procès au plus en même temps, et un nombre limité de vérifications par minute. Réessayez dans un instant.';
-  }
-  try {
-    const corps = await reponse.json();
-    if (corps && typeof corps.erreur === 'string') return corps.erreur;
-  } catch {
-    /* corps illisible : message générique ci-dessous */
-  }
-  return `Le Tribunal a répondu ${reponse.status}`;
-}
 
 export const INTERVALLE_SUIVI_MS = 1500;
 export const DELAI_MAX_SUIVI_MS = 120_000;

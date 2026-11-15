@@ -245,13 +245,20 @@ export function Decision({ profil }: { profil: Profil }) {
   const decision = etat.decision;
   useTitre(decision?.type === 'panier' ? 'Composer un panier' : `Décision${decision?.type === 'position' ? ` · ${decision.ticker}` : ''}`);
   const [tablePosition, setTablePosition] = useState<TablePosition | null>(null);
+  const [erreurTable, setErreurTable] = useState<string | null>(null);
   const [tablePanier, setTablePanier] = useState<TablePanier | null | undefined>(undefined);
   const idErreur = 'erreur-total';
 
   const ticker = decision?.type === 'position' ? decision.ticker : null;
   useEffect(() => {
     let actif = true;
-    if (ticker) chargerTablePosition(profil.id, ticker).then((t) => actif && setTablePosition(t));
+    setErreurTable(null);
+    // Profil créé (#86), en mode direct : la table est calculée par la Lambda et peut échouer.
+    if (ticker) {
+      chargerTablePosition(profil.id, ticker)
+        .then((t) => actif && setTablePosition(t))
+        .catch((e: Error) => actif && setErreurTable(e.message));
+    }
     return () => { actif = false; };
   }, [profil.id, ticker]);
   useEffect(() => {
@@ -322,7 +329,9 @@ export function Decision({ profil }: { profil: Profil }) {
           />
         )}
 
-        {chargement && <p className="t-corps c-500" role="status">Chargement de la simulation…</p>}
+        {erreurTable
+          ? <p className="t-corps c-700" role="alert">Simulation indisponible : {erreurTable}</p>
+          : chargement && <p className="t-corps c-500" role="status">Chargement de la simulation…</p>}
 
         {entree && (
           <BlocEffets

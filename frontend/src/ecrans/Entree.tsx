@@ -1,6 +1,6 @@
 /** Écran d'entrée : choisir un profil de démonstration (annexe C.1). */
-import { useNavigate } from 'react-router-dom';
-import { configUi, idsProfils, libelleProfilRisque, profil as profilDe } from '../api/donnees';
+import { Link, useNavigate } from 'react-router-dom';
+import { configUi, idsProfils, libelleProfilRisque, profil as profilDe, profilsCrees } from '../api/donnees';
 import { Bouton } from '../components/Bouton';
 import { Provenance } from '../components/Etiquettes';
 import { Gabarit, useTitre } from '../components/Gabarit';
@@ -11,6 +11,7 @@ export function Entree() {
   useTitre('Choisir un profil');
   const navigate = useNavigate();
   const profils = idsProfils().map((id) => profilDe(id)!);
+  const crees = profilsCrees();
   const debut = profils[0]?.debut;
   const fin = profils[0]?.fin;
 
@@ -65,6 +66,27 @@ export function Entree() {
             );
           })}
         </ul>
+
+        <section className={styles.construire} aria-labelledby="titre-construire">
+          <div className={styles.texteConstruire}>
+            <p className="t-etiquette c-500">Votre profil</p>
+            <h2 className="t-h2" id="titre-construire">Construire mon Pacte</h2>
+            <p className="t-corps c-700">
+              Environ 5 minutes : 16 questions sur votre horizon, ce que vous pouvez vous permettre de perdre, ce que vous
+              êtes prêt à accepter et vos préférences, puis votre portefeuille. Le Tribunal en tire vos règles, que vous
+              relisez et signez.
+            </p>
+            {crees.length > 0 && (
+              <p className="t-petit c-700">
+                Reprendre :{' '}
+                {crees.map((p, i) => (
+                  <span key={p.id}>{i > 0 && ', '}<Link to={`/${p.id}/portefeuille`}>{p.nom}</Link></span>
+                ))}
+              </p>
+            )}
+          </div>
+          <Bouton variante="primaire" vers="/construire">Construire mon Pacte</Bouton>
+        </section>
 
         <p className={`t-petit c-700 ${styles.pied}`}>
           <Provenance type="Fictif" />

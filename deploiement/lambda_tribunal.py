@@ -42,7 +42,13 @@ Huit routes, en POST, avec un corps JSON :
   choisis par l'utilisateur, le valide et le range dans ``profils/<id>.json`` du bucket.
   L'identifiant est généré ici, jamais tiré du nom saisi : un profil créé n'écrase jamais
   un profil de démonstration. Sans Bedrock. Réponse 201 : ``{id, profil, bareme,
-  contradictions}``. Débit limité par adresse IP, car le point d'accès est public.
+  contradictions, archive, vues}`` ; ``vues`` contient ce que les écrans Portefeuille et
+  « Revivez 4 jours » affichent (``pipeline.vues_interface``, #86). Avec ``"apercu": true``,
+  rien n'est rangé : réponse 200 ``{profil, bareme, contradictions}``, pour l'aperçu du
+  Pacte avant signature. Débit limité par adresse IP, car le point d'accès est public.
+- ``/table`` ``{"profil": "<id>", "ticker": "<ticker>"}`` (#86) : la table de l'écran
+  Décision pour ce titre (position de 0 à 50 %, statut de chaque règle du Pacte), la même
+  que celles précalculées pour les profils de démonstration. Sans Bedrock.
 
 Le procès lancé en arrière-plan arrive par un événement interne
 ``{"action": "juger_en_arriere_plan", "id": …}``, envoyé par la Lambda elle-même. Un
@@ -89,6 +95,7 @@ from pipeline.profils import (
     enregistrer_profil,
     nouvel_identifiant_profil,
 )
+from pipeline.agent_profil import charger_profil
 from pipeline.questionnaire import (
     ReponsesInvalides,
     contradictions,
@@ -99,10 +106,12 @@ from pipeline.questionnaire import (
 )
 from pipeline.progression import Progression
 from pipeline.tribunal import bornes_periode, juger_decision, verifier_avant_proces
+from pipeline.univers import charger_univers
+from pipeline.vues_interface import semaines_du_profil, table_position, vues_profil
 
 VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # CLAUDE.md, section 5
 ROUTES = ("/tribunal", "/progression", "/verdict", "/question", "/verifier", "/proces-verbal",
-          "/questionnaire", "/profil")
+          "/questionnaire", "/profil", "/table")
 ACTION_JUGER = "juger_en_arriere_plan"  # événement interne : procès lancé par /tribunal (#90)
 DEBIT_MAX_PROGRESSION = 90  # relectures par minute et par adresse IP (l'interface relit toutes les 1,5 s)
 _appels_progression: dict[str, deque] = {}
@@ -128,8 +137,9 @@ LIGNES_MAX_PORTEFEUILLE = 31  # titres de assets_universe.csv
 LONGUEUR_MAX_NOM = 40
 MODIFICATIONS_MAX = 10
 NOM_PAR_DEFAUT = "Investisseur"
-DEBIT_MAX_PROFIL = 10  # profils créés par minute et par adresse IP
+DEBIT_MAX_PROFIL = 10  # profils créés ou aperçus par minute et par adresse IP
 _appels_profil: dict[str, deque] = {}
+FORMAT_ID_PROFIL = re.compile(r"[a-z][a-z0-9_]{0,63}")
 
 
 class RequeteInvalide(Exception):
@@ -194,6 +204,8 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
             return _reponse(200, {"questions": questions()})
         if chemin == "/profil":
             return _profil(corps, adresse)
+        if chemin == "/table":
+            return _table(corps)
         if chemin == "/proces-verbal":
             return _proces_verbal(corps)
         return _verdict(corps)
@@ -388,6 +400,9 @@ def _profil(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
         raise RequeteInvalide(f"Champ « nom » invalide : {LONGUEUR_MAX_NOM} caractères au plus")
     if not isinstance(modifications, dict) or len(modifications) > MODIFICATIONS_MAX:
         raise RequeteInvalide("Champ « modifications » invalide : {\"<id de règle>\": <nouvelle valeur>}")
+    apercu = corps.get("apercu", False)
+    if not isinstance(apercu, bool):
+        raise RequeteInvalide("Champ « apercu » invalide : true ou false")
 
     date_reponses = datetime.now(timezone.utc).date().isoformat()
     identifiant = nouvel_identifiant_profil()
@@ -396,18 +411,37 @@ def _profil(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
                                         identifiant=identifiant, nom=nom.strip())
         if modifications:
             profil = appliquer_modifications(profil, modifications, date_reponses)
-        enregistrer_profil(profil)
+        if not apercu:
+            enregistrer_profil(profil)
     except ReponsesInvalides as erreur:
         return _reponse(400, {"erreur": "Réponses refusées", "details": erreur.erreurs})
     except ProfilDejaExistant as erreur:  # identifiant aléatoire : en pratique, jamais
         return _reponse(409, {"erreur": str(erreur)})
-    return _reponse(201, {
-        "id": identifiant,
+    contenu = {
         "profil": profil,
         "bareme": detail_bareme(reponses, date_reponses),
         "contradictions": contradictions(valider_reponses(reponses)),
-        "archive": cle_profil(identifiant),
-    })
+    }
+    if apercu:
+        return _reponse(200, contenu)
+    return _reponse(201, {"id": identifiant, **contenu, "archive": cle_profil(identifiant),
+                          "vues": vues_profil(profil)})
+
+
+def _table(corps: dict[str, Any]) -> dict[str, Any]:
+    """Table de l'écran Décision d'un titre, pour un profil créé (ou de démonstration)."""
+    identifiant, ticker = corps.get("profil"), corps.get("ticker")
+    if not isinstance(identifiant, str) or not FORMAT_ID_PROFIL.fullmatch(identifiant):
+        raise RequeteInvalide("Champ « profil » invalide : l'identifiant renvoyé par /profil")
+    if ticker not in {titre["ticker"] for titre in charger_univers()}:
+        raise RequeteInvalide("Champ « ticker » invalide : un titre de l'univers, ex. « TSLA »")
+    try:
+        profil = charger_profil(identifiant)
+    except ProfilInconnu as erreur:
+        return _reponse(404, {"erreur": str(erreur)})
+    except PacteInvalide as erreur:
+        return _reponse(422, {"erreur": "Pacte du profil invalide", "details": erreur.erreurs})
+    return _reponse(200, table_position(profil, ticker, semaines_du_profil(profil)))
 
 
 def _verdict(corps: dict[str, Any]) -> dict[str, Any]:

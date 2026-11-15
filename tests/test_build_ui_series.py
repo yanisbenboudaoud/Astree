@@ -1,21 +1,20 @@
-"""Tests de scripts/build_ui_series.py : les données de l'interface reprennent les calculs du pipeline."""
+"""Tests des données de l'interface (pipeline/vues_interface.py, utilisé par scripts/build_ui_series.py et la Lambda) :
+elles reprennent les calculs du pipeline."""
 
 from __future__ import annotations
 
 import base64
-import importlib.util
+import json
 from pathlib import Path
 
 import numpy as np
 import pytest
 
+from pipeline import vues_interface as build
 from pipeline.categories import charger_categories
 from pipeline.pacte import charger_pacte
 
 RACINE = Path(__file__).resolve().parents[1]
-_spec = importlib.util.spec_from_file_location("build_ui_series", RACINE / "scripts" / "build_ui_series.py")
-build = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(build)
 
 
 @pytest.fixture(scope="module")
@@ -78,3 +77,11 @@ def test_groupes_deduits_de_l_univers_sans_nom_de_profil():
     assert build.groupe_du_titre(univers.loc["RY.TO"]) == "Actions canadiennes"
     assert build.groupe_du_titre(univers.loc["JNJ"]) == "Actions américaines"
     assert set(charger_categories()) >= {"crypto", "tech"}
+
+
+def test_vues_d_un_profil_identiques_aux_fichiers_precalcules(robert):
+    """La Lambda (/profil, #86) et scripts/build_ui_series.py produisent les mêmes vues."""
+    generes = RACINE / "frontend" / "src" / "data" / "generated"
+    vues = json.loads(json.dumps(build.vues_profil(robert)))
+    assert vues["profil"] == json.loads((generes / "profils" / "robert.json").read_text(encoding="utf-8"))
+    assert vues["calibrage"] == json.loads((generes / "calibrage" / "robert.json").read_text(encoding="utf-8"))

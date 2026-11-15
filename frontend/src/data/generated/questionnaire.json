@@ -1,0 +1,3499 @@
+{
+ "questions": [
+  {
+   "id": "horizon",
+   "nom_court": "Horizon",
+   "section": "Objectif et horizon",
+   "type": "choix",
+   "obligatoire": true,
+   "libelle": "Dans combien de temps pensez-vous retirer une part importante (plus du quart) de cet argent ?",
+   "alimente": "horizon_ans ; plafond de capacité",
+   "choix": [
+    {
+     "id": "moins_3",
+     "libelle": "Moins de 3 ans",
+     "horizon_ans": [
+      0,
+      3
+     ]
+    },
+    {
+     "id": "3_5",
+     "libelle": "3 à 5 ans",
+     "horizon_ans": [
+      3,
+      5
+     ]
+    },
+    {
+     "id": "5_10",
+     "libelle": "5 à 10 ans",
+     "horizon_ans": [
+      5,
+      10
+     ]
+    },
+    {
+     "id": "10_15",
+     "libelle": "10 à 15 ans",
+     "horizon_ans": [
+      10,
+      15
+     ]
+    },
+    {
+     "id": "plus_15",
+     "libelle": "Plus de 15 ans",
+     "horizon_ans": [
+      15,
+      null
+     ]
+    }
+   ]
+  },
+  {
+   "id": "objectif",
+   "nom_court": "Objectif",
+   "section": "Objectif et horizon",
+   "type": "choix",
+   "libelle": "À quoi servira surtout cet argent ?",
+   "alimente": "règle qualitative (l'objectif, en clair)",
+   "choix": [
+    {
+     "id": "retraite",
+     "libelle": "Retraite",
+     "regle": "Préparer ma retraite"
+    },
+    {
+     "id": "projet",
+     "libelle": "Un projet précis (maison, études…)",
+     "regle": "Financer un projet précis"
+    },
+    {
+     "id": "croissance",
+     "libelle": "Faire croître mon patrimoine",
+     "regle": "Faire croître mon patrimoine"
+    },
+    {
+     "id": "revenu",
+     "libelle": "Me verser un revenu régulier",
+     "regle": "Me verser un revenu régulier"
+    }
+   ]
+  },
+  {
+   "id": "retraits",
+   "nom_court": "Retraits annuels",
+   "section": "Objectif et horizon",
+   "type": "choix",
+   "libelle": "Prévoyez-vous retirer de l'argent chaque année ?",
+   "alimente": "plafond de capacité",
+   "choix": [
+    {
+     "id": "non",
+     "libelle": "Non"
+    },
+    {
+     "id": "peu",
+     "libelle": "Un peu (moins de 4 % par an)"
+    },
+    {
+     "id": "beaucoup",
+     "libelle": "Beaucoup (4 % ou plus)"
+    }
+   ]
+  },
+  {
+   "id": "coussin",
+   "nom_court": "Coussin de sécurité",
+   "section": "Capacité : pouvez-vous vous permettre une baisse ?",
+   "type": "choix",
+   "libelle": "Si vous perdiez votre revenu demain, combien de mois pourriez-vous payer vos dépenses sans toucher à ce portefeuille ?",
+   "alimente": "plafond de capacité",
+   "choix": [
+    {
+     "id": "moins_3",
+     "libelle": "Moins de 3 mois"
+    },
+    {
+     "id": "3_6",
+     "libelle": "3 à 6 mois"
+    },
+    {
+     "id": "6_12",
+     "libelle": "6 à 12 mois"
+    },
+    {
+     "id": "plus_12",
+     "libelle": "Plus de 12 mois"
+    }
+   ]
+  },
+  {
+   "id": "part_patrimoine",
+   "nom_court": "Part de l'épargne",
+   "section": "Capacité : pouvez-vous vous permettre une baisse ?",
+   "type": "choix",
+   "libelle": "Quelle part de votre épargne totale ce portefeuille représente-t-il ?",
+   "alimente": "plafond de capacité",
+   "choix": [
+    {
+     "id": "moins_quart",
+     "libelle": "Moins du quart"
+    },
+    {
+     "id": "quart_moitie",
+     "libelle": "Du quart à la moitié"
+    },
+    {
+     "id": "moitie_trois_quarts",
+     "libelle": "De la moitié aux trois quarts"
+    },
+    {
+     "id": "presque_tout",
+     "libelle": "Presque tout"
+    }
+   ]
+  },
+  {
+   "id": "revenu",
+   "nom_court": "Revenu",
+   "section": "Capacité : pouvez-vous vous permettre une baisse ?",
+   "type": "choix",
+   "libelle": "Pour les 5 prochaines années, votre revenu est plutôt :",
+   "alimente": "plafond de capacité",
+   "choix": [
+    {
+     "id": "tres_stable",
+     "libelle": "Très stable"
+    },
+    {
+     "id": "assez_stable",
+     "libelle": "Assez stable"
+    },
+    {
+     "id": "incertain",
+     "libelle": "Incertain"
+    },
+    {
+     "id": "sans_revenu",
+     "libelle": "Je n'ai plus de revenu de travail"
+    }
+   ]
+  },
+  {
+   "id": "fourchettes",
+   "nom_court": "Portefeuille choisi",
+   "section": "Tolérance : voulez-vous accepter une baisse ?",
+   "type": "cartes",
+   "libelle": "Voici des portefeuilles réels et ce qu'ils ont vécu sur la période, pour 100 000 $ placés. Lequel auriez-vous choisi ?",
+   "alimente": "seuil déclaré de pire_baisse_max",
+   "justification": "Cinq portefeuilles de l'univers, du plus prudent au plus audacieux. XBB.TO seul n'est pas proposé : en 2022, les obligations ont baissé plus qu'un portefeuille 60/40, ce qui brouillerait l'ordre. Tous les chiffres affichés sont calculés par pipeline.questionnaire.cartes_fourchettes (mêmes calculs que simuler_portefeuille).",
+   "cartes": [
+    {
+     "id": "tres_prudent",
+     "libelle": "Obligations à très court terme",
+     "portefeuille": [
+      {
+       "ticker": "ZST.TO",
+       "poids": 1.0
+      }
+     ],
+     "pire_baisse": -0.004283,
+     "montant_pire_moment": 99572,
+     "valeur_finale": 118273,
+     "capital": 100000,
+     "periode": [
+      "2021-11-12",
+      "2026-11-12"
+     ]
+    },
+    {
+     "id": "equilibre",
+     "libelle": "60 % obligations, 40 % actions canadiennes",
+     "portefeuille": [
+      {
+       "ticker": "XBB.TO",
+       "poids": 0.6
+      },
+      {
+       "ticker": "XIU.TO",
+       "poids": 0.4
+      }
+     ],
+     "pire_baisse": -0.131555,
+     "montant_pire_moment": 86844,
+     "valeur_finale": 133385,
+     "capital": 100000,
+     "periode": [
+      "2021-11-12",
+      "2026-11-12"
+     ]
+    },
+    {
+     "id": "actions",
+     "libelle": "Actions américaines (S&P 500)",
+     "portefeuille": [
+      {
+       "ticker": "SPY",
+       "poids": 1.0
+      }
+     ],
+     "pire_baisse": -0.222457,
+     "montant_pire_moment": 77754,
+     "valeur_finale": 196539,
+     "capital": 100000,
+     "periode": [
+      "2021-11-12",
+      "2026-11-12"
+     ]
+    },
+    {
+     "id": "croissance",
+     "libelle": "Actions technologiques (Nasdaq-100)",
+     "portefeuille": [
+      {
+       "ticker": "QQQ",
+       "poids": 1.0
+      }
+     ],
+     "pire_baisse": -0.320501,
+     "montant_pire_moment": 67950,
+     "valeur_finale": 203804,
+     "capital": 100000,
+     "periode": [
+      "2021-11-12",
+      "2026-11-12"
+     ]
+    },
+    {
+     "id": "audacieux",
+     "libelle": "Croissance et cryptoactifs : 50 % Nasdaq-100, 25 % Bitcoin, 25 % actions canadiennes",
+     "portefeuille": [
+      {
+       "ticker": "QQQ",
+       "poids": 0.5
+      },
+      {
+       "ticker": "BTC-USD",
+       "poids": 0.25
+      },
+      {
+       "ticker": "XIU.TO",
+       "poids": 0.25
+      }
+     ],
+     "pire_baisse": -0.382858,
+     "montant_pire_moment": 61714,
+     "valeur_finale": 199056,
+     "capital": 100000,
+     "periode": [
+      "2021-11-12",
+      "2026-11-12"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "reaction",
+   "nom_court": "Réaction à une baisse",
+   "section": "Tolérance : voulez-vous accepter une baisse ?",
+   "type": "choix",
+   "libelle": "Votre portefeuille de 100 000 $ vaut 82 000 $ trois mois plus tard. Que faites-vous ?",
+   "alimente": "resserre le seuil déclaré si vous vendez (sauf si votre vécu de 2022 dit le contraire)",
+   "choix": [
+    {
+     "id": "vend_tout",
+     "libelle": "Je vends tout",
+     "vend": true
+    },
+    {
+     "id": "vend_partie",
+     "libelle": "J'en vends une partie",
+     "vend": true
+    },
+    {
+     "id": "rien",
+     "libelle": "Je ne touche à rien",
+     "vend": false
+    },
+    {
+     "id": "rachete",
+     "libelle": "J'en rachète",
+     "vend": false
+    }
+   ]
+  },
+  {
+   "id": "vecu_2022",
+   "nom_court": "Vécu de 2022",
+   "section": "Tolérance : voulez-vous accepter une baisse ?",
+   "type": "choix",
+   "libelle": "En 2022, les actions et les obligations ont baissé en même temps. Qu'avez-vous fait ?",
+   "alimente": "pèse plus que la réaction imaginée quand vous investissiez déjà",
+   "choix": [
+    {
+     "id": "pas_investi",
+     "libelle": "Je n'investissais pas",
+     "investissait": false
+    },
+    {
+     "id": "vendu",
+     "libelle": "J'ai vendu",
+     "investissait": true,
+     "vend": true
+    },
+    {
+     "id": "rien",
+     "libelle": "Je n'ai rien changé",
+     "investissait": true,
+     "vend": false
+    },
+    {
+     "id": "rachete",
+     "libelle": "J'ai racheté",
+     "investissait": true,
+     "vend": false
+    }
+   ]
+  },
+  {
+   "id": "regard_proches",
+   "nom_court": "Regard des proches",
+   "section": "Tolérance : voulez-vous accepter une baisse ?",
+   "type": "choix",
+   "libelle": "Comment vos proches décriraient-ils votre rapport au risque ?",
+   "alimente": "contrôle de cohérence (#85)",
+   "choix": [
+    {
+     "id": "tres_prudent",
+     "libelle": "Très prudent"
+    },
+    {
+     "id": "prudent",
+     "libelle": "Prudent"
+    },
+    {
+     "id": "risques_reflechis",
+     "libelle": "Prêt à prendre des risques réfléchis"
+    },
+    {
+     "id": "joueur",
+     "libelle": "Joueur"
+    }
+   ]
+  },
+  {
+   "id": "experience",
+   "nom_court": "Expérience",
+   "section": "Connaissances et expérience",
+   "type": "choix_multiples",
+   "libelle": "Dans quoi avez-vous déjà investi ?",
+   "alimente": "contrôle à vérifier si une décision porte sur un type de titre jamais utilisé (controle_experience)",
+   "justification": "« classes » relie chaque choix aux champs asset_class de assets_universe.csv. Un type jamais détenu ne bloque rien : le contrôle le signale.",
+   "choix": [
+    {
+     "id": "depots",
+     "libelle": "Dépôts, CPG"
+    },
+    {
+     "id": "fonds",
+     "libelle": "Fonds ou FNB",
+     "classes": [
+      "etf_equity",
+      "etf_bond",
+      "etf_commodity"
+     ]
+    },
+    {
+     "id": "actions",
+     "libelle": "Actions individuelles",
+     "classes": [
+      "equity"
+     ]
+    },
+    {
+     "id": "crypto",
+     "libelle": "Cryptoactifs",
+     "classes": [
+      "crypto"
+     ]
+    },
+    {
+     "id": "levier",
+     "libelle": "Produits à effet de levier ou options"
+    },
+    {
+     "id": "rien",
+     "libelle": "Rien encore"
+    }
+   ]
+  },
+  {
+   "id": "quiz_baisse",
+   "nom_court": "Quiz sur la baisse",
+   "section": "Connaissances et expérience",
+   "type": "choix",
+   "libelle": "Un placement perd 50 %. De combien doit-il monter pour revenir à son point de départ ?",
+   "alimente": "contrôle à vérifier : la règle de pire baisse est-elle bien comprise ? (aucune pénalité)",
+   "choix": [
+    {
+     "id": "50",
+     "libelle": "50 %",
+     "juste": false
+    },
+    {
+     "id": "100",
+     "libelle": "100 %",
+     "juste": true
+    },
+    {
+     "id": "ne_sais_pas",
+     "libelle": "Je ne sais pas",
+     "juste": false
+    }
+   ]
+  },
+  {
+   "id": "crypto",
+   "nom_court": "Cryptoactifs",
+   "section": "Préférences et limites",
+   "type": "choix",
+   "libelle": "Quelle place pour les cryptoactifs dans votre portefeuille ?",
+   "alimente": "règle plafond sur la catégorie crypto",
+   "choix": [
+    {
+     "id": "aucune",
+     "libelle": "Aucune",
+     "max": 0.0
+    },
+    {
+     "id": "5",
+     "libelle": "Au plus 5 %",
+     "max": 0.05
+    },
+    {
+     "id": "10",
+     "libelle": "Au plus 10 %",
+     "max": 0.1
+    },
+    {
+     "id": "25",
+     "libelle": "Au plus 25 %",
+     "max": 0.25
+    }
+   ]
+  },
+  {
+   "id": "concentration",
+   "nom_court": "Concentration",
+   "section": "Préférences et limites",
+   "type": "choix",
+   "libelle": "Quelle part maximale accepteriez-vous dans un seul secteur, comme la technologie ?",
+   "alimente": "règle plafond sur la catégorie tech (aucune règle sans limite)",
+   "choix": [
+    {
+     "id": "quart",
+     "libelle": "Un quart",
+     "max": 0.25
+    },
+    {
+     "id": "moitie",
+     "libelle": "La moitié",
+     "max": 0.5
+    },
+    {
+     "id": "trois_quarts",
+     "libelle": "Les trois quarts",
+     "max": 0.75
+    },
+    {
+     "id": "sans_limite",
+     "libelle": "Pas de limite",
+     "max": null
+    }
+   ]
+  },
+  {
+   "id": "exclusions",
+   "nom_court": "Exclusions",
+   "section": "Préférences et limites",
+   "type": "choix_multiples",
+   "libelle": "Y a-t-il des titres que vous ne voulez pas détenir ?",
+   "alimente": "exclusion d'une catégorie (plafond à 0) ou critère documentaire",
+   "choix": [
+    {
+     "id": "energies_fossiles",
+     "libelle": "Énergies fossiles",
+     "categorie": "energie_fossile"
+    },
+    {
+     "id": "controverses_esg",
+     "libelle": "Entreprises à controverse ESG importante",
+     "critere": "controverse_esg_importante"
+    },
+    {
+     "id": "aucune",
+     "libelle": "Aucune"
+    }
+   ]
+  },
+  {
+   "id": "regle_perso",
+   "nom_court": "Règle personnelle",
+   "section": "Préférences et limites",
+   "type": "texte",
+   "longueur_max": 120,
+   "libelle": "Une règle personnelle à ajouter, en vos mots ? (facultatif)",
+   "alimente": "règle qualitative, texte repris tel quel (aucun LLM)"
+  }
+ ],
+ "demo": {
+  "saisie": {
+   "nom": "Investisseur exemple",
+   "reponses": {
+    "horizon": "5_10",
+    "objectif": "projet",
+    "retraits": "non",
+    "coussin": "3_6",
+    "part_patrimoine": "quart_moitie",
+    "revenu": "tres_stable",
+    "fourchettes": "actions",
+    "reaction": "rien",
+    "vecu_2022": "pas_investi",
+    "regard_proches": "risques_reflechis",
+    "experience": [
+     "fonds",
+     "actions"
+    ],
+    "quiz_baisse": "100",
+    "crypto": "aucune",
+    "concentration": "moitie",
+    "exclusions": [
+     "energies_fossiles"
+    ],
+    "regle_perso": "Pas de titre que je ne comprends pas"
+   },
+   "portefeuille": [
+    {
+     "ticker": "XIU.TO",
+     "poids": 0.35
+    },
+    {
+     "ticker": "SPY",
+     "poids": 0.25
+    },
+    {
+     "ticker": "XBB.TO",
+     "poids": 0.3
+    },
+    {
+     "ticker": "ZST.TO",
+     "poids": 0.1
+    }
+   ],
+   "capital": 120000
+  },
+  "apercu": {
+   "profil": {
+    "id": "investisseur_exemple",
+    "nom": "Investisseur exemple",
+    "etiquette": "fictif",
+    "profil_risque": "modere",
+    "horizon_ans": [
+     5,
+     10
+    ],
+    "capital_fictif_cad": 120000,
+    "portefeuille": [
+     {
+      "ticker": "XIU.TO",
+      "poids": 0.35
+     },
+     {
+      "ticker": "SPY",
+      "poids": 0.25
+     },
+     {
+      "ticker": "XBB.TO",
+      "poids": 0.3
+     },
+     {
+      "ticker": "ZST.TO",
+      "poids": 0.1
+     }
+    ],
+    "pacte": {
+     "date_signature": "2026-11-14",
+     "regles": [
+      {
+       "id": "pire_baisse_max",
+       "type": "pire_baisse_max",
+       "seuil": -0.2,
+       "libelle": "Pire baisse tolérée : −20,0 %",
+       "justification": "Réponse au questionnaire du 2026-11-14. Le seuil retenu est le plus prudent des deux : tolérance déclarée −22,2 % (carte « Actions américaines (S&P 500) » : pire baisse réelle −22,2 % du 2021-11-12 au 2026-11-12) ; plafond de capacité −20,0 % (coussin de sécurité : « 3 à 6 mois »). C'est la capacité qui décide : seuil −20,0 %, arrondi au dixième de point vers le plus prudent. Barème : hypothèse de l'équipe (config/questionnaire.json)."
+      },
+      {
+       "id": "plafond_crypto",
+       "type": "plafond",
+       "categories": [
+        "crypto"
+       ],
+       "max": 0.0,
+       "libelle": "Crypto : exclue",
+       "justification": "Réponse au questionnaire du 2026-11-14 : « Aucune »."
+      },
+      {
+       "id": "plafond_tech",
+       "type": "plafond",
+       "categories": [
+        "tech"
+       ],
+       "max": 0.5,
+       "libelle": "Technologie : 50 % du portefeuille au maximum",
+       "justification": "Réponse au questionnaire du 2026-11-14 : « La moitié »."
+      },
+      {
+       "id": "exclusion_energie_fossile",
+       "type": "plafond",
+       "categories": [
+        "energie_fossile"
+       ],
+       "max": 0.0,
+       "libelle": "Énergies fossiles : exclues",
+       "justification": "Réponse au questionnaire du 2026-11-14 : « Énergies fossiles » parmi les titres que vous ne voulez pas détenir."
+      },
+      {
+       "id": "objectif",
+       "type": "qualitative",
+       "libelle": "Financer un projet précis",
+       "justification": "Réponse au questionnaire du 2026-11-14 : « Un projet précis (maison, études…) ». Non mesurable par calcul : à juger par l'utilisateur."
+      },
+      {
+       "id": "regle_personnelle",
+       "type": "qualitative",
+       "libelle": "Pas de titre que je ne comprends pas",
+       "justification": "Règle personnelle écrite au questionnaire du 2026-11-14, reprise telle quelle (aucun LLM)."
+      }
+     ]
+    },
+    "questionnaire": {
+     "date": "2026-11-14",
+     "etiquette": "fictif",
+     "reponses": {
+      "horizon": "5_10",
+      "objectif": "projet",
+      "retraits": "non",
+      "coussin": "3_6",
+      "part_patrimoine": "quart_moitie",
+      "revenu": "tres_stable",
+      "fourchettes": "actions",
+      "reaction": "rien",
+      "vecu_2022": "pas_investi",
+      "regard_proches": "risques_reflechis",
+      "experience": [
+       "fonds",
+       "actions"
+      ],
+      "quiz_baisse": "100",
+      "crypto": "aucune",
+      "concentration": "moitie",
+      "exclusions": [
+       "energies_fossiles"
+      ],
+      "regle_perso": "Pas de titre que je ne comprends pas"
+     }
+    }
+   },
+   "bareme": {
+    "date": "2026-11-14",
+    "etiquette_bareme": "hypothese",
+    "tolerance": {
+     "pire_baisse_carte": -0.222457,
+     "resserre": false,
+     "source": "reaction",
+     "reponse_source": "Je ne touche à rien",
+     "seuil": -0.222457,
+     "carte": "actions",
+     "libelle_carte": "Actions américaines (S&P 500)"
+    },
+    "capacite": {
+     "plafond": -0.2,
+     "decisifs": [
+      {
+       "question": "coussin",
+       "reponse": "3 à 6 mois",
+       "plafond": -0.2
+      }
+     ],
+     "contraintes": [
+      {
+       "question": "horizon",
+       "reponse": "5 à 10 ans",
+       "plafond": -0.25
+      },
+      {
+       "question": "coussin",
+       "reponse": "3 à 6 mois",
+       "plafond": -0.2
+      },
+      {
+       "question": "part_patrimoine",
+       "reponse": "Du quart à la moitié",
+       "plafond": -0.4
+      }
+     ]
+    },
+    "seuil_retenu": {
+     "valeur": -0.2,
+     "brut": -0.2,
+     "decisif": "capacite"
+    },
+    "profil_risque": "modere",
+    "regles": [
+     {
+      "id": "pire_baisse_max",
+      "etiquette": "hypothese",
+      "reponses": {
+       "fourchettes": "actions",
+       "reaction": "rien",
+       "vecu_2022": "pas_investi",
+       "horizon": "5_10",
+       "retraits": "non",
+       "coussin": "3_6",
+       "part_patrimoine": "quart_moitie",
+       "revenu": "tres_stable"
+      },
+      "explication": "Tolérance −22,2 %, capacité −20,0 % : seuil −20,0 %."
+     },
+     {
+      "id": "plafond_crypto",
+      "etiquette": "fait",
+      "reponses": {
+       "crypto": "aucune"
+      },
+      "explication": "Crypto : exclue"
+     },
+     {
+      "id": "plafond_tech",
+      "etiquette": "fait",
+      "reponses": {
+       "concentration": "moitie"
+      },
+      "explication": "Technologie : 50 % du portefeuille au maximum"
+     },
+     {
+      "id": "exclusion_energie_fossile",
+      "etiquette": "fait",
+      "reponses": {
+       "exclusions": [
+        "energies_fossiles"
+       ]
+      },
+      "explication": "Énergies fossiles : exclues"
+     },
+     {
+      "id": "objectif",
+      "etiquette": "fait",
+      "reponses": {
+       "objectif": "projet"
+      },
+      "explication": "Financer un projet précis"
+     },
+     {
+      "id": "regle_personnelle",
+      "etiquette": "fait",
+      "reponses": {
+       "regle_perso": "Pas de titre que je ne comprends pas"
+      },
+      "explication": "Pas de titre que je ne comprends pas"
+     }
+    ],
+    "controles": [],
+    "experience": [
+     "fonds",
+     "actions"
+    ],
+    "limites": [
+     "Un questionnaire mesure ce que la personne dit ; le Pacte vécu (#68) mesure ce qu'elle choisit devant de vrais jours de marché. Les deux restent des indices, pas des garanties.",
+     "Les barèmes sont des hypothèses de l'équipe, pas une méthode réglementaire."
+    ]
+   },
+   "contradictions": []
+  },
+  "signe": {
+   "id": "investisseur_exemple",
+   "profil": {
+    "id": "investisseur_exemple",
+    "nom": "Investisseur exemple",
+    "etiquette": "fictif",
+    "profil_risque": "modere",
+    "horizon_ans": [
+     5,
+     10
+    ],
+    "capital_fictif_cad": 120000,
+    "portefeuille": [
+     {
+      "ticker": "XIU.TO",
+      "poids": 0.35
+     },
+     {
+      "ticker": "SPY",
+      "poids": 0.25
+     },
+     {
+      "ticker": "XBB.TO",
+      "poids": 0.3
+     },
+     {
+      "ticker": "ZST.TO",
+      "poids": 0.1
+     }
+    ],
+    "pacte": {
+     "date_signature": "2026-11-14",
+     "regles": [
+      {
+       "id": "pire_baisse_max",
+       "type": "pire_baisse_max",
+       "seuil": -0.2,
+       "libelle": "Pire baisse tolérée : −20,0 %",
+       "justification": "Réponse au questionnaire du 2026-11-14. Le seuil retenu est le plus prudent des deux : tolérance déclarée −22,2 % (carte « Actions américaines (S&P 500) » : pire baisse réelle −22,2 % du 2021-11-12 au 2026-11-12) ; plafond de capacité −20,0 % (coussin de sécurité : « 3 à 6 mois »). C'est la capacité qui décide : seuil −20,0 %, arrondi au dixième de point vers le plus prudent. Barème : hypothèse de l'équipe (config/questionnaire.json)."
+      },
+      {
+       "id": "plafond_crypto",
+       "type": "plafond",
+       "categories": [
+        "crypto"
+       ],
+       "max": 0.0,
+       "libelle": "Crypto : exclue",
+       "justification": "Réponse au questionnaire du 2026-11-14 : « Aucune »."
+      },
+      {
+       "id": "plafond_tech",
+       "type": "plafond",
+       "categories": [
+        "tech"
+       ],
+       "max": 0.5,
+       "libelle": "Technologie : 50 % du portefeuille au maximum",
+       "justification": "Réponse au questionnaire du 2026-11-14 : « La moitié »."
+      },
+      {
+       "id": "exclusion_energie_fossile",
+       "type": "plafond",
+       "categories": [
+        "energie_fossile"
+       ],
+       "max": 0.0,
+       "libelle": "Énergies fossiles : exclues",
+       "justification": "Réponse au questionnaire du 2026-11-14 : « Énergies fossiles » parmi les titres que vous ne voulez pas détenir."
+      },
+      {
+       "id": "objectif",
+       "type": "qualitative",
+       "libelle": "Financer un projet précis",
+       "justification": "Réponse au questionnaire du 2026-11-14 : « Un projet précis (maison, études…) ». Non mesurable par calcul : à juger par l'utilisateur."
+      },
+      {
+       "id": "regle_personnelle",
+       "type": "qualitative",
+       "libelle": "Pas de titre que je ne comprends pas",
+       "justification": "Règle personnelle écrite au questionnaire du 2026-11-14, reprise telle quelle (aucun LLM)."
+      }
+     ]
+    },
+    "questionnaire": {
+     "date": "2026-11-14",
+     "etiquette": "fictif",
+     "reponses": {
+      "horizon": "5_10",
+      "objectif": "projet",
+      "retraits": "non",
+      "coussin": "3_6",
+      "part_patrimoine": "quart_moitie",
+      "revenu": "tres_stable",
+      "fourchettes": "actions",
+      "reaction": "rien",
+      "vecu_2022": "pas_investi",
+      "regard_proches": "risques_reflechis",
+      "experience": [
+       "fonds",
+       "actions"
+      ],
+      "quiz_baisse": "100",
+      "crypto": "aucune",
+      "concentration": "moitie",
+      "exclusions": [
+       "energies_fossiles"
+      ],
+      "regle_perso": "Pas de titre que je ne comprends pas"
+     }
+    }
+   },
+   "bareme": {
+    "date": "2026-11-14",
+    "etiquette_bareme": "hypothese",
+    "tolerance": {
+     "pire_baisse_carte": -0.222457,
+     "resserre": false,
+     "source": "reaction",
+     "reponse_source": "Je ne touche à rien",
+     "seuil": -0.222457,
+     "carte": "actions",
+     "libelle_carte": "Actions américaines (S&P 500)"
+    },
+    "capacite": {
+     "plafond": -0.2,
+     "decisifs": [
+      {
+       "question": "coussin",
+       "reponse": "3 à 6 mois",
+       "plafond": -0.2
+      }
+     ],
+     "contraintes": [
+      {
+       "question": "horizon",
+       "reponse": "5 à 10 ans",
+       "plafond": -0.25
+      },
+      {
+       "question": "coussin",
+       "reponse": "3 à 6 mois",
+       "plafond": -0.2
+      },
+      {
+       "question": "part_patrimoine",
+       "reponse": "Du quart à la moitié",
+       "plafond": -0.4
+      }
+     ]
+    },
+    "seuil_retenu": {
+     "valeur": -0.2,
+     "brut": -0.2,
+     "decisif": "capacite"
+    },
+    "profil_risque": "modere",
+    "regles": [
+     {
+      "id": "pire_baisse_max",
+      "etiquette": "hypothese",
+      "reponses": {
+       "fourchettes": "actions",
+       "reaction": "rien",
+       "vecu_2022": "pas_investi",
+       "horizon": "5_10",
+       "retraits": "non",
+       "coussin": "3_6",
+       "part_patrimoine": "quart_moitie",
+       "revenu": "tres_stable"
+      },
+      "explication": "Tolérance −22,2 %, capacité −20,0 % : seuil −20,0 %."
+     },
+     {
+      "id": "plafond_crypto",
+      "etiquette": "fait",
+      "reponses": {
+       "crypto": "aucune"
+      },
+      "explication": "Crypto : exclue"
+     },
+     {
+      "id": "plafond_tech",
+      "etiquette": "fait",
+      "reponses": {
+       "concentration": "moitie"
+      },
+      "explication": "Technologie : 50 % du portefeuille au maximum"
+     },
+     {
+      "id": "exclusion_energie_fossile",
+      "etiquette": "fait",
+      "reponses": {
+       "exclusions": [
+        "energies_fossiles"
+       ]
+      },
+      "explication": "Énergies fossiles : exclues"
+     },
+     {
+      "id": "objectif",
+      "etiquette": "fait",
+      "reponses": {
+       "objectif": "projet"
+      },
+      "explication": "Financer un projet précis"
+     },
+     {
+      "id": "regle_personnelle",
+      "etiquette": "fait",
+      "reponses": {
+       "regle_perso": "Pas de titre que je ne comprends pas"
+      },
+      "explication": "Pas de titre que je ne comprends pas"
+     }
+    ],
+    "controles": [],
+    "experience": [
+     "fonds",
+     "actions"
+    ],
+    "limites": [
+     "Un questionnaire mesure ce que la personne dit ; le Pacte vécu (#68) mesure ce qu'elle choisit devant de vrais jours de marché. Les deux restent des indices, pas des garanties.",
+     "Les barèmes sont des hypothèses de l'équipe, pas une méthode réglementaire."
+    ]
+   },
+   "contradictions": [],
+   "vues": {
+    "profil": {
+     "id": "investisseur_exemple",
+     "nom": "Investisseur exemple",
+     "age": null,
+     "metier": null,
+     "profilRisque": "modere",
+     "horizonAns": [
+      5,
+      10
+     ],
+     "capital": 120000,
+     "debut": "2021-11-12",
+     "fin": "2026-11-12",
+     "actuel": {
+      "rendement": 0.091393,
+      "volatilite": 0.086266,
+      "chuteMax": -0.130012,
+      "dateChuteMax": "2022-06-16",
+      "rejeu2022": -0.083541,
+      "valeurChuteMax": 68389,
+      "valeurDepart": 77500,
+      "gain": 42500,
+      "gainPct": 0.548385,
+      "recul": "AAAAAPf/8v/+//v/AAD8/+7/7//U/9z/5//k/9f/2//i/9P/4//j/+X/4P/X/8b/uf+1/6z/pv+9/7P/nf+A/5H/iv+S/4r/m/+y/7L/wP+9/6//oP+t/6H/j/+H/4n/gv+Q/6r/nP+4/7b/xv/P/8H/tP+v/6n/tv/I/8r/0v/Y/87/zf/C/8//wP++/8X/0f/V/9f/3//k/93/3v/c/9T/2f/U/9v/z//k/9j/5v/s/+3/5P/n/9n/3f/z/+f/7f/U/8//zP/V/8f/wf/k/+b/+P/3/wAAAAD7//3////6/wAA/v/+/wAAAAD//wAAAAD+//v/AAAAAPz/9f/r//H/9v/+/wAA/f/7//z//v/9//7/AAAAAPX/+P/v/+7/AAAAAP//8/8AAAAAAAD+/wAAAAD4//P/AAD7/wAAAAAAAPj/6//w//T/5//3/wAA/v/4//r/8v/8/+f/3//m/9//tv+8/8P/1f/h/+b//v/u//r//f/6//7/AAAAAPz//v8AAPb/AAD+/wAAAAAAAP7/AAD9/wAA8//7/wAA/P/0//b/8f8AAPn/+f/8/wAA/P8AAP//+f/t//T/+f8AAPz/6P/g/9D/0//p//f/AAD+//7/AAD4/wAAAADy//z//v/7//7/AAD6//n/+f////3/8//4//f/6//w//X/9P/7//z/9v/1//P//f8="
+     },
+     "serieValeur": [
+      [
+       "2021-11-12",
+       77500
+      ],
+      [
+       "2021-11-19",
+       77524
+      ],
+      [
+       "2021-11-26",
+       76864
+      ],
+      [
+       "2021-12-03",
+       76470
+      ],
+      [
+       "2021-12-10",
+       77421
+      ],
+      [
+       "2021-12-17",
+       77313
+      ],
+      [
+       "2021-12-23",
+       78178
+      ],
+      [
+       "2021-12-31",
+       78287
+      ],
+      [
+       "2022-01-07",
+       77232
+      ],
+      [
+       "2022-01-14",
+       77294
+      ],
+      [
+       "2022-01-21",
+       75170
+      ],
+      [
+       "2022-01-28",
+       75773
+      ],
+      [
+       "2022-02-04",
+       76613
+      ],
+      [
+       "2022-02-11",
+       76371
+      ],
+      [
+       "2022-02-18",
+       75410
+      ],
+      [
+       "2022-02-25",
+       75690
+      ],
+      [
+       "2022-03-04",
+       76242
+      ],
+      [
+       "2022-03-11",
+       75065
+      ],
+      [
+       "2022-03-18",
+       76352
+      ],
+      [
+       "2022-03-25",
+       76308
+      ],
+      [
+       "2022-04-01",
+       76509
+      ],
+      [
+       "2022-04-08",
+       76089
+      ],
+      [
+       "2022-04-14",
+       75425
+      ],
+      [
+       "2022-04-22",
+       74057
+      ],
+      [
+       "2022-04-29",
+       73009
+      ],
+      [
+       "2022-05-06",
+       72710
+      ],
+      [
+       "2022-05-13",
+       72025
+      ],
+      [
+       "2022-05-20",
+       71500
+      ],
+      [
+       "2022-05-27",
+       73355
+      ],
+      [
+       "2022-06-03",
+       72574
+      ],
+      [
+       "2022-06-10",
+       70809
+      ],
+      [
+       "2022-06-16",
+       68389
+      ],
+      [
+       "2022-06-17",
+       68552
+      ],
+      [
+       "2022-06-24",
+       69881
+      ],
+      [
+       "2022-07-01",
+       69348
+      ],
+      [
+       "2022-07-08",
+       69982
+      ],
+      [
+       "2022-07-15",
+       69297
+      ],
+      [
+       "2022-07-22",
+       70637
+      ],
+      [
+       "2022-07-29",
+       72443
+      ],
+      [
+       "2022-08-05",
+       72455
+      ],
+      [
+       "2022-08-12",
+       73583
+      ],
+      [
+       "2022-08-19",
+       73375
+      ],
+      [
+       "2022-08-26",
+       72231
+      ],
+      [
+       "2022-09-02",
+       71043
+      ],
+      [
+       "2022-09-09",
+       72118
+      ],
+      [
+       "2022-09-16",
+       71159
+      ],
+      [
+       "2022-09-23",
+       69728
+      ],
+      [
+       "2022-09-30",
+       69114
+      ],
+      [
+       "2022-10-07",
+       69273
+      ],
+      [
+       "2022-10-14",
+       68726
+      ],
+      [
+       "2022-10-21",
+       69824
+      ],
+      [
+       "2022-10-28",
+       71827
+      ],
+      [
+       "2022-11-04",
+       70736
+      ],
+      [
+       "2022-11-11",
+       72916
+      ],
+      [
+       "2022-11-18",
+       72828
+      ],
+      [
+       "2022-11-25",
+       74080
+      ],
+      [
+       "2022-12-02",
+       74771
+      ],
+      [
+       "2022-12-09",
+       73664
+      ],
+      [
+       "2022-12-16",
+       72656
+      ],
+      [
+       "2022-12-23",
+       72211
+      ],
+      [
+       "2022-12-30",
+       71747
+      ],
+      [
+       "2023-01-06",
+       72830
+      ],
+      [
+       "2023-01-13",
+       74217
+      ],
+      [
+       "2023-01-20",
+       74369
+      ],
+      [
+       "2023-01-27",
+       74976
+      ],
+      [
+       "2023-02-03",
+       75455
+      ],
+      [
+       "2023-02-10",
+       74708
+      ],
+      [
+       "2023-02-17",
+       74593
+      ],
+      [
+       "2023-02-24",
+       73766
+      ],
+      [
+       "2023-03-03",
+       74766
+      ],
+      [
+       "2023-03-10",
+       73602
+      ],
+      [
+       "2023-03-17",
+       73446
+      ],
+      [
+       "2023-03-24",
+       73952
+      ],
+      [
+       "2023-03-31",
+       74893
+      ],
+      [
+       "2023-04-06",
+       75242
+      ],
+      [
+       "2023-04-14",
+       75414
+      ],
+      [
+       "2023-04-21",
+       76053
+      ],
+      [
+       "2023-04-28",
+       76423
+      ],
+      [
+       "2023-05-05",
+       75841
+      ],
+      [
+       "2023-05-12",
+       75916
+      ],
+      [
+       "2023-05-19",
+       75750
+      ],
+      [
+       "2023-05-26",
+       75133
+      ],
+      [
+       "2023-06-02",
+       75557
+      ],
+      [
+       "2023-06-09",
+       75188
+      ],
+      [
+       "2023-06-16",
+       75718
+      ],
+      [
+       "2023-06-23",
+       74725
+      ],
+      [
+       "2023-06-30",
+       76436
+      ],
+      [
+       "2023-07-07",
+       75430
+      ],
+      [
+       "2023-07-14",
+       76535
+      ],
+      [
+       "2023-07-21",
+       77062
+      ],
+      [
+       "2023-07-28",
+       77140
+      ],
+      [
+       "2023-08-04",
+       76394
+      ],
+      [
+       "2023-08-11",
+       76643
+      ],
+      [
+       "2023-08-18",
+       75518
+      ],
+      [
+       "2023-08-25",
+       75832
+      ],
+      [
+       "2023-09-01",
+       77589
+      ],
+      [
+       "2023-09-08",
+       76632
+      ],
+      [
+       "2023-09-15",
+       77118
+      ],
+      [
+       "2023-09-22",
+       75131
+      ],
+      [
+       "2023-09-29",
+       74767
+      ],
+      [
+       "2023-10-06",
+       74533
+      ],
+      [
+       "2023-10-13",
+       75211
+      ],
+      [
+       "2023-10-20",
+       74164
+      ],
+      [
+       "2023-10-27",
+       73658
+      ],
+      [
+       "2023-11-03",
+       76420
+      ],
+      [
+       "2023-11-10",
+       76583
+      ],
+      [
+       "2023-11-17",
+       77968
+      ],
+      [
+       "2023-11-24",
+       77930
+      ],
+      [
+       "2023-12-01",
+       78885
+      ],
+      [
+       "2023-12-08",
+       79124
+      ],
+      [
+       "2023-12-15",
+       80050
+      ],
+      [
+       "2023-12-22",
+       80387
+      ],
+      [
+       "2023-12-29",
+       80777
+      ],
+      [
+       "2024-01-05",
+       80371
+      ],
+      [
+       "2024-01-12",
+       80878
+      ],
+      [
+       "2024-01-19",
+       80758
+      ],
+      [
+       "2024-01-26",
+       81172
+      ],
+      [
+       "2024-02-02",
+       81777
+      ],
+      [
+       "2024-02-09",
+       81800
+      ],
+      [
+       "2024-02-16",
+       82125
+      ],
+      [
+       "2024-02-23",
+       82989
+      ],
+      [
+       "2024-03-01",
+       83548
+      ],
+      [
+       "2024-03-08",
+       83752
+      ],
+      [
+       "2024-03-15",
+       83675
+      ],
+      [
+       "2024-03-22",
+       84548
+      ],
+      [
+       "2024-03-28",
+       84886
+      ],
+      [
+       "2024-04-05",
+       84589
+      ],
+      [
+       "2024-04-12",
+       83981
+      ],
+      [
+       "2024-04-19",
+       83088
+      ],
+      [
+       "2024-04-26",
+       83633
+      ],
+      [
+       "2024-05-03",
+       84056
+      ],
+      [
+       "2024-05-10",
+       84919
+      ],
+      [
+       "2024-05-17",
+       85539
+      ],
+      [
+       "2024-05-24",
+       85460
+      ],
+      [
+       "2024-05-31",
+       85317
+      ],
+      [
+       "2024-06-07",
+       85683
+      ],
+      [
+       "2024-06-14",
+       85839
+      ],
+      [
+       "2024-06-21",
+       85761
+      ],
+      [
+       "2024-06-28",
+       85990
+      ],
+      [
+       "2024-07-05",
+       86597
+      ],
+      [
+       "2024-07-12",
+       87778
+      ],
+      [
+       "2024-07-19",
+       87640
+      ],
+      [
+       "2024-07-26",
+       87907
+      ],
+      [
+       "2024-08-02",
+       87393
+      ],
+      [
+       "2024-08-09",
+       87240
+      ],
+      [
+       "2024-08-16",
+       89192
+      ],
+      [
+       "2024-08-23",
+       89609
+      ],
+      [
+       "2024-08-30",
+       89527
+      ],
+      [
+       "2024-09-06",
+       88453
+      ],
+      [
+       "2024-09-13",
+       90540
+      ],
+      [
+       "2024-09-20",
+       91191
+      ],
+      [
+       "2024-09-27",
+       91389
+      ],
+      [
+       "2024-10-04",
+       91367
+      ],
+      [
+       "2024-10-11",
+       92454
+      ],
+      [
+       "2024-10-18",
+       93349
+      ],
+      [
+       "2024-10-25",
+       92589
+      ],
+      [
+       "2024-11-01",
+       92130
+      ],
+      [
+       "2024-11-08",
+       94270
+      ],
+      [
+       "2024-11-15",
+       94134
+      ],
+      [
+       "2024-11-22",
+       94739
+      ],
+      [
+       "2024-11-29",
+       96199
+      ],
+      [
+       "2024-12-06",
+       96839
+      ],
+      [
+       "2024-12-13",
+       96072
+      ],
+      [
+       "2024-12-20",
+       94795
+      ],
+      [
+       "2024-12-27",
+       95269
+      ],
+      [
+       "2025-01-03",
+       95693
+      ],
+      [
+       "2025-01-10",
+       94404
+      ],
+      [
+       "2025-01-17",
+       95933
+      ],
+      [
+       "2025-01-24",
+       96796
+      ],
+      [
+       "2025-01-31",
+       97502
+      ],
+      [
+       "2025-02-07",
+       96913
+      ],
+      [
+       "2025-02-14",
+       97106
+      ],
+      [
+       "2025-02-21",
+       96349
+      ],
+      [
+       "2025-02-28",
+       97310
+      ],
+      [
+       "2025-03-07",
+       95334
+      ],
+      [
+       "2025-03-14",
+       94478
+      ],
+      [
+       "2025-03-21",
+       95227
+      ],
+      [
+       "2025-03-28",
+       94532
+      ],
+      [
+       "2025-04-04",
+       90470
+      ],
+      [
+       "2025-04-11",
+       91073
+      ],
+      [
+       "2025-04-17",
+       91771
+      ],
+      [
+       "2025-04-25",
+       93533
+      ],
+      [
+       "2025-05-02",
+       94691
+      ],
+      [
+       "2025-05-09",
+       95232
+      ],
+      [
+       "2025-05-16",
+       97501
+      ],
+      [
+       "2025-05-23",
+       95978
+      ],
+      [
+       "2025-05-30",
+       97162
+      ],
+      [
+       "2025-06-06",
+       97480
+      ],
+      [
+       "2025-06-13",
+       97194
+      ],
+      [
+       "2025-06-20",
+       97506
+      ],
+      [
+       "2025-06-27",
+       98644
+      ],
+      [
+       "2025-07-03",
+       99222
+      ],
+      [
+       "2025-07-11",
+       99129
+      ],
+      [
+       "2025-07-18",
+       99632
+      ],
+      [
+       "2025-07-25",
+       100347
+      ],
+      [
+       "2025-08-01",
+       99529
+      ],
+      [
+       "2025-08-08",
+       101106
+      ],
+      [
+       "2025-08-15",
+       101421
+      ],
+      [
+       "2025-08-22",
+       102171
+      ],
+      [
+       "2025-08-29",
+       102454
+      ],
+      [
+       "2025-09-05",
+       103468
+      ],
+      [
+       "2025-09-12",
+       104398
+      ],
+      [
+       "2025-09-19",
+       105305
+      ],
+      [
+       "2025-09-26",
+       105361
+      ],
+      [
+       "2025-10-03",
+       106741
+      ],
+      [
+       "2025-10-10",
+       105369
+      ],
+      [
+       "2025-10-17",
+       106383
+      ],
+      [
+       "2025-10-24",
+       107299
+      ],
+      [
+       "2025-10-31",
+       107390
+      ],
+      [
+       "2025-11-07",
+       106599
+      ],
+      [
+       "2025-11-14",
+       107014
+      ],
+      [
+       "2025-11-21",
+       106515
+      ],
+      [
+       "2025-11-28",
+       108774
+      ],
+      [
+       "2025-12-05",
+       108066
+      ],
+      [
+       "2025-12-12",
+       108004
+      ],
+      [
+       "2025-12-19",
+       108373
+      ],
+      [
+       "2025-12-26",
+       108969
+      ],
+      [
+       "2026-01-02",
+       108540
+      ],
+      [
+       "2026-01-09",
+       110355
+      ],
+      [
+       "2026-01-16",
+       110673
+      ],
+      [
+       "2026-01-23",
+       110010
+      ],
+      [
+       "2026-01-30",
+       108630
+      ],
+      [
+       "2026-02-06",
+       109388
+      ],
+      [
+       "2026-02-13",
+       110013
+      ],
+      [
+       "2026-02-20",
+       111341
+      ],
+      [
+       "2026-02-27",
+       111557
+      ],
+      [
+       "2026-03-06",
+       109279
+      ],
+      [
+       "2026-03-13",
+       108405
+      ],
+      [
+       "2026-03-20",
+       106612
+      ],
+      [
+       "2026-03-27",
+       106986
+      ],
+      [
+       "2026-04-02",
+       109494
+      ],
+      [
+       "2026-04-10",
+       110998
+      ],
+      [
+       "2026-04-17",
+       112925
+      ],
+      [
+       "2026-04-24",
+       112686
+      ],
+      [
+       "2026-05-01",
+       112693
+      ],
+      [
+       "2026-05-08",
+       113768
+      ],
+      [
+       "2026-05-15",
+       113328
+      ],
+      [
+       "2026-05-22",
+       115028
+      ],
+      [
+       "2026-05-29",
+       115829
+      ],
+      [
+       "2026-06-05",
+       115256
+      ],
+      [
+       "2026-06-12",
+       116381
+      ],
+      [
+       "2026-06-18",
+       117018
+      ],
+      [
+       "2026-06-26",
+       116672
+      ],
+      [
+       "2026-07-02",
+       117216
+      ],
+      [
+       "2026-07-10",
+       117995
+      ],
+      [
+       "2026-07-17",
+       117267
+      ],
+      [
+       "2026-07-24",
+       117133
+      ],
+      [
+       "2026-07-31",
+       117238
+      ],
+      [
+       "2026-08-07",
+       119221
+      ],
+      [
+       "2026-08-14",
+       119644
+      ],
+      [
+       "2026-08-21",
+       118475
+      ],
+      [
+       "2026-08-28",
+       118995
+      ],
+      [
+       "2026-09-04",
+       118890
+      ],
+      [
+       "2026-09-11",
+       117464
+      ],
+      [
+       "2026-09-18",
+       118025
+      ],
+      [
+       "2026-09-25",
+       118699
+      ],
+      [
+       "2026-10-02",
+       118544
+      ],
+      [
+       "2026-10-09",
+       119389
+      ],
+      [
+       "2026-10-16",
+       119526
+      ],
+      [
+       "2026-10-23",
+       118856
+      ],
+      [
+       "2026-10-30",
+       118630
+      ],
+      [
+       "2026-11-06",
+       118592
+      ],
+      [
+       "2026-11-12",
+       120000
+      ]
+     ],
+     "positions": [
+      {
+       "ticker": "XBB.TO",
+       "poids": 0.3,
+       "valeur": 36000,
+       "groupe": "Revenu fixe"
+      },
+      {
+       "ticker": "ZST.TO",
+       "poids": 0.1,
+       "valeur": 12000,
+       "groupe": "Revenu fixe"
+      },
+      {
+       "ticker": "XIU.TO",
+       "poids": 0.35,
+       "valeur": 42000,
+       "groupe": "Actions canadiennes"
+      },
+      {
+       "ticker": "SPY",
+       "poids": 0.25,
+       "valeur": 30000,
+       "groupe": "Actions américaines"
+      }
+     ],
+     "groupes": [
+      {
+       "libelle": "Revenu fixe",
+       "poids": 0.4
+      },
+      {
+       "libelle": "Actions canadiennes",
+       "poids": 0.35
+      },
+      {
+       "libelle": "Actions américaines",
+       "poids": 0.25
+      }
+     ],
+     "pacte": {
+      "dateSignature": "2026-11-14",
+      "regles": [
+       {
+        "id": "pire_baisse_max",
+        "type": "pire_baisse_max",
+        "libelle": "Pire baisse tolérée : −20,0 %",
+        "seuil": -0.2,
+        "statut": "conforme",
+        "message": "Pire baisse −13,0 % dans la limite du seuil −20,0 %",
+        "valeur": -0.130012,
+        "utilisation": 0.65006
+       },
+       {
+        "id": "plafond_crypto",
+        "type": "plafond",
+        "libelle": "Crypto : exclue",
+        "categories": [
+         "crypto"
+        ],
+        "max": 0.0,
+        "statut": "conforme",
+        "message": "Cryptoactifs : 0,0 % du portefeuille après la décision, exclusion respectée",
+        "valeur": 0.0,
+        "utilisation": null
+       },
+       {
+        "id": "plafond_tech",
+        "type": "plafond",
+        "libelle": "Technologie : 50 % du portefeuille au maximum",
+        "categories": [
+         "tech"
+        ],
+        "max": 0.5,
+        "statut": "conforme",
+        "message": "Technologie : 0,0 % du portefeuille après la décision, dans la limite du plafond de 50,0 %",
+        "valeur": 0.0,
+        "utilisation": 0.0
+       },
+       {
+        "id": "exclusion_energie_fossile",
+        "type": "plafond",
+        "libelle": "Énergies fossiles : exclues",
+        "categories": [
+         "energie_fossile"
+        ],
+        "max": 0.0,
+        "statut": "conforme",
+        "message": "Énergies fossiles : 0,0 % du portefeuille après la décision, exclusion respectée",
+        "valeur": 0.0,
+        "utilisation": null
+       },
+       {
+        "id": "objectif",
+        "type": "qualitative",
+        "libelle": "Financer un projet précis",
+        "statut": "a_verifier",
+        "message": "Règle déclarée, non mesurable par calcul : à juger par l'utilisateur",
+        "valeur": null,
+        "utilisation": null
+       },
+       {
+        "id": "regle_personnelle",
+        "type": "qualitative",
+        "libelle": "Pas de titre que je ne comprends pas",
+        "statut": "a_verifier",
+        "message": "Règle déclarée, non mesurable par calcul : à juger par l'utilisateur",
+        "valeur": null,
+        "utilisation": null
+       }
+      ]
+     },
+     "decisionDemo": null
+    },
+    "calibrage": {
+     "profil": "investisseur_exemple",
+     "capital": 120000,
+     "horizonAns": [
+      5,
+      10
+     ],
+     "episodes": [
+      {
+       "id": "baisse_5",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "Votre portefeuille",
+       "date_sommet": "2021-12-29",
+       "date_jour": "2022-02-23",
+       "baisse": -0.054192,
+       "valeur_sommet": 120000,
+       "valeur_jour": 113497,
+       "niveau": -0.05,
+       "anneesRetour": 1.921971,
+       "historique": [
+        [
+         "2021-11-12",
+         118308
+        ],
+        [
+         "2021-11-19",
+         118343
+        ],
+        [
+         "2021-11-29",
+         117784
+        ],
+        [
+         "2021-12-06",
+         117290
+        ],
+        [
+         "2021-12-13",
+         117925
+        ],
+        [
+         "2021-12-20",
+         117340
+        ],
+        [
+         "2021-12-28",
+         119713
+        ],
+        [
+         "2021-12-29",
+         120000
+        ],
+        [
+         "2022-01-04",
+         119305
+        ],
+        [
+         "2022-01-11",
+         118428
+        ],
+        [
+         "2022-01-19",
+         116450
+        ],
+        [
+         "2022-01-26",
+         114408
+        ],
+        [
+         "2022-02-02",
+         117762
+        ],
+        [
+         "2022-02-09",
+         117811
+        ],
+        [
+         "2022-02-16",
+         116352
+        ],
+        [
+         "2022-02-23",
+         113497
+        ]
+       ]
+      },
+      {
+       "id": "baisse_10",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "Votre portefeuille",
+       "date_sommet": "2021-12-29",
+       "date_jour": "2022-06-13",
+       "baisse": -0.116729,
+       "valeur_sommet": 120000,
+       "valeur_jour": 105993,
+       "niveau": -0.1,
+       "anneesRetour": 1.921971,
+       "historique": [
+        [
+         "2021-11-12",
+         118308
+        ],
+        [
+         "2021-11-19",
+         118343
+        ],
+        [
+         "2021-11-29",
+         117784
+        ],
+        [
+         "2021-12-06",
+         117290
+        ],
+        [
+         "2021-12-13",
+         117925
+        ],
+        [
+         "2021-12-20",
+         117340
+        ],
+        [
+         "2021-12-28",
+         119713
+        ],
+        [
+         "2021-12-29",
+         120000
+        ],
+        [
+         "2022-01-04",
+         119305
+        ],
+        [
+         "2022-01-11",
+         118428
+        ],
+        [
+         "2022-01-19",
+         116450
+        ],
+        [
+         "2022-01-26",
+         114408
+        ],
+        [
+         "2022-02-02",
+         117762
+        ],
+        [
+         "2022-02-09",
+         117811
+        ],
+        [
+         "2022-02-16",
+         116352
+        ],
+        [
+         "2022-02-24",
+         114270
+        ],
+        [
+         "2022-03-03",
+         115883
+        ],
+        [
+         "2022-03-10",
+         115493
+        ],
+        [
+         "2022-03-17",
+         116148
+        ],
+        [
+         "2022-03-24",
+         116603
+        ],
+        [
+         "2022-03-31",
+         116699
+        ],
+        [
+         "2022-04-07",
+         116320
+        ],
+        [
+         "2022-04-14",
+         115140
+        ],
+        [
+         "2022-04-22",
+         113052
+        ],
+        [
+         "2022-04-29",
+         111452
+        ],
+        [
+         "2022-05-06",
+         110996
+        ],
+        [
+         "2022-05-13",
+         109949
+        ],
+        [
+         "2022-05-20",
+         109148
+        ],
+        [
+         "2022-05-27",
+         111980
+        ],
+        [
+         "2022-06-06",
+         110604
+        ],
+        [
+         "2022-06-13",
+         105993
+        ]
+       ]
+      },
+      {
+       "id": "baisse_15",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "iShares S&P/TSX 60 Index ETF (XIU.TO)",
+       "date_sommet": "2022-04-04",
+       "date_jour": "2022-07-14",
+       "baisse": -0.160337,
+       "valeur_sommet": 120000,
+       "valeur_jour": 100760,
+       "niveau": -0.15,
+       "anneesRetour": 1.730322,
+       "historique": [
+        [
+         "2021-11-12",
+         116373
+        ],
+        [
+         "2021-11-19",
+         115496
+        ],
+        [
+         "2021-11-29",
+         113652
+        ],
+        [
+         "2021-12-06",
+         112452
+        ],
+        [
+         "2021-12-13",
+         111958
+        ],
+        [
+         "2021-12-20",
+         111111
+        ],
+        [
+         "2021-12-28",
+         114816
+        ],
+        [
+         "2022-01-04",
+         114816
+        ],
+        [
+         "2022-01-11",
+         115451
+        ],
+        [
+         "2022-01-19",
+         115028
+        ],
+        [
+         "2022-01-26",
+         111888
+        ],
+        [
+         "2022-02-02",
+         116086
+        ],
+        [
+         "2022-02-09",
+         117180
+        ],
+        [
+         "2022-02-16",
+         115804
+        ],
+        [
+         "2022-02-24",
+         112507
+        ],
+        [
+         "2022-03-03",
+         115312
+        ],
+        [
+         "2022-03-10",
+         116981
+        ],
+        [
+         "2022-03-17",
+         118224
+        ],
+        [
+         "2022-03-24",
+         118970
+        ],
+        [
+         "2022-03-31",
+         118899
+        ],
+        [
+         "2022-04-04",
+         120000
+        ],
+        [
+         "2022-04-07",
+         118864
+        ],
+        [
+         "2022-04-14",
+         118722
+        ],
+        [
+         "2022-04-22",
+         115348
+        ],
+        [
+         "2022-04-29",
+         112933
+        ],
+        [
+         "2022-05-06",
+         112507
+        ],
+        [
+         "2022-05-13",
+         109914
+        ],
+        [
+         "2022-05-20",
+         110127
+        ],
+        [
+         "2022-05-27",
+         113171
+        ],
+        [
+         "2022-06-06",
+         113457
+        ],
+        [
+         "2022-06-13",
+         107806
+        ],
+        [
+         "2022-06-21",
+         105481
+        ],
+        [
+         "2022-06-28",
+         105374
+        ],
+        [
+         "2022-07-06",
+         103228
+        ],
+        [
+         "2022-07-13",
+         102548
+        ],
+        [
+         "2022-07-14",
+         100760
+        ]
+       ]
+      },
+      {
+       "id": "baisse_20",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "SPDR S&P 500 ETF Trust (SPY)",
+       "date_sommet": "2021-12-27",
+       "date_jour": "2022-06-13",
+       "baisse": -0.208994,
+       "valeur_sommet": 120000,
+       "valeur_jour": 94921,
+       "niveau": -0.2,
+       "anneesRetour": 1.555099,
+       "historique": [
+        [
+         "2021-11-12",
+         114811
+        ],
+        [
+         "2021-11-19",
+         115887
+        ],
+        [
+         "2021-11-29",
+         115972
+        ],
+        [
+         "2021-12-06",
+         114656
+        ],
+        [
+         "2021-12-13",
+         116701
+        ],
+        [
+         "2021-12-20",
+         115550
+        ],
+        [
+         "2021-12-27",
+         120000
+        ],
+        [
+         "2021-12-28",
+         119902
+        ],
+        [
+         "2022-01-04",
+         119089
+        ],
+        [
+         "2022-01-11",
+         116204
+        ],
+        [
+         "2022-01-19",
+         110740
+        ],
+        [
+         "2022-01-26",
+         107207
+        ],
+        [
+         "2022-02-02",
+         113773
+        ],
+        [
+         "2022-02-09",
+         113848
+        ],
+        [
+         "2022-02-16",
+         111178
+        ],
+        [
+         "2022-02-24",
+         107849
+        ],
+        [
+         "2022-03-03",
+         108279
+        ],
+        [
+         "2022-03-10",
+         106672
+        ],
+        [
+         "2022-03-17",
+         109498
+        ],
+        [
+         "2022-03-24",
+         111244
+        ],
+        [
+         "2022-03-31",
+         111093
+        ],
+        [
+         "2022-04-07",
+         111164
+        ],
+        [
+         "2022-04-14",
+         108591
+        ],
+        [
+         "2022-04-22",
+         106523
+        ],
+        [
+         "2022-04-29",
+         103743
+        ],
+        [
+         "2022-05-06",
+         104305
+        ],
+        [
+         "2022-05-13",
+         102427
+        ],
+        [
+         "2022-05-20",
+         98394
+        ],
+        [
+         "2022-05-27",
+         104122
+        ],
+        [
+         "2022-06-06",
+         101842
+        ],
+        [
+         "2022-06-13",
+         94921
+        ]
+       ]
+      },
+      {
+       "id": "baisse_25",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "Invesco QQQ Trust (Nasdaq-100) (QQQ)",
+       "date_sommet": "2021-12-27",
+       "date_jour": "2022-05-09",
+       "baisse": -0.253932,
+       "valeur_sommet": 120000,
+       "valeur_jour": 89528,
+       "niveau": -0.25,
+       "anneesRetour": 1.678303,
+       "historique": [
+        [
+         "2021-11-12",
+         114970
+        ],
+        [
+         "2021-11-19",
+         118369
+        ],
+        [
+         "2021-11-29",
+         118276
+        ],
+        [
+         "2021-12-06",
+         114419
+        ],
+        [
+         "2021-12-13",
+         116314
+        ],
+        [
+         "2021-12-20",
+         114362
+        ],
+        [
+         "2021-12-27",
+         120000
+        ],
+        [
+         "2021-12-28",
+         119444
+        ],
+        [
+         "2022-01-04",
+         116949
+        ],
+        [
+         "2022-01-11",
+         112894
+        ],
+        [
+         "2022-01-19",
+         106265
+        ],
+        [
+         "2022-01-26",
+         100824
+        ],
+        [
+         "2022-02-02",
+         108430
+        ],
+        [
+         "2022-02-09",
+         107938
+        ],
+        [
+         "2022-02-16",
+         104841
+        ],
+        [
+         "2022-02-24",
+         101416
+        ],
+        [
+         "2022-03-03",
+         100609
+        ],
+        [
+         "2022-03-10",
+         98239
+        ],
+        [
+         "2022-03-17",
+         101146
+        ],
+        [
+         "2022-03-24",
+         104857
+        ],
+        [
+         "2022-03-31",
+         105286
+        ],
+        [
+         "2022-04-07",
+         103559
+        ],
+        [
+         "2022-04-14",
+         99110
+        ],
+        [
+         "2022-04-22",
+         96058
+        ],
+        [
+         "2022-04-29",
+         93127
+        ],
+        [
+         "2022-05-06",
+         92584
+        ],
+        [
+         "2022-05-09",
+         89528
+        ]
+       ]
+      },
+      {
+       "id": "baisse_30",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "Invesco QQQ Trust (Nasdaq-100) (QQQ)",
+       "date_sommet": "2021-12-27",
+       "date_jour": "2022-06-13",
+       "baisse": -0.314116,
+       "valeur_sommet": 120000,
+       "valeur_jour": 82306,
+       "niveau": -0.3,
+       "anneesRetour": 1.678303,
+       "historique": [
+        [
+         "2021-11-12",
+         114970
+        ],
+        [
+         "2021-11-19",
+         118369
+        ],
+        [
+         "2021-11-29",
+         118276
+        ],
+        [
+         "2021-12-06",
+         114419
+        ],
+        [
+         "2021-12-13",
+         116314
+        ],
+        [
+         "2021-12-20",
+         114362
+        ],
+        [
+         "2021-12-27",
+         120000
+        ],
+        [
+         "2021-12-28",
+         119444
+        ],
+        [
+         "2022-01-04",
+         116949
+        ],
+        [
+         "2022-01-11",
+         112894
+        ],
+        [
+         "2022-01-19",
+         106265
+        ],
+        [
+         "2022-01-26",
+         100824
+        ],
+        [
+         "2022-02-02",
+         108430
+        ],
+        [
+         "2022-02-09",
+         107938
+        ],
+        [
+         "2022-02-16",
+         104841
+        ],
+        [
+         "2022-02-24",
+         101416
+        ],
+        [
+         "2022-03-03",
+         100609
+        ],
+        [
+         "2022-03-10",
+         98239
+        ],
+        [
+         "2022-03-17",
+         101146
+        ],
+        [
+         "2022-03-24",
+         104857
+        ],
+        [
+         "2022-03-31",
+         105286
+        ],
+        [
+         "2022-04-07",
+         103559
+        ],
+        [
+         "2022-04-14",
+         99110
+        ],
+        [
+         "2022-04-22",
+         96058
+        ],
+        [
+         "2022-04-29",
+         93127
+        ],
+        [
+         "2022-05-06",
+         92584
+        ],
+        [
+         "2022-05-13",
+         90894
+        ],
+        [
+         "2022-05-20",
+         86071
+        ],
+        [
+         "2022-05-27",
+         91505
+        ],
+        [
+         "2022-06-06",
+         89706
+        ],
+        [
+         "2022-06-13",
+         82306
+        ]
+       ]
+      },
+      {
+       "id": "baisse_35",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "NVIDIA (NVDA)",
+       "date_sommet": "2021-11-29",
+       "date_jour": "2022-03-07",
+       "baisse": -0.35967,
+       "valeur_sommet": 120000,
+       "valeur_jour": 76840,
+       "niveau": -0.35,
+       "anneesRetour": 1.46475,
+       "historique": [
+        [
+         "2021-11-12",
+         107552
+        ],
+        [
+         "2021-11-19",
+         117424
+        ],
+        [
+         "2021-11-29",
+         120000
+        ],
+        [
+         "2021-12-06",
+         108135
+        ],
+        [
+         "2021-12-13",
+         101469
+        ],
+        [
+         "2021-12-20",
+         101055
+        ],
+        [
+         "2021-12-28",
+         109443
+        ],
+        [
+         "2022-01-04",
+         104852
+        ],
+        [
+         "2022-01-11",
+         98780
+        ],
+        [
+         "2022-01-19",
+         88209
+        ],
+        [
+         "2022-01-26",
+         80864
+        ],
+        [
+         "2022-02-02",
+         90140
+        ],
+        [
+         "2022-02-09",
+         95387
+        ],
+        [
+         "2022-02-16",
+         94739
+        ],
+        [
+         "2022-02-24",
+         85842
+        ],
+        [
+         "2022-03-03",
+         84611
+        ],
+        [
+         "2022-03-07",
+         76840
+        ]
+       ]
+      },
+      {
+       "id": "baisse_40",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "NVIDIA (NVDA)",
+       "date_sommet": "2021-11-29",
+       "date_jour": "2022-04-21",
+       "baisse": -0.40629,
+       "valeur_sommet": 120000,
+       "valeur_jour": 71245,
+       "niveau": -0.4,
+       "anneesRetour": 1.46475,
+       "historique": [
+        [
+         "2021-11-12",
+         107552
+        ],
+        [
+         "2021-11-19",
+         117424
+        ],
+        [
+         "2021-11-29",
+         120000
+        ],
+        [
+         "2021-12-06",
+         108135
+        ],
+        [
+         "2021-12-13",
+         101469
+        ],
+        [
+         "2021-12-20",
+         101055
+        ],
+        [
+         "2021-12-28",
+         109443
+        ],
+        [
+         "2022-01-04",
+         104852
+        ],
+        [
+         "2022-01-11",
+         98780
+        ],
+        [
+         "2022-01-19",
+         88209
+        ],
+        [
+         "2022-01-26",
+         80864
+        ],
+        [
+         "2022-02-02",
+         90140
+        ],
+        [
+         "2022-02-09",
+         95387
+        ],
+        [
+         "2022-02-16",
+         94739
+        ],
+        [
+         "2022-02-24",
+         85842
+        ],
+        [
+         "2022-03-03",
+         84611
+        ],
+        [
+         "2022-03-10",
+         81559
+        ],
+        [
+         "2022-03-17",
+         88274
+        ],
+        [
+         "2022-03-24",
+         99495
+        ],
+        [
+         "2022-03-31",
+         96065
+        ],
+        [
+         "2022-04-07",
+         85828
+        ],
+        [
+         "2022-04-14",
+         75471
+        ],
+        [
+         "2022-04-21",
+         71245
+        ]
+       ]
+      },
+      {
+       "id": "baisse_45",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "NVIDIA (NVDA)",
+       "date_sommet": "2021-11-29",
+       "date_jour": "2022-05-09",
+       "baisse": -0.484082,
+       "valeur_sommet": 120000,
+       "valeur_jour": 61910,
+       "niveau": -0.45,
+       "anneesRetour": 1.46475,
+       "historique": [
+        [
+         "2021-11-12",
+         107552
+        ],
+        [
+         "2021-11-19",
+         117424
+        ],
+        [
+         "2021-11-29",
+         120000
+        ],
+        [
+         "2021-12-06",
+         108135
+        ],
+        [
+         "2021-12-13",
+         101469
+        ],
+        [
+         "2021-12-20",
+         101055
+        ],
+        [
+         "2021-12-28",
+         109443
+        ],
+        [
+         "2022-01-04",
+         104852
+        ],
+        [
+         "2022-01-11",
+         98780
+        ],
+        [
+         "2022-01-19",
+         88209
+        ],
+        [
+         "2022-01-26",
+         80864
+        ],
+        [
+         "2022-02-02",
+         90140
+        ],
+        [
+         "2022-02-09",
+         95387
+        ],
+        [
+         "2022-02-16",
+         94739
+        ],
+        [
+         "2022-02-24",
+         85842
+        ],
+        [
+         "2022-03-03",
+         84611
+        ],
+        [
+         "2022-03-10",
+         81559
+        ],
+        [
+         "2022-03-17",
+         88274
+        ],
+        [
+         "2022-03-24",
+         99495
+        ],
+        [
+         "2022-03-31",
+         96065
+        ],
+        [
+         "2022-04-07",
+         85828
+        ],
+        [
+         "2022-04-14",
+         75471
+        ],
+        [
+         "2022-04-22",
+         69838
+        ],
+        [
+         "2022-04-29",
+         66844
+        ],
+        [
+         "2022-05-06",
+         67779
+        ],
+        [
+         "2022-05-09",
+         61910
+        ]
+       ]
+      },
+      {
+       "id": "baisse_50",
+       "type": "baisse",
+       "choix": [
+        "reste",
+        "vend"
+       ],
+       "serie": "NVIDIA (NVDA)",
+       "date_sommet": "2021-11-29",
+       "date_jour": "2022-05-12",
+       "baisse": -0.504823,
+       "valeur_sommet": 120000,
+       "valeur_jour": 59421,
+       "niveau": -0.5,
+       "anneesRetour": 1.46475,
+       "historique": [
+        [
+         "2021-11-12",
+         107552
+        ],
+        [
+         "2021-11-19",
+         117424
+        ],
+        [
+         "2021-11-29",
+         120000
+        ],
+        [
+         "2021-12-06",
+         108135
+        ],
+        [
+         "2021-12-13",
+         101469
+        ],
+        [
+         "2021-12-20",
+         101055
+        ],
+        [
+         "2021-12-28",
+         109443
+        ],
+        [
+         "2022-01-04",
+         104852
+        ],
+        [
+         "2022-01-11",
+         98780
+        ],
+        [
+         "2022-01-19",
+         88209
+        ],
+        [
+         "2022-01-26",
+         80864
+        ],
+        [
+         "2022-02-02",
+         90140
+        ],
+        [
+         "2022-02-09",
+         95387
+        ],
+        [
+         "2022-02-16",
+         94739
+        ],
+        [
+         "2022-02-24",
+         85842
+        ],
+        [
+         "2022-03-03",
+         84611
+        ],
+        [
+         "2022-03-10",
+         81559
+        ],
+        [
+         "2022-03-17",
+         88274
+        ],
+        [
+         "2022-03-24",
+         99495
+        ],
+        [
+         "2022-03-31",
+         96065
+        ],
+        [
+         "2022-04-07",
+         85828
+        ],
+        [
+         "2022-04-14",
+         75471
+        ],
+        [
+         "2022-04-22",
+         69838
+        ],
+        [
+         "2022-04-29",
+         66844
+        ],
+        [
+         "2022-05-06",
+         67779
+        ],
+        [
+         "2022-05-12",
+         59421
+        ]
+       ]
+      }
+     ],
+     "crypto": null,
+     "valeurs": [],
+     "demo": null,
+     "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+     "limites": "Une réponse à un épisode passé ne garantit pas le comportement futur : l'effet de l'expérience simulée est documenté à court terme, pas à long terme (Bradbury, Hens et Zeisberger, Review of Finance, 2015). Une seule période de données : peu d'épisodes différents. Les montants supposent le capital au sommet."
+    }
+   }
+  }
+ }
+}

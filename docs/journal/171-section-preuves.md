@@ -1,6 +1,6 @@
 # #171 — Section « Preuves » : chaque promesse reliée à sa mesure
 
-- **Issue** : #171 · **PR** : à venir · **Statut** : en cours (la ligne de #172 attend le bulletin du Greffier)
+- **Issue** : #171 · **PR** : #180 · **Statut** : en cours (la ligne de #172 attend le bulletin du Greffier)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

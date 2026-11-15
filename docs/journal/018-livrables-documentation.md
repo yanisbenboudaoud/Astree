@@ -1,6 +1,6 @@
 # #18 — Livrables : README, documentation technique, vidéo et one pager
 
-- **Issue** : #18 · **PR** : #30, #PR_DOC · **Statut** : en cours (README, journal, documentation technique et one pager en place ; reste la vidéo)
+- **Issue** : #18 · **PR** : #30, #177 · **Statut** : en cours (README, journal, documentation technique et one pager en place ; reste la vidéo)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -11,7 +11,7 @@
 - **`CLAUDE.md`, section 11** : nouvelle règle « Journal » : chaque PR qui termine ou avance une issue ajoute ou met à jour sa fiche, et la carte du dépôt si besoin. Comme `CLAUDE.md` est partagé par Git, la session Claude de chaque membre suit cette règle.
 - **`.github/pull_request_template.md`** : deux cases à cocher, la fiche du journal et la carte du dépôt.
 
-PR #PR_DOC (2026-11-15) :
+PR #177 (2026-11-15) :
 - **`docs/DOCUMENTATION_TECHNIQUE.md`** : rôle de chaque agent, orchestrateur et garde-fous (liste blanche, budget de 8 appels, pièce obligatoire, phases fixes), outils, méthode de calcul et hypothèses, Pacte générique, explicabilité, règles de `verifier_chiffres`, validations, limites et schéma AWS. Elle renvoie à `CLAUDE.md`, `docs/CHOIX_CONCEPTION.md`, `docs/architecture.md` et aux fiches au lieu de les recopier ; chaque chiffre cité renvoie à son fichier.
   - Exemple d'explicabilité tiré d'un vrai procès (`frontend/src/data/proces/2026-11-15-032ec3367b19.json`, 25 % en TSLA) : argument du Procureur → pièce `P4` (`indicateurs_actif`) → étape de la trace avec la raison de l'orchestrateur → `prices_daily.csv` et `fx_usdcad_daily.csv`, puis la commande qui recalcule la pièce.
   - Exemple d'argument renvoyé puis corrigé, tiré de l'étape `bedrock_correction` du même procès (« 30 % » introuvable dans `P6`).

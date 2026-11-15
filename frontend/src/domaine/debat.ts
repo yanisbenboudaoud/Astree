@@ -69,7 +69,7 @@ const REGLES: [Theme, RegExp][] = [
   ['frais', /\bfrais\b/i],
   // Pas « USD » seul : il apparaît dans les symboles BTC-USD et ETH-USD.
   ['devise', /dollars? américains?|devise|taux de change/i],
-  ['taille', /jusqu.à \d|plus modeste|respecterait|serait respectée|au maximum respecte|(position|taille|réallocation) de \d|\bà \d+(,\d+)?\s%\sen [A-Z]/i],
+  ['taille', /jusqu.à \d|plus modeste|respecterait|serait respectée|au maximum respecte|(position|taille|réallocation) (limitée à |de )\d|\bà \d+(,\d+)?\s%\sen [A-Z]/i],
   ['diversification', /ensemble|corrélation|\blien\b|\bliés\b|moteur|d.un seul bloc|indépendamment/i],
   ['regles', /crypto|\btech\b|règles calculables|seule la règle|équilibre|stabilité|votre Pacte (demande|prévoit|dit|pose)/i],
   ['rendement', /par an|rendement/i],

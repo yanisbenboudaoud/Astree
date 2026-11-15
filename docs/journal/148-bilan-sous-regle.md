@@ -1,6 +1,6 @@
 # #148 — Bilan du Greffier : chaque explication sous sa règle
 
-- **Issue** : #148 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #148 · **PR** : #149 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

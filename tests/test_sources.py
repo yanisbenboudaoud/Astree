@@ -29,7 +29,7 @@ def par_nom(liste):
 def test_robert_toutes_les_sources_utilisees():
     contrat = proces_de_demo("robert")
     liste = par_nom(sources_du_proces(contrat))
-    assert set(liste) == {SOURCES[cle].nom for cle in ("pacte", "prix", "change", "univers", "macro", "jurisprudence")}
+    assert set(liste) == {SOURCES[cle].nom for cle in ("pacte", "prix", "change", "univers", "macro", "frais", "jurisprudence")}
     assert liste[SOURCES["pacte"].nom]["fichier"] == "personas/robert.json"
     assert liste[SOURCES["pacte"].nom]["date_extraction"] == contrat["pacte"]["date_signature"]
     assert liste[SOURCES["univers"].nom]["controles"] == ["plafond_crypto"]
@@ -76,6 +76,20 @@ def test_les_donnees_macro_apparaissent_avec_la_simulation():
         for cle in sources.VALEURS_MACRO:
             piece["valeurs"].pop(cle, None)
     assert SOURCES["macro"].nom not in par_nom(sources_du_proces(contrat))
+
+
+def test_le_releve_des_frais_apparait_avec_la_simulation():
+    contrat = copy.deepcopy(proces_de_demo("robert"))
+    for piece in contrat["pieces"]:  # procès enregistré sans frais : la source n'y est pas
+        for cle in sources.VALEURS_FRAIS:
+            piece["valeurs"].pop(cle, None)
+    assert SOURCES["frais"].nom not in par_nom(sources_du_proces(contrat))
+    simulation = next(p for p in contrat["pieces"] if p["outil"] == "simuler_portefeuille")
+    simulation["valeurs"]["frais_annuels"] = 0.000735
+    releve = par_nom(sources_du_proces(contrat))[SOURCES["frais"].nom]
+    assert releve["fichier"] == "donnees_externes/frais_fnb.json"
+    assert releve["date_extraction"] == "2026-11-15"  # date du relevé
+    assert [u["id"] for u in releve["pieces"]] == [simulation["id"]]
 
 
 def test_ordre_fixe_et_contrat_valide():

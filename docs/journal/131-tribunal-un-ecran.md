@@ -21,7 +21,7 @@ Une revue d'ergonomie de l'écran Tribunal. L'ordre suit maintenant ce qu'il fau
 Rien à faire : l'écran Tribunal l'affiche pour tout procès, enregistré ou en direct.
 
 ## Comment vérifier
-- Depuis `frontend/` : `npx tsc --noEmit` passe ; `npm test` donne 130 tests sur 132. Les 2 échecs de `domaine.test.ts` (« Tribunal occupé ») existaient avant.
+- Depuis `frontend/` : `npx tsc --noEmit` passe ; `npm test` donne 135 tests sur 137. Les 2 échecs de `domaine.test.ts` (« Tribunal occupé ») existaient avant.
 - `src/test/debat.test.ts` : deux cas `recuperation` (« retrouver son niveau », « a retrouvé ce sommet »).
 - Mode démonstration (`VITE_USE_MOCKS=true`), Robert, « 30 % en TSLA » : à 1440×900, les 7 points du débat tiennent sur un écran ; à 375 px, aucun défilement horizontal et barre du verdict sur une ligne.
 

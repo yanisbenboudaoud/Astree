@@ -7,6 +7,7 @@ import pytest
 
 from pipeline.chiffres import (
     controle_verifier_chiffres,
+    detailler_argument,
     extraire_nombres,
     trier_arguments,
     verifier_argument,
@@ -220,3 +221,46 @@ def test_argument_rejete_du_faux_contrat_amira_reste_rejete():
     rejete = contrat["arguments_rejetes"][0]
     verification = verifier_argument(rejete, dossier)
     assert verification.motif == "« 4 » introuvable dans P1"
+
+
+# --- « Trompez le Greffier » : le détail nombre par nombre (#69) ---------------------------
+
+def detail(texte, *pieces):
+    return detailler_argument({"texte": texte, "pieces": list(pieces)}, DOSSIER)
+
+
+def test_detail_vrai_chiffre_trouve_dans_sa_piece():
+    resultat = detail("Avec 30 % en TSLA, la pire baisse passe à −29,0 %.", "P1")
+    assert resultat["valide"] and resultat["motif"] is None and resultat["compte"] == "2/2"
+    assert resultat["nombres"] == [
+        {"texte": "30 %", "trouve": True, "sources": ["décision"], "motif": None},
+        {"texte": "−29,0 %", "trouve": True, "sources": ["P1"], "motif": None},
+    ]
+
+
+def test_detail_chiffre_invente_rejete_avec_son_motif():
+    resultat = detail("La pire baisse passe à −40 %.", "P1")
+    assert not resultat["valide"] and resultat["compte"] == "0/1"
+    assert resultat["nombres"][0]["motif"] == "« −40 % » introuvable dans P1"
+    assert resultat["motif"] == "« −40 % » introuvable dans P1"
+
+
+def test_detail_arrondi_faux_rejete():
+    assert detail("La pire baisse passe à −29,03 %.", "P1")["nombres"][0]["trouve"] is False
+
+
+def test_detail_mauvaise_piece_citee_signale_la_bonne():
+    resultat = detail("En 2022, le portefeuille actuel a fait −2,6 %.", "P1")
+    chiffre = next(n for n in resultat["nombres"] if n["texte"] == "−2,6 %")
+    assert chiffre["motif"] == "« −2,6 % » introuvable dans P1 (présent dans P2, pièce non citée)"
+
+
+def test_detail_meme_verdict_que_verifier_argument():
+    for texte, pieces in [("près de 3 ans", ["P4"]), ("une chute de 29 %", ["P1"]), ("+12,0 %/an", ["P2"])]:
+        attendu = verifier_argument({"texte": texte, "pieces": pieces}, DOSSIER).valide
+        assert detail(texte, *pieces)["valide"] is attendu
+
+
+def test_detail_sans_piece_citee():
+    resultat = detail("La pire baisse passe à −29,0 %.")
+    assert not resultat["valide"] and "Aucune pièce citée" in resultat["motif"]

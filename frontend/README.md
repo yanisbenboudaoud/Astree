@@ -20,6 +20,7 @@ npm run dev          # http://localhost:5173
 | `npm run build` | Vérification des types, puis compilation dans `dist/` |
 | `npm test` | Tests vitest : chiffres de l'annexe E, formats, adaptateur du contrat, questions, Verdict |
 | `npm run verifier` | Parcours de bout en bout des 3 profils (Robert au clavier seul), axe-core sur chaque écran, débordement à 1440 et 1280 px, erreurs de console. Demande `npm run dev` dans un autre terminal et Edge ou Chrome installé. Captures dans `e2e/captures/` |
+| `npm run verifier:greffier` | « Trompez le Greffier » : 4 exemples, argument tapé, réponse en moins d'une seconde, axe-core (gratuit, sans Bedrock) |
 | `npm run verifier:direct` | Mode direct : deux vrais procès sur la Lambda par l'interface, verdicts signés et archivés (Bedrock, quelques cents) |
 | `npm run series` | Régénère les séries et les tables (`scripts/build_ui_series.py`) |
 
@@ -50,7 +51,7 @@ Le script réutilise le code du pipeline : l'interface affiche exactement les ch
 
 La couche `src/api/` isole les écrans du backend : les composants ne lisent que les types de `src/api/types.ts` (annexe D.7).
 
-- **Mode démonstration** (défaut, `VITE_USE_MOCKS=true`) : `src/api/tribunal.ts` rejoue un procès **réellement tenu** par le pipeline (`python -m pipeline <profil> "<demande>"`, Bedrock Sonnet 5.5), enregistré tel quel dans `src/data/proces/` et validé par `python -m contrat.valider`. Il est rejoué seulement s'il juge exactement la décision soumise ; sinon, l'écran le dit et propose la décision enregistrée. Aucun procès n'est inventé.
+- **Mode démonstration** (défaut, `VITE_USE_MOCKS=true`) : `src/api/tribunal.ts` rejoue un procès **réellement tenu par la Lambda** et archivé dans S3, copié tel quel dans `src/data/proces/<id>.json` et validé par `python -m contrat.valider` : Robert à 30 % et à 25 % de TSLA (ce dernier contient un argument corrigé par le Greffier), Amira (panier à 25 %), Mateo (10 % de XOM). Un procès est rejoué seulement s'il juge exactement la décision soumise ; sinon, l'écran le dit et propose la décision enregistrée. Aucun procès n'est inventé.
 - **Mode direct** : copier `.env.example` en `.env.local` et définir :
   ```
   VITE_USE_MOCKS=false
@@ -80,6 +81,13 @@ e2e/verifier.mjs  vérification de bout en bout (playwright-core + axe-core)
 ```
 
 Ajouter un profil : un fichier `personas/<id>.json`, puis `npm run series`. Une entrée dans `src/data/profils_ui.json` est facultative (textes de l'écran d'entrée, journal fictif) : la logique ne teste jamais un nom de profil.
+
+## « Essayez de tromper le Greffier » (#69)
+
+Sur l'écran Tribunal, n'importe qui peut écrire un argument chiffré, citer des pièces et le faire vérifier par le Greffier (`POST /verifier`, outil 6 `verifier_chiffres`, Python seul) : chaque nombre s'affiche trouvé, avec sa pièce, ou introuvable, avec le motif exact. Quatre exemples prêts, écrits à partir des pièces du procès affiché (`src/domaine/pieges.ts`) : un vrai chiffre, un chiffre inventé, un arrondi faux, la mauvaise pièce. Le même écran montre les vrais arguments que le Greffier a renvoyés pendant le procès, avec le motif et la version corrigée.
+
+- Disponible dans les deux modes dès que `VITE_API_URL` est défini, car les procès enregistrés ont leur identifiant S3. Aucun appel Bedrock : gratuit.
+- `npm run verifier:greffier` (avec `npm run dev`) vérifie les 4 exemples, un argument tapé au clavier, la réponse en moins d'une seconde, axe-core et l'affichage d'une correction réelle.
 
 ## Accessibilité
 

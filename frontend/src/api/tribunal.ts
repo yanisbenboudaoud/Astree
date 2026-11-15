@@ -1,13 +1,15 @@
 /**
  * Accès au Tribunal.
  * - Mode démonstration (VITE_USE_MOCKS=true, par défaut) : rejoue un procès réellement tenu
- *   par le pipeline et enregistré dans src/data/proces/, s'il juge exactement la décision.
+ *   par la Lambda et archivé dans S3 (copié dans src/data/proces/), s'il juge exactement la décision.
  * - Mode direct (VITE_USE_MOCKS=false) : appelle la Lambda du Tribunal (VITE_API_URL),
  *   `POST /tribunal` puis `POST /verdict` (deploiement/lambda_tribunal.py).
+ * - Dans les deux modes, « Trompez le Greffier » appelle `POST /verifier` (Python seul, sans
+ *   Bedrock) sur le procès affiché, dès que VITE_API_URL est défini.
  */
 import indexProces from '../data/proces/index.json';
 import type { ContratTribunal, DecisionContrat, VerdictContrat } from './contrat';
-import type { DecisionUI, ResultatTribunal } from './types';
+import type { DecisionUI, ResultatTribunal, ResultatVerification } from './types';
 import { adapterContrat, numeroAudience } from './adaptateur';
 import { profil as profilDe } from './donnees';
 import { correspondAuContrat, demandeDecision, libelleDecision } from '../domaine/decision';
@@ -29,17 +31,25 @@ export function decisionDepuisContrat(decision: DecisionContrat): DecisionUI {
   return { type: 'panier', lignes: decision.panier.map((l) => ({ ticker: l.ticker, poids: Math.round(l.poids * 100) })) };
 }
 
-async function contratEnregistre(idProfil: string): Promise<{ contrat: ContratTribunal; audience: string } | null> {
-  const entree = indexProces.proces.find((p) => p.profil === idProfil);
-  const chargeur = entree && contratsEnregistres[`../data/proces/${entree.fichier}`];
-  if (!entree || !chargeur) return null;
-  return { contrat: await chargeur(), audience: entree.audience };
+interface ProcesEnregistre {
+  contrat: ContratTribunal;
+  procesId: string;
 }
 
-/** Décision jugée par le procès enregistré d'un profil (pour proposer de la rejouer). */
+/** Procès enregistrés d'un profil, dans l'ordre de l'index (le premier est la décision de démonstration). */
+async function procesEnregistres(idProfil: string): Promise<ProcesEnregistre[]> {
+  const entrees = indexProces.proces.filter((p) => p.profil === idProfil);
+  const charges = await Promise.all(entrees.map(async (entree) => {
+    const chargeur = contratsEnregistres[`../data/proces/${entree.procesId}.json`];
+    return chargeur ? { contrat: await chargeur(), procesId: entree.procesId } : null;
+  }));
+  return charges.filter((p): p is ProcesEnregistre => p !== null);
+}
+
+/** Décision jugée par le premier procès enregistré d'un profil (pour proposer de la rejouer). */
 export async function decisionEnregistree(idProfil: string): Promise<DecisionUI | null> {
-  const enregistre = await contratEnregistre(idProfil);
-  return enregistre ? decisionDepuisContrat(enregistre.contrat.decision) : null;
+  const [premier] = await procesEnregistres(idProfil);
+  return premier ? decisionDepuisContrat(premier.contrat.decision) : null;
 }
 
 async function lireErreur(reponse: Response): Promise<string> {
@@ -57,11 +67,10 @@ export async function jugerDecision(idProfil: string, decision: DecisionUI, sign
   const contexte = { nomProfil: profil?.nom ?? idProfil, titreDecision: libelleDecision(decision) };
 
   if (!MODE_DIRECT) {
-    const enregistre = await contratEnregistre(idProfil);
-    if (!enregistre || !correspondAuContrat(decision, enregistre.contrat.decision)) {
-      throw new ProcesNonEnregistre(enregistre ? decisionDepuisContrat(enregistre.contrat.decision) : null);
-    }
-    return adapterContrat(enregistre.contrat, { ...contexte, audience: enregistre.audience });
+    const enregistres = await procesEnregistres(idProfil);
+    const juge = enregistres.find((p) => correspondAuContrat(decision, p.contrat.decision));
+    if (!juge) throw new ProcesNonEnregistre(enregistres[0] ? decisionDepuisContrat(enregistres[0].contrat.decision) : null);
+    return adapterContrat(juge.contrat, { ...contexte, audience: numeroAudience(juge.procesId), procesId: juge.procesId });
   }
 
   if (!URL_API) throw new Error('Adresse du Tribunal absente : définissez VITE_API_URL (Function URL de la Lambda).');
@@ -75,6 +84,28 @@ export async function jugerDecision(idProfil: string, decision: DecisionUI, sign
   const contrat = (await reponse.json()) as ContratTribunal;
   const procesId = reponse.headers.get('x-proces-id') ?? undefined;
   return adapterContrat(contrat, { ...contexte, audience: numeroAudience(procesId), procesId });
+}
+
+/** « Trompez le Greffier » possible : le procès a un identifiant S3 et l'adresse de la Lambda est connue. */
+export function greffierEnDirect(procesId: string | undefined): boolean {
+  return Boolean(URL_API && procesId);
+}
+
+/**
+ * Fait vérifier par le Greffier (`POST /verifier`, outil 6, sans Bedrock) un argument tapé à la main,
+ * contre les pièces citées du procès archivé. Renvoie aussi la durée mesurée de l'aller-retour.
+ */
+export async function verifierArgument(procesId: string, texte: string, pieces: string[]): Promise<ResultatVerification> {
+  if (!URL_API) throw new Error('Adresse du Tribunal absente : définissez VITE_API_URL (Function URL de la Lambda).');
+  const debut = performance.now();
+  const reponse = await fetch(`${URL_API}/verifier`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: procesId, texte, pieces }),
+  });
+  if (!reponse.ok) throw new Error(await lireErreur(reponse));
+  const resultat = (await reponse.json()) as Omit<ResultatVerification, 'dureeMs'>;
+  return { ...resultat, dureeMs: Math.round(performance.now() - debut) };
 }
 
 /** Archive le verdict. En démonstration, rien n'est envoyé : le verdict reste dans le navigateur. */

@@ -1,6 +1,6 @@
 # Déploiement AWS
 
-Paramètres vérifiés dans #22, déploiement et scripts dans #13. Chaque valeur a été vérifiée sur le compte de l'événement le 2026-11-14. Schéma d'ensemble : [`docs/architecture.md`](../docs/architecture.md).
+Paramètres vérifiés dans #22, déploiement et scripts dans #13, interface hébergée dans #135 (section « Interface hébergée »). Chaque valeur a été vérifiée sur le compte de l'événement le 2026-11-14. Schéma d'ensemble : [`docs/architecture.md`](../docs/architecture.md).
 
 ## Déployer ou mettre à jour (après chaque fusion)
 
@@ -61,7 +61,7 @@ Remarques :
 
 - **Pourquoi pas API Gateway** : il coupe la requête après environ 29 s, et un procès complet dure de 18 à 33 s avant même l'outil 4 (#21). La démo échouerait par moments avec une erreur 504.
 - **Depuis #14 : type d'authentification `NONE`**, car un navigateur ne sait pas signer une requête AWS. L'interface (`frontend/`, `npm run dev`) l'appelle directement. Réglages, appliqués par `deployer.py` (`assurer_function_url`) :
-  - **CORS limité à l'interface** : `AllowOrigins` = `http://localhost:5173` seul, `AllowMethods` = `POST`, `AllowHeaders` = `content-type`, `ExposeHeaders` = `x-proces-id` (sinon le navigateur cache l'identifiant du procès, nécessaire pour `POST /verdict`), `MaxAge` = 300 s ;
+  - **CORS limité à l'interface** : `AllowOrigins` = `http://localhost:5173`, plus, depuis #135, le domaine du site hébergé ajouté avec `--origine` (voir « Interface hébergée »), `AllowMethods` = `POST`, `AllowHeaders` = `content-type`, `ExposeHeaders` = `x-proces-id` (sinon le navigateur cache l'identifiant du procès, nécessaire pour `POST /verdict`), `MaxAge` = 300 s ;
   - **permissions publiques exigées par Lambda** pour une URL en `NONE` : `lambda:InvokeFunctionUrl` (`FunctionUrlAuthType: NONE`) et `lambda:InvokeFunction` avec `InvokedViaFunctionUrl: true`, donc uniquement par l'URL ;
   - le CORS ne protège que des navigateurs : n'importe quel client peut appeler l'adresse. Les coûts restent bornés par la concurrence réservée de 2 et l'alerte de budget, et l'adresse n'est pas dans le dépôt.
 - **Changer ou ajouter une origine** (interface hébergée, autre port), sans toucher au code de la Lambda :
@@ -73,6 +73,65 @@ Remarques :
   .venv\Scripts\python -X utf8 deploiement\tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"
   ```
 - **Couper l'accès après le jury** : `aws lambda delete-function-url-config --function-name alphaforge-tribunal`, ou revenir en `AWS_IAM` (`aws lambda update-function-url-config --function-name alphaforge-tribunal --auth-type AWS_IAM`).
+
+## Interface hébergée : S3 privé + CloudFront (#135)
+
+**Adresse : https://d15khh2djw55mh.cloudfront.net**. Le site est actuellement en **mode démonstration** (procès enregistrés, « Trompez le Greffier » en direct). Le passage au mode direct attend #136 et #137 : c'est l'issue #141.
+
+```powershell
+aws login                                                                    # une fois par session
+.venv\Scripts\python -X utf8 deploiement\deployer_interface.py              # construit puis envoie, mode direct (défaut)
+.venv\Scripts\python -X utf8 deploiement\deployer_interface.py --mode demo  # procès enregistrés
+```
+
+Options : `--sans-construction` envoie `frontend/dist/` tel quel ; `--forcer` renvoie tous les fichiers (après un changement des en-têtes) ; `--attendre` attend que la distribution soit déployée.
+
+[`deployer_interface.py`](deployer_interface.py) est **idempotent** comme `deployer.py` : un second lancement ne crée rien, n'envoie que les fichiers modifiés et n'invalide rien si `index.html` et les procès-verbaux n'ont pas changé.
+
+| Réglage | Valeur | Pourquoi |
+|---|---|---|
+| Bucket | `alphaforge-site-<compte>`, accès public bloqué | Pas le bucket des données : il contient les traces, les verdicts et les profils |
+| Lecture du bucket | Contrôle d'accès à l'origine (OAC) `alphaforge-interface`, et politique du bucket : `s3:GetObject` pour `cloudfront.amazonaws.com`, condition `AWS:SourceArn` = la distribution | Personne ne lit le bucket directement, même pas une autre distribution |
+| Repérage | Commentaire `alphaforge-interface` | Le script retrouve sa distribution et n'en crée jamais une deuxième. L'autre distribution du compte (devant une instance EC2, créée le 2026-11-13 : l'infrastructure de l'événement) n'est jamais touchée. Un réglage changé à la main est remis à la valeur du dépôt au lancement suivant |
+| Pages profondes | Erreurs 403 et 404 → `/index.html` avec le statut 200, sans cache d'erreur (TTL 0) | L'interface utilise `BrowserRouter` : `/robert/tribunal` n'existe pas dans le bucket. Sans `s3:ListBucket`, S3 répond 403, et non 404, pour un objet absent |
+| Protocole | `index.html` à la racine, HTTP → HTTPS, HTTP/2 et HTTP/3, compression | Certificat `*.cloudfront.net` fourni : aucun domaine ni certificat à gérer |
+| Cache | Politique gérée `CachingOptimized`. `assets/*` : `public, max-age=31536000, immutable` ; tout le reste (`index.html`, `proces-verbaux/*.html`, `marque.svg`) : `no-cache` | Vite hache le nom des fichiers d'`assets/` : un fichier modifié change de nom. Le reste doit suivre chaque déploiement |
+| En-têtes de sécurité | Politique gérée `SecurityHeadersPolicy` (HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) | Bonnes pratiques, sans code |
+| Zone de diffusion | `PriceClass_100` (Amérique du Nord et Europe) | Le jury est à Montréal ; la classe la moins chère |
+| Construction | `npm run build` avec `VITE_API_URL` lue sur le compte (`get_function_url_config`) et `VITE_USE_MOCKS=false` par défaut | L'adresse de la Lambda n'est jamais écrite dans le dépôt. Les variables du processus passent avant `frontend/.env.local` : la configuration locale de chacun n'entre pas dans le site |
+| Envoi | Seuls les fichiers modifiés (ETag = MD5 local), `index.html` en dernier, fichiers absents de `dist/` supprimés. `Content-Type` fixé par extension | `index.html` ne désigne jamais un fichier pas encore envoyé. Sous Windows, `mimetypes` peut donner `text/plain` pour `.js` |
+| Invalidation | `/`, `/index.html` et `/proces-verbaux/*`, seulement si un fichier hors `assets/` a changé | Les 1 000 premiers chemins invalidés par mois sont gratuits |
+
+**Pourquoi S3 privé + CloudFront** :
+
+| Option | Pour | Contre |
+|---|---|---|
+| **S3 privé + CloudFront (OAC)**, retenue | HTTPS d'office ; bucket non public ; un seul service de plus (S3 est déjà utilisé) ; même style de script que `deployer.py` | Une invalidation du cache à chaque mise à jour |
+| Site web S3 seul | Le plus simple | HTTP seulement, bucket public |
+| Amplify Hosting | Déploiement automatique à chaque fusion | Un service de plus ; la connexion au dépôt GitHub demande l'accord du propriétaire du dépôt |
+
+**Appels à la Lambda** : le site appelle la Function URL directement, comme en local. Les faire passer par CloudFront (`/api/*`) couperait les réponses longues : le délai de CloudFront vers son origine est de 30 s par défaut et de 60 s au plus sans demande de quota. Le domaine du site doit donc être dans le CORS de la Function URL. Il y a été ajouté le 2026-11-15 avec `deployer.py --url-seulement --origine https://d15khh2djw55mh.cloudfront.net`. **Attention : le prochain `deployer.py` lancé sans `--origine` le retire**, jusqu'à #136 (lecture du domaine sur le compte). `deployer_interface.py` le signale à la fin s'il manque.
+
+**Coûts** : CloudFront offre chaque mois 1 To de transfert et 10 millions de requêtes gratuits ; le site pèse 16 Mo (146 fichiers) dans S3.
+
+**Vérifié le 2026-11-15** (site construit avec `--mode demo`) :
+
+| Vérification | Résultat |
+|---|---|
+| Accueil, page profonde (`/robert/tribunal`), procès-verbal (`/proces-verbaux/<id>.html`) | HTTP 200, `text/html; charset=utf-8`, `no-cache`. La page profonde passe par la réponse d'erreur (`X-Cache: Error from cloudfront`) et reçoit bien l'interface |
+| Fichier haché (`assets/index-<hash>.js`) | `text/javascript; charset=utf-8`, `public, max-age=31536000, immutable`, compressé en Brotli |
+| `http://` | 301 vers `https://` ; en-têtes HSTS et `X-Content-Type-Options` présents |
+| Lecture directe du bucket (`https://alphaforge-site-<compte>.s3.us-east-1.amazonaws.com/index.html`) | 403 |
+| `ASTREE_URL=https://d15khh2djw55mh.cloudfront.net npm run verifier` | Aucun problème : parcours des 3 profils, 23 écrans sous axe-core, débordement, console ; le procès-verbal s'ouvre |
+| `ASTREE_URL=… node e2e/greffier.mjs` (« Trompez le Greffier » en direct depuis le site) | 4 exemples vérifiés par la Lambda, de 72 à 100 ms chacun |
+| Prévol CORS depuis le site / depuis une autre origine | 200 avec `Access-Control-Allow-Origin` / aucun en-tête `Access-Control-*` |
+| Second lancement du script | Aucune ressource créée (toujours 1 OAC et 1 distribution `alphaforge-interface`), 0 fichier envoyé sur 146, aucune invalidation |
+
+Pendant ces vérifications, un redéploiement de la Lambda depuis une autre session (`deployer.py` sans `--origine`, 20 h 46 UTC) a retiré le domaine du CORS : le Greffier en direct échouait depuis le site. Il a été remis avec `--url-seulement --origine`. C'est le problème que règle #136. Une modification du CORS met aussi quelques secondes à s'appliquer partout.
+
+**Limites** :
+- Un onglet ouvert avant un redéploiement peut ne plus trouver un morceau de l'interface chargé à la demande (la table des paniers de l'écran Décision) : il a été supprimé du bucket. Recharger la page suffit.
+- **Couper après le jury** : désactiver la distribution (console CloudFront → *Disable*), puis la supprimer une fois désactivée ; vider et supprimer le bucket `alphaforge-site-<compte>`.
 
 ## Progression en direct : vérifié en local (2026-11-15, #90)
 

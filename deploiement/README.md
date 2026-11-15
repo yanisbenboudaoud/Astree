@@ -53,13 +53,30 @@ Remarques :
 ## Point d'accès : Lambda Function URL
 
 - **Pourquoi pas API Gateway** : il coupe la requête après environ 29 s, et un procès complet dure de 18 à 33 s avant même l'outil 4 (#21). La démo échouerait par moments avec une erreur 504.
-- **Aujourd'hui : type d'authentification `AWS_IAM`.** Seuls les membres connectés au compte (`aws login`) peuvent l'appeler, ce qui évite d'exposer des appels Bedrock payants tant que l'interface n'existe pas. Pour tester, `curl` ne suffit pas : la requête doit être signée. Utiliser [`tester_function_url.py`](tester_function_url.py) :
+- **Depuis #14 : type d'authentification `NONE`**, car un navigateur ne sait pas signer une requête AWS. L'interface (`frontend/`, `npm run dev`) l'appelle directement. Réglages, appliqués par `deployer.py` (`assurer_function_url`) :
+  - **CORS limité à l'interface** : `AllowOrigins` = `http://localhost:5173` seul, `AllowMethods` = `POST`, `AllowHeaders` = `content-type`, `ExposeHeaders` = `x-proces-id` (sinon le navigateur cache l'identifiant du procès, nécessaire pour `POST /verdict`), `MaxAge` = 300 s ;
+  - **permissions publiques exigées par Lambda** pour une URL en `NONE` : `lambda:InvokeFunctionUrl` (`FunctionUrlAuthType: NONE`) et `lambda:InvokeFunction` avec `InvokedViaFunctionUrl: true`, donc uniquement par l'URL ;
+  - le CORS ne protège que des navigateurs : n'importe quel client peut appeler l'adresse. Les coûts restent bornés par la concurrence réservée de 2 et l'alerte de budget, et l'adresse n'est pas dans le dépôt.
+- **Changer ou ajouter une origine** (interface hébergée, autre port), sans toucher au code de la Lambda :
+  ```powershell
+  .venv\Scripts\python -X utf8 deploiement\deployer.py --url-seulement --origine https://mon-domaine
+  ```
+- **Tester sans navigateur** : [`tester_function_url.py`](tester_function_url.py) lit l'adresse sur le compte, envoie la requête (encore signée, ce qui reste accepté) et affiche le statut, la durée et un résumé du contrat :
   ```powershell
   .venv\Scripts\python -X utf8 deploiement\tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"
   ```
-  Il lit l'adresse sur le compte (elle n'est pas dans le dépôt), signe la requête et affiche le statut, la durée et un résumé du contrat.
-- **Quand l'interface sera en ligne (#14)** : passer en type `NONE` (un navigateur ne sait pas signer une requête AWS), avec **CORS limité au domaine de l'interface** : `AllowOrigins` = ce domaine seul, `AllowMethods` = `POST`, `AllowHeaders` = `content-type`, `ExposeHeaders` = `x-proces-id` (sinon le navigateur cache l'identifiant du procès, nécessaire pour `POST /verdict`).
-- **Supprimer l'adresse après le jury** : `aws lambda delete-function-url-config --function-name alphaforge-tribunal`.
+- **Couper l'accès après le jury** : `aws lambda delete-function-url-config --function-name alphaforge-tribunal`, ou revenir en `AWS_IAM` (`aws lambda update-function-url-config --function-name alphaforge-tribunal --auth-type AWS_IAM`).
+
+## Vérifié depuis le navigateur (2026-11-15, #14)
+
+Function URL en `NONE`, interface en mode direct sur `http://localhost:5173`, script `frontend/e2e/direct.mjs` :
+
+| Vérification | Résultat |
+|---|---|
+| Prévol CORS depuis `http://localhost:5173` | HTTP 200 avec `Access-Control-Allow-Origin`, `-Methods: POST`, `-Headers: content-type` |
+| Prévol CORS depuis une autre origine | Aucun en-tête `Access-Control-*` : le navigateur bloque l'appel |
+| Procès de Robert (« 30 % en TSLA ») dans l'interface | HTTP 200 en 28 s ; identifiant du procès lisible par la page (`x-proces-id` exposé) ; verdict signé, `POST /verdict` HTTP 200 |
+| Procès d'Amira (panier crypto-tech, le plus long) dans l'interface | HTTP 200 en 44 s, sans coupure ; verdict signé, `POST /verdict` HTTP 200 |
 
 ## Vérifié sur la Lambda déployée (2026-11-14)
 

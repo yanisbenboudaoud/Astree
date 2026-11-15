@@ -8,8 +8,10 @@
 3. **Lambda** ``alphaforge-tribunal`` : créée, ou code et configuration mis à jour
    (python3.14, couche pandas, 300 s, 1024 Mo, variables d'environnement) ;
 4. **concurrence réservée** de 2 (coûts Bedrock) ;
-5. **Function URL** : créée si elle manque, en ``AWS_IAM`` tant que l'interface n'est
-   pas en ligne (#14 la passera en ``NONE`` avec un CORS limité à son domaine).
+5. **Function URL** : créée si elle manque, en ``NONE`` (un navigateur ne sait pas signer
+   une requête AWS) avec un **CORS limité aux origines de l'interface** (#14) et la
+   permission publique que Lambda exige : ``lambda:InvokeFunctionUrl`` et
+   ``lambda:InvokeFunction`` seulement par la Function URL.
 
 Les paramètres sont ceux vérifiés dans #22 (``deploiement/README.md``). Aucune clé :
 les identifiants viennent de ``aws login``.
@@ -18,6 +20,8 @@ Usage (depuis la racine du dépôt) ::
 
     .venv\\Scripts\\python -X utf8 deploiement\\deployer.py              # construit le zip puis déploie
     .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --sans-donnees
+    .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --url-seulement   # étape 5 seule
+    .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --url-seulement --origine https://mon-domaine
 """
 
 from __future__ import annotations
@@ -47,6 +51,11 @@ CONFIGURATION = {
     "MemorySize": 1024,
     "Layers": [COUCHE_PANDAS],
 }
+# Origines autorisées à appeler la Function URL depuis un navigateur (#14) : l'interface
+# tourne en local (npm run dev). Ajouter un domaine avec --origine quand elle sera hébergée.
+ORIGINES_INTERFACE = ["http://localhost:5173"]
+STATEMENT_URL = "function-url-publique"
+STATEMENT_INVOCATION = "function-url-publique-invocation"
 CONFIANCE_LAMBDA = {
     "Version": "2012-10-17",
     "Statement": [{"Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"},
@@ -134,13 +143,49 @@ def regler_concurrence(lam) -> None:
     print(f"Lambda : concurrence réservée de {CONCURRENCE_RESERVEE}")
 
 
-def assurer_function_url(lam) -> str:
+def cors_interface(origines: list[str]) -> dict:
+    """CORS de la Function URL : POST seulement, depuis l'interface, en-tête du procès visible.
+
+    Sans ``ExposeHeaders``, le navigateur cache ``X-Proces-Id``, nécessaire pour ``POST /verdict``.
+    """
+    return {
+        "AllowOrigins": origines,
+        "AllowMethods": ["POST"],
+        "AllowHeaders": ["content-type"],
+        "ExposeHeaders": ["x-proces-id"],
+        "MaxAge": 300,
+    }
+
+
+def autoriser_appels_publics(lam) -> None:
+    """Permissions d'une Function URL en ``NONE`` : les deux sont exigées par Lambda.
+
+    La seconde ne vaut que pour les appels qui passent par la Function URL
+    (``InvokedViaFunctionUrl``) : personne ne peut appeler la fonction directement.
+    """
+    permissions = [
+        {"StatementId": STATEMENT_URL, "Action": "lambda:InvokeFunctionUrl", "FunctionUrlAuthType": "NONE"},
+        {"StatementId": STATEMENT_INVOCATION, "Action": "lambda:InvokeFunction", "InvokedViaFunctionUrl": True},
+    ]
+    for permission in permissions:
+        try:
+            lam.add_permission(FunctionName=FONCTION, Principal="*", **permission)
+        except lam.exceptions.ResourceConflictException:
+            pass  # déjà accordée
+    print("Function URL : appels publics autorisés (InvokeFunctionUrl et InvokeFunction par l'URL seulement)")
+
+
+def assurer_function_url(lam, origines: list[str]) -> str:
+    """Function URL en ``NONE`` avec le CORS de l'interface (créée ou mise à jour)."""
+    reglages = {"AuthType": "NONE", "Cors": cors_interface(origines)}
     try:
-        config = lam.get_function_url_config(FunctionName=FONCTION)
-        print(f"Function URL : déjà présente ({config['AuthType']})")
+        lam.get_function_url_config(FunctionName=FONCTION)
+        config = lam.update_function_url_config(FunctionName=FONCTION, **reglages)
+        print(f"Function URL : mise à jour (NONE, CORS pour {', '.join(origines)})")
     except lam.exceptions.ResourceNotFoundException:
-        config = lam.create_function_url_config(FunctionName=FONCTION, AuthType="AWS_IAM")
-        print("Function URL : créée (AWS_IAM)")
+        config = lam.create_function_url_config(FunctionName=FONCTION, **reglages)
+        print(f"Function URL : créée (NONE, CORS pour {', '.join(origines)})")
+    autoriser_appels_publics(lam)
     return config["FunctionUrl"]
 
 
@@ -148,11 +193,20 @@ def main(arguments: list[str] | None = None) -> int:
     lecteur = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     lecteur.add_argument("--zip", type=Path, help="zip déjà construit (sinon, construit maintenant)")
     lecteur.add_argument("--sans-donnees", action="store_true", help="ne pas renvoyer les CSV dans S3")
+    lecteur.add_argument("--url-seulement", action="store_true",
+                         help="régler seulement la Function URL (NONE, CORS), sans toucher au code")
+    lecteur.add_argument("--origine", action="append", default=[],
+                         help="origine de l'interface à ajouter au CORS (répétable)")
     options = lecteur.parse_args(arguments)
+    origines = ORIGINES_INTERFACE + [o.rstrip("/") for o in options.origine]
 
     session = boto3.Session(region_name=REGION)
+    lam = session.client("lambda")
+    if options.url_seulement:
+        print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST /tribunal et /verdict)")
+        return 0
     bucket = nom_bucket(session.client("sts").get_caller_identity()["Account"])
-    s3, iam, lam = session.client("s3"), session.client("iam"), session.client("lambda")
+    s3, iam = session.client("s3"), session.client("iam")
 
     preparer_bucket(s3, bucket)
     if not options.sans_donnees:
@@ -161,7 +215,7 @@ def main(arguments: list[str] | None = None) -> int:
     zip_lambda = options.zip or construire()
     deployer_fonction(lam, zip_lambda.read_bytes(), role_arn, bucket)
     regler_concurrence(lam)
-    print(f"Prêt : {assurer_function_url(lam)} (routes POST /tribunal et /verdict)")
+    print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST /tribunal et /verdict)")
     return 0
 
 

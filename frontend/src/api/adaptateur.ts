@@ -60,7 +60,11 @@ export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
   else appel = `${outil}(${parametres(etape.entree)})`;
 
   const idPiece = typeof sortie === 'string' && ID_PIECE.test(sortie) ? sortie : undefined;
-  if (etape.etape === 'orchestrateur' && !idPiece) etat = 'signalement';
+  if (etape.etape === 'orchestrateur' && !idPiece) {
+    // Appel refusé ou en erreur : pas de pièce, la sortie donne le motif (« Erreur : … », #65).
+    etat = 'signalement';
+    if (typeof sortie === 'string' && sortie) appel = `${appel} → ${sortie}`;
+  }
   if (etape.raison && /d.office/i.test(etape.raison)) etat = 'signalement';
 
   return { role, appel, etat, raison: etape.raison, sortie: idPiece };

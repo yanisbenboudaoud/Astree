@@ -20,6 +20,7 @@ npm run dev          # http://localhost:5173
 | `npm run build` | Vérification des types, puis compilation dans `dist/` |
 | `npm test` | Tests vitest : chiffres de l'annexe E, formats, adaptateur du contrat, questions, Verdict |
 | `npm run verifier` | Parcours de bout en bout des 3 profils (Robert au clavier seul), axe-core sur chaque écran, débordement à 1440 et 1280 px, erreurs de console. Demande `npm run dev` dans un autre terminal et Edge ou Chrome installé. Captures dans `e2e/captures/` |
+| `npm run verifier:direct` | Mode direct : deux vrais procès sur la Lambda par l'interface, verdicts signés et archivés (Bedrock, quelques cents) |
 | `npm run series` | Régénère les séries et les tables (`scripts/build_ui_series.py`) |
 
 ## D'où viennent les chiffres
@@ -56,7 +57,9 @@ La couche `src/api/` isole les écrans du backend : les composants ne lisent que
   VITE_API_URL=https://<id>.lambda-url.us-east-1.on.aws
   ```
   L'interface envoie `POST /tribunal` `{profil, demande}` (la demande est rédigée par `demandeDecision`, ex. « Je veux mettre 30 % de mon portefeuille en Tesla (TSLA) »), lit l'identifiant du procès dans l'en-tête `x-proces-id`, puis envoie `POST /verdict` `{id, verdict}` à la signature.
-  **Prérequis côté AWS** (`deploiement/README.md`, « Point d'accès ») : Function URL en type `NONE`, CORS limité au domaine de l'interface, `ExposeHeaders: x-proces-id`.
+  L'adresse s'obtient avec `aws lambda get-function-url-config --function-name alphaforge-tribunal --query FunctionUrl` (elle n'est pas dans le dépôt). Relancer `npm run dev` après avoir modifié `.env.local`.
+  **Côté AWS, c'est fait (#14)** : Function URL en type `NONE`, CORS limité à `http://localhost:5173` et `ExposeHeaders: x-proces-id` (`deploiement/README.md`, « Point d'accès »). L'interface doit donc tourner sur ce port ; pour un autre domaine, `deploiement\deployer.py --url-seulement --origine <domaine>`.
+  **Vérifier** : `npm run verifier:direct` (avec `npm run dev` en mode direct) joue deux vrais procès par l'interface, Robert puis Amira, et signe leurs verdicts. Cela coûte quelques cents de Bedrock et ajoute deux verdicts à la jurisprudence.
 
 Le même adaptateur (`src/api/adaptateur.ts`) traduit le contrat dans les deux modes.
 

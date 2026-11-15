@@ -1,6 +1,6 @@
 # #56 — Jurisprudence : l'orchestrateur consulte les verdicts passés archivés dans S3
 
-- **Issue** : #56 · **PR** : #63, PR_SUIVANTE · **Statut** : terminée
+- **Issue** : #56 · **PR** : #63, #64 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

@@ -1,6 +1,6 @@
 # #135 — Héberger l'interface : S3 privé + CloudFront (HTTPS), script de déploiement idempotent
 
-- **Issue** : #135 · **PR** : à renseigner · **Statut** : terminée
+- **Issue** : #135 · **PR** : #144 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

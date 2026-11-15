@@ -9,7 +9,7 @@
 .titre { display: flex; flex-direction: column; gap: 8px; }
 .rappel { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-/* Paysage (#103) : les choix à gauche ; ce qui changerait la réponse et l'export à droite. */
+/* Paysage (#103) : les choix à gauche ; ce que la signature archive et les limites à droite. */
 .grille {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
@@ -23,27 +23,37 @@
 .choix { grid-area: choix; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .cote { grid-area: cote; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .suite { grid-area: suite; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.blocExport {
+.blocArchive {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 20px;
+  gap: 12px;
+  padding: 16px 20px;
   border: 1px solid var(--trait-fin);
   border-radius: var(--rayon);
   background: var(--fond-carte);
 }
-
-.bascule {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 16px 20px;
-  background: var(--fond-creux);
-  border-radius: var(--rayon);
-}
-.bascule ul { display: flex; flex-direction: column; gap: 10px; }
-.point { display: flex; flex-direction: column; gap: 2px; }
+.listeArchive { display: flex; flex-direction: column; gap: 6px; padding-left: 18px; list-style: disc; }
 .lienPiece { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Ajustements du Pacte (#61) : une ligne par règle à changer, avec sa pièce. */
+.ajustements { display: flex; flex-direction: column; gap: 4px; padding: 4px 0 0 12px; border-left: 2px solid var(--trait-moyen); }
+.ajustement { display: block; }
+
+/* Jauge : la pire baisse de l'option (barre) face au seuil du Pacte (repère). */
+.jauge { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; padding-top: 10px; }
+.piste { position: relative; display: block; flex: 1 1 240px; max-width: 360px; height: 8px; border-radius: 4px; background: var(--fond-creux); }
+.barre { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--statut-conforme); }
+.depasse { background: var(--statut-violation); }
+.repere {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--encre-900);
+}
+.legendeJauge { display: flex; align-items: center; gap: 6px; }
+.marqueSeuil { flex: none; width: 2px; height: 12px; background: var(--encre-900); }
 
 .options { border: 0; padding: 0; margin: 0; min-width: 0; }
 .options ul { display: flex; flex-direction: column; gap: 12px; }
@@ -108,26 +118,23 @@
 .case input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--encre-900); }
 .note { margin: 0 20px 18px 52px; padding: 10px 12px; background: var(--fond-creux); border-radius: var(--rayon-petit); }
 
-.lienPacte { align-self: flex-start; text-decoration: underline; text-underline-offset: 3px; }
-
 .actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   flex-wrap: wrap;
   padding-top: 20px;
   border-top: 1px solid var(--trait-fin);
 }
 .lienExport { align-self: flex-start; }
-.signature { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.raison { text-align: right; }
+.raison { text-align: right; max-width: 420px; }
 
 @media (max-width: 1023px) {
   .grille {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
-    grid-template-areas: 'cote' 'choix' 'suite';
+    grid-template-areas: 'choix' 'cote' 'suite';
   }
   .cote { position: static; }
 }

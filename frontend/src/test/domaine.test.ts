@@ -130,12 +130,16 @@ describe('questions du Greffier', () => {
 });
 
 describe('options du Verdict', () => {
-  it('position en violation : maintenir (avec engagement), ramener à 9 %, renoncer', () => {
+  it('position en violation : maintenir (avec engagement), ramener à 9 %, renoncer, ajuster le Pacte', () => {
     const resultat = adapter(contratRobert, 'Robert', decisionRobert);
     const table = tsla as TablePosition;
     const options = optionsVerdict({ profil: robert, resultat, decision: decisionRobert, table, entreeDecision: table.tailles[30] });
-    expect(options.map((o) => o.id)).toEqual(['maintenir', 'ramener', 'renoncer']);
+    expect(options.map((o) => o.id)).toEqual(['maintenir', 'ramener', 'renoncer', 'pacte']);
     expect(options[0].statut).toBe('Violation');
+    expect(options[2].mesures[0].valeur).toBe(`${MOINS}7,8${FINE}%`);
+    expect(options[3].verdict).toBe('pacte_ajuste');
+    expect(options[3].statut).toBe('Conforme');
+    expect(options[3].ajustements?.[0].texte).toBe(`§1 · Pire baisse tolérée : ${MOINS}29,0${FINE}% au lieu de ${MOINS}12${FINE}%`);
     expect(options[0].engagement).toContain(`${MOINS}29,0${FINE}%`);
     expect(options[1].titre).toBe(`Ramener la position à 9${FINE}%`);
     expect(options[1].mesures[0].valeur).toBe(`${MOINS}11,2${FINE}%`);
@@ -145,8 +149,11 @@ describe('options du Verdict', () => {
   it('violation documentaire seule : pas de taille à ramener', () => {
     const resultat = adapter(contratMateo, 'Mateo', decisionMateo);
     const options = optionsVerdict({ profil: mateo, resultat, decision: decisionMateo, table: xom as TablePosition, entreeDecision: null });
-    expect(options.map((o) => o.id)).toEqual(['maintenir', 'renoncer']);
+    expect(options.map((o) => o.id)).toEqual(['maintenir', 'renoncer', 'pacte']);
     expect(options[0].statut).toBe('Violation');
+    // Aucun point de bascule pour une règle documentaire : ajuster le Pacte ne rend pas la décision conforme.
+    expect(options[2].ajustements).toEqual([]);
+    expect(options[2].statut).toBe('Violation');
   });
 
   it('panier : la plus grande part réallouable vient du Tribunal (P4)', () => {
@@ -154,6 +161,7 @@ describe('options du Verdict', () => {
     const options = optionsVerdict({ profil: amira, resultat, decision: decisionAmira, table: null, entreeDecision: null });
     expect(options[1].titre).toBe(`Réallouer seulement 28${FINE}%`);
     expect(options[1].statut).toBe('Conforme');
+    expect(options[3].ajustements).toHaveLength(3);
   });
 });
 

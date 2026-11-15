@@ -1,0 +1,56 @@
+# Site de démonstration sur GitHub Pages (#186) : l'interface en mode démonstration,
+# qui rejoue les procès enregistrés sans appeler AWS. Il reste en ligne après la
+# suppression des comptes AWS du Datathon (16 novembre 2026), contrairement au site CloudFront (#135).
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  construire:
+    name: Construire l'interface
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      VITE_USE_MOCKS: "true"
+      VITE_API_URL: ""
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      # Le site est servi sous /<dépôt>/ : routeur, logo et procès-verbaux suivent BASE_URL.
+      - run: npx tsc --noEmit && npx vite build --base "/${{ github.event.repository.name }}/"
+      # Pages n'a pas de réécriture d'URL : une page profonde rechargée tombe sur 404.html,
+      # qui est l'application elle-même.
+      - run: cp dist/index.html dist/404.html
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: frontend/dist
+
+  publier:
+    name: Publier sur GitHub Pages
+    needs: construire
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - id: deploiement
+        uses: actions/deploy-pages@v4

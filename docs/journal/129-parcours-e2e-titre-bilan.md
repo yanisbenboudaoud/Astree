@@ -1,6 +1,6 @@
 # #129 — Parcours e2e bloqués à l'écran Tribunal depuis #118
 
-- **Issue** : #129 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #129 · **PR** : #130 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

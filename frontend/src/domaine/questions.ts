@@ -17,11 +17,12 @@ export interface QuestionSuggeree {
 
 export interface Reponse {
   question: string;
-  role: 'Greffier';
+  /** Greffier pour les questions suggérées ; Procureur, Avocat et Greffier pour une question libre (#55). */
+  role: 'Greffier' | 'Procureur' | 'Avocat';
   provenance: Provenance;
   pieces: string[];
   texte: string;
-  nouvellePiece?: Piece;
+  nouvellesPieces?: Piece[];
 }
 
 export interface ContexteQuestions {
@@ -102,7 +103,7 @@ export function repondre(question: QuestionSuggeree, contexte: ContexteQuestions
       provenance: 'Fictif',
       pieces: [code],
       texte,
-      nouvellePiece: {
+      nouvellesPieces: [{
         code,
         provenance: 'Fictif',
         titre: `Simulation à ${x} % (créée par une question)`,
@@ -112,7 +113,7 @@ export function repondre(question: QuestionSuggeree, contexte: ContexteQuestions
         limites: sim?.limites,
         citeePar: ['Greffier · réponse à une question'],
         origine: 'question',
-      },
+      }],
     };
   }
 

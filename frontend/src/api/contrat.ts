@@ -69,6 +69,17 @@ export interface EtapeTraceContrat {
   sortie?: unknown;
 }
 
+/** Une question posée après le procès (`POST /question`, #55). */
+export interface EchangeContrat {
+  question: string;
+  pieces_ajoutees: string[];
+  requisitoire: ArgumentContrat[];
+  plaidoirie: ArgumentContrat[];
+  arguments_rejetes: ArgumentRejeteContrat[];
+  controle_chiffres: ControleContrat;
+  trace: EtapeTraceContrat[];
+}
+
 export interface IndicateursContrat {
   rendement_annuel: number;
   volatilite_annuelle: number;

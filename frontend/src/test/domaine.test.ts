@@ -114,7 +114,7 @@ describe('questions du Greffier', () => {
   it('un nouveau calcul devient une nouvelle pièce, avec les chiffres de la table', () => {
     const reponse = repondre({ id: 'taille:15', libelle: 'Et à 15 % ?' }, contexte)!;
     expect(reponse.role).toBe('Greffier');
-    expect(reponse.nouvellePiece?.code).toBe(`P${resultat.pieces.length + 1}`);
+    expect(reponse.nouvellesPieces?.[0].code).toBe(`P${resultat.pieces.length + 1}`);
     expect(reponse.texte).toContain(`${MOINS}16,4${FINE}%`);
     expect(reponse.texte).toContain(`${MOINS}13,4${FINE}%`);
   });

@@ -5,12 +5,14 @@
  * - Mode direct (VITE_USE_MOCKS=false) : appelle la Lambda du Tribunal (VITE_API_URL),
  *   `POST /tribunal` puis `POST /verdict` (deploiement/lambda_tribunal.py).
  * - Dans les deux modes, « Trompez le Greffier » appelle `POST /verifier` (Python seul, sans
- *   Bedrock) sur le procès affiché, dès que VITE_API_URL est défini.
+ *   Bedrock) et une question libre appelle `POST /question` (Bedrock) sur le procès affiché,
+ *   dès que VITE_API_URL est défini.
  */
 import indexProces from '../data/proces/index.json';
-import type { ContratTribunal, DecisionContrat, VerdictContrat } from './contrat';
+import type { ContratTribunal, DecisionContrat, EchangeContrat, PieceContrat, VerdictContrat } from './contrat';
 import type { DecisionUI, ResultatTribunal, ResultatVerification } from './types';
-import { adapterContrat, numeroAudience } from './adaptateur';
+import type { Reponse } from '../domaine/questions';
+import { adapterContrat, adapterEchange, numeroAudience } from './adaptateur';
 import { profil as profilDe } from './donnees';
 import { correspondAuContrat, demandeDecision, libelleDecision } from '../domaine/decision';
 
@@ -152,6 +154,23 @@ export async function verifierArgument(procesId: string, texte: string, pieces: 
   if (!reponse.ok) throw new Error(await lireErreur(reponse));
   const resultat = (await reponse.json()) as Omit<ResultatVerification, 'dureeMs'>;
   return { ...resultat, dureeMs: Math.round(performance.now() - debut) };
+}
+
+/**
+ * Contre-interrogatoire (`POST /question`, #55) : l'orchestrateur Bedrock choisit ses outils,
+ * le Procureur et l'Avocat répondent avec les pièces, le Greffier vérifie chaque chiffre.
+ * Le procès archivé dans S3 est complété : une question suivante peut citer les nouvelles pièces.
+ */
+export async function poserQuestion(procesId: string, question: string): Promise<Reponse[]> {
+  if (!URL_API) throw new Error('Adresse du Tribunal absente : définissez VITE_API_URL (Function URL de la Lambda).');
+  const reponse = await fetch(`${URL_API}/question`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: procesId, question }),
+  });
+  if (!reponse.ok) throw new Error(await lireErreur(reponse));
+  const corps = (await reponse.json()) as { echange: EchangeContrat; pieces: PieceContrat[] };
+  return adapterEchange(corps.echange, corps.pieces);
 }
 
 /** Archive le verdict. En démonstration, rien n'est envoyé : le verdict reste dans le navigateur. */

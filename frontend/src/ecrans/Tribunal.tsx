@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Argument, DecisionUI, Piece, Profil, ResultatTribunal } from '../api/types';
-import { MODE_DIRECT, ProcesNonEnregistre, jugerDecision } from '../api/tribunal';
+import { MODE_DIRECT, ProcesNonEnregistre, greffierEnDirect, jugerDecision, poserQuestion } from '../api/tribunal';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { IconeStatut, PastillePiece, Provenance, Statut } from '../components/Etiquettes';
@@ -169,7 +169,8 @@ export function Tribunal({ profil }: { profil: Profil }) {
   const [etapesVisibles, setEtapesVisibles] = useState(0);
   const [debut] = useState(Date.now());
   const [question, setQuestion] = useState('');
-  const [noteQuestion, setNoteQuestion] = useState(false);
+  const [questionEnCours, setQuestionEnCours] = useState<string | null>(null);
+  const [erreurQuestion, setErreurQuestion] = useState<string | null>(null);
   const [controlesOuverts, setControlesOuverts] = useState(false);
   const declencheur = useRef<HTMLElement | null>(null);
   const resultat = tribunal.resultat;
@@ -316,10 +317,29 @@ export function Tribunal({ profil }: { profil: Profil }) {
   };
   const envoyer = (e: FormEvent) => {
     e.preventDefault();
-    const correspondante = questions.find((q) => q.libelle.toLowerCase() === question.trim().toLowerCase());
-    if (correspondante) poser(correspondante);
-    else setNoteQuestion(true);
+    const texte = question.trim();
+    if (!texte || questionEnCours) return;
+    setErreurQuestion(null);
+    const correspondante = questions.find((q) => q.libelle.toLowerCase() === texte.toLowerCase());
+    if (correspondante) {
+      poser(correspondante);
+      setQuestion('');
+      return;
+    }
+    const procesId = resultat.procesId;
+    if (!procesId || !greffierEnDirect(procesId)) {
+      setErreurQuestion("Les questions libres passent par l'orchestrateur Bedrock : il faut l'adresse de la Lambda (VITE_API_URL) et un procès archivé dans S3.");
+      return;
+    }
+    setQuestionEnCours(texte);
     setQuestion('');
+    poserQuestion(procesId, texte)
+      .then((reponses) => ajouterReponse(...reponses))
+      .catch((err: unknown) => {
+        setErreurQuestion(err instanceof Error ? err.message : String(err));
+        setQuestion(texte);
+      })
+      .finally(() => setQuestionEnCours(null));
   };
 
   return (
@@ -458,21 +478,22 @@ export function Tribunal({ profil }: { profil: Profil }) {
                 className={styles.champQuestion}
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
+                disabled={questionEnCours !== null}
                 placeholder="Posez votre question : les agents répondent avec les pièces du dossier"
               />
-              <Bouton variante="secondaire" fleche={false} type="submit">Envoyer</Bouton>
+              <Bouton variante="secondaire" fleche={false} type="submit" disabled={questionEnCours !== null}>Envoyer</Bouton>
             </form>
-            {noteQuestion && (
+            {questionEnCours && (
               <p className="t-petit c-700" role="status">
-                Les questions libres passeront par l'orchestrateur Bedrock, qui choisira ses outils et ajoutera des pièces au dossier.
-                Le pipeline sait déjà y répondre (route /question, #55), mais l'interface ne l'appelle pas encore : les questions suggérées ci-dessus sont calculées par le Greffier.
+                « {questionEnCours} » : l'orchestrateur choisit ses outils, puis le Procureur et l'Avocat répondent et le Greffier vérifie chaque chiffre (environ 30 s).
               </p>
             )}
+            {erreurQuestion && <p className="t-petit c-700" role="alert">La question n'a pas pu être instruite : {erreurQuestion}</p>}
             {etat.reponses.length > 0 && (
               <ol className={styles.reponses} aria-live="polite">
-                {etat.reponses.map((r) => (
-                  <li key={r.question} className={styles.reponse}>
-                    <p className="t-petit-fort c-500">{r.question}</p>
+                {etat.reponses.map((r, i) => (
+                  <li key={i} className={styles.reponse}>
+                    {etat.reponses[i - 1]?.question !== r.question && <p className="t-petit-fort c-500">{r.question}</p>}
                     <p className={styles.provenanceArgument}>
                       <span className="t-petit-fort">{r.role}</span>
                       <Provenance type={r.provenance} />

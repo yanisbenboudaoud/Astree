@@ -53,7 +53,7 @@ type Action =
   | { type: 'decision'; profil: string; decision: DecisionUI | null }
   | { type: 'panier'; profil: string; tickers: string[] }
   | { type: 'tribunal'; profil: string; tribunal: EtatTribunal }
-  | { type: 'reponse'; profil: string; reponse: Reponse }
+  | { type: 'reponse'; profil: string; reponses: Reponse[] }
   | { type: 'verdict'; profil: string; verdict: Partial<EtatVerdict> }
   | { type: 'signer'; profil: string; resume: string; entree: EntreeJournal }
   | { type: 'annuler_signature'; profil: string }
@@ -81,8 +81,8 @@ function reducteur(etat: Etat, action: Action): Etat {
     case 'reponse':
       suivant = {
         ...courant,
-        reponses: [...courant.reponses, action.reponse],
-        piecesQuestions: action.reponse.nouvellePiece ? [...courant.piecesQuestions, action.reponse.nouvellePiece] : courant.piecesQuestions,
+        reponses: [...courant.reponses, ...action.reponses],
+        piecesQuestions: [...courant.piecesQuestions, ...action.reponses.flatMap((r) => r.nouvellesPieces ?? [])],
       };
       break;
     case 'verdict':
@@ -152,7 +152,7 @@ export function useEtatProfil(idProfil: string) {
   const definirDecision = useCallback((decision: DecisionUI | null) => envoyer({ type: 'decision', profil: idProfil, decision }), [envoyer, idProfil]);
   const definirPanier = useCallback((tickers: string[]) => envoyer({ type: 'panier', profil: idProfil, tickers }), [envoyer, idProfil]);
   const definirTribunal = useCallback((tribunal: EtatTribunal) => envoyer({ type: 'tribunal', profil: idProfil, tribunal }), [envoyer, idProfil]);
-  const ajouterReponse = useCallback((reponse: Reponse) => envoyer({ type: 'reponse', profil: idProfil, reponse }), [envoyer, idProfil]);
+  const ajouterReponse = useCallback((...reponses: Reponse[]) => envoyer({ type: 'reponse', profil: idProfil, reponses }), [envoyer, idProfil]);
   const modifierVerdict = useCallback((verdict: Partial<EtatVerdict>) => envoyer({ type: 'verdict', profil: idProfil, verdict }), [envoyer, idProfil]);
   const signer = useCallback((resume: string, entree: EntreeJournal) => envoyer({ type: 'signer', profil: idProfil, resume, entree }), [envoyer, idProfil]);
   const annulerSignature = useCallback(() => envoyer({ type: 'annuler_signature', profil: idProfil }), [envoyer, idProfil]);

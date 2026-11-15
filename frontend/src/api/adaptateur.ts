@@ -2,7 +2,8 @@
  * Contrat du pipeline (CLAUDE.md, section 5) → types de l'écran Tribunal (annexe D.7).
  * Le même adaptateur sert aux procès enregistrés (mode démonstration) et au Tribunal en direct.
  */
-import type { ContratTribunal, EtapeTraceContrat, EtiquetteContrat } from './contrat';
+import type { ContratTribunal, EchangeContrat, EtapeTraceContrat, EtiquetteContrat, PieceContrat } from './contrat';
+import type { Reponse } from '../domaine/questions';
 import type { Argument, ArgumentRejete, Controle, Correction, EtapeTrace, Piece, Provenance, ResultatTribunal } from './types';
 import { paragraphe, parGravite, statutUi } from '../domaine/pacte';
 import { part } from '../lib/format';
@@ -82,6 +83,50 @@ export interface ContexteAdaptation {
   procesId?: string;
 }
 
+function adapterPiece(p: PieceContrat, citeePar: string[], origine: Piece['origine']): Piece {
+  return {
+    code: p.id,
+    provenance: provenanceUi(p.etiquette),
+    titre: p.titre,
+    valeur: p.valeur_affichee,
+    source: p.source,
+    traitement: p.traitement,
+    limites: p.limites,
+    citeePar,
+    origine,
+  };
+}
+
+/**
+ * Réponse de `POST /question` (#55) → réponses affichées : un argument validé par le Greffier
+ * par réponse, puis le compte rendu du Greffier. Les nouvelles pièces vont avec la première.
+ */
+export function adapterEchange(echange: EchangeContrat, piecesAjoutees: PieceContrat[]): Reponse[] {
+  const citation = `Contre-interrogatoire · ${echange.question}`;
+  const nouvellesPieces = piecesAjoutees.map((p) => adapterPiece(p, [citation], 'question'));
+  const argumentsValides = [
+    ...echange.requisitoire.map((a) => ({ role: 'Procureur' as const, a })),
+    ...echange.plaidoirie.map((a) => ({ role: 'Avocat' as const, a })),
+  ];
+  const rejetes = echange.arguments_rejetes.length;
+  const reponses: Reponse[] = argumentsValides.map(({ role, a }) => ({
+    question: echange.question,
+    role,
+    provenance: provenanceUi(a.etiquette),
+    pieces: a.pieces,
+    texte: a.texte,
+  }));
+  reponses.push({
+    question: echange.question,
+    role: 'Greffier',
+    provenance: 'Fait',
+    pieces: echange.pieces_ajoutees,
+    texte: `${echange.controle_chiffres.message}.${rejetes ? ` ${rejetes} argument${rejetes > 1 ? 's' : ''} rejeté${rejetes > 1 ? 's' : ''} : ${echange.arguments_rejetes.map((r) => r.raison).join(' ; ')}.` : ''}`,
+  });
+  reponses[0].nouvellesPieces = nouvellesPieces;
+  return reponses;
+}
+
 export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdaptation): ResultatTribunal {
   const regles = contrat.pacte.regles;
 
@@ -97,17 +142,7 @@ export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdapt
     });
   }
 
-  const pieces: Piece[] = contrat.pieces.map((p) => ({
-    code: p.id,
-    provenance: provenanceUi(p.etiquette),
-    titre: p.titre,
-    valeur: p.valeur_affichee,
-    source: p.source,
-    traitement: p.traitement,
-    limites: p.limites,
-    citeePar: citations.get(p.id) ?? [],
-    origine: 'tribunal',
-  }));
+  const pieces: Piece[] = contrat.pieces.map((p) => adapterPiece(p, citations.get(p.id) ?? [], 'tribunal'));
 
   const controles: Controle[] = parGravite(contrat.controles.map((c) => {
     const numero = paragraphe(regles, c.regle);

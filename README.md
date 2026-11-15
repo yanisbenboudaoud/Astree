@@ -13,6 +13,8 @@ Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre déc
 | **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
 | Comprendre le projet, ses règles et son architecture | [`CLAUDE.md`](CLAUDE.md) |
 | Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
+| La **documentation technique** (agents, garde-fous, méthode, explicabilité, validations, AWS) | [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md) |
+| Le projet **en une page** | [`docs/ONE_PAGER.md`](docs/ONE_PAGER.md) |
 | Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
 | Voir l'interface visée, ou la lancer | [`docs/maquette/`](docs/maquette/), [`frontend/`](frontend/README.md) |
 | Connaître le format de sortie du pipeline | `CLAUDE.md` section 5, et [`docs/exemples/`](docs/exemples/) |
@@ -53,6 +55,41 @@ Valider un contrat JSON (`-X utf8` est nécessaire sous Windows pour afficher �
 | `SOURCE_DONNEES` | Où lire les CSV | `local` (par défaut) ; `s3` dans la Lambda (#13), avec `BUCKET_PROJET` = nom du bucket |
 
 Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws login`.
+
+### Juger une décision en local
+
+Vrais appels Bedrock, depuis le poste (contrat JSON sur la sortie standard) :
+
+```powershell
+.venv\Scripts\python -X utf8 -m pipeline robert "Je veux mettre 30 % de mon portefeuille en Tesla"
+```
+
+### Déployer sur AWS
+
+`deploiement\deployer.py` crée ou met à jour toute l'infrastructure (S3, IAM, Lambda, Function URL), de façon idempotente ; `deploiement\tester_function_url.py` lance un procès sur la Lambda déployée ; `deploiement\deployer_interface.py` héberge l'interface (S3 + CloudFront). Paramètres vérifiés (runtime, couche pandas, délai, mémoire, CORS, coûts, IAM) : [`deploiement/README.md`](deploiement/README.md). Schéma : [`docs/architecture.md`](docs/architecture.md).
+
+### Reproduire les résultats
+
+Sans AWS ni Bedrock, sur les données du dépôt ; chaque commande régénère son rapport dans `docs/validation/` :
+
+```powershell
+.venv\Scripts\python -X utf8 -m validation                        # scénarios de validation et de sensibilité (#15)
+.venv\Scripts\python -X utf8 -m validation.evaluation chiffres    # « Trompez le Greffier, 100 fois » (#165)
+.venv\Scripts\python -X utf8 -m contrat.valider frontend\src\data\proces\2026-11-15-032ec3367b19.json
+```
+
+Un procès enregistré se relit pièce par pièce, et chaque chiffre se recalcule avec le même code : exemple complet dans [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md), section 6.
+
+### Ajouter un profil
+
+Un profil, c'est **un fichier JSON**, sans une ligne de code ([`CLAUDE.md`](CLAUDE.md), section 3) :
+
+1. Copier `personas/robert.json` dans `personas/<id>.json` (`<id>` en minuscules, chiffres et `_`, le même que le champ `id`) et changer `id`, `nom`, `profil_risque`, `horizon_ans`, `capital_fictif_cad` et `portefeuille` (titres de `alphaforge_starter/assets_universe.csv`, poids totalisant 1).
+2. Écrire les règles du `pacte` avec les types `pire_baisse_max`, `plafond` (catégories de `config/categories.json`), `critere_documentaire` ou `qualitative`, chacune avec `libelle` et `justification`.
+3. Vérifier le fichier : `.venv\Scripts\python -c "from pipeline.pacte import charger_pacte; charger_pacte('personas/<id>.json')"` (format : `personas/schema_pacte.json`).
+4. Le juger : `.venv\Scripts\python -X utf8 -m pipeline <id> "<demande>"`.
+
+On peut aussi le construire par le questionnaire investisseur : `python -m pipeline.questionnaire <reponses.json>` (exemple : `docs/exemples/reponses_questionnaire.json`), ou l'écran « Construire mon Pacte » de l'interface.
 
 ## Carte du dépôt
 
@@ -109,6 +146,8 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `docs/GUIDE_DU_PROJET.md` | Guide complet du projet pour tous les niveaux : l'idée sans jargon, le fonctionnement, la visite de chaque dossier, le chemin d'une demande dans le code, la façon de travailler, l'état et les limites | — |
 | `docs/guide_jurisprudence.md` | Guide pas à pas de la jurisprudence (#56) et de la correction du validateur (#65) : la boucle complète sur un vrai procès, les choix, les limites, et des questions pour vérifier sa compréhension | [056](docs/journal/056-jurisprudence.md), [065](docs/journal/065-valider-erreurs-outil.md) |
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](docs/journal/000-fondations.md) |
+| `docs/DOCUMENTATION_TECHNIQUE.md` | Documentation technique : rôle des agents, garde-fous de l'orchestrateur, outils et méthode de calcul, Pacte générique, explicabilité sur un vrai procès (argument → pièce → fichier source), règles de `verifier_chiffres` avec un argument corrigé, validations, limites, schéma AWS | [018](docs/journal/018-livrables-documentation.md) |
+| `docs/ONE_PAGER.md` | Le projet en une page : problème, Tribunal, originalité, données, explicabilité, bénéfices | [018](docs/journal/018-livrables-documentation.md) |
 | `docs/validation/resultats_scenarios.md` | Tableau des résultats des scénarios (généré par `python -m validation`) | [015](docs/journal/015-scenarios-validation.md) |
 | `docs/validation/sensibilite_seuil.svg` | Graphique : taille maximale compatible selon le seuil de pire baisse (généré par `python -m validation`) | [059](docs/journal/059-scenarios-panier-graphique.md) |
 | `docs/validation/evaluation_chiffres.md` | Taux de détection de `verifier_chiffres` par famille, intervalles de Wilson, ratés (généré par `python -m validation.evaluation chiffres`) | [165](docs/journal/165-evaluation-chiffres.md) |

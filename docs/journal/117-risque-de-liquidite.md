@@ -1,6 +1,6 @@
 # #117 — Risque de liquidité à partir des volumes
 
-- **Issue** : #117 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #117 · **PR** : #134 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

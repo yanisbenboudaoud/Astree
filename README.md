@@ -4,6 +4,8 @@
 
 Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % de mon portefeuille en Tesla »). Des agents Amazon Bedrock en font le **procès** à partir de pièces calculées en Python : un Procureur argumente contre, un Avocat pour, un Greffier vérifie le Pacte de l'investisseur et chaque chiffre cité. L'utilisateur rend le verdict.
 
+**🔗 Essayer le site : <https://yanisbenboudaoud.github.io/Datathon2026/>** (mode démonstration : il rejoue des procès réellement tenus sur AWS, sans appeler AWS).
+
 > Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
 
 ## Par où commencer

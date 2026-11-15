@@ -1,6 +1,6 @@
 # #150 — Bedrock : passer au profil d'inférence global
 
-- **Issue** : #150 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #150 · **PR** : #151 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

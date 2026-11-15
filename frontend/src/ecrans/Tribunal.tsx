@@ -6,7 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Argument, DecisionUI, Piece, Profil, ResultatTribunal } from '../api/types';
-import { MODE_DIRECT, ProcesNonEnregistre, jugerDecision } from '../api/tribunal';
+import { MODE_DIRECT, ProcesNonEnregistre, jugerDecision, poserQuestion, questionLibreDisponible, reveillerLambda } from '../api/tribunal';
+import { adapterEchange } from '../api/adaptateur';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { IconeStatut, PastillePiece, Provenance, Statut } from '../components/Etiquettes';
@@ -162,7 +163,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
   useTitre('Tribunal');
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const { etat, definirTribunal, definirDecision, ajouterReponse } = useEtatProfil(profil.id);
+  const { etat, definirTribunal, definirDecision, ajouterReponse, ajouterEchange } = useEtatProfil(profil.id);
   const { decision, tribunal } = etat;
   const { tablePosition } = useTables(profil, decision);
   const [animer, setAnimer] = useState(false);
@@ -170,6 +171,9 @@ export function Tribunal({ profil }: { profil: Profil }) {
   const [debut] = useState(Date.now());
   const [question, setQuestion] = useState('');
   const [noteQuestion, setNoteQuestion] = useState(false);
+  const [questionEnCours, setQuestionEnCours] = useState<{ question: string; debut: number } | null>(null);
+  const [secondesQuestion, setSecondesQuestion] = useState(0);
+  const [erreurQuestion, setErreurQuestion] = useState<string | null>(null);
   const [controlesOuverts, setControlesOuverts] = useState(false);
   const declencheur = useRef<HTMLElement | null>(null);
   const resultat = tribunal.resultat;
@@ -222,7 +226,22 @@ export function Tribunal({ profil }: { profil: Profil }) {
     return () => clearTimeout(suivante);
   }, [animer, resultat, etapesVisibles]);
 
-  const pieces: Piece[] = useMemo(() => [...(resultat?.pieces ?? []), ...etat.piecesQuestions], [resultat, etat.piecesQuestions]);
+  // Pièces du dossier : procès (et questions déjà archivées), questions de cette session, calculs du Greffier.
+  const pieces: Piece[] = useMemo(() => [
+    ...(resultat?.pieces ?? []),
+    ...etat.echanges.flatMap((e) => e.piecesAjoutees),
+    ...etat.piecesQuestions,
+  ], [resultat, etat.echanges, etat.piecesQuestions]);
+  const echanges = useMemo(() => [...(resultat?.echanges ?? []), ...etat.echanges], [resultat, etat.echanges]);
+
+  // Réveille la Lambda dès l'ouverture : la première vérification n'attend pas un démarrage à froid.
+  useEffect(() => reveillerLambda(resultat?.procesId), [resultat?.procesId]);
+
+  useEffect(() => {
+    if (!questionEnCours) return undefined;
+    const minuterie = setInterval(() => setSecondesQuestion(Math.round((Date.now() - questionEnCours.debut) / 1000)), 1000);
+    return () => clearInterval(minuterie);
+  }, [questionEnCours]);
   const codePiece = params.get('piece');
   const pieceOuverte = codePiece ? pieces.find((p) => p.code === codePiece) : undefined;
 
@@ -314,12 +333,33 @@ export function Tribunal({ profil }: { profil: Profil }) {
     const reponse = repondre(q, contexteQuestions);
     if (reponse) ajouterReponse(reponse);
   };
-  const envoyer = (e: FormEvent) => {
+  const envoyer = async (e: FormEvent) => {
     e.preventDefault();
-    const correspondante = questions.find((q) => q.libelle.toLowerCase() === question.trim().toLowerCase());
-    if (correspondante) poser(correspondante);
-    else setNoteQuestion(true);
+    const texte = question.trim();
+    if (!texte || questionEnCours) return;
+    const correspondante = questions.find((q) => q.libelle.toLowerCase() === texte.toLowerCase());
     setQuestion('');
+    if (correspondante) {
+      poser(correspondante);
+      return;
+    }
+    if (!questionLibreDisponible(resultat.procesId) || !resultat.procesId) {
+      setNoteQuestion(true);
+      return;
+    }
+    setNoteQuestion(false);
+    setErreurQuestion(null);
+    setSecondesQuestion(0);
+    setQuestionEnCours({ question: texte, debut: Date.now() });
+    try {
+      const { echange, pieces: nouvelles } = await poserQuestion(resultat.procesId, texte);
+      ajouterEchange(adapterEchange(echange, nouvelles));
+    } catch (err) {
+      setErreurQuestion(err instanceof Error ? err.message : String(err));
+      setQuestion(texte);
+    } finally {
+      setQuestionEnCours(null);
+    }
   };
 
   return (
@@ -457,16 +497,63 @@ export function Tribunal({ profil }: { profil: Profil }) {
                 id="question-libre"
                 className={styles.champQuestion}
                 value={question}
+                maxLength={500}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="Posez votre question : les agents répondent avec les pièces du dossier"
               />
-              <Bouton variante="secondaire" fleche={false} type="submit">Envoyer</Bouton>
+              <Bouton variante="secondaire" fleche={false} type="submit" disabled={Boolean(questionEnCours)}>
+                {questionEnCours ? 'Instruction…' : 'Envoyer'}
+              </Bouton>
             </form>
             {noteQuestion && (
               <p className="t-petit c-700" role="status">
-                Les questions libres passeront par l'orchestrateur Bedrock, qui choisira ses outils et ajoutera des pièces au dossier.
-                Le pipeline sait déjà y répondre (route /question, #55), mais l'interface ne l'appelle pas encore : les questions suggérées ci-dessus sont calculées par le Greffier.
+                Une question libre va au vrai Tribunal : l'orchestrateur Bedrock choisit ses outils et ajoute des pièces, puis le
+                Greffier vérifie chaque chiffre. Elle n'est envoyée qu'en mode direct (appels payants). Les questions suggérées
+                ci-dessus sont calculées par le Greffier, sans IA.
               </p>
+            )}
+            {questionEnCours && (
+              <p className={`t-petit c-700 ${styles.enCoursQuestion}`} role="status">
+                Le Tribunal instruit votre question « {questionEnCours.question} »… {secondesQuestion ? `${secondesQuestion} s` : ''}
+              </p>
+            )}
+            {erreurQuestion && (
+              <Message type="Violation" titre="La question n'a pas pu être instruite">
+                <p>{erreurQuestion}</p>
+              </Message>
+            )}
+            {echanges.length > 0 && (
+              <ol className={styles.echanges} aria-live="polite">
+                {echanges.map((e, n) => (
+                  <li key={`${n}-${e.question}`} className={styles.echange}>
+                    <p className="t-petit-fort c-500">Question {n + 1} : « {e.question} »</p>
+                    <ol className={styles.reponsesEchange}>
+                      {e.arguments.map((a) => (
+                        <li key={a.texte} className={`${styles.reponseEchange} ${a.camp === 'Procureur' ? styles.reponseProcureur : styles.reponseAvocat}`}>
+                          <p className={styles.provenanceArgument}>
+                            <span className="t-petit-fort">{a.camp}</span>
+                            <Provenance type={a.provenance} />
+                            {a.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={ouvrirPiece} />)}
+                          </p>
+                          <p className="t-corps">{a.texte}</p>
+                        </li>
+                      ))}
+                    </ol>
+                    <p className={styles.provenanceArgument}>
+                      <IconeStatut type={e.argumentsRejetes.length ? 'À vérifier' : 'Conforme'} taille={14} />
+                      <span className="t-petit c-700">Greffier : {e.controle}</span>
+                      {e.piecesAjoutees.length > 0 && <span className="t-petit c-700"> · pièces ajoutées :</span>}
+                      {e.piecesAjoutees.map((p) => <PastillePiece key={p.code} code={p.code} onOuvrir={ouvrirPiece} />)}
+                    </p>
+                    {e.argumentsRejetes.map((a) => (
+                      <p key={a.texte} className={styles.rejete}>
+                        <IconeStatut type="Violation" taille={14} />
+                        <span className="t-petit"><strong>{a.camp}</strong> · « {a.texte} » — écarté : {a.raison}</span>
+                      </p>
+                    ))}
+                  </li>
+                ))}
+              </ol>
             )}
             {etat.reponses.length > 0 && (
               <ol className={styles.reponses} aria-live="polite">

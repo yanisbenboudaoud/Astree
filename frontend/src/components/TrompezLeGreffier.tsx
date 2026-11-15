@@ -37,6 +37,7 @@ export function TrompezLeGreffier({ resultat, pieces }: { resultat: ResultatTrib
     if (!resultat.procesId || !contenu.trim()) return;
     setEnvoi(true);
     setErreur(null);
+    setVerification(null); // pas d'ancien verdict affiché pendant la nouvelle vérification
     try {
       setVerification(await verifierArgument(resultat.procesId, contenu, references));
     } catch (err) {

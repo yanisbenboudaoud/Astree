@@ -182,6 +182,15 @@
 .champQuestion::placeholder { color: var(--encre-500); opacity: 1; }
 .champQuestion:focus { outline: none; border: 2px solid var(--accent-bleu); padding: 0 13px; }
 .reponses { display: flex; flex-direction: column; gap: 12px; }
+.enCoursQuestion { padding: 10px 14px; border-left: 4px solid var(--encre-500); background: var(--fond-creux); }
+.echanges { display: flex; flex-direction: column; gap: 16px; }
+.echange { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; background: var(--fond-carte); border: 1px solid var(--trait-fin); border-radius: 4px; }
+.reponsesEchange { display: flex; flex-direction: column; gap: 10px; }
+.reponseEchange { display: flex; flex-direction: column; gap: 6px; padding-left: 14px; border-left: 3px solid; }
+.reponseProcureur { border-color: var(--camp-procureur); }
+.reponseProcureur .t-petit-fort { color: var(--camp-procureur); }
+.reponseAvocat { border-color: var(--camp-avocat); }
+.reponseAvocat .t-petit-fort { color: var(--camp-avocat); }
 .reponse {
   display: flex;
   flex-direction: column;

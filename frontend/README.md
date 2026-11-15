@@ -21,7 +21,7 @@ npm run dev          # http://localhost:5173
 | `npm test` | Tests vitest : chiffres de l'annexe E, formats, adaptateur du contrat, questions, Verdict |
 | `npm run verifier` | Parcours de bout en bout des 3 profils (Robert au clavier seul), axe-core sur chaque écran, débordement à 1440 et 1280 px, erreurs de console. Demande `npm run dev` dans un autre terminal et Edge ou Chrome installé. Captures dans `e2e/captures/` |
 | `npm run verifier:greffier` | « Trompez le Greffier » : 4 exemples, argument tapé, réponse en moins d'une seconde, axe-core (gratuit, sans Bedrock) |
-| `npm run verifier:direct` | Mode direct : deux vrais procès sur la Lambda par l'interface, verdicts signés et archivés (Bedrock, quelques cents) |
+| `npm run verifier:direct` | Mode direct : deux vrais procès sur la Lambda par l'interface, une question libre au Tribunal, un essai « Trompez le Greffier », verdicts signés et archivés (Bedrock, quelques cents) |
 | `npm run series` | Régénère les séries et les tables (`scripts/build_ui_series.py`) |
 
 ## D'où viennent les chiffres
@@ -89,6 +89,10 @@ e2e/verifier.mjs  vérification de bout en bout (playwright-core + axe-core)
 ```
 
 Ajouter un profil : un fichier `personas/<id>.json`, puis `npm run series`. Une entrée dans `src/data/profils_ui.json` est facultative (textes de l'écran d'entrée, journal fictif) : la logique ne teste jamais un nom de profil.
+
+## Contre-interrogatoire (#55)
+
+Sur l'écran Tribunal, en mode direct, une question libre (« Et si je mettais 15 % au lieu de 30 % ? ») part au vrai Tribunal (`POST /question`, environ 15 à 40 s). L'orchestrateur choisit ses outils, le Procureur et l'Avocat répondent avec les pièces, puis le Greffier vérifie chaque chiffre. L'échange s'affiche avec les pièces ajoutées (P7, P8…), consultables dans le tiroir. En démonstration, aucune question libre n'est envoyée (appels payants). Les questions suggérées sont calculées par le Greffier, sans IA, et leurs pièces s'appellent G1, G2…
 
 ## « Essayez de tromper le Greffier » (#69)
 

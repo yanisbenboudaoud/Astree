@@ -1,6 +1,6 @@
 # #136 — Function URL ouverte au site hébergé : CORS qui survit aux redéploiements, débit limité sur les routes Bedrock
 
-- **Issue** : #136 · **PR** : à renseigner · **Statut** : terminée
+- **Issue** : #136 · **PR** : #155 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

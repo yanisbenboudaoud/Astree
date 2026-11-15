@@ -296,7 +296,7 @@ def test_juger_decision_enchaine_profil_et_orchestrateur(monkeypatch):
     assert contrat["pieces"][0]["outil"] == "charger_pacte"
     assert [e["etape"] for e in contrat["trace"]] == (
         ["agent_profil"] * 3 + ["orchestrateur"] * 2 + ["procureur", "avocat"] + ["greffier"]
-        + ["avocat"] + ["greffier"]  # verifier_pacte, relance de l'avocat, verifier_chiffres
+        + ["avocat"] + ["greffier"] * 2  # verifier_pacte, relance de l'avocat, chiffres et cadre
     )
     assert contrat["comparaison"]["actuel"]["pire_baisse"] == pytest.approx(-0.0776, abs=5e-5)
     assert contrat["comparaison"]["apres"]["pire_baisse"] == pytest.approx(-0.2897, abs=5e-5)
@@ -325,7 +325,7 @@ def test_greffier_controle_chaque_regle_du_pacte(monkeypatch):
     # Ordre des contrôles : Pacte, puis système (comme contrat_robert.json).
     assert [c["regle"] for c in contrat["controles"]] == [
         "pire_baisse_max", "plafond_crypto", "preserver_capital", "entreprises_etablies",
-        "verifier_chiffres", "performance_passee", "biais_survivant"]
+        "verifier_chiffres", "cadre_simulation", "performance_passee", "biais_survivant"]
 
 
 def test_debat_verifie_par_le_greffier_avec_une_relance(monkeypatch, faux_debat):
@@ -342,8 +342,41 @@ def test_debat_verifie_par_le_greffier_avec_une_relance(monkeypatch, faux_debat)
         "Chiffres cités vérifiés contre leurs pièces : 4/4 chiffres, 2 arguments ; "
         "1 argument rejeté après une relance")
     assert controles["performance_passee"]["statut"] == "a_verifier"  # l'Avocat parle de rendement
-    assert contrat["trace"][-1] == {"etape": "greffier", "outil": "verifier_chiffres", "entree": "3 arguments",
-                                    "sortie": controles["verifier_chiffres"]["message"]}
+    assert controles["cadre_simulation"] == {
+        "statut": "conforme", "regle": "cadre_simulation",
+        "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 2 arguments vérifiés"}
+    assert contrat["trace"][-2:] == [
+        {"etape": "greffier", "outil": "verifier_chiffres", "entree": "3 arguments",
+         "sortie": controles["verifier_chiffres"]["message"]},
+        {"etape": "greffier", "outil": "verifier_cadre_simulation", "entree": "3 arguments",
+         "sortie": controles["cadre_simulation"]["message"]},
+    ]
+
+
+def test_argument_qui_conseille_jamais_affiche_comme_valide(monkeypatch, faux_debat):
+    """#60 : un conseil du Procureur est renvoyé une fois, puis rejeté ; le contrat reste valide."""
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
+    debattre = faux_debat.debattre
+
+    def debat_avec_un_conseil(dossier):
+        resultat = debattre(dossier)
+        resultat.requisitoire.append(argument("Vous devriez vendre TSLA.", "P1"))
+        return resultat
+    monkeypatch.setattr(tribunal, "debattre", debat_avec_un_conseil)
+
+    contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla", converser=FauxModele())
+
+    assert "Vous devriez vendre TSLA." not in [a["texte"] for a in contrat["requisitoire"] + contrat["plaidoirie"]]
+    assert [role for role, _ in faux_debat.corrections] == ["procureur", "avocat"]
+    rejete = next(a for a in contrat["arguments_rejetes"] if a["cote"] == "requisitoire")
+    assert rejete["raison"].startswith("Conseil personnalisé : « Vous devriez »")
+    controles = {c["regle"]: c for c in contrat["controles"]}
+    assert controles["cadre_simulation"]["message"] == (
+        "Aucun conseil personnalisé ni promesse sur l'avenir : 2 arguments vérifiés ; "
+        "1 argument rejeté après une relance")
+    # Le rejet du conseil n'est pas compté comme un chiffre faux.
+    assert controles["verifier_chiffres"]["message"].endswith("; 1 argument rejeté après une relance")
+    assert valider_contrat(contrat) == []
 
 
 def test_contrat_complet_passe_le_schema(monkeypatch):

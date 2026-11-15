@@ -1,6 +1,6 @@
 # #87 — Route /profil : construire et stocker dans S3 le Pacte d'un nouvel utilisateur
 
-- **Issue** : #87 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #87 · **PR** : #94 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

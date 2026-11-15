@@ -1,6 +1,6 @@
 # #153 — Pièces à conviction : expliquer ce que montre chaque pièce et ce que sont P1, P2, P3
 
-- **Issue** : #153 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #153 · **PR** : #154 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

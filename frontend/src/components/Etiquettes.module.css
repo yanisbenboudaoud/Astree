@@ -1,0 +1,72 @@
+.provenance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px 2px 6px;
+  border: 1px solid var(--encre-700);
+  border-radius: 2px;
+  color: var(--encre-900);
+  font-family: var(--police-texte);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.glyphe { flex: none; }
+.fait { background: var(--fond-creux); border-style: solid; }
+/* Hypothèse : tirets ; Fictif : pointillés. Le glyphe (◐ ou ○) porte aussi la différence. */
+.hypothese {
+  background: var(--fond-carte);
+  border-style: dashed;
+}
+.fictif {
+  background: var(--fond-carte);
+  border-style: dotted;
+  border-width: 1.5px;
+  padding: 1.5px 7.5px 1.5px 5.5px;
+}
+
+.statut {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 2px;
+  font-family: var(--police-texte);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.violation { background: var(--statut-violation-teinte); color: var(--statut-violation); }
+.verifier { background: var(--statut-verifier-teinte); color: var(--statut-verifier); }
+.conforme { background: var(--statut-conforme-teinte); color: var(--statut-conforme); }
+/* Compteur à zéro : atténué sans perdre le contraste (le texte reste lisible à 4,5:1). */
+.attenue { background: transparent; color: var(--encre-500); box-shadow: inset 0 0 0 1px var(--trait-moyen); }
+
+.iconeSeule { display: inline-flex; flex: none; }
+.texteViolation { color: var(--statut-violation); }
+.texteVerifier { color: var(--statut-verifier); }
+.texteConforme { color: var(--statut-conforme); }
+
+.piece {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px 2px 5px;
+  border: 1px solid var(--trait-moyen);
+  border-radius: 2px;
+  background: var(--fond-carte);
+  color: var(--encre-900);
+  font-family: var(--police-mono);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.pieceBouton:hover { border-color: var(--encre-700); }

@@ -1,0 +1,47 @@
+/* Jetons de design d'Astrée (spec de l'interface, annexe A).
+   Une couleur = un sens : rouge, ocre, vert pour les statuts du Greffier ;
+   prune et pétrole pour les deux camps ; bleu pour la sélection, le focus et les liens. */
+:root {
+  --fond-papier: #f2eee5;
+  --fond-carte: #faf8f3;
+  --fond-creux: #e9e3d6;
+  --encre-900: #1a1712;
+  --encre-700: #3f3a31;
+  --encre-500: #675f52;
+  --encre-300: #a39a89; /* décoratif uniquement, jamais pour du texte */
+  --trait-fin: #d9d2c3;
+  --trait-moyen: #bdb4a2;
+  --accent-bleu: #1e3a5c;
+  --accent-bleu-teinte: #dce4ee;
+  --statut-violation: #a1281d;
+  --statut-violation-teinte: #f5ddd8;
+  --statut-verifier: #8a5800;
+  --statut-verifier-teinte: #f4e5c2;
+  --statut-conforme: #2b6a3e;
+  --statut-conforme-teinte: #ddebdf;
+  --camp-procureur: #6b2f55;
+  --camp-procureur-teinte: #eedfe8;
+  --camp-avocat: #1f5a61;
+  --camp-avocat-teinte: #dae9ea;
+  --inverse-texte: #f2eee5;
+
+  --police-titre: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+  --police-texte: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --police-mono: 'Atkinson Hyperlegible Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  --conteneur-large: 1184px;
+  --conteneur-etroit: 776px;
+  --colonne-laterale: 376px;
+  --marge-page: 128px;
+  --rayon: 4px;
+}
+
+@media (max-width: 1439px) {
+  :root { --marge-page: 48px; }
+}
+@media (max-width: 1023px) {
+  :root { --marge-page: 24px; }
+}
+@media (max-width: 599px) {
+  :root { --marge-page: 16px; }
+}

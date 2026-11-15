@@ -1,0 +1,83 @@
+# Astrée — interface du Tribunal
+
+Interface web du projet (issue #14). React 18 + TypeScript + Vite, CSS Modules sur les jetons de design de la maquette (`src/styles/tokens.css`). Aucune bibliothèque de composants : chaque composant colle à la maquette Figma « V2 · Prototype simplifié ». La spec complète est dans [`docs/maquette/spec_interface_astree.md`](../docs/maquette/spec_interface_astree.md).
+
+> Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
+
+## Démarrer
+
+Prérequis : Node 20 ou plus (testé avec Node 24), et le `.venv` Python du dépôt pour régénérer les séries.
+
+```powershell
+cd frontend
+npm install
+npm run dev          # http://localhost:5173
+```
+
+| Commande | Rôle |
+|---|---|
+| `npm run dev` | Serveur de développement |
+| `npm run build` | Vérification des types, puis compilation dans `dist/` |
+| `npm test` | Tests vitest : chiffres de l'annexe E, formats, adaptateur du contrat, questions, Verdict |
+| `npm run verifier` | Parcours de bout en bout des 3 profils (Robert au clavier seul), axe-core sur chaque écran, débordement à 1440 et 1280 px, erreurs de console. Demande `npm run dev` dans un autre terminal et Edge ou Chrome installé. Captures dans `e2e/captures/` |
+| `npm run series` | Régénère les séries et les tables (`scripts/build_ui_series.py`) |
+
+## D'où viennent les chiffres
+
+**Aucun chiffre n'est écrit dans les composants, et aucun n'est estimé dans le navigateur.**
+
+| Donnée | Source | Produite par |
+|---|---|---|
+| Portefeuilles, capitaux, Pactes | `personas/*.json` (le backend fait foi) | `scripts/build_ui_series.py` → `src/data/generated/profils/` |
+| Indicateurs, courbe de valeur, recul | `alphaforge_starter/` (prix `adj_close`, USD/CAD) | le même script, avec les fonctions du pipeline (`pipeline.simulation`, `pipeline.indicateurs`, `pipeline.greffier`) |
+| Curseur de taille (0 à 50 %, pas de 1 point) | idem | `src/data/generated/decisions/<profil>/<ticker>.json` : une table par titre de l'univers |
+| Panier (pas de 5 points) | idem | `src/data/generated/paniers/<profil>.json` : chaque composition du panier de démonstration |
+| Arguments, contrôles, pièces, trace | le Tribunal (Bedrock + Python) | procès enregistrés dans `src/data/proces/`, ou Lambda en direct |
+| Libellés français, textes de démonstration | écrits à la main | `src/data/libelles.json`, `src/data/profils_ui.json` |
+
+Le script réutilise le code du pipeline : l'interface affiche exactement les chiffres que le Tribunal citerait (ex. : Robert, 30 % en TSLA → −29,0 %, 278 séances sous la limite, maximum conforme 9 %).
+
+### Régénérer les séries
+
+```powershell
+.venv\Scripts\python -X utf8 scripts\build_ui_series.py     # depuis la racine, environ 1 minute
+```
+
+À relancer après une modification de `personas/`, `config/categories.json`, `donnees_externes/` ou des données de départ. Le résultat est déterministe.
+
+## Passer des données de démonstration au Tribunal en direct
+
+La couche `src/api/` isole les écrans du backend : les composants ne lisent que les types de `src/api/types.ts` (annexe D.7).
+
+- **Mode démonstration** (défaut, `VITE_USE_MOCKS=true`) : `src/api/tribunal.ts` rejoue un procès **réellement tenu** par le pipeline (`python -m pipeline <profil> "<demande>"`, Bedrock Sonnet 5.5), enregistré tel quel dans `src/data/proces/` et validé par `python -m contrat.valider`. Il est rejoué seulement s'il juge exactement la décision soumise ; sinon, l'écran le dit et propose la décision enregistrée. Aucun procès n'est inventé.
+- **Mode direct** : copier `.env.example` en `.env.local` et définir :
+  ```
+  VITE_USE_MOCKS=false
+  VITE_API_URL=https://<id>.lambda-url.us-east-1.on.aws
+  ```
+  L'interface envoie `POST /tribunal` `{profil, demande}` (la demande est rédigée par `demandeDecision`, ex. « Je veux mettre 30 % de mon portefeuille en Tesla (TSLA) »), lit l'identifiant du procès dans l'en-tête `x-proces-id`, puis envoie `POST /verdict` `{id, verdict}` à la signature.
+  **Prérequis côté AWS** (`deploiement/README.md`, « Point d'accès ») : Function URL en type `NONE`, CORS limité au domaine de l'interface, `ExposeHeaders: x-proces-id`.
+
+Le même adaptateur (`src/api/adaptateur.ts`) traduit le contrat dans les deux modes.
+
+## Organisation
+
+```
+src/
+  api/          contrat.ts (contrat du pipeline), types.ts (annexe D.7), adaptateur.ts, tribunal.ts, donnees.ts
+  domaine/      logique d'affichage pure et testée : pacte.ts, decision.ts, questions.ts, verdict.ts
+  state/        store par profil (sessionStorage), chargement des tables
+  components/   Gabarit (bandeau, en-tête, étapes), Etiquettes (Provenance, Statut, Pièce), Bouton,
+                Elements (Monogramme, Jauge, Message), Recherche (combobox), TiroirPiece, graphiques/
+  ecrans/       Entree, Portefeuille, Decision, Tribunal, Verdict
+  data/         generated/ (script Python), proces/ (procès enregistrés), libelles.json, profils_ui.json
+  lib/          format.ts (formats fr-CA), recherche.ts, series.ts
+  test/         tests vitest
+e2e/verifier.mjs  vérification de bout en bout (playwright-core + axe-core)
+```
+
+Ajouter un profil : un fichier `personas/<id>.json`, puis `npm run series`. Une entrée dans `src/data/profils_ui.json` est facultative (textes de l'écran d'entrée, journal fictif) : la logique ne teste jamais un nom de profil.
+
+## Accessibilité
+
+WCAG 2.2 AA visé : contrastes de la palette, focus visible (anneau bleu de 2 px), navigation complète au clavier (combobox ARIA, curseur `input type=range` avec `aria-valuetext`, accordéons `aria-expanded`, tiroir `role="dialog"` avec focus piégé), statuts et provenances toujours doublés d'un mot et d'une icône, `prefers-reduced-motion` respecté. `npm run verifier` passe axe-core (WCAG 2.2 AA et bonnes pratiques) sur chaque écran sans violation.

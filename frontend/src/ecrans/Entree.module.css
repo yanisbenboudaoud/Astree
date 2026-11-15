@@ -1,0 +1,64 @@
+.corps {
+  max-width: calc(var(--conteneur-large) + 2 * var(--marge-page));
+  margin: 0 auto;
+  padding: 88px var(--marge-page) 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+.titre { display: flex; flex-direction: column; gap: 12px; }
+.sousTitre { max-width: 720px; }
+
+.cartes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+}
+.carte {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 28px;
+  background: var(--fond-carte);
+  border: 1px solid var(--trait-fin);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.carte:hover { border-color: var(--encre-500); }
+.carte:has(:focus-visible) { border-color: var(--accent-bleu); }
+.identite { display: flex; align-items: center; gap: 16px; }
+.initiale {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background: var(--fond-creux);
+  font-family: var(--police-titre);
+  font-size: 22px;
+}
+.caracteristiques {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-top: 1px solid var(--trait-fin);
+  border-bottom: 1px solid var(--trait-fin);
+}
+.caracteristiques div { display: flex; justify-content: space-between; gap: 12px; }
+.decision { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.entrer { width: 100%; }
+
+.pied { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+@media (max-width: 1279px) {
+  .cartes { gap: 24px; }
+  .carte { padding: 20px; }
+}
+@media (max-width: 1023px) {
+  .cartes { grid-template-columns: 1fr; }
+  .corps { padding-top: 48px; gap: 40px; }
+}

@@ -1,0 +1,83 @@
+{
+  "description": "Libellés français affichés par l'interface Astrée. Aucun chiffre ici : les chiffres viennent de scripts/build_ui_series.py (dossier generated/) ou des procès du Tribunal.",
+  "noms": {
+    "RY.TO": "Banque Royale",
+    "TD.TO": "Banque TD",
+    "MFC.TO": "Manuvie",
+    "ENB.TO": "Enbridge",
+    "CNQ.TO": "Canadian Natural Resources",
+    "CNR.TO": "Canadien National",
+    "FTS.TO": "Fortis",
+    "ATD.TO": "Alimentation Couche-Tard",
+    "SHOP.TO": "Shopify",
+    "CSU.TO": "Constellation Software",
+    "AAPL": "Apple",
+    "MSFT": "Microsoft",
+    "NVDA": "NVIDIA",
+    "GOOGL": "Alphabet (catégorie A)",
+    "AMZN": "Amazon",
+    "TSLA": "Tesla",
+    "JPM": "JPMorgan Chase",
+    "JNJ": "Johnson & Johnson",
+    "PG": "Procter & Gamble",
+    "XOM": "Exxon Mobil",
+    "XIU.TO": "iShares S&P/TSX 60",
+    "SPY": "SPDR S&P 500",
+    "QQQ": "Invesco QQQ (Nasdaq-100)",
+    "ESGV": "Vanguard ESG U.S. Stock",
+    "XBB.TO": "iShares obligations canadiennes",
+    "ZST.TO": "BMO obligations ultra court terme",
+    "AGG": "iShares obligations américaines",
+    "TLT": "iShares obligations du Trésor américain 20 ans et plus",
+    "GLD": "SPDR Gold Shares",
+    "BTC-USD": "Bitcoin",
+    "ETH-USD": "Ether"
+  },
+  "classes": {
+    "equity": "action",
+    "etf_equity": "FNB d'actions",
+    "etf_bond": "FNB d'obligations",
+    "etf_commodity": "FNB d'or",
+    "crypto": "cryptoactif"
+  },
+  "bourses": {
+    "Crypto (24/7)": "crypto 24 h/24"
+  },
+  "secteurs": {
+    "Financials": "Finance",
+    "Energy": "Énergie",
+    "Industrials": "Industrie",
+    "Utilities": "Services publics",
+    "Consumer Staples": "Consommation de base",
+    "Information Technology": "Technologies de l'information",
+    "Communication Services": "Services de communication",
+    "Consumer Discretionary": "Consommation discrétionnaire",
+    "Health Care": "Santé",
+    "Broad market (Canada)": "Marché large (Canada)",
+    "Broad market (U.S.)": "Marché large (É.-U.)",
+    "Broad market (U.S. growth/tech-heavy)": "Marché large (É.-U., croissance et tech)",
+    "Broad market (U.S., ESG-screened)": "Marché large (É.-U., filtré ESG)",
+    "Bonds (Canada aggregate)": "Obligations (Canada)",
+    "Bonds (Canada ultra short-term)": "Obligations (Canada, ultra court terme)",
+    "Bonds (U.S. aggregate)": "Obligations (É.-U.)",
+    "Bonds (U.S. long Treasury)": "Obligations (Trésor américain, long terme)",
+    "Gold": "Or",
+    "Crypto asset": "Cryptoactif"
+  },
+  "profilsRisque": {
+    "faible": "Faible",
+    "faible_a_modere": "Faible à modéré",
+    "modere": "Modéré",
+    "eleve": "Élevé"
+  },
+  "criteresDocumentaires": {
+    "controverse_esg_importante": {
+      "sansSource": "Aucune donnée ESG",
+      "vrai": "Controverse documentée",
+      "faux": "Aucune controverse documentée"
+    },
+    "methodologie_fonds_esg": {
+      "present": "Fonds filtré ESG"
+    }
+  }
+}

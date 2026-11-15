@@ -11,7 +11,7 @@ Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre déc
 | Comprendre le projet, ses règles et son architecture | [`CLAUDE.md`](CLAUDE.md) |
 | Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
 | Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
-| Voir l'interface visée | [`docs/maquette/`](docs/maquette/) |
+| Voir l'interface visée, ou la lancer | [`docs/maquette/`](docs/maquette/), [`frontend/`](frontend/README.md) |
 | Connaître le format de sortie du pipeline | `CLAUDE.md` section 5, et [`docs/exemples/`](docs/exemples/) |
 
 ## Démarrage
@@ -85,7 +85,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](docs/journal/000-fondations.md) |
 | `docs/validation/resultats_scenarios.md` | Tableau des résultats des scénarios (généré par `python -m validation`) | [015](docs/journal/015-scenarios-validation.md) |
 | `docs/exemples/` | Faux contrats valides (cas 1 et 2), utilisés par l'équipe interface | [002](docs/journal/002-contrat-json.md) |
-| `docs/maquette/` | Lien Figma et prototype interactif des 4 écrans | [000](docs/journal/000-fondations.md) |
+| `docs/maquette/` | Maquette Figma V2 « Astrée » et sa spec d'implémentation (`spec_interface_astree.md`) ; ancienne maquette et prototype des 4 écrans | [000](docs/journal/000-fondations.md), [014](docs/journal/014-interface-astree.md) |
 | `docs/journal/` | Journal de construction : une fiche par issue, et son modèle | [018](docs/journal/018-livrables-documentation.md) |
 | `.env.example` | Variables à copier dans `.env` | [007](docs/journal/007-client-llm-bedrock.md) |
 | `requirements.txt` / `requirements-dev.txt` | Dépendances épinglées : zip de la Lambda (boto3, jsonschema) / poste local (dont pandas, numpy et pyarrow, aux versions de la couche Lambda) | [007](docs/journal/007-client-llm-bedrock.md), [022](docs/journal/022-pieges-aws.md) |
@@ -93,6 +93,8 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `deploiement/lambda_tribunal.py` | Point d'entrée de la Lambda : `POST /tribunal` (procès, archivé dans `traces/`) et `POST /verdict` (archivé dans `verdicts/`) | [013](docs/journal/013-deploiement-aws.md) |
 | `deploiement/construire_zip.py` / `deploiement/deployer.py` | Construire le zip de la Lambda / déployer ou mettre à jour toute l'infrastructure (S3, IAM, Lambda, Function URL), de façon idempotente | [013](docs/journal/013-deploiement-aws.md) |
 | `docs/architecture.md` | Schéma d'architecture AWS (pour la doc et la vidéo) et rôle de chaque service | [013](docs/journal/013-deploiement-aws.md) |
+| `frontend/` | Interface « Astrée » (React + TypeScript + Vite) : les écrans de la maquette V2, la couche `src/api/` (procès enregistrés ou Lambda en direct, drapeau `VITE_USE_MOCKS`) et `e2e/verifier.mjs`. Mode d'emploi : [`frontend/README.md`](frontend/README.md) | [014](docs/journal/014-interface-astree.md) |
+| `scripts/build_ui_series.py` | Précalcule les données chiffrées de l'interface (`frontend/src/data/generated/`) avec les fonctions du pipeline : profils, courbes, tailles de 0 à 50 %, compositions du panier | [014](docs/journal/014-interface-astree.md) |
 | `pyproject.toml` | Configuration de pytest | [007](docs/journal/007-client-llm-bedrock.md) |
 | `.github/pull_request_template.md` | Modèle de PR : `Closes #N`, fiche du journal, carte du dépôt | [000](docs/journal/000-fondations.md) |
 

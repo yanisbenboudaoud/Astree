@@ -1,0 +1,158 @@
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+.haut { position: relative; z-index: 5; }
+
+.evitement {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  padding: 8px 12px;
+  background: var(--fond-carte);
+  color: var(--accent-bleu);
+  font-weight: 600;
+  z-index: 10;
+}
+.evitement:focus { top: 36px; }
+
+.bandeau {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 5px 16px;
+  background: var(--encre-900);
+  color: var(--inverse-texte);
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+}
+.bandeau svg { flex: none; }
+
+.entete {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+  padding: 0 var(--marge-page);
+  border-bottom: 1px solid var(--trait-fin);
+}
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+  color: var(--encre-900);
+  text-decoration: none;
+}
+.outils { display: flex; align-items: center; justify-content: flex-end; gap: 20px; grid-column: 3; }
+
+.procedure { display: flex; align-items: center; gap: 12px; }
+.etape { display: flex; align-items: center; gap: 10px; font-size: 15px; line-height: 22px; white-space: nowrap; }
+.liaison { width: 24px; height: 1px; background: var(--trait-moyen); margin-right: 2px; }
+.pastille {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  font-family: var(--police-mono);
+  font-size: 12px;
+  line-height: 16px;
+}
+.faite .pastille { border: 1.25px solid var(--encre-900); background: var(--fond-carte); color: var(--encre-900); }
+.courante { font-weight: 600; }
+.courante .pastille { background: var(--encre-900); color: var(--inverse-texte); }
+.avenir { color: var(--encre-500); }
+.avenir .pastille { border: 1.25px solid var(--trait-moyen); color: var(--encre-500); }
+
+.ancre { position: relative; }
+.outil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 2px;
+  border: 0;
+  background: none;
+  color: var(--encre-900);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 18px;
+}
+.panneauAide {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--fond-carte);
+  border: 1px solid var(--encre-700);
+  border-radius: 4px;
+  z-index: 20;
+}
+
+.menuProfil {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--trait-moyen);
+  border-radius: 20px;
+  background: none;
+  color: var(--encre-900);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 18px;
+}
+.menuProfil svg { color: var(--encre-700); }
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background: var(--encre-900);
+  color: var(--inverse-texte);
+}
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 200px;
+  padding: 4px;
+  background: var(--fond-carte);
+  border: 1px solid var(--encre-700);
+  border-radius: 4px;
+  z-index: 20;
+}
+.elementMenu {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  text-align: left;
+  font-size: 15px;
+  line-height: 22px;
+}
+.elementMenu:hover,
+.elementMenu:focus-visible { background: var(--fond-creux); }
+
+.contenu { flex: 1; outline: none; }
+
+@media (max-width: 1023px) {
+  .entete { grid-template-columns: 1fr auto; padding-top: 10px; padding-bottom: 10px; }
+  .outils { grid-column: 2; }
+  .entete nav { grid-column: 1 / -1; grid-row: 2; justify-self: start; overflow-x: auto; max-width: 100%; }
+}
+@media (max-width: 599px) {
+  .etape { font-size: 13px; gap: 6px; }
+  .liaison { width: 12px; }
+  .procedure { gap: 6px; }
+}

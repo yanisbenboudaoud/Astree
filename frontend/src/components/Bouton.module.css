@@ -1,0 +1,50 @@
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 3px;
+  border: 0;
+  font-family: var(--police-texte);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.grand { height: 44px; font-size: 15px; line-height: 22px; padding: 0 20px; }
+.compact { height: 36px; font-size: 13px; line-height: 18px; padding: 0 14px; }
+
+.primaire { background: var(--encre-900); color: var(--inverse-texte); }
+.primaire:hover { background: var(--encre-700); }
+
+.secondaire {
+  background: var(--fond-carte);
+  color: var(--encre-900);
+  border: 1.5px solid var(--encre-900);
+}
+.secondaire:hover { background: var(--fond-creux); }
+
+.tertiaire {
+  background: none;
+  color: var(--accent-bleu);
+  padding-left: 4px;
+  padding-right: 4px;
+}
+.tertiaire:hover span { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Bouton clair posé sur une carte encre (carte de recherche). */
+.inverse {
+  background: var(--fond-carte);
+  color: var(--encre-900);
+  border: 1.5px solid var(--fond-carte);
+}
+.inverse:hover { background: var(--fond-papier); }
+.inverse:focus-visible { outline-color: var(--inverse-texte); }
+
+.bouton[aria-disabled='true'],
+.bouton:disabled {
+  background: var(--fond-creux);
+  color: var(--encre-500);
+  border-color: var(--trait-moyen);
+  cursor: not-allowed;
+}

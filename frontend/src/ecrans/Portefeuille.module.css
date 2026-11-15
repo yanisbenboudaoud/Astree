@@ -1,0 +1,126 @@
+.corps {
+  max-width: calc(var(--conteneur-large) + 2 * var(--marge-page));
+  margin: 0 auto;
+  padding: 56px var(--marge-page) 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.archive {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-radius: 4px;
+  background: var(--encre-900);
+  color: var(--inverse-texte);
+}
+.archive > svg { flex: none; }
+.texteArchive { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.annulerSignature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  color: var(--inverse-texte);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.annulerSignature:focus-visible { outline-color: var(--inverse-texte); }
+
+.titre { display: flex; flex-direction: column; gap: 10px; }
+.statut { display: flex; align-items: center; gap: 8px; }
+.iconeConforme { color: var(--statut-conforme); display: inline-flex; }
+.iconeViolation { color: var(--statut-violation); display: inline-flex; }
+
+.grille {
+  display: grid;
+  grid-template-columns: minmax(0, 776fr) minmax(0, 376fr);
+  gap: 32px;
+  align-items: start;
+}
+.principale { display: flex; flex-direction: column; gap: 56px; min-width: 0; }
+.laterale { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+.valeur { display: flex; flex-direction: column; gap: 16px; }
+.montant { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.blocValeur { display: flex; flex-direction: column; gap: 6px; }
+.chiffre { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.variation { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.indicateurs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--trait-fin);
+  padding-top: 18px;
+}
+.indicateur { display: flex; flex-direction: column; gap: 4px; padding: 0 16px 0 20px; }
+.indicateur:first-child { padding-left: 0; }
+.indicateur + .indicateur { border-left: 1px solid var(--trait-fin); }
+.jaugeIndicateur { max-width: 150px; }
+.provenance { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.groupeDroite { display: inline-flex; align-items: center; gap: 10px; }
+.repartition { display: flex; gap: 2px; height: 10px; }
+.repartition span { display: block; height: 10px; min-width: 2px; }
+.legende { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.legende li { display: inline-flex; align-items: center; gap: 6px; }
+.carre { width: 10px; height: 10px; }
+.liste { display: flex; flex-direction: column; }
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--trait-fin);
+}
+.nom { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.montantLigne { width: 120px; text-align: right; flex: none; }
+.poids { width: 64px; text-align: right; flex: none; }
+
+.cartePacte {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--fond-carte);
+  border: 1px solid var(--trait-fin);
+  border-radius: 4px;
+}
+.entetePacte { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.regleCle { display: flex; flex-direction: column; gap: 6px; }
+.voirRegles { align-self: flex-start; }
+.regles { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--trait-fin); padding-top: 12px; }
+.regles[hidden] { display: none; }
+.regles li { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px; }
+.regles li:last-child { display: block; }
+
+.journal { display: flex; flex-direction: column; gap: 6px; padding-top: 16px; }
+.enteteJournal { display: flex; align-items: center; justify-content: space-between; }
+.entree {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 8px 10px 0;
+  border-bottom: 1px solid var(--trait-fin);
+}
+.entreeNouvelle { background: var(--accent-bleu-teinte); padding-left: 8px; }
+.dateJournal { white-space: nowrap; }
+
+@media (max-width: 1023px) {
+  .grille { grid-template-columns: 1fr; }
+  .laterale { order: -1; }
+  .corps { padding-top: 32px; }
+}
+@media (max-width: 599px) {
+  .indicateurs { grid-template-columns: 1fr; gap: 16px; }
+  .indicateur, .indicateur:first-child { padding: 0; }
+  .indicateur + .indicateur { border-left: 0; border-top: 1px solid var(--trait-fin); padding-top: 16px; }
+  .montantLigne { width: auto; }
+  .montant { flex-direction: column; align-items: flex-start; }
+}

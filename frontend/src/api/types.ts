@@ -18,6 +18,9 @@ export interface Piece {
   traitement?: string;
   limites?: string;
   citeePar?: string[];
+  /** Outil Python qui a produit la pièce (`simuler_portefeuille`…) : choisit son explication. */
+  outil?: string;
+  type?: 'calculee' | 'documentaire' | 'declaree';
   /** `question` : pièce créée par une réponse au contre-interrogatoire. */
   origine?: 'tribunal' | 'question';
 }

@@ -396,3 +396,4 @@
 @media (max-width: 599px) {
   .saisie { flex-direction: column; }
 }
+.definitionPieces { margin: 0 0 12px; max-width: 70ch; }

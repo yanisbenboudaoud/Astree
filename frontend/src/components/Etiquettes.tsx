@@ -1,5 +1,6 @@
 /** Provenance (Fait, Hypothèse, Fictif), Statut du Greffier et pastille de Pièce (annexe A.4). */
 import type { Provenance as TypeProvenance, Statut as TypeStatut } from '../api/types';
+import { createContext, useContext } from 'react';
 import { Icone } from './Icone';
 import styles from './Etiquettes.module.css';
 
@@ -60,25 +61,30 @@ export function IconeStatut({ type, taille = 16 }: { type: TypeStatut; taille?: 
   );
 }
 
+/** Titre de chaque pièce, par code (« P2 » → « Simulation du portefeuille… ») : bulle des pastilles. */
+export const TitresPieces = createContext<Record<string, string>>({});
+
 interface ProprietesPiece {
   code: string;
   onOuvrir?: (code: string, declencheur: HTMLElement) => void;
 }
 
 export function PastillePiece({ code, onOuvrir }: ProprietesPiece) {
+  const titre = useContext(TitresPieces)[code];
   const contenu = (
     <>
       <Icone nom="document" taille={12} epaisseur={1.2} />
       {code}
     </>
   );
-  if (!onOuvrir) return <span className={styles.piece}>{contenu}</span>;
+  if (!onOuvrir) return <span className={styles.piece} title={titre ? `Pièce ${code} : ${titre}` : undefined}>{contenu}</span>;
   return (
     <button
       type="button"
       className={`${styles.piece} ${styles.pieceBouton}`}
       onClick={(e) => onOuvrir(code, e.currentTarget)}
-      aria-label={`Ouvrir la pièce ${code}`}
+      aria-label={titre ? `Ouvrir la pièce ${code} : ${titre}` : `Ouvrir la pièce ${code}`}
+      title={titre ? `Pièce ${code} : ${titre}` : undefined}
       aria-haspopup="dialog"
     >
       {contenu}

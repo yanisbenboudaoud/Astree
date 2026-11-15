@@ -120,7 +120,7 @@ async function robertAuClavier(largeur, suffixe) {
   await page.keyboard.press('Escape');
   await page.waitForTimeout(100);
   const focus = await page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
-  if (focus !== 'Ouvrir la pièce P5') problemes.push(`tiroir : le focus ne revient pas au déclencheur (${focus})`);
+  if (!focus?.startsWith('Ouvrir la pièce P5 ')) problemes.push(`tiroir : le focus ne revient pas au déclencheur (${focus})`);
   await tabulerJusqua(page, /Rendre mon verdict/);
   await page.keyboard.press('Enter');
   await page.waitForURL('**/robert/verdict');

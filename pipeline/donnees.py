@@ -19,7 +19,9 @@ Méthode retenue (à reprendre dans la documentation technique) :
 
 Source des CSV, par la variable d'environnement ``SOURCE_DONNEES`` :
 - ``local`` (par défaut) : dossier ``alphaforge_starter/`` du dépôt ;
-- ``s3`` : branché plus tard (issue #13).
+- ``s3`` (dans Lambda, #13) : objets ``donnees/<fichier>`` du bucket nommé par
+  ``BUCKET_PROJET``. Chaque CSV n'est lu qu'une fois par Lambda démarrée, grâce
+  aux caches de ce module.
 """
 
 from __future__ import annotations
@@ -28,9 +30,14 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+import boto3
 import pandas as pd
+from botocore.exceptions import BotoCoreError, ClientError
 
 DOSSIER_DONNEES = Path(__file__).resolve().parent.parent / "alphaforge_starter"
+
+# Préfixe des CSV dans le bucket du projet (SOURCE_DONNEES=s3).
+PREFIXE_S3_DONNEES = "donnees/"
 
 # Valeurs de la colonne « market » de assets_universe.csv qui définissent le
 # calendrier de référence.
@@ -54,8 +61,24 @@ def lire_csv(nom_fichier: str) -> pd.DataFrame:
     if source == "local":
         return pd.read_csv(DOSSIER_DONNEES / nom_fichier)
     if source == "s3":
-        raise ErreurDonnees("Lecture depuis S3 pas encore branchée (issue #13)")
+        return _lire_csv_s3(nom_fichier)
     raise ErreurDonnees(f"SOURCE_DONNEES doit valoir « local » ou « s3 », pas « {source} »")
+
+
+def _lire_csv_s3(nom_fichier: str) -> pd.DataFrame:
+    """Lit ``donnees/<nom_fichier>`` dans le bucket nommé par ``BUCKET_PROJET``."""
+    bucket = os.environ.get("BUCKET_PROJET")
+    if not bucket:
+        raise ErreurDonnees("SOURCE_DONNEES=s3 demande la variable BUCKET_PROJET (nom du bucket)")
+    cle = PREFIXE_S3_DONNEES + nom_fichier
+    try:
+        objet = boto3.client("s3").get_object(Bucket=bucket, Key=cle)
+    except ClientError as erreur:
+        code = erreur.response.get("Error", {}).get("Code", "inconnue")
+        raise ErreurDonnees(f"Lecture de s3://{bucket}/{cle} impossible (erreur {code})") from erreur
+    except BotoCoreError as erreur:
+        raise ErreurDonnees(f"Lecture de s3://{bucket}/{cle} impossible : {erreur}") from erreur
+    return pd.read_csv(objet["Body"])
 
 
 @lru_cache(maxsize=1)

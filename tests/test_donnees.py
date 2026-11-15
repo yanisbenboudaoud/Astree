@@ -99,9 +99,11 @@ def test_univers_contient_les_31_titres():
     assert len(charger_univers()) == 31
 
 
-def test_source_s3_pas_encore_branchee(monkeypatch):
+def test_source_s3_exige_le_nom_du_bucket(monkeypatch):
+    """La lecture S3 (#13) est testée dans tests/test_lambda_tribunal.py ; sans bucket, erreur lisible."""
     monkeypatch.setenv("SOURCE_DONNEES", "s3")
-    with pytest.raises(ErreurDonnees, match="#13"):
+    monkeypatch.delenv("BUCKET_PROJET", raising=False)
+    with pytest.raises(ErreurDonnees, match="BUCKET_PROJET"):
         lire_csv("assets_universe.csv")
 
 

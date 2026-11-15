@@ -45,7 +45,7 @@ Valider un contrat JSON (`-X utf8` est nécessaire sous Windows pour afficher �
 |---|---|---|
 | `AWS_REGION` | Région Bedrock | `us-east-1` |
 | `BEDROCK_MODEL_ID` | Modèle des agents (profil d'inférence) | `us.anthropic.claude-sonnet-5-5` ; `us.anthropic.claude-haiku-5-5` pour les tests |
-| `SOURCE_DONNEES` | Où lire les CSV | `local` (par défaut) ; `s3` pas encore branché (#13) |
+| `SOURCE_DONNEES` | Où lire les CSV | `local` (par défaut) ; `s3` dans la Lambda (#13), avec `BUCKET_PROJET` = nom du bucket |
 
 Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws login`.
 
@@ -57,7 +57,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 |---|---|---|
 | `CLAUDE.md` | Règles du projet, architecture du Tribunal, contrat JSON. Lu automatiquement par Claude Code | [000](docs/journal/000-fondations.md) |
 | `alphaforge_starter/` | Données de départ fournies (prix, USD/CAD, macro, univers d'actifs). Ne pas modifier | — |
-| `pipeline/donnees.py` | Socle de données : `charger_donnees` (prix `adj_close` en CAD sur le calendrier américain), `charger_prix` (devise d'origine), `convertir_en_cad`, `charger_univers` | [004](docs/journal/004-charger-donnees.md), [005](docs/journal/005-conversion-cad.md) |
+| `pipeline/donnees.py` | Socle de données : `charger_donnees` (prix `adj_close` en CAD sur le calendrier américain), `charger_prix` (devise d'origine), `convertir_en_cad`, `charger_univers` ; lecture des CSV en local ou dans S3 (`SOURCE_DONNEES`) | [004](docs/journal/004-charger-donnees.md), [005](docs/journal/005-conversion-cad.md), [013](docs/journal/013-deploiement-aws.md) |
 | `pipeline/indicateurs.py` | Outil 1 `indicateurs_actif` (pièce d'un titre) et fonctions de calcul pures : rendement annualisé, volatilité, pire baisse, rendement 2022, temps de récupération | [006](docs/journal/006-indicateurs-actif.md) |
 | `pipeline/documents.py` | Recherche documentaire `rechercher_documents` : pièce `documentaire` sur un titre et un critère extra-financier, tirée du corpus ESG ; sans document, « source manquante » | [017](docs/journal/017-preferences-non-financieres.md) |
 | `donnees_externes/documents_esg.json` | Corpus ESG constitué par l'équipe : documents publics sourcés et datés, extraits mot pour mot, limites | [017](docs/journal/017-preferences-non-financieres.md) |
@@ -72,7 +72,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `pipeline/tribunal.py` | `juger_decision` : enchaîne les phases du procès et assemble le contrat : Profil, Orchestrateur, débat Procureur / Avocat, puis Greffier (`verifier_pacte`, `verifier_chiffres` avec une relance), et `taille_max_compatible` calculé par Python. Contrat complet pour une position comme pour une réallocation | [012](docs/journal/012-orchestrateur.md), [021](docs/journal/021-taille-max-compatible.md), [016](docs/journal/016-diversification.md) |
 | `pipeline/taille_max.py` | Outil 4 `taille_max_compatible` : plus grande taille qui respecte les règles calculables du Pacte, recherche par pas de 1 point jugée par `verifier_pacte` | [021](docs/journal/021-taille-max-compatible.md) |
 | `pipeline/__main__.py` | Commande locale : `python -m pipeline <id_profil> "<demande>"` (vrais appels Bedrock) | [012](docs/journal/012-orchestrateur.md) |
-| `pipeline/univers.py` | `charger_univers` : les titres connus du système (liste de dictionnaires, pour les prompts) | [008](docs/journal/008-agent-profil.md) |
+| `pipeline/univers.py` | `charger_univers` : vue de `donnees.charger_univers` en liste de dictionnaires (pour les prompts) ; respecte `SOURCE_DONNEES` | [008](docs/journal/008-agent-profil.md), [013](docs/journal/013-deploiement-aws.md) |
 | `contrat/schema_sortie.json` | Schéma JSON de la sortie du pipeline | [002](docs/journal/002-contrat-json.md) |
 | `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md) |
 | `pipeline/pacte.py` | Chargement et validation d'un fichier profil : `charger_pacte`, `pacte_pour_contrat`, `piece_pacte` | [003](docs/journal/003-pacte-generique.md) |
@@ -89,7 +89,10 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `docs/journal/` | Journal de construction : une fiche par issue, et son modèle | [018](docs/journal/018-livrables-documentation.md) |
 | `.env.example` | Variables à copier dans `.env` | [007](docs/journal/007-client-llm-bedrock.md) |
 | `requirements.txt` / `requirements-dev.txt` | Dépendances épinglées : zip de la Lambda (boto3, jsonschema) / poste local (dont pandas, numpy et pyarrow, aux versions de la couche Lambda) | [007](docs/journal/007-client-llm-bedrock.md), [022](docs/journal/022-pieges-aws.md) |
-| `deploiement/` | Paramètres vérifiés du déploiement (runtime, couche pandas, délai, mémoire, Function URL, zip, coûts), politique IAM de la Lambda, et `tester_function_url.py` pour lancer un procès sur la Lambda déployée | [022](docs/journal/022-pieges-aws.md) |
+| `deploiement/` | Paramètres vérifiés du déploiement (runtime, couche pandas, délai, mémoire, Function URL, zip, coûts), politique IAM de la Lambda, et `tester_function_url.py` pour lancer un procès sur la Lambda déployée | [022](docs/journal/022-pieges-aws.md), [013](docs/journal/013-deploiement-aws.md) |
+| `deploiement/lambda_tribunal.py` | Point d'entrée de la Lambda : `POST /tribunal` (procès, archivé dans `traces/`) et `POST /verdict` (archivé dans `verdicts/`) | [013](docs/journal/013-deploiement-aws.md) |
+| `deploiement/construire_zip.py` / `deploiement/deployer.py` | Construire le zip de la Lambda / déployer ou mettre à jour toute l'infrastructure (S3, IAM, Lambda, Function URL), de façon idempotente | [013](docs/journal/013-deploiement-aws.md) |
+| `docs/architecture.md` | Schéma d'architecture AWS (pour la doc et la vidéo) et rôle de chaque service | [013](docs/journal/013-deploiement-aws.md) |
 | `pyproject.toml` | Configuration de pytest | [007](docs/journal/007-client-llm-bedrock.md) |
 | `.github/pull_request_template.md` | Modèle de PR : `Closes #N`, fiche du journal, carte du dépôt | [000](docs/journal/000-fondations.md) |
 

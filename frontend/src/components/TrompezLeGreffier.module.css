@@ -8,6 +8,8 @@
   border-radius: var(--rayon);
 }
 .entete { display: flex; flex-direction: column; gap: 4px; }
+/* Dans une section repliable du dossier : pas de carte, le titre est celui de la section. */
+.integre { padding: 0; border: 0; border-radius: 0; background: none; }
 .formulaire { display: flex; flex-direction: column; gap: 8px; }
 .exemples { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 6px; }
 .exemple {
@@ -50,6 +52,8 @@
 .piece:has(input:checked) { border-color: var(--accent-bleu); background: var(--accent-bleu-teinte); }
 .piece:has(input:focus-visible) { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
 .piece input { margin: 0; accent-color: var(--accent-bleu); }
+/* Le nom de la pièce à côté de son numéro : on sait ce qu'on cite. */
+.titrePiece { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: var(--encre-700); }
 .verifier { align-self: flex-start; margin-top: 4px; }
 
 .erreur { color: var(--statut-violation); font-weight: 600; }

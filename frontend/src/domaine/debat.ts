@@ -17,11 +17,12 @@ export function accroche(texte: string): { tete: string; suite: string } {
 }
 
 export type Theme =
-  | 'titre_seul' | 'reactions' | 'antecedents' | 'valeurs' | 'annee_2022' | 'frais' | 'devise' | 'taille'
+  | 'recuperation' | 'titre_seul' | 'reactions' | 'antecedents' | 'valeurs' | 'annee_2022' | 'frais' | 'devise' | 'taille'
   | 'diversification' | 'regles' | 'rendement' | 'perte' | 'autre';
 
 /** Question affichée au-dessus de chaque point, dans l'ordre où les règles sont essayées. */
 export const QUESTIONS: Record<Theme, string> = {
+  recuperation: 'Combien de temps pour s’en remettre ?',
   titre_seul: 'Et le titre, pris seul ?',
   reactions: 'Qu’avez-vous répondu face à de vraies baisses ?',
   antecedents: 'Avez-vous déjà tranché ce conflit ?',
@@ -39,6 +40,7 @@ export const QUESTIONS: Record<Theme, string> = {
 
 /** Nom court de chaque point, pour le sommaire du débat. */
 export const LIBELLES_COURTS: Record<Theme, string> = {
+  recuperation: 'Récupération',
   titre_seul: 'Le titre seul',
   reactions: 'Vos réactions',
   antecedents: 'Antécédents',
@@ -56,6 +58,8 @@ export const LIBELLES_COURTS: Record<Theme, string> = {
 
 /** Règles essayées dans cet ordre : la plus précise d'abord (« XOM seule » avant « chute »). */
 const REGLES: [Theme, RegExp][] = [
+  // Le temps pour retrouver un sommet ne répond pas à « combien perdre » : il a sa propre question.
+  ['recuperation', /\bretrouv\S*\s+(ce|son|leur)\s+(sommet|niveau)|revenue? à (ce|son) (sommet|niveau)|récupér/i],
   // Sensible à la casse : « XOM seule » est un symbole, « d'un seul bloc » ne l'est pas.
   ['titre_seul', /\b[Pp]ris(e)? seul|\b[A-Z][A-Z.-]+ seule?\b|revenue? à (ce|son) sommet|retrouvé (ce|son) sommet/],
   ['reactions', /vous avez répondu|jours? de marché|rejeu d.une chute|revécu/i],

@@ -22,8 +22,9 @@ import { date } from '../lib/format';
 import { libelleDecision } from '../domaine/decision';
 import { resultatCalibrage } from '../domaine/calibrage';
 import { phaseEnRelecture } from '../domaine/progression';
-import { LIBELLES_COURTS, accroche, regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
+import { regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
 import { GROUPES, bilanGreffier, type Groupe } from '../domaine/bilan';
+import { pointsDeBascule } from '../domaine/verdict';
 import { sourcesAffichees } from '../domaine/sources';
 import { donneesCalibrage } from '../api/donnees';
 import { questionsSuggerees, repondre, type QuestionSuggeree } from '../domaine/questions';
@@ -54,34 +55,25 @@ export function sansCoupure(texte: string): string {
   return texte.replace(/(\d) (?=\d{3}(?!\d))/g, '$1\u202f').replace(/(\d) (?=[$%])/g, '$1\u00a0');
 }
 
-/** Un argument sur la scène : sa conclusion en gras, la preuve dessous, puis ses pièces. */
+/** Un argument dans sa case : tout son texte, son étiquette et ses pièces sur la même ligne. */
 function Plaidoyer({ argument, surligne, onOuvrir }: {
   argument: Argument;
   surligne: boolean;
   onOuvrir: (code: string, el: HTMLElement) => void;
 }) {
-  const [preuve, setPreuve] = useState(false);
-  const { tete, suite } = accroche(sansCoupure(argument.texte));
-  const ouverte = preuve || surligne;
   return (
-    <article className={`${styles.plaidoyer} ${surligne ? styles.plaidoyerSurligne : ''}`}>
-      <p className={`t-corps ${styles.conclusion}`}>{tete}</p>
-      {suite && ouverte && <p className={`t-petit c-700 ${styles.preuve}`}>{suite}</p>}
-      <p className={styles.provenanceArgument}>
+    <p className={`${styles.plaidoyer} ${surligne ? styles.plaidoyerSurligne : ''}`}>
+      <span className={styles.textePlaidoyer}>{sansCoupure(argument.texte)}</span>{' '}
+      <span className={styles.provenanceArgument}>
         <Provenance type={argument.provenance} />
         {argument.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={onOuvrir} />)}
-        {suite && (
-          <button type="button" className={styles.voirPreuve} aria-expanded={ouverte} onClick={() => setPreuve((p) => !p)}>
-            {ouverte ? 'Masquer' : 'Voir la preuve'}
-          </button>
-        )}
-      </p>
-    </article>
+      </span>
+    </p>
   );
 }
 
-/** Un côté de la barre : le Procureur (contre) ou l'Avocat (pour), et ce qu'il plaide sur ce point. */
-function Tribune({ camp, args, surlignes, onOuvrir }: {
+/** Ce que plaide un camp sur un point, ou son silence. */
+function Case({ camp, args, surlignes, onOuvrir }: {
   camp: 'Procureur' | 'Avocat';
   args: ArgumentNumerote[];
   surlignes: Set<string>;
@@ -89,31 +81,22 @@ function Tribune({ camp, args, surlignes, onOuvrir }: {
 }) {
   const procureur = camp === 'Procureur';
   return (
-    <div className={`${styles.tribune} ${procureur ? styles.tribuneProcureur : styles.tribuneAvocat}`}>
-      <div className={styles.enteteTribune}>
-        <span className={styles.blason} aria-hidden="true">{procureur ? 'P' : 'A'}</span>
-        <span className={styles.roleTribune}>
-          <span className={styles.nomCamp}>{camp}</span>
-          <span className="t-petit c-500">{procureur ? 'contre la décision' : 'pour la décision'}</span>
-        </span>
-      </div>
+    <div className={`${styles.case} ${procureur ? styles.caseProcureur : styles.caseAvocat}`}>
+      <span className={styles.campMobile}>{procureur ? 'Procureur · contre' : 'Avocat · pour'}</span>
       {args.length ? (
-        <div className={styles.plaidoyers}>
-          {args.map(({ argument, numero }) => (
-            <Plaidoyer key={argument.texte} argument={argument} surligne={surlignes.has(`${camp}-${numero}`)} onOuvrir={onOuvrir} />
-          ))}
-        </div>
+        args.map(({ argument, numero }) => (
+          <Plaidoyer key={argument.texte} argument={argument} surligne={surlignes.has(`${camp}-${numero}`)} onOuvrir={onOuvrir} />
+        ))
       ) : (
-        <p className={styles.silence}>{procureur ? 'Le Procureur' : 'L’Avocat'} garde le silence sur ce point.</p>
+        <p className={styles.silence}>Pas d’argument sur ce point.</p>
       )}
     </div>
   );
 }
 
 /**
- * Le débat en salle d'audience : un point à la fois, sans défilement. Le sommaire liste les
- * points (deux pastilles disent quel camp a parlé) ; la scène met le Procureur et l'Avocat
- * face à face de part et d'autre de la balance. Flèches ← → pour passer d'un point à l'autre.
+ * Le débat d'un seul regard : une ligne par question, le Procureur à gauche, l'Avocat à droite.
+ * Tout tient sur un écran, sans onglet ni défilement : on compare les deux camps sans rien retenir.
  */
 function Debat({ procureur, avocat, surlignes, onOuvrir }: {
   procureur: Argument[];
@@ -122,104 +105,45 @@ function Debat({ procureur, avocat, surlignes, onOuvrir }: {
   onOuvrir: (code: string, el: HTMLElement) => void;
 }) {
   const points = useMemo(() => regrouperDebat(procureur, avocat), [procureur, avocat]);
-  const [rang, setRang] = useState(0);
-  const onglets = useRef<(HTMLButtonElement | null)[]>([]);
-  const actuel = points[Math.min(rang, points.length - 1)];
-
-  // Une pièce ouverte amène sur le premier point dont un argument la cite.
-  const cleSurlignes = [...surlignes].join(',');
-  useEffect(() => {
-    if (!cleSurlignes) return;
-    const cles = new Set(cleSurlignes.split(','));
-    const cible = points.findIndex((p) => [...p.procureur.map((a) => `Procureur-${a.numero}`), ...p.avocat.map((a) => `Avocat-${a.numero}`)]
-      .some((cle) => cles.has(cle)));
-    if (cible >= 0) setRang(cible);
-  }, [cleSurlignes, points]);
-
-  // L'onglet du point affiché reste visible dans la bande, même sur téléphone ; pas au
-  // chargement, pour ne pas faire défiler la page jusqu'au débat.
-  const premierAffichage = useRef(true);
-  useEffect(() => {
-    if (premierAffichage.current) {
-      premierAffichage.current = false;
-      return;
-    }
-    onglets.current[rang]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
-  }, [rang]);
-
-  if (!actuel) return null;
-  const borner = (r: number) => (r + points.length) % points.length;
-  const aller = (nouveau: number, focus = false) => {
-    setRang(borner(nouveau));
-    if (focus) onglets.current[borner(nouveau)]?.focus();
-  };
-  // Les flèches partent du rang courant, même après plusieurs clics rapides.
-  const decaler = (pas: number) => setRang((r) => borner(r + pas));
-  const auClavier = (evenement: React.KeyboardEvent) => {
-    const sauts: Record<string, number> = { ArrowRight: rang + 1, ArrowLeft: rang - 1, Home: 0, End: points.length - 1 };
-    if (!(evenement.key in sauts)) return;
-    evenement.preventDefault();
-    aller(sauts[evenement.key], true);
-  };
-
+  if (!points.length) return null;
   return (
     <section className={styles.debat} aria-labelledby="titre-debat">
-      <h2 className="visuellement-cache" id="titre-debat">L’audience : le débat point par point</h2>
       <div className={styles.enteteDebat}>
-      <div className={styles.sommaire} role="tablist" aria-label="Points du débat" onKeyDown={auClavier}>
-        {points.map((point, i) => (
-          <button
-            key={point.theme}
-            ref={(el) => { onglets.current[i] = el; }}
-            type="button"
-            role="tab"
-            id={`onglet-${point.theme}`}
-            aria-selected={i === rang}
-            aria-controls="scene-debat"
-            tabIndex={i === rang ? 0 : -1}
-            className={`${styles.onglet} ${i === rang ? styles.ongletActif : ''}`}
-            onClick={() => aller(i)}
-          >
-            <span className={styles.numeroOnglet}>{i + 1}</span>
-            <span>{LIBELLES_COURTS[point.theme]}</span>
-            <span className={styles.voix} aria-hidden="true">
-              <span className={`${styles.voixProcureur} ${point.procureur.length ? '' : styles.voixMuette}`} />
-              <span className={`${styles.voixAvocat} ${point.avocat.length ? '' : styles.voixMuette}`} />
-            </span>
-          </button>
-        ))}
-      </div>
-        <p className={styles.legendeDebat}>
-          <span className={styles.legendeProcureur}>Procureur · contre · {procureur.length}</span>
-          <span className={styles.legendeAvocat}>Avocat · pour · {avocat.length}</span>
+        <h2 className={`t-panneau ${styles.titreSolennel}`} id="titre-debat">Les débats</h2>
+        <p className="t-petit c-700">
+          Chaque argument cite ses pièces ; le Greffier a vérifié chacun de ses chiffres.
         </p>
       </div>
-
-      <div id="scene-debat" role="tabpanel" aria-labelledby={`onglet-${actuel.theme}`} className={styles.scene}>
-        <div className={styles.enteteScene}>
-          <div className={styles.questionScene}>
-            <p className={styles.compteurPoint}>Point {rang + 1} sur {points.length}</p>
-            <h3 className={`t-h2 ${styles.question}`} aria-live="polite">{actuel.question}</h3>
-          </div>
-          <div className={styles.navigationScene}>
-            <button type="button" className={styles.fleche} onClick={() => decaler(-1)} aria-label="Point précédent">
-              <Icone nom="fleche-gauche" taille={18} />
-            </button>
-            <button type="button" className={styles.fleche} onClick={() => decaler(1)} aria-label="Point suivant">
-              <Icone nom="fleche-droite" taille={18} />
-            </button>
-          </div>
+      <div className={styles.tableDebat} role="table" aria-label="Le débat, question par question">
+        <div className={styles.ligneEntete} role="row">
+          <span role="columnheader" className={styles.enteteQuestion}>Question</span>
+          <span role="columnheader" className={`${styles.enteteCamp} ${styles.enteteProcureur}`}>
+            <span className={styles.blason} aria-hidden="true">P</span>
+            Procureur <span className={styles.sens}>contre la décision · {procureur.length}</span>
+          </span>
+          <span role="columnheader" className={`${styles.enteteCamp} ${styles.enteteAvocat}`}>
+            <span className={styles.blason} aria-hidden="true">A</span>
+            Avocat <span className={styles.sens}>pour la décision · {avocat.length}</span>
+          </span>
+          <span className={styles.balance} aria-hidden="true"><Icone nom="balance" taille={18} /></span>
         </div>
-        <div key={actuel.theme} className={styles.arene}>
-          <Tribune camp="Procureur" args={actuel.procureur} surlignes={surlignes} onOuvrir={onOuvrir} />
-          <div className={styles.barre} aria-hidden="true">
-            <span className={styles.balance}><Icone nom="balance" taille={22} /></span>
+        {points.map((point, i) => (
+          <div key={point.theme} className={styles.ligneDebat} role="row">
+            <div role="rowheader">
+              <h3 className={styles.questionDebat}>
+                <span className={styles.numeroPoint} aria-hidden="true">{i + 1}</span>
+                {point.question}
+              </h3>
+            </div>
+            <div role="cell" className={styles.cellule}>
+              <Case camp="Procureur" args={point.procureur} surlignes={surlignes} onOuvrir={onOuvrir} />
+            </div>
+            <div role="cell" className={styles.cellule}>
+              <Case camp="Avocat" args={point.avocat} surlignes={surlignes} onOuvrir={onOuvrir} />
+            </div>
           </div>
-          <Tribune camp="Avocat" args={actuel.avocat} surlignes={surlignes} onOuvrir={onOuvrir} />
-        </div>
+        ))}
       </div>
-
-      <LimitesDonnees ecran="tribunal" titre="Ce que ce procès ne dit pas" />
     </section>
   );
 }
@@ -502,8 +426,9 @@ export function Tribunal({ profil }: { profil: Profil }) {
   }
   const bilan = bilanGreffier(resultat.controles, resultat.contrat);
   const manquantes = resultat.controles.filter((c) => /source manquante/i.test(c.texte)).length;
-  const principal = resultat.controles.find((c) => c.paragraphe !== undefined && c.statut === 'Violation');
-  const reglePrincipale = principal && resultat.contrat.pacte.regles.find((r) => r.id === principal.regle);
+  const controlesPacte = bilan.controles.filter((c) => c.paragraphe !== undefined);
+  const controlesSysteme = bilan.controles.filter((c) => c.paragraphe === undefined);
+  const bascules = pointsDeBascule(resultat);
   const contexteQuestions = { profil, resultat, decision, table: tablePosition, pieces };
   const questions = questionsSuggerees(contexteQuestions);
   const dejaPosees = new Set(etat.reponses.map((r) => r.question));
@@ -552,68 +477,92 @@ export function Tribunal({ profil }: { profil: Profil }) {
               {manquantes ? ` · ${manquantes} donnée${manquantes > 1 ? 's' : ''} manquante${manquantes > 1 ? 's' : ''}` : ''}
               {MODE_DIRECT ? '' : ' · procès enregistré'}
             </p>
-            <h1 className="t-h1">{resultat.titre}</h1>
+            <h1 className={`t-h1 ${styles.titreSolennel}`}>{resultat.titre}</h1>
           </div>
 
           <section className={`${styles.bilan} ${TONS_BILAN[bilan.ton]}`} aria-labelledby="titre-bilan">
-            <span className={styles.iconeBilan} aria-hidden="true">
-              <Icone nom={bilan.ton === 'violation' ? 'interdit' : bilan.ton === 'a_juger' ? 'alerte' : 'check'} taille={20} />
-            </span>
-            <div className={styles.resume}>
-              <p className={styles.surtitreBilan}>Le Greffier a vérifié votre décision · calcul Python, sans IA</p>
-              <h2 className={`t-panneau ${styles.verdictBilan}`} id="titre-bilan">{bilan.verdict}</h2>
-              {bilan.explication && <p className="t-corps c-700">{bilan.explication}</p>}
+            <div className={styles.teteBilan}>
+              <span className={styles.iconeBilan} aria-hidden="true">
+                <Icone nom={bilan.ton === 'violation' ? 'interdit' : bilan.ton === 'a_juger' ? 'alerte' : 'check'} taille={20} />
+              </span>
+              <div className={styles.resume}>
+                <p className={styles.surtitreBilan}>Le Greffier a vérifié votre décision · calcul Python, sans IA</p>
+                <h2 className={`t-panneau ${styles.verdictBilan}`} id="titre-bilan">{bilan.verdict}</h2>
+                {bilan.explication && <p className="t-corps c-700">{sansCoupure(bilan.explication)}</p>}
+              </div>
             </div>
-            <div className={styles.coteBilan}>
-              <p className={styles.comptesBilan}>
-                {GROUPES.filter((g) => bilan.comptes[g.id] > 0).map((g) => (
-                  <span key={g.id} className={`${styles.compteBilan} ${COMPTES_BILAN[g.id]}`}>
-                    {bilan.comptes[g.id]} {LIBELLES_COMPTES[g.id](bilan.comptes[g.id])}
-                  </span>
-                ))}
-              </p>
-              <button type="button" className={styles.voirControles} aria-expanded={controlesOuverts} aria-controls="liste-controles" onClick={() => setControlesOuverts((o) => !o)}>
-                {controlesOuverts ? 'Masquer le détail' : 'Voir le détail'}
-                <Icone nom={controlesOuverts ? 'chevron-haut' : 'chevron-bas'} taille={14} />
-              </button>
-            </div>
-            <div id="liste-controles" className={styles.controles} hidden={!controlesOuverts}>
-              {reglePrincipale && (
-                <p className={`t-petit c-700 ${styles.rappelRegle}`}>
-                  Règle que vous avez signée le {date(resultat.contrat.pacte.date_signature)} (Pacte §{principal!.paragraphe}) :
-                  « {reglePrincipale.libelle} ».
-                </p>
+
+            <div className={styles.colonnesBilan}>
+              <div className={styles.blocBilan}>
+                <h3 className={styles.titreBloc}>
+                  Votre Pacte, règle par règle
+                  <span className="t-petit c-500"> · signé le {date(resultat.contrat.pacte.date_signature)}</span>
+                </h3>
+                <ul className={styles.listeControles}>
+                  {controlesPacte.map((c) => (
+                    <li key={`${c.regle}-${c.titre}`} className={styles.controle}>
+                      <IconeStatut type={STATUT_DU_GROUPE[c.groupe]} taille={16} />
+                      <span className={styles.texteControle}>
+                        <span className="t-petit-fort">
+                          {c.titre}
+                          {c.paragraphe !== undefined && <span className="c-500"> · §{c.paragraphe}</span>}
+                        </span>
+                        {c.detail && c.detail !== bilan.explication && <span className="t-petit c-700">{sansCoupure(c.detail)}</span>}
+                      </span>
+                      <span className={styles.piecesControle}>
+                        {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {bascules.length > 0 && (
+                <div className={`${styles.blocBilan} ${styles.bascule}`}>
+                  <h3 className={styles.titreBloc}>Ce qui rendrait la décision conforme</h3>
+                  <ul className={styles.listeBascules}>
+                    {bascules.map((p) => (
+                      <li key={p.regle} className={styles.ligneBascule}>
+                        <span className="t-corps-fort">{sansCoupure(p.message)}</span>
+                        <span className={styles.provenanceArgument}>
+                          <span className="t-petit c-500">Règle « {p.libelle} »</span>
+                          {p.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={ouvrirPiece} />)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
-              {GROUPES.map((g) => {
-                const items = bilan.controles.filter((c) => c.groupe === g.id);
-                if (!items.length) return null;
-                return (
-                  <div key={g.id} className={styles.groupeControles}>
-                    <p className={styles.titreGroupe}>
-                      <span className={`t-petit-fort ${COMPTES_BILAN[g.id]}`}>{g.titre} · {items.length}</span>
-                      <span className="t-petit c-500">{g.aide}</span>
-                    </p>
-                    <ul className={styles.listeControles}>
-                      {items.map((c) => (
-                        <li key={`${c.regle}-${c.titre}`} className={styles.controle}>
-                          <IconeStatut type={STATUT_DU_GROUPE[c.groupe]} taille={16} />
-                          <span className={styles.texteControle}>
-                            <span className="t-petit-fort">
-                              {c.titre}
-                              {c.paragraphe !== undefined && <span className="c-500"> · Pacte §{c.paragraphe}</span>}
-                            </span>
-                            {c.detail && <span className="t-petit c-700">{c.detail}</span>}
-                          </span>
-                          <span className={styles.piecesControle}>
-                            {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
             </div>
+
+            {controlesSysteme.length > 0 && (
+              <div className={styles.systeme}>
+                <button type="button" className={styles.voirControles} aria-expanded={controlesOuverts} aria-controls="liste-controles" onClick={() => setControlesOuverts((o) => !o)}>
+                  <Icone nom={controlesOuverts ? 'chevron-haut' : 'chevron-bas'} taille={16} />
+                  Contrôles du Greffier sur les arguments
+                  <span className={styles.resumeSysteme}>
+                    {GROUPES.filter((g) => controlesSysteme.some((c) => c.groupe === g.id)).map((g) => {
+                      const n = controlesSysteme.filter((c) => c.groupe === g.id).length;
+                      return <span key={g.id} className={`${styles.compteBilan} ${COMPTES_BILAN[g.id]}`}>{n} {LIBELLES_COMPTES[g.id](n)}</span>;
+                    })}
+                  </span>
+                </button>
+                <ul id="liste-controles" className={styles.listeControles} hidden={!controlesOuverts}>
+                  {controlesSysteme.map((c) => (
+                    <li key={`${c.regle}-${c.titre}`} className={styles.controle}>
+                      <IconeStatut type={STATUT_DU_GROUPE[c.groupe]} taille={16} />
+                      <span className={styles.texteControle}>
+                        <span className="t-petit-fort">{c.titre}</span>
+                        {c.detail && <span className="t-petit c-700">{c.detail}</span>}
+                      </span>
+                      <span className={styles.piecesControle}>
+                        {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </section>
 
           <Debat procureur={procureur} avocat={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} />
@@ -648,74 +597,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
             </section>
           )}
 
-          <TrompezLeGreffier resultat={resultat} pieces={pieces} />
-
-          <div className={styles.replis}>
-            <Repli id="repli-trace" titre="Comment le Tribunal a travaillé" sousTitre={`${resultat.trace.length} étapes`}>
-              <ol className={styles.chronologie}>
-                {resultat.trace.map((e, i) => (
-                  <li key={i} className={styles.etapeChrono}>
-                    <span className={`${styles.pastilleChrono} ${e.etat === 'signalement' ? styles.pastilleSignalement : ''}`} aria-hidden="true">
-                      <Icone nom={e.etat === 'signalement' ? 'alerte' : 'check'} taille={14} />
-                    </span>
-                    <span className={styles.texteChrono}>
-                      <span className="t-petit c-500">{e.role}{e.etat === 'signalement' && <span className="visuellement-cache"> (signalement)</span>}</span>
-                      <span className="t-corps-fort">{e.titre}</span>
-                      <code className="t-trace c-500">{e.appel}</code>
-                      {e.raison && <span className="t-petit c-700">Raison : {e.raison}</span>}
-                    </span>
-                    {e.sortie && <PastillePiece code={e.sortie} onOuvrir={ouvrirPiece} />}
-                  </li>
-                ))}
-              </ol>
-            </Repli>
-            <Repli id="repli-pieces" titre="Pièces à conviction" sousTitre={`${pieces.length} pièces`}>
-              <ul className={styles.listePieces}>
-                {pieces.map((p) => (
-                  <li key={p.code} className={styles.lignePiece}>
-                    <PastillePiece code={p.code} onOuvrir={ouvrirPiece} />
-                    <Provenance type={p.provenance} />
-                    <span className="t-corps">{p.titre}</span>
-                    <span className="t-tableau c-700">{p.valeur}</span>
-                  </li>
-                ))}
-              </ul>
-            </Repli>
-            {sources.length > 0 && (
-              <Repli id="repli-sources" titre="D'où viennent les données" sousTitre={`${sources.length} sources`}>
-                <ul className={styles.listeSources}>
-                  {sources.map((s) => (
-                    <li key={s.nom} className={styles.source}>
-                      <span className="t-corps-fort">{s.nom}</span>
-                      {s.details && <span className="t-petit c-500">{s.details}</span>}
-                      {s.usage && <span className="t-petit c-700">{s.usage}</span>}
-                      {(s.expliquees.length > 0 || s.regles.length > 0) && (
-                        <ul className={styles.utilisations} aria-label={`Pourquoi ${s.nom} a servi`}>
-                          {s.expliquees.map((p) => (
-                            <li key={p.code} className={styles.utilisation}>
-                              <PastillePiece code={p.code} onOuvrir={ouvrirPiece} />
-                              <span className="t-petit c-700">{p.raison}</span>
-                            </li>
-                          ))}
-                          {s.regles.map((r) => (
-                            <li key={r} className={styles.utilisation}>
-                              <span className="t-petit c-700">Contrôle de la règle « {r} »</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      {s.autres.length > 0 && (
-                        <p className={styles.autresPieces}>
-                          <span className="t-petit c-500">{s.expliquees.length > 0 ? 'Aussi dans' : 'Dans'}</span>
-                          {s.autres.map((p) => <PastillePiece key={p.code} code={p.code} onOuvrir={ouvrirPiece} />)}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </Repli>
-            )}
-          </div>
+          <LimitesDonnees ecran="tribunal" titre="Ce que ce procès ne dit pas" ouvertParDefaut />
 
           <section className={styles.questions} aria-labelledby="titre-questions">
             <h2 className="t-intertitre" id="titre-questions">Une question pour les agents ?</h2>
@@ -807,9 +689,90 @@ export function Tribunal({ profil }: { profil: Profil }) {
             )}
           </section>
 
-          <div className={styles.actions}>
-            <Bouton variante="tertiaire" fleche={false} vers={`/${profil.id}/decision`}>Retour à la décision</Bouton>
-            <Bouton variante="primaire" onClick={() => navigate(`/${profil.id}/verdict`)}>Rendre mon verdict</Bouton>
+          <div className={styles.dossier}>
+          <h2 className={`t-panneau ${styles.titreSolennel}`}>Le dossier</h2>
+          <div className={styles.replis}>
+            <Repli id="repli-trace" titre="Comment le Tribunal a travaillé" sousTitre={`${resultat.trace.length} étapes`}>
+              <ol className={styles.chronologie}>
+                {resultat.trace.map((e, i) => (
+                  <li key={i} className={styles.etapeChrono}>
+                    <span className={`${styles.pastilleChrono} ${e.etat === 'signalement' ? styles.pastilleSignalement : ''}`} aria-hidden="true">
+                      <Icone nom={e.etat === 'signalement' ? 'alerte' : 'check'} taille={14} />
+                    </span>
+                    <span className={styles.texteChrono}>
+                      <span className="t-petit c-500">{e.role}{e.etat === 'signalement' && <span className="visuellement-cache"> (signalement)</span>}</span>
+                      <span className="t-corps-fort">{e.titre}</span>
+                      <code className="t-trace c-500">{e.appel}</code>
+                      {e.raison && <span className="t-petit c-700">Raison : {e.raison}</span>}
+                    </span>
+                    {e.sortie && <PastillePiece code={e.sortie} onOuvrir={ouvrirPiece} />}
+                  </li>
+                ))}
+              </ol>
+            </Repli>
+            <Repli id="repli-pieces" titre="Pièces à conviction" sousTitre={`${pieces.length} pièces`}>
+              <ul className={styles.listePieces}>
+                {pieces.map((p) => (
+                  <li key={p.code} className={styles.lignePiece}>
+                    <PastillePiece code={p.code} onOuvrir={ouvrirPiece} />
+                    <Provenance type={p.provenance} />
+                    <span className="t-corps">{p.titre}</span>
+                    <span className="t-tableau c-700">{p.valeur}</span>
+                  </li>
+                ))}
+              </ul>
+            </Repli>
+            {sources.length > 0 && (
+              <Repli id="repli-sources" titre="D'où viennent les données" sousTitre={`${sources.length} sources`}>
+                <ul className={styles.listeSources}>
+                  {sources.map((s) => (
+                    <li key={s.nom} className={styles.source}>
+                      <span className="t-corps-fort">{s.nom}</span>
+                      {s.details && <span className="t-petit c-500">{s.details}</span>}
+                      {s.usage && <span className="t-petit c-700">{s.usage}</span>}
+                      {(s.expliquees.length > 0 || s.regles.length > 0) && (
+                        <ul className={styles.utilisations} aria-label={`Pourquoi ${s.nom} a servi`}>
+                          {s.expliquees.map((p) => (
+                            <li key={p.code} className={styles.utilisation}>
+                              <PastillePiece code={p.code} onOuvrir={ouvrirPiece} />
+                              <span className="t-petit c-700">{p.raison}</span>
+                            </li>
+                          ))}
+                          {s.regles.map((r) => (
+                            <li key={r} className={styles.utilisation}>
+                              <span className="t-petit c-700">Contrôle de la règle « {r} »</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {s.autres.length > 0 && (
+                        <p className={styles.autresPieces}>
+                          <span className="t-petit c-500">{s.expliquees.length > 0 ? 'Aussi dans' : 'Dans'}</span>
+                          {s.autres.map((p) => <PastillePiece key={p.code} code={p.code} onOuvrir={ouvrirPiece} />)}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Repli>
+            )}
+            <Repli id="repli-greffier" titre="Mettre le Greffier à l’épreuve" sousTitre="Écrivez un argument chiffré : le Greffier vérifie chaque nombre, sans IA">
+              <TrompezLeGreffier resultat={resultat} pieces={pieces} integre />
+            </Repli>
+          </div>
+          </div>
+
+          <div className={styles.barreVerdict} role="region" aria-label="Rendre votre verdict">
+            <p className={styles.texteVerdict}>
+              <span className={styles.titreSolennel}>Le Tribunal a terminé. À vous de juger.</span>
+              <span className="t-petit c-700">
+                {bilan.verdict}{bascules[0] ? ` · ${sansCoupure(bascules[0].message)}` : ''}
+              </span>
+            </p>
+            <div className={styles.boutonsVerdict}>
+              <Bouton variante="tertiaire" fleche={false} vers={`/${profil.id}/decision`}>Modifier la décision</Bouton>
+              <Bouton variante="primaire" onClick={() => navigate(`/${profil.id}/verdict`)}>Rendre mon verdict</Bouton>
+            </div>
           </div>
         </div>
       </Gabarit>

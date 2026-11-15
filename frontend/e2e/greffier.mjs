@@ -43,6 +43,7 @@ async function ouvrirTribunal(taille) {
   for (let i = 0; i < taille; i += 1) await page.keyboard.press('ArrowRight');
   await page.getByRole('button', { name: /Soumettre au Tribunal/ }).click();
   await page.waitForSelector('#titre-bilan', { timeout: 20_000 });
+  await page.getByRole('button', { name: /Mettre le Greffier à l’épreuve/ }).click();
 }
 
 async function resultat() {
@@ -54,7 +55,7 @@ async function resultat() {
 try {
   await ouvrirTribunal(30);
   if (await page.getByText(/Cet essai se fait avec le Tribunal en direct/).count()) throw new Error('VITE_API_URL absent : le Greffier en direct est indisponible');
-  if (!(await page.getByText(/Règle que vous avez signée le/).count())) problemes.push('date de signature du Pacte absente du bilan');
+  if (!(await page.getByText(/Votre Pacte, règle par règle/).count())) problemes.push('date de signature du Pacte absente du bilan');
 
   const attendus = [
     ['Un vrai chiffre', /Argument accepté/, null],

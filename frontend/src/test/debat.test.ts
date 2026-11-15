@@ -18,6 +18,8 @@ describe('thème d’un argument (première phrase)', () => {
     ['La règle « Pire baisse tolérée : −12 % » serait respectée jusqu’à 9 % en TSLA, avec une pire baisse de −11,2 %.', 'taille'],
     ['Une position de 9 % en TSLA respecte la règle « Pire baisse tolérée : −12 % », avec une pire baisse de −11,2 %.', 'taille'],
     ['Une position plus modeste respecte votre limite : à 9 % en TSLA, la pire baisse est de −11,2 %.', 'taille'],
+    ['Après sa plus forte chute depuis un sommet, NVDA a mis 1,5 ans à retrouver son niveau d’avant.', 'recuperation'],
+    ['Après sa plus forte chute depuis un sommet, de −70,9 %, TSLA a retrouvé ce sommet en 2,9 ans.', 'recuperation'],
     ['Une réallocation de 28 % du portefeuille respecte les trois règles du Pacte, au lieu des 100 % choisis.', 'taille'],
     ['Pris seul, XOM a connu une chute de 19,1 % depuis un sommet, au-delà de votre pire baisse tolérée de −15,1 %.', 'titre_seul'],
     ['Votre règle « Exclure les entreprises liées à des controverses » est en jeu : XOM fait l’objet d’une poursuite climatique.', 'valeurs'],

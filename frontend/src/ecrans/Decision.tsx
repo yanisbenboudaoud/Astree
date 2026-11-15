@@ -348,6 +348,12 @@ export function Decision({ profil }: { profil: Profil }) {
             de {tablePanier.pas} points. Le Tribunal en direct simulera ce panier avec les mêmes outils.
           </Message>
         )}
+        {decision.type === 'panier' && tablePanier === null && !panierInvalide && (
+          <Message type="À vérifier" titre="Aperçu non calculé pour ce panier">
+            L'aperçu avant / après n'est précalculé que pour les paniers de démonstration. Le Tribunal simulera ce panier
+            avec les mêmes outils Python.
+          </Message>
+        )}
 
         {messages.map((m) => (
           <Message

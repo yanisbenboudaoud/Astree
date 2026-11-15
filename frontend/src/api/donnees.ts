@@ -10,7 +10,7 @@ import univers from '../data/generated/univers.json';
 import libelles from '../data/libelles.json';
 import profilsUi from '../data/profils_ui.json';
 import { MODE_DIRECT, URL_API, lireErreur } from './config';
-import type { ConfigProfilUI, DonneesCalibrage, Profil, TablePanier, TablePosition, Titre } from './types';
+import type { ConfigProfilUI, ConfigRecherche, DonneesCalibrage, Profil, TablePanier, TablePosition, Titre } from './types';
 
 const profilsGeneres = import.meta.glob<Profil>('../data/generated/profils/*.json', { eager: true, import: 'default' });
 const tablesPositions = import.meta.glob<TablePosition>('../data/generated/decisions/*/*.json', { import: 'default' });
@@ -78,9 +78,23 @@ const CONFIG_PAR_DEFAUT: Required<Pick<ConfigProfilUI, 'recherche'>> = {
   },
 };
 
+const RECHERCHE_PANIER_PAR_DEFAUT: ConfigRecherche = {
+  mode: 'panier',
+  titre: 'Composer un panier',
+  aide: "Ajoutez plusieurs titres : le Tribunal juge le panier en entier. Rien n'est acheté.",
+  placeholder: 'Nom ou symbole, ex. : Apple ou AAPL',
+};
+
 export function configUi(id: string): ConfigProfilUI & typeof CONFIG_PAR_DEFAUT {
   const config = (profilsUi.profils as Record<string, ConfigProfilUI>)[id] ?? {};
   return { ...CONFIG_PAR_DEFAUT, ...config } as ConfigProfilUI & typeof CONFIG_PAR_DEFAUT;
+}
+
+/** Textes de la recherche pour un mode : ceux du profil s'il a choisi ce mode, sinon les textes génériques. */
+export function rechercheUi(id: string, mode: ConfigRecherche['mode']): ConfigRecherche {
+  const { recherche } = configUi(id);
+  if (recherche.mode === mode) return recherche;
+  return mode === 'panier' ? RECHERCHE_PANIER_PAR_DEFAUT : CONFIG_PAR_DEFAUT.recherche;
 }
 
 export function titre(ticker: string): Titre | undefined {

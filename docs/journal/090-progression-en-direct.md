@@ -1,6 +1,6 @@
 # #90 — Le Tribunal en direct : afficher la vraie progression du procès pendant l'attente
 
-- **Issue** : #90 · **PR** : à venir · **Statut** : terminée côté code ; Lambda à redéployer
+- **Issue** : #90 · **PR** : #95 · **Statut** : terminée côté code ; Lambda à redéployer
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

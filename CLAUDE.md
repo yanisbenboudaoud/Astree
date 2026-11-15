@@ -123,7 +123,7 @@ L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % en TSLA »). Le
 
 ### L'orchestrateur Bedrock et ses garde-fous
 
-L'orchestrateur est ce qui rend le système agentique : c'est un LLM qui **décide quelles preuves rassembler** selon la décision et le Pacte. Exemples : une décision crypto le pousse vers `calculer_correlations` ; un horizon court, vers le temps de récupération (`indicateurs_actif`) ; un seuil probablement dépassé, vers `taille_max_compatible`. Il reste encadré par des garde-fous écrits en Python :
+L'orchestrateur est ce qui rend le système agentique : c'est un LLM qui **décide quelles preuves rassembler** selon la décision et le Pacte. Exemples : une décision crypto le pousse vers `calculer_correlations` ; un horizon court, vers le temps de récupération (`indicateurs_actif`) ; un seuil probablement dépassé, vers `taille_max_compatible` ; une grosse ligne peu échangée ou un horizon court, vers `mesurer_liquidite`. Il reste encadré par des garde-fous écrits en Python :
 
 - **Il ne calcule rien** : il ne peut qu'appeler les outils 1 à 4 de la liste blanche (section 4 bis). Les outils 5 et 6 appartiennent au Greffier et ne sont jamais appelés par un LLM.
 - **Pièce obligatoire** : la simulation avant / après de la décision (`simuler_portefeuille`). Si l'orchestrateur ne l'a pas demandée, Python l'ajoute d'office et le note dans la trace.
@@ -155,6 +155,7 @@ Socle commun : **`charger_donnees`** lit les CSV (local ou S3), convertit en CAD
 | 6 | `verifier_chiffres` | Vérifie que chaque nombre cité existe dans une pièce (section 4 ter) | Greffier | V1 |
 | 7 | `consulter_jurisprudence` | Verdicts passés du même profil (archives `verdicts/<profil>/` de S3) : violations par règle et choix de l'utilisateur (#56) | Orchestrateur | Bonus |
 | 8 | `points_de_bascule` | Pour chaque règle calculable en violation : la taille où elle serait conforme, et le seuil qui suffirait (la valeur simulée après la décision). Relit la recherche de l'outil 4 (#61) | Python, d'office | Bonus |
+| 9 | `mesurer_liquidite` | Risque de liquidité : jours de bourse pour revendre chaque ligne du portefeuille après la décision sans dépasser 10 % des montants échangés par jour (volume × `close` en CAD ; volume crypto déjà en dollars ; volume absent signalé, jamais 0) (#117) | Orchestrateur | Bonus |
 | — | `calibrer_pacte` | Pacte vécu : seuil de pire baisse mesuré sur les réponses de l'utilisateur, pièce `declaree` (#68) | Tribunal, avant le procès | Bonus |
 
 Aucun de ces outils n'utilise le LLM. On les développe et teste **en local**, puis le même code est déployé dans Lambda (variable `SOURCE_DONNEES=local|s3`). Les outils 1 à 4 sont décrits à l'orchestrateur comme outils Bedrock (nom, description, schéma JSON des paramètres).

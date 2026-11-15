@@ -25,7 +25,7 @@ from unittest import mock
 import pandas as pd
 
 from pipeline import categories as module_categories
-from pipeline import frais, macro
+from pipeline import frais, liquidite, macro
 from pipeline.calibrage import RESTE, VEND, calibrer, episodes_de_baisse, prochaine_question
 from pipeline.chiffres import trier_arguments
 from pipeline.donnees import ErreurDonnees
@@ -650,6 +650,45 @@ def scenarios_frais() -> list[Resultat]:
     return resultats
 
 
+# --- 12. Risque de liquidité (volumes, #117) ---------------------------------------------
+
+def scenarios_liquidite() -> list[Resultat]:
+    """Jours de bourse pour revendre chaque ligne, à partir des volumes de prices_daily.csv."""
+    groupe = "12. Risque de liquidité (volumes Yahoo Finance)"
+    robert = profil("robert")
+    piece = liquidite.piece_liquidite("P4", robert["portefeuille"], position("TSLA", 0.30), robert["capital_fictif_cad"])
+    v = piece["valeurs"]
+    resultats = [
+        Resultat(groupe, "Profil prudent, 30 % TSLA : quelle ligne serait la plus longue à revendre ?",
+                 "le petit FNB obligataire (ZST.TO), pas TSLA, très échangé",
+                 f"{v['titre_le_moins_liquide']} : {f'{v["jours_pour_vendre_max"]:.2f}'.replace('.', ',')} jour, "
+                 f"part de {pourcent(v['part_volume_quotidien_ZST.TO'])} des échanges ; TSLA : "
+                 f"{f'{v["jours_pour_vendre_TSLA"]:.5f}'.replace('.', ',')} jour",
+                 v["titre_le_moins_liquide"] == "ZST.TO" and v["jours_pour_vendre_TSLA"] < v["jours_pour_vendre_max"]),
+    ]
+    amira = profil("amira")
+    btc = liquidite.piece_liquidite("P4", amira["portefeuille"], amira["decision_demo"], amira["capital_fictif_cad"],
+                                    ["BTC-USD"])["valeurs"]["valeur_echangee_moyenne_millions_cad_BTC-USD"]
+    resultats.append(Resultat(
+        groupe, "Volume crypto (Yahoo le donne en dollars, pas en unités)",
+        "pas multiplié par le prix : quelques dizaines de milliers de millions $ par jour, pas des milliards de milliards",
+        f"BTC-USD : {btc:,.0f} millions $ CAD par jour".replace(",", " "),
+        1e3 < btc < 1e6,
+    ))
+    lignes = liquidite.charger_volumes(["ZST.TO", "XBB.TO"])
+    lignes.loc[lignes["ticker"] == "ZST.TO", "volume"] = float("nan")
+    with mock.patch("pipeline.liquidite.charger_volumes", return_value=lignes):
+        sans = liquidite.piece_liquidite("P4", robert["portefeuille"], None, robert["capital_fictif_cad"],
+                                         ["ZST.TO", "XBB.TO"])["valeurs"]
+    resultats.append(Resultat(
+        groupe, "Titre sans volume (colonne vide)", "signalé comme absent, jamais remplacé par 0",
+        f"titres sans volume : {', '.join(sans.get('titres_sans_volume', []))} ; "
+        + ("aucune valeur pour ZST.TO" if not any(c.endswith("_ZST.TO") for c in sans) else "des valeurs pour ZST.TO"),
+        sans.get("titres_sans_volume") == ["ZST.TO"] and not any(c.endswith("_ZST.TO") for c in sans),
+    ))
+    return resultats
+
+
 GROUPES = [
     scenarios_profils,
     scenarios_seuil,
@@ -661,6 +700,7 @@ GROUPES = [
     scenarios_pacte_vecu,
     scenarios_macro,
     scenarios_frais,
+    scenarios_liquidite,
 ]
 
 

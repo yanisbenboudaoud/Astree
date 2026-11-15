@@ -165,7 +165,9 @@ respecte pas) :
    (« perte_au_pire_moment_cad », « ecart_… », « rapport_volatilite », « resultat_2022_cad_… ») :
    cite-les telles quelles. Sinon, cite les deux valeurs (« passe de −7,8 % à −29,0 % »).
    Les pertes en dollars et les écarts sont positifs : « une perte de 33 660 $ »,
-   « 3,6 points de plus », « 1,3 fois plus de variations ».
+   « 3,6 points de plus », « 1,3 fois plus de variations ». Les montants échangés chaque
+   jour existent aussi en millions (« …_millions_cad_… ») : « 1,6 million $ par jour » ;
+   n'écris jamais « milliard ».
 5. N'écris aucun nombre en lettres (« trois fois », « la moitié ») et n'arrondis pas
    au-delà de ce que permet la règle 2.
 6. Virgule décimale française (−29,0 %). Une date ou une année doit figurer dans les

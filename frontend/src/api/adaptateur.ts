@@ -82,6 +82,8 @@ function titreEtape(etape: EtapeTraceContrat, nombre: number | undefined, libell
       return ticker ? `Chercher des sources sur ${ticker}` : 'Chercher des sources';
     case 'consulter_jurisprudence':
       return 'Relire vos verdicts passés';
+    case 'mesurer_liquidite':
+      return 'Mesurer le temps qu’il faudrait pour revendre vos lignes';
     case 'points_de_bascule':
       return 'Trouver ce qui changerait la réponse';
     default:

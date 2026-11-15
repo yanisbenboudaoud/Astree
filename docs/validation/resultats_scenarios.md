@@ -4,7 +4,7 @@ Fichier généré par `python -m validation` (issue #15) : ne pas le modifier à
 Partie calculée du procès (Pacte, simulation, Greffier, taille maximale) sur les données du dépôt,
 sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèle et les vrais outils.
 
-**Bilan : 55 réussis, 0 en échec, 0 en attente.**
+**Bilan : 58 réussis, 0 en échec, 0 en attente.**
 
 ## 1. Même décision, profils différents
 
@@ -110,6 +110,14 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Coût annuel des frais du portefeuille actuel | moyenne des ratios des FNB pondérée par les poids ; actions sans frais de gestion | 0,105 % par an, soit 682 $ | ✅ |
 | Coût annuel après la décision | plus bas : TSLA, action détenue en direct, n'a pas de frais de gestion | 682 $ → 478 $ par an | ✅ |
 | FNB absent du relevé des frais (10 % en TLT) | jamais deviné : aucun coût après la décision, le titre est signalé | frais_inconnus : TLT | ✅ |
+
+## 12. Risque de liquidité (volumes Yahoo Finance)
+
+| Scénario | Attendu | Obtenu | |
+|---|---|---|---|
+| Profil prudent, 30 % TSLA : quelle ligne serait la plus longue à revendre ? | le petit FNB obligataire (ZST.TO), pas TSLA, très échangé | ZST.TO : 0,83 jour, part de 8,3 % des échanges ; TSLA : 0,00006 jour | ✅ |
+| Volume crypto (Yahoo le donne en dollars, pas en unités) | pas multiplié par le prix : quelques dizaines de milliers de millions $ par jour, pas des milliards de milliards | BTC-USD : 47 080 millions $ CAD par jour | ✅ |
+| Titre sans volume (colonne vide) | signalé comme absent, jamais remplacé par 0 | titres sans volume : ZST.TO ; aucune valeur pour ZST.TO | ✅ |
 
 ## Graphique : taille maximale compatible selon le seuil
 

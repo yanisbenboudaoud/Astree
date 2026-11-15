@@ -1,17 +1,11 @@
 {
-  "description": "Textes de démonstration propres à chaque profil de test (écran d'entrée, recherche, journal fictif). Les portefeuilles, les Pactes et tous les chiffres viennent de personas/*.json et de scripts/build_ui_series.py. Ajouter un profil : un fichier personas/<id>.json, puis une entrée ici (facultative : des textes génériques s'appliquent sinon).",
+  "description": "Textes de démonstration propres à chaque profil de test (écran d'entrée, journal fictif). Tous les profils ont les mêmes écrans et les mêmes fonctions : la recherche, ses textes et le panier de démonstration sont communs à tous. Les portefeuilles, les Pactes et tous les chiffres viennent de personas/*.json et de scripts/build_ui_series.py. Ajouter un profil : un fichier personas/<id>.json, puis une entrée ici (facultative : des textes génériques s'appliquent sinon).",
   "ordre": ["amira", "mateo", "robert"],
+  "panierDemo": ["BTC-USD", "ETH-USD", "NVDA", "QQQ"],
   "profils": {
     "amira": {
       "decisionATester": "Composer un panier crypto et tech",
       "question": "Jusqu'où le système accepte-t-il le risque ?",
-      "recherche": {
-        "mode": "panier",
-        "titre": "Quel panier voulez-vous tester ?",
-        "aide": "Ajoutez plusieurs titres : le Tribunal juge le panier en entier. Rien n'est acheté.",
-        "placeholder": "Nom ou symbole, ex. : Bitcoin, NVDA"
-      },
-      "panierDemo": ["BTC-USD", "ETH-USD", "NVDA", "QQQ"],
       "journal": [
         {"date": "2026-10-28", "texte": "Achat de SHOP à 5 %", "statut": "conforme"},
         {"date": "2026-10-03", "texte": "Hausse de BTC à 10 %", "statut": "conforme"}
@@ -20,12 +14,6 @@
     "mateo": {
       "decisionATester": "Ajouter 10 % d'Exxon Mobil (XOM)",
       "question": "Le système tient-il compte de ses valeurs ?",
-      "recherche": {
-        "mode": "position",
-        "titre": "Quelle décision voulez-vous tester ?",
-        "aide": "Simulez un achat : Astrée vérifie aussi vos valeurs. Rien n'est acheté.",
-        "placeholder": "Nom ou symbole, ex. : Exxon ou XOM"
-      },
       "journal": [
         {"date": "2026-10-20", "texte": "Hausse d'ESGV à 30 %", "statut": "conforme"},
         {"date": "2026-10-06", "texte": "Achat de FTS à 5 %", "statut": "conforme"}
@@ -34,12 +22,6 @@
     "robert": {
       "decisionATester": "Ajouter 30 % de Tesla (TSLA)",
       "question": "Le système ose-t-il contredire une envie ?",
-      "recherche": {
-        "mode": "position",
-        "titre": "Quelle décision voulez-vous tester ?",
-        "aide": "Simulez un achat, puis soumettez-le au Tribunal. Rien n'est acheté.",
-        "placeholder": "Nom ou symbole, ex. : Tesla ou TSLA"
-      },
       "journal": [
         {"date": "2026-11-02", "texte": "Hausse de XIU de 5 %", "statut": "conforme"},
         {"date": "2026-10-18", "texte": "Achat de RY à 2 %", "statut": "conforme"}

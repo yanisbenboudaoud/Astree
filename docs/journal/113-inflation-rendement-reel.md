@@ -1,6 +1,6 @@
 # #113 — Inflation : rendement réel à partir de `macro_rates.csv`
 
-- **Issue** : #113 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #113 · **PR** : #124 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 L'essentiel du calcul a été livré par #111 (fiche [111](111-diversite-des-sources.md)) : lecture de l'IPC, `inflation_annuelle` et `rendement_reel_annuel` (avant / après) dans la pièce de `simuler_portefeuille`, consigne aux agents, vérification par `verifier_chiffres`. Cette fiche décrit ce que #113 ajoute.

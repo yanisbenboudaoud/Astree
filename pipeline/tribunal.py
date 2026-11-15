@@ -44,6 +44,8 @@ from pipeline.orchestrateur import RAISON_D_OFFICE, instruire_dossier
 from pipeline.pacte import charger_pacte, pacte_pour_contrat, piece_pacte
 from pipeline.points_de_bascule import NOM_OUTIL as OUTIL_POINTS_DE_BASCULE
 from pipeline.points_de_bascule import piece_points_de_bascule, pour_contrat
+from pipeline.questionnaire import NOM_OUTIL_PIECE as OUTIL_QUESTIONNAIRE
+from pipeline.questionnaire import controles_questionnaire, piece_questionnaire
 from pipeline.taille_max import ResultatRecherche, rechercher_taille_max
 from pipeline.simulation import poids_apres_decision, simuler_portefeuille
 
@@ -99,13 +101,29 @@ def juger_decision(
         profil.piece_pacte = piece_pacte(vecu.profil, ID_PIECE_PACTE)
         pieces_initiales = [profil.piece_pacte, vecu.piece]
         profil.trace = [profil.trace[0], vecu.trace, *profil.trace[1:]]
+    controles_initiaux = list(profil.controles)
+    if "questionnaire" in profil.profil:  # Pacte tiré du questionnaire (#84) : réponses et contradictions (#85)
+        id_questionnaire = f"P{len(pieces_initiales) + 1}"
+        piece_q = piece_questionnaire(profil.profil, id_questionnaire)
+        pieces_initiales.append(piece_q)
+        controles_q = controles_questionnaire(profil.profil, id_questionnaire, profil.decision,
+                                              vecu.piece if vecu is not None else None)
+        controles_initiaux += controles_q
+        profil.trace.append({
+            "etape": "agent_profil",
+            "outil": OUTIL_QUESTIONNAIRE,
+            "entree": profil.profil["questionnaire"]["date"],
+            "sortie": f"{id_questionnaire} : {len(piece_q['valeurs']['contradictions'])} contradiction(s), "
+                      f"{len(controles_q)} contrôle(s) à vérifier",
+        })
+        profil.hypotheses.append("Règles du Pacte tirées du questionnaire : barème de l'équipe (config/questionnaire.json)")
     contrat = {
         "persona": identifiant_profil,
         "demande": demande,
         "decision": profil.decision,
         "pacte": profil.pacte,
         "pieces": pieces_initiales,
-        "controles": list(profil.controles),
+        "controles": controles_initiaux,
         "verdict": None,
         "hypotheses": [],
         "sources": sources(),

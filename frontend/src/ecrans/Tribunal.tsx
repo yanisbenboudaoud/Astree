@@ -129,10 +129,12 @@ function Debat({ procureur, avocat, surlignes, onOuvrir }: {
         </div>
         {points.map((point, i) => (
           <div key={point.theme} className={styles.ligneDebat} role="row">
-            <h3 role="rowheader" className={styles.questionDebat}>
-              <span className={styles.numeroPoint} aria-hidden="true">{i + 1}</span>
-              {point.question}
-            </h3>
+            <div role="rowheader">
+              <h3 className={styles.questionDebat}>
+                <span className={styles.numeroPoint} aria-hidden="true">{i + 1}</span>
+                {point.question}
+              </h3>
+            </div>
             <div role="cell" className={styles.cellule}>
               <Case camp="Procureur" args={point.procureur} surlignes={surlignes} onOuvrir={onOuvrir} />
             </div>

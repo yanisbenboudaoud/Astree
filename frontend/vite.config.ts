@@ -11,6 +11,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Les tests rejouent toujours les procès enregistrés, même si .env.local active le mode direct.
+    env: { VITE_USE_MOCKS: 'true', VITE_API_URL: '' },
     css: { modules: { classNameStrategy: 'non-scoped' } },
   },
 });

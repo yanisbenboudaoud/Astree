@@ -28,16 +28,24 @@ export function BandeauSimulation() {
   );
 }
 
+/** Rang affiché au dernier écran : chaque écran remonte le gabarit, le curseur glisse depuis l'étape précédente. */
+let dernierRang = 0;
+
 function Procedure({ courante }: { courante: EtapeProcedure }) {
   const rang = ETAPES.findIndex((e) => e.id === courante);
+  const [rangAffiche, setRangAffiche] = useState(dernierRang);
+  useEffect(() => {
+    const image = requestAnimationFrame(() => setRangAffiche(rang));
+    dernierRang = rang;
+    return () => cancelAnimationFrame(image);
+  }, [rang]);
   return (
-    <nav aria-label="Étapes de la procédure">
+    <nav aria-label="Étapes de la procédure" style={{ '--rang': rangAffiche, '--nb-etapes': ETAPES.length } as React.CSSProperties}>
       <ol className={styles.procedure}>
         {ETAPES.map((etape, i) => {
           const etat = i < rang ? 'faite' : i === rang ? 'courante' : 'avenir';
           return (
             <li key={etape.id} className={`${styles.etape} ${styles[etat]}`} aria-current={etat === 'courante' ? 'step' : undefined}>
-              {i > 0 && <span className={styles.liaison} aria-hidden="true" />}
               <span className={styles.pastille} aria-hidden="true">
                 {etat === 'faite' ? <Icone nom="check" taille={14} /> : i + 1}
               </span>
@@ -50,6 +58,7 @@ function Procedure({ courante }: { courante: EtapeProcedure }) {
           );
         })}
       </ol>
+      <span className={styles.progression} aria-hidden="true" />
     </nav>
   );
 }
@@ -184,8 +193,13 @@ export function Gabarit({ children, nomProfil, idProfil, etape, inerte = false }
         <BandeauSimulation />
         <div className={styles.entete}>
           <Link to={idProfil ? `/${idProfil}/portefeuille` : '/'} className={styles.logo} aria-label={idProfil ? 'Astrée, retour au portefeuille' : 'Astrée, accueil'}>
-            <img src="/marque.svg" width={26} height={26} alt="" />
-            <span className="t-panneau">Astrée</span>
+            <span className={styles.marque}>
+              <img src="/marque.svg" width={30} height={30} alt="" />
+            </span>
+            <span className={styles.nomMarque}>
+              <span className={styles.motMarque}>Astrée</span>
+              <span className={styles.devise}>Tribunal des décisions</span>
+            </span>
           </Link>
           {etape && <Procedure courante={etape} />}
           <div className={styles.outils}>

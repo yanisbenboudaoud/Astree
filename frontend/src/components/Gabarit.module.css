@@ -18,39 +18,89 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 28px;
-  padding: 5px 16px;
-  background: var(--fond-creux);
-  color: var(--encre-700);
-  font-size: 14px;
+  min-height: 30px;
+  padding: 6px 16px;
+  background: var(--encre-900);
+  background-image: linear-gradient(90deg, rgb(39 71 201 / 0) 0%, rgb(39 71 201 / 0.35) 50%, rgb(39 71 201 / 0) 100%);
+  color: rgb(255 255 255 / 0.86);
+  font-size: 13px;
   line-height: 18px;
+  letter-spacing: 0.01em;
   text-align: center;
 }
-.bandeau svg { flex: none; }
+.bandeau svg { flex: none; color: #9fb0ff; }
 
 .entete {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 16px;
-  min-height: 72px;
+  min-height: 76px;
   padding: 0 var(--marge-page);
   border-bottom: 1px solid var(--trait-fin);
-  background: var(--fond-papier);
+  background:
+    radial-gradient(600px 120px at 50% 0%, rgb(76 95 213 / 0.07), transparent 70%),
+    var(--fond-papier);
 }
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   justify-self: start;
   color: var(--encre-900);
   text-decoration: none;
 }
-.outils { display: flex; align-items: center; justify-content: flex-end; gap: 20px; grid-column: 3; }
+.marque {
+  display: inline-flex;
+  border-radius: 9px;
+  box-shadow: 0 0 0 1px rgb(17 17 17 / 0.06), 0 4px 12px rgb(39 71 201 / 0.18);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.marque img { display: block; border-radius: 9px; }
+.logo:hover .marque { transform: rotate(-6deg) scale(1.05); box-shadow: 0 0 0 1px rgb(17 17 17 / 0.06), 0 6px 18px rgb(39 71 201 / 0.28); }
+.nomMarque { display: flex; flex-direction: column; }
+.motMarque { font-family: var(--police-titre); font-size: 20px; line-height: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.devise { font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--encre-500); }
+.outils { display: flex; align-items: center; justify-content: flex-end; gap: 12px; grid-column: 3; }
 
-.procedure { display: flex; align-items: center; gap: 12px; }
-.etape { display: flex; align-items: center; gap: 10px; font-size: 15px; line-height: 22px; white-space: nowrap; }
-.liaison { width: 24px; height: 1px; background: var(--encre-300); margin-right: 2px; }
+/* Procédure : contrôle segmenté, un curseur sombre glisse jusqu'à l'étape courante. */
+.procedure {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--nb-etapes), minmax(0, 1fr));
+  padding: 4px;
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-creux);
+  box-shadow: inset 0 0 0 1px var(--trait-fin), inset 0 1px 2px rgb(17 17 17 / 0.06);
+}
+.procedure::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--nb-etapes));
+  border-radius: var(--rayon-pilule);
+  background: linear-gradient(180deg, #2a2a2a, var(--encre-900));
+  box-shadow: 0 6px 16px rgb(17 17 17 / 0.22), 0 0 0 1px rgb(255 255 255 / 0.06) inset, 0 0 24px rgb(76 95 213 / 0.25);
+  transform: translateX(calc(var(--rang) * 100%));
+  transition: transform 520ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.etape {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 7px 20px 7px 8px;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 300ms ease-out;
+}
 .pastille {
   display: inline-flex;
   align-items: center;
@@ -59,30 +109,49 @@
   height: 26px;
   border-radius: 13px;
   font-family: var(--police-mono);
-  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
   font-size: 13px;
   line-height: 16px;
+  transition: background-color 300ms ease-out, color 300ms ease-out;
 }
-.faite .pastille { border: 1px solid var(--statut-conforme); background: var(--statut-conforme-teinte); color: var(--statut-conforme); }
-.courante { font-weight: 600; }
-.courante .pastille { background: var(--encre-900); color: var(--inverse-texte); }
+.faite { color: var(--encre-700); }
+.faite .pastille { background: var(--statut-conforme); color: var(--inverse-texte); box-shadow: 0 0 0 3px var(--statut-conforme-teinte); }
+.courante { color: var(--inverse-texte); }
+.courante .pastille { background: var(--inverse-texte); color: var(--encre-900); }
 .avenir { color: var(--encre-500); }
 .avenir .pastille { border: 1.25px solid var(--trait-moyen); color: var(--encre-500); }
+
+/* Avancement de la procédure, sur le filet du bas de l'en-tête. */
+.progression {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  width: calc((var(--rang) + 1) / var(--nb-etapes) * 100%);
+  background: linear-gradient(90deg, var(--accent-bleu), var(--donnee-principale) 55%, var(--categorie-2));
+  box-shadow: 0 0 10px rgb(76 95 213 / 0.45);
+  border-radius: 0 2px 2px 0;
+  transition: width 700ms cubic-bezier(0.65, 0, 0.35, 1);
+}
 
 .ancre { position: relative; }
 .outil {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 2px;
+  padding: 7px 12px;
   border: 0;
+  border-radius: var(--rayon-pilule);
   background: none;
   color: var(--encre-900);
   font-weight: 600;
   font-size: 14px;
   line-height: 18px;
 }
-.outil:hover span { text-decoration: underline; text-underline-offset: 3px; }
+.outil { transition: background-color var(--transition); }
+.outil:hover,
+.outil[aria-expanded="true"] { background: var(--fond-creux); }
 .panneauAide {
   position: absolute;
   right: 0;
@@ -106,7 +175,8 @@
   padding: 4px 10px 4px 4px;
   border: 1px solid var(--trait-moyen);
   border-radius: var(--rayon-pilule);
-  background: none;
+  background: var(--fond-carte);
+  box-shadow: 0 1px 2px rgb(17 17 17 / 0.06);
   color: var(--encre-900);
   font-weight: 600;
   font-size: 14px;
@@ -122,8 +192,10 @@
   width: 28px;
   height: 28px;
   border-radius: 14px;
-  background: var(--encre-900);
+  background: linear-gradient(135deg, var(--accent-bleu), var(--categorie-4));
   color: var(--inverse-texte);
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--fond-carte), 0 0 0 3px rgb(76 95 213 / 0.35);
 }
 .menu {
   position: absolute;
@@ -156,10 +228,17 @@
 @media (max-width: 1023px) {
   .entete { grid-template-columns: 1fr auto; padding-top: 10px; padding-bottom: 10px; }
   .outils { grid-column: 2; }
-  .entete nav { grid-column: 1 / -1; grid-row: 2; justify-self: start; overflow-x: auto; max-width: 100%; }
+  .entete nav { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; max-width: 100%; }
 }
 @media (max-width: 599px) {
-  .etape { font-size: 14px; gap: 6px; }
-  .liaison { width: 12px; }
-  .procedure { gap: 6px; }
+  .etape { font-size: 14px; gap: 6px; padding: 6px 10px 6px 6px; }
+  .pastille { width: 22px; height: 22px; }
+  .devise { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .procedure::before,
+  .progression,
+  .etape,
+  .pastille,
+  .marque { transition: none; }
 }

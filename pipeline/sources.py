@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from pipeline import calibrage, documents, jurisprudence, points_de_bascule, simulation, taille_max
+from pipeline import calibrage, documents, jurisprudence, liquidite, points_de_bascule, simulation, taille_max
 from pipeline.donnees import date_extraction
 from pipeline.macro import FICHIER_MACRO
 from pipeline.questionnaire import NOM_OUTIL_PIECE as OUTIL_QUESTIONNAIRE
@@ -52,6 +52,8 @@ SOURCES = {
                       "Toujours utilisée avec les prix : tous les montants sont convertis en CAD"),
     "univers": _Source("Univers d'actifs des organisateurs du datathon", "CSV",
                        "La devise et la catégorie de chaque titre : conversion en CAD, plafonds du Pacte"),
+    "volumes": _Source("Yahoo Finance via yfinance (volumes et prix de clôture)", "CSV",
+                       "Les montants échangés chaque jour : le temps qu'il faudrait pour revendre une ligne"),
     "macro": _Source("Banque du Canada, API Valet : IPC, taux directeur, obligation à 10 ans", "CSV",
                      "Le pouvoir d'achat : inflation, rendement réel, taux sans risque, ratio de Sharpe"),
     "documents": _Source("Documents publics sur les critères ESG, choisis et lus par l'équipe", "JSON (texte)",
@@ -72,6 +74,7 @@ SOURCES_PAR_OUTIL = {
     points_de_bascule.NOM_OUTIL: ("prix", "change", "univers"),
     documents.NOM_OUTIL: ("documents",),
     jurisprudence.NOM_OUTIL: ("jurisprudence",),
+    liquidite.NOM_OUTIL: ("volumes", "change", "univers"),
 }
 
 # Sources des règles du Pacte, selon leur type.
@@ -156,6 +159,7 @@ def _fichier(cle: str, contrat: dict[str, Any]) -> str | None:
     return {
         "pacte": f"profils/{persona}.json (S3)" if cree else f"personas/{persona}.json",
         "prix": "prices_daily.csv",
+        "volumes": "prices_daily.csv",
         "change": "fx_usdcad_daily.csv",
         "univers": "assets_universe.csv",
         "macro": FICHIER_MACRO,
@@ -174,5 +178,5 @@ def _date(cle: str, contrat: dict[str, Any]) -> str:
         return documents.charger_corpus()["date_constitution"]
     if cle == "jurisprudence":  # les archives sont lues le jour du procès
         return datetime.now(timezone.utc).date().isoformat()
-    return date_extraction({"prix": "prices_daily.csv", "change": "fx_usdcad_daily.csv",
+    return date_extraction({"prix": "prices_daily.csv", "volumes": "prices_daily.csv", "change": "fx_usdcad_daily.csv",
                             "univers": "assets_universe.csv", "macro": FICHIER_MACRO}[cle])

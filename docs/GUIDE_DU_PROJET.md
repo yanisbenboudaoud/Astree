@@ -169,6 +169,7 @@ Les outils sont les seules sources de chiffres. Aucun n'utilise de LLM.
 | 5 | `verifier_pacte` | Le Pacte est-il respecté ? (réservé au Greffier) | `pipeline/greffier.py` |
 | 6 | `verifier_chiffres` | Chaque chiffre cité existe-t-il dans une pièce citée ? (réservé au Greffier) | `pipeline/chiffres.py` |
 | 7 | `consulter_jurisprudence` | Les verdicts passés du même profil | `pipeline/jurisprudence.py` |
+| 9 | `mesurer_liquidite` | Combien de jours faudrait-il pour revendre une ligne sans faire baisser son prix ? (ex. : un petit FNB obligataire) | `pipeline/liquidite.py` |
 | — | `calibrer_pacte` | Le **Pacte vécu** : mesure la pire baisse tolérée sur les réponses de l'utilisateur à de vrais jours de marché (appelé avant le procès, pas par l'Orchestrateur) | `pipeline/calibrage.py` |
 
 ## 2.5 Le Pacte : des règles que la machine peut vérifier

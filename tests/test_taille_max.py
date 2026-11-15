@@ -175,7 +175,8 @@ def test_outils_d_une_reallocation_portent_sur_le_panier_de_la_decision():
     decision = AUDACIEUX["decision_demo"]
     outils = {outil.nom: outil for outil in outils_du_profil(AUDACIEUX, decision)}
     assert set(outils) == {"indicateurs_actif", "simuler_portefeuille", "calculer_correlations",
-                           "taille_max_compatible", "rechercher_documents", "consulter_jurisprudence"}
+                           "taille_max_compatible", "rechercher_documents", "consulter_jurisprudence",
+                           "mesurer_liquidite"}
 
     def requis(nom):
         return outils[nom].description_bedrock["toolSpec"]["inputSchema"]["json"]["required"]

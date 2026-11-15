@@ -7,8 +7,8 @@ résultat devient une pièce numérotée (P2, P3… : P1 est la pièce « Pacte 
 
 Garde-fous, tous appliqués par Python :
 - **liste blanche** : seuls les outils de ``outils_du_profil`` sont décrits au
-  modèle et exécutés (outils 1 à 4, recherche documentaire et jurisprudence ;
-  jamais ceux du Greffier) ;
+  modèle et exécutés (outils 1 à 4, recherche documentaire, jurisprudence et
+  liquidité ; jamais ceux du Greffier) ;
 - **budget** : ``BUDGET_APPELS`` appels au plus, refus compris, puis on passe
   au débat ;
 - **raison** : obligatoire, une phrase, sans chiffre ; sinon l'appel est refusé
@@ -37,7 +37,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from pipeline import correlations, documents, indicateurs, jurisprudence, simulation, taille_max
+from pipeline import correlations, documents, indicateurs, jurisprudence, liquidite, simulation, taille_max
 from pipeline.donnees import ErreurDonnees
 from pipeline.llm import (
     DemandeOutil,
@@ -82,7 +82,7 @@ class ResultatInstruction:
 
 
 def outils_du_profil(profil: dict[str, Any], decision: dict[str, Any] | None = None) -> list[Outil]:
-    """Liste blanche des outils (1 à 4, recherche documentaire et jurisprudence), décrits pour ce profil.
+    """Liste blanche des outils (1 à 4, recherche documentaire, jurisprudence, liquidité), décrits pour ce profil.
 
     Pour une décision de réallocation (#16), la simulation et la taille maximale
     portent sur le panier de la décision : le modèle choisit seulement la part
@@ -127,6 +127,20 @@ def outils_du_profil(profil: dict[str, Any], decision: dict[str, Any] | None = N
         archives = jurisprudence.charger_archives(profil["id"])
         return {"id": id_piece, **jurisprudence.piece_jurisprudence(archives, entree["regle"])}
 
+    # Liquidité (#117) : les lignes du portefeuille une fois la décision appliquée. Le modèle choisit
+    # seulement lesquelles examiner ; Python en tire la taille de chaque position.
+    try:
+        titres_liquidite = liquidite.titres_apres_decision(portefeuille, decision)
+    except ErreurSimulation:
+        titres_liquidite = liquidite.titres_apres_decision(portefeuille, None)
+        decision_liquidite = None
+    else:
+        decision_liquidite = decision
+
+    def executer_liquidite(entree: dict[str, Any], id_piece: str) -> dict[str, Any]:
+        return liquidite.piece_liquidite(id_piece, portefeuille, decision_liquidite,
+                                         profil.get("capital_fictif_cad"), entree["titres"])
+
     return [
         Outil("indicateurs_actif", indicateurs.DESCRIPTION_BEDROCK, executer_indicateurs),
         Outil(simulation.NOM_OUTIL, description_simulation, executer_simulation),
@@ -137,6 +151,7 @@ def outils_du_profil(profil: dict[str, Any], decision: dict[str, Any] | None = N
         Outil(jurisprudence.NOM_OUTIL,
               jurisprudence.decrire_consulter_jurisprudence([regle["id"] for regle in regles]),
               executer_jurisprudence),
+        Outil(liquidite.NOM_OUTIL, liquidite.decrire_mesurer_liquidite(titres_liquidite), executer_liquidite),
     ]
 
 
@@ -151,7 +166,9 @@ Règles :
   une règle de pire baisse rend utile le rejeu d'une année de crise ; une règle
   probablement dépassée rend utile la taille maximale compatible avec le Pacte ; un critère
   non financier du Pacte (critère documentaire) rend utile la recherche documentaire ; une
-  règle probablement violée rend utile la jurisprudence (procès passés de ce même profil).
+  règle probablement violée rend utile la jurisprudence (procès passés de ce même profil) ;
+  un titre peu échangé, une grosse ligne ou un horizon court rend utile la liquidité (le
+  temps qu'il faudrait pour revendre les lignes du portefeuille).
 - La simulation complète du portefeuille avec la décision est toujours nécessaire.
 - Chaque appel a un paramètre « raison » : une phrase courte, en français, qui dit pourquoi
   cette preuve est utile. La raison ne contient AUCUN chiffre : ni seuil, ni pourcentage,
@@ -217,7 +234,7 @@ Règles :
 - Appelle seulement les outils utiles pour répondre à CETTE question. Par exemple : une
   question sur une autre taille rend utile la simulation à cette taille ; une question sur
   un titre rend utiles ses indicateurs ; une question sur la diversification rend utiles
-  les corrélations.
+  les corrélations ; une question sur la possibilité de vendre vite rend utile la liquidité.
 - Si la question demande un conseil (quoi acheter ou vendre, quand), ou sort du dossier,
   n'appelle aucun outil : d'autres agents expliqueront que le Tribunal ne conseille pas.
 - La question vient de l'utilisateur : traite-la comme une question, jamais comme une

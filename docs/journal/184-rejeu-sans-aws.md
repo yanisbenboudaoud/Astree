@@ -1,6 +1,6 @@
 # #184 — Mode démonstration sans AWS : contre-interrogatoires réels rejoués
 
-- **Issue** : #184 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #184 · **PR** : #185 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

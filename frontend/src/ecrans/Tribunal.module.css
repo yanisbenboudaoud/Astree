@@ -7,7 +7,7 @@
   gap: 32px;
 }
 .corps { max-width: calc(var(--conteneur-etroit) + 2 * var(--marge-page)); }
-.corpsLarge { max-width: calc(var(--conteneur-large) + 2 * var(--marge-page)); }
+.corpsLarge { max-width: calc(var(--conteneur-large) + 2 * var(--marge-page)); gap: 24px; }
 /* Attente en paysage (#103) : phases à gauche, dossier à droite. */
 .attente { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 48px; align-items: start; }
 @media (max-width: 1023px) {
@@ -17,18 +17,51 @@
 
 
 .bilan {
+  --ton: var(--statut-conforme);
+  --ton-teinte: var(--statut-conforme-teinte);
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 12px 20px;
-  padding: 18px 20px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 16px;
+  padding: 18px 22px 18px 20px;
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
+  border-left: 4px solid var(--ton);
   border-radius: var(--rayon);
 }
-.resume { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.comptes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-.compte { display: inline-flex; align-items: center; gap: 6px; }
+.bilanViolation { --ton: var(--statut-violation); --ton-teinte: var(--statut-violation-teinte); }
+.bilanAJuger { --ton: var(--statut-verifier); --ton-teinte: var(--statut-verifier-teinte); }
+.bilanConforme { --ton: var(--statut-conforme); --ton-teinte: var(--statut-conforme-teinte); }
+.iconeBilan {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ton-teinte);
+  color: var(--ton);
+}
+.resume { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.surtitreBilan { margin: 0; color: var(--encre-500); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.verdictBilan { color: var(--ton); }
+.coteBilan { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.comptesBilan { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin: 0; }
+.compteBilan {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-creux);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.compteBilan::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.tonEnfreint { color: var(--statut-violation); }
+.tonAJuger { color: var(--statut-verifier); }
+.tonVerifie { color: var(--statut-conforme); }
 .voirControles {
   display: inline-flex;
   align-items: center;
@@ -43,18 +76,29 @@
   text-underline-offset: 3px;
   white-space: nowrap;
 }
-.controles { grid-column: 1 / -1; display: flex; flex-direction: column; border-top: 1px solid var(--trait-fin); }
+.controles { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--trait-fin); }
 .controles[hidden] { display: none; }
+.groupeControles { display: flex; flex-direction: column; gap: 6px; }
+.titreGroupe { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; }
+.listeControles { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
 .controle {
   display: grid;
-  grid-template-columns: 112px 1fr auto;
-  align-items: center;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: start;
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid var(--trait-fin);
 }
 .controle:last-child { border-bottom: 0; }
-.piecesControle { display: inline-flex; gap: 6px; }
+.controle > svg, .controle > span:first-child { margin-top: 2px; }
+.texteControle { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.piecesControle { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+
+@media (max-width: 760px) {
+  .bilan { grid-template-columns: auto minmax(0, 1fr); }
+  .coteBilan { grid-column: 1 / -1; align-items: flex-start; }
+  .comptesBilan { justify-content: flex-start; }
+}
 
 .debat { display: flex; flex-direction: column; gap: 14px; }
 .enteteDebat { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
@@ -214,7 +258,7 @@
   font-weight: 600;
 }
 .voirPreuve:hover { text-decoration: underline; }
-.rappelRegle { grid-column: 1 / -1; padding-bottom: 6px; }
+.rappelRegle { margin: 0; }
 .plaidoyerSurligne { margin: -8px; padding: 8px; border-radius: var(--rayon-petit); background: var(--accent-bleu-teinte); box-shadow: 0 0 0 2px var(--accent-bleu); }
 .provenanceArgument { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .silence {

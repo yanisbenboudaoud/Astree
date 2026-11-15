@@ -12,7 +12,7 @@ import { adapterEchange } from '../api/adaptateur';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { ChargementTribunal, DossierInstruit, type PropsChargement } from '../components/ChargementTribunal';
-import { IconeStatut, PastillePiece, Provenance, Statut } from '../components/Etiquettes';
+import { IconeStatut, PastillePiece, Provenance } from '../components/Etiquettes';
 import { LienRetour, Message } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { TiroirPiece } from '../components/TiroirPiece';
@@ -22,6 +22,7 @@ import { libelleDecision } from '../domaine/decision';
 import { resultatCalibrage } from '../domaine/calibrage';
 import { phaseEnRelecture } from '../domaine/progression';
 import { LIBELLES_COURTS, accroche, regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
+import { GROUPES, bilanGreffier, type Groupe } from '../domaine/bilan';
 import { donneesCalibrage } from '../api/donnees';
 import { questionsSuggerees, repondre, type QuestionSuggeree } from '../domaine/questions';
 import { useEtatProfil } from '../state/store';
@@ -32,6 +33,15 @@ import styles from './Tribunal.module.css';
 const DUREE_ETAPE_RELECTURE_MS = 500;
 /** Toutes les phases cochées restent visibles un instant avant le résultat. */
 const DUREE_FIN_MS = 800;
+
+const TONS_BILAN = { violation: styles.bilanViolation, a_juger: styles.bilanAJuger, conforme: styles.bilanConforme };
+const COMPTES_BILAN: Record<Groupe, string> = { enfreint: styles.tonEnfreint, a_juger: styles.tonAJuger, verifie: styles.tonVerifie };
+const STATUT_DU_GROUPE: Record<Groupe, 'Violation' | 'À vérifier' | 'Conforme'> = { enfreint: 'Violation', a_juger: 'À vérifier', verifie: 'Conforme' };
+const LIBELLES_COMPTES: Record<Groupe, (n: number) => string> = {
+  enfreint: (n) => (n > 1 ? 'enfreints' : 'enfreint'),
+  a_juger: () => 'à juger',
+  verifie: (n) => (n > 1 ? 'vérifiés' : 'vérifié'),
+};
 
 function mouvementReduit(): boolean {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -493,7 +503,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
     procureur.forEach((a, i) => a.pieces.includes(pieceOuverte.code) && surlignes.add(`Procureur-${i + 1}`));
     avocat.forEach((a, i) => a.pieces.includes(pieceOuverte.code) && surlignes.add(`Avocat-${i + 1}`));
   }
-  const comptes = (['Violation', 'À vérifier', 'Conforme'] as const).map((s) => ({ statut: s, n: resultat.controles.filter((c) => c.statut === s).length }));
+  const bilan = bilanGreffier(resultat.controles, resultat.contrat);
   const manquantes = resultat.controles.filter((c) => /source manquante/i.test(c.texte)).length;
   const principal = resultat.controles.find((c) => c.paragraphe !== undefined && c.statut === 'Violation');
   const reglePrincipale = principal && resultat.contrat.pacte.regles.find((r) => r.id === principal.regle);
@@ -548,40 +558,65 @@ export function Tribunal({ profil }: { profil: Profil }) {
             <h1 className="t-h1">{resultat.titre}</h1>
           </div>
 
-          <section className={styles.bilan} aria-labelledby="titre-bilan">
+          <section className={`${styles.bilan} ${TONS_BILAN[bilan.ton]}`} aria-labelledby="titre-bilan">
+            <span className={styles.iconeBilan} aria-hidden="true">
+              <Icone nom={bilan.ton === 'violation' ? 'interdit' : bilan.ton === 'a_juger' ? 'alerte' : 'check'} taille={20} />
+            </span>
             <div className={styles.resume}>
-              <div className={styles.comptes}>
-                <h2 className="t-intertitre" id="titre-bilan">Bilan du Greffier</h2>
-                {comptes.filter(({ n }) => n > 0).map(({ statut, n }) => (
-                  <span key={statut} className={styles.compte}>
-                    <span className="t-tableau-fort">{n}</span>
-                    <Statut type={statut} />
+              <p className={styles.surtitreBilan}>Le Greffier a vérifié votre décision · calcul Python, sans IA</p>
+              <h2 className={`t-panneau ${styles.verdictBilan}`} id="titre-bilan">{bilan.verdict}</h2>
+              {bilan.explication && <p className="t-corps c-700">{bilan.explication}</p>}
+            </div>
+            <div className={styles.coteBilan}>
+              <p className={styles.comptesBilan}>
+                {GROUPES.filter((g) => bilan.comptes[g.id] > 0).map((g) => (
+                  <span key={g.id} className={`${styles.compteBilan} ${COMPTES_BILAN[g.id]}`}>
+                    {bilan.comptes[g.id]} {LIBELLES_COMPTES[g.id](bilan.comptes[g.id])}
                   </span>
                 ))}
-              </div>
-              <p className="t-corps">{resultat.constat}</p>
+              </p>
+              <button type="button" className={styles.voirControles} aria-expanded={controlesOuverts} aria-controls="liste-controles" onClick={() => setControlesOuverts((o) => !o)}>
+                {controlesOuverts ? 'Masquer le détail' : 'Voir le détail'}
+                <Icone nom={controlesOuverts ? 'chevron-haut' : 'chevron-bas'} taille={14} />
+              </button>
             </div>
-            <button type="button" className={styles.voirControles} aria-expanded={controlesOuverts} aria-controls="liste-controles" onClick={() => setControlesOuverts((o) => !o)}>
-              {controlesOuverts ? 'Masquer les contrôles' : `Voir les ${resultat.controles.length} contrôles`}
-              <Icone nom={controlesOuverts ? 'chevron-haut' : 'chevron-bas'} taille={14} />
-            </button>
-            <ol id="liste-controles" className={styles.controles} hidden={!controlesOuverts}>
+            <div id="liste-controles" className={styles.controles} hidden={!controlesOuverts}>
               {reglePrincipale && (
-                <li className={`t-petit c-700 ${styles.rappelRegle}`}>
+                <p className={`t-petit c-700 ${styles.rappelRegle}`}>
                   Règle que vous avez signée le {date(resultat.contrat.pacte.date_signature)} (Pacte §{principal!.paragraphe}) :
                   « {reglePrincipale.libelle} ».
-                </li>
+                </p>
               )}
-              {resultat.controles.map((c) => (
-                <li key={`${c.regle}-${c.texte}`} className={styles.controle}>
-                  <Statut type={c.statut} />
-                  <span className="t-petit">{c.texte}</span>
-                  <span className={styles.piecesControle}>
-                    {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}
-                  </span>
-                </li>
-              ))}
-            </ol>
+              {GROUPES.map((g) => {
+                const items = bilan.controles.filter((c) => c.groupe === g.id);
+                if (!items.length) return null;
+                return (
+                  <div key={g.id} className={styles.groupeControles}>
+                    <p className={styles.titreGroupe}>
+                      <span className={`t-petit-fort ${COMPTES_BILAN[g.id]}`}>{g.titre} · {items.length}</span>
+                      <span className="t-petit c-500">{g.aide}</span>
+                    </p>
+                    <ul className={styles.listeControles}>
+                      {items.map((c) => (
+                        <li key={`${c.regle}-${c.titre}`} className={styles.controle}>
+                          <IconeStatut type={STATUT_DU_GROUPE[c.groupe]} taille={16} />
+                          <span className={styles.texteControle}>
+                            <span className="t-petit-fort">
+                              {c.titre}
+                              {c.paragraphe !== undefined && <span className="c-500"> · Pacte §{c.paragraphe}</span>}
+                            </span>
+                            {c.detail && <span className="t-petit c-700">{c.detail}</span>}
+                          </span>
+                          <span className={styles.piecesControle}>
+                            {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
           </section>
 
           <Debat procureur={procureur} avocat={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} limite={resultat.limiteAvocat} />

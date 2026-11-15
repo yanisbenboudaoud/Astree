@@ -1,6 +1,6 @@
 # #111 — Diversité des sources : toutes les sources d'un procès, et les données macro
 
-- **Issue** : #111 · **PR** : à venir · **Statut** : en cours (code et tests faits ; redéploiement et procès de démo à refaire)
+- **Issue** : #111 · **PR** : #120 (code), #123 (redéploiement et procès de démo) · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -26,6 +26,23 @@
 - **`contrat/schema_sortie.json`** : `fichier` devient facultatif ; `format`, `usage`, `pieces` et `controles` facultatifs. **`contrat/valider.py`** : `erreurs_sources` (pièces existantes, règles contrôlées, pas de source en double). Les anciens contrats restent valides.
 - **`pipeline/proces_verbal.py`** : tableau « Source | Utilisée par (et pourquoi) ». Les procès-verbaux de démo sont régénérés.
 - **Interface** : bloc repliable « D'où viennent les données » sur l'écran Tribunal (`ecrans/Tribunal.tsx`). Chaque source montre ses pièces en pastilles cliquables et la raison de chacune ; une raison n'est écrite qu'une fois, sous la première source qui utilise la pièce (`domaine/sources.ts`). Types `SourceContrat` (`api/contrat.ts`) et `SourceDossier` (`api/types.ts`), adaptateur `adapterSource`.
+
+**Sur AWS**
+- **Lambda redéployée** (`deploiement/deployer.py --sans-donnees`) : `pipeline/macro.py` et `pipeline/sources.py` sont dans le zip. `macro_rates.csv` était déjà dans `donnees/` du bucket depuis #13 (même taille que le fichier du dépôt) : la Lambda le lit dans S3 comme les autres CSV. Aucun service ni droit IAM de plus.
+- **Les 7 procès de démonstration refaits** sur la Lambda redéployée et copiés tels quels depuis `traces/2026-11-15/` du bucket dans `frontend/src/data/proces/` (`index.json` mis à jour), avec leurs procès-verbaux (`python -m pipeline.proces_verbal --demo`). Ils remplacent ceux de la fiche 107. Chaque copie S3 est identique à la réponse reçue.
+
+| Procès | Profil, décision | Sources | Ce qu'il montre |
+|---|---|---|---|
+| `2026-11-15-13325b58d2b9` | Robert, 30 % en TSLA | 6 | archives des verdicts → P6, avec la raison de l'orchestrateur ; inflation et rendement réel dans P2 et P3 ; une correction du Greffier |
+| `2026-11-15-4d25fab26751` | Robert, 25 % en TSLA | 6 | deux arguments renvoyés par le Greffier puis corrigés |
+| `2026-11-15-6f16a95962c3` | Amira, panier crypto-tech | 6 | l'Avocat cite le rendement après inflation (+12,9 %/an), vérifié par le Greffier |
+| `2026-11-15-78210ebf41ab` | Mateo, 10 % en XOM | 7 | documents ESG ; un argument sans signe « − » renvoyé, puis rejeté |
+| `2026-11-15-9c273b4e1dab` | Robert, Pacte vécu | 7 | réponses de l'investisseur parmi les sources |
+| `2026-11-15-c96a8185f784` | Amira, Pacte vécu | 7 | idem, rendement après inflation cité |
+| `2026-11-15-dd412c702126` | Mateo, Pacte vécu | 8 | les 8 sources possibles : Pacte, réponses, prix, change, univers, macro, documents ESG, archives |
+
+Tous passent `python -m contrat.valider` ; 100 % des chiffres affichés sont vérifiés.
+- Tests ajustés au contenu des nouveaux procès : `frontend/src/test/*.test.ts` (identifiants, nombre d'arguments, motifs des corrections), `tests/test_sources.py` (les procès de démo contiennent maintenant les données macro). `domaine/debat.ts` range aussi « varié presque indépendamment de… » dans le point « diversification ».
 
 ## Comment l'utiliser
 ```python
@@ -55,6 +72,8 @@ Les tests vérifient : l'inflation de 2022 (6,3 %) et de la période complète (
 - **`valeur_affichee` inchangée** : les nouveaux chiffres se lisent en ouvrant la pièce.
 
 ## Limites et suite
-- **Redéployer et refaire les procès de démo** (`deploiement/deployer.py --sans-donnees` si `macro_rates.csv` est déjà dans `donnees/` du bucket, sinon sans l'option ; puis `deploiement/tester_function_url.py` et copie depuis S3, et `python -m pipeline.proces_verbal --demo`). Les procès enregistrés avant #111 n'ont ni données macro ni sources reliées : le bloc de l'interface montre leurs deux sources, sans pièces.
+- La Lambda a été déployée depuis la branche de #120 (identique à `main` plus ce travail) : la redéployer depuis `main` après la fusion ne change rien au code.
+- Les procès archivés avant #111 (S3, `traces/`) n'ont ni données macro ni sources reliées : relus, le bloc de l'interface montre leurs deux sources, sans pièces.
+- Le Greffier rejette « aurait perdu 3 819 $ » sans signe : « perdu » n'est pas dans la liste des mots de baisse de la règle 4 (section 4 ter). Le rejet est fidèle à la règle ; l'élargir serait une décision d'équipe.
 - Dans l'interface, une question libre ajoute des pièces sans mettre à jour le bloc des sources (la route `/question` ne renvoie pas les sources) ; elles sont à jour dans le contrat archivé et le procès-verbal.
 - Rendre « Préserver mon capital » mesurable (nouveau type de règle) et chiffrer l'incertitude (plusieurs périodes, fourchettes) restent hors périmètre.

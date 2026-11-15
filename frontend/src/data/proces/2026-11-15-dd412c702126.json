@@ -138,6 +138,39 @@
       "id": "P3",
       "type": "calculee",
       "etiquette": "fictif",
+      "titre": "Simulation du portefeuille avec 0 % en XOM",
+      "outil": "simuler_portefeuille",
+      "valeurs": {
+        "taille": 0,
+        "pire_baisse": -0.151278,
+        "rendement_annuel": 0.114965,
+        "volatilite_annuelle": 0.097523,
+        "pire_baisse_actuelle": -0.151278,
+        "rendement_annuel_actuel": 0.114965,
+        "volatilite_annuelle_actuelle": 0.097523,
+        "capital": 180000,
+        "perte_au_pire_moment_cad": 27230,
+        "perte_au_pire_moment_cad_actuelle": 27230,
+        "ecart_perte_au_pire_moment_cad": 0,
+        "ecart_pire_baisse_points": 0.0,
+        "ecart_rendement_annuel_points": 0.0,
+        "rapport_volatilite": 1.0,
+        "inflation_annuelle": 0.035441,
+        "rendement_reel_annuel": 0.076802,
+        "rendement_reel_annuel_actuel": 0.076802,
+        "taux_sans_risque_moyen": 0.031906,
+        "ratio_sharpe": 0.851682,
+        "ratio_sharpe_actuel": 0.851682
+      },
+      "valeur_affichee": "−15,1 % max · +11,5 %/an",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
+    },
+    {
+      "id": "P4",
+      "type": "calculee",
+      "etiquette": "fictif",
       "titre": "Simulation du portefeuille avec 10 % en XOM",
       "outil": "simuler_portefeuille",
       "valeurs": {
@@ -154,15 +187,21 @@
         "ecart_perte_au_pire_moment_cad": 9256,
         "ecart_pire_baisse_points": 5.1421,
         "ecart_rendement_annuel_points": 1.981,
-        "rapport_volatilite": 0.9712
+        "rapport_volatilite": 0.9712,
+        "inflation_annuelle": 0.035441,
+        "rendement_reel_annuel": 0.095934,
+        "rendement_reel_annuel_actuel": 0.076802,
+        "taux_sans_risque_moyen": 0.031906,
+        "ratio_sharpe": 1.08612,
+        "ratio_sharpe_actuel": 0.851682
       },
       "valeur_affichee": "−10,0 % max · +13,5 %/an",
-      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
-      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12",
-      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir"
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
     },
     {
-      "id": "P4",
+      "id": "P5",
       "type": "calculee",
       "etiquette": "fictif",
       "titre": "Rejeu de 2022 avec 10 % en XOM",
@@ -179,15 +218,23 @@
         "resultat_2022_cad_apres": -3819,
         "resultat_2022_cad_actuel": -18146,
         "ecart_2022_cad": 14327,
-        "ecart_2022_points": 7.9592
+        "ecart_2022_points": 7.9592,
+        "inflation_2022": 0.063,
+        "rendement_reel_2022_actuel": -0.154102,
+        "rendement_reel_2022_apres": -0.079227,
+        "taux_directeur_debut_2022": 0.0025,
+        "taux_directeur_fin_2022": 0.0425,
+        "taux_directeur_moyen_2022": 0.019232,
+        "obligation_10_ans_debut_2022": 0.0142,
+        "obligation_10_ans_fin_2022": 0.033
       },
       "valeur_affichee": "−10,1 % → −2,1 %",
-      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
-      "traitement": "Portefeuille avec et sans la position, de la dernière séance de 2021 à la dernière séance de 2022",
-      "limites": "Une seule année de crise ; la suivante peut être différente"
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
+      "traitement": "Portefeuille avec et sans la position, de la dernière séance de 2021 à la dernière séance de 2022 ; inflation : IPC du Canada de 2021-12 à 2022-12 ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; taux directeur et obligation à 10 ans au début et à la fin de l'année",
+      "limites": "Une seule année de crise ; la suivante peut être différente ; inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
     },
     {
-      "id": "P5",
+      "id": "P6",
       "type": "documentaire",
       "etiquette": "fait",
       "titre": "Poursuite de l'État du Massachusetts contre Exxon Mobil sur les risques climatiques",
@@ -213,31 +260,6 @@
       "source": "Sabin Center for Climate Change Law (Columbia Law School), Climate Change Litigation Databases, fiche « Commonwealth v. Exxon Mobil Corp. » (Massachusetts Superior Court, dossier 1984CV03333), https://climatecasechart.com/case/commonwealth-v-exxon-mobil-corp/ (consulté le 2026-11-14)",
       "traitement": "Fiche lue le 2026-11-14 ; extraits copiés mot pour mot ; résumé en français par l'équipe. Qualification « controverse environnementale importante » : hypothèse de l'équipe, car il s'agit d'une poursuite d'un État sur l'information climatique, liée aux principes environnementaux 7 à 9 du Pacte mondial de l'ONU.",
       "limites": "Allégations d'une poursuite en cours, contestées par l'entreprise : aucun jugement sur le fond n'est mentionné. Une seule source, consultée à une date donnée : l'affaire peut avoir évolué. La qualification « importante » est un jugement de l'équipe, pas celui d'une agence de notation ESG."
-    },
-    {
-      "id": "P6",
-      "type": "calculee",
-      "etiquette": "fait",
-      "titre": "Indicateurs de XOM",
-      "outil": "indicateurs_actif",
-      "valeurs": {
-        "rendement_annuel": 0.288328,
-        "volatilite_annuelle": 0.259778,
-        "pire_baisse": -0.190812,
-        "rendement_2022": 1.002105,
-        "date_sommet": "2023-09-27",
-        "date_creux": "2024-01-22",
-        "date_retour_sommet": "2024-04-02",
-        "annees_recuperation": 0.514716,
-        "periode": [
-          "2021-11-12",
-          "2026-11-12"
-        ]
-      },
-      "valeur_affichee": "−19,1 % max · +28,8 %/an · 0,5 ans pour revenir au sommet",
-      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada, extrait le 2026-11-13",
-      "traitement": "Prix adj_close convertis en CAD, calendrier des séances américaines (dernier prix reporté), 2021-11-12 → 2026-11-12 ; rendement annualisé composé, volatilité = écart type quotidien × √252, pire baisse depuis un sommet, temps de récupération du sommet précédant la pire baisse au retour à ce sommet",
-      "limites": "Une seule période de 5 ans ; une seule chute observée pour le temps de récupération ; biais du survivant ; le passé ne prédit pas l'avenir"
     },
     {
       "id": "P7",
@@ -268,11 +290,36 @@
       "id": "P8",
       "type": "calculee",
       "etiquette": "fait",
+      "titre": "Indicateurs de XOM",
+      "outil": "indicateurs_actif",
+      "valeurs": {
+        "rendement_annuel": 0.288328,
+        "volatilite_annuelle": 0.259778,
+        "pire_baisse": -0.190812,
+        "rendement_2022": 1.002105,
+        "date_sommet": "2023-09-27",
+        "date_creux": "2024-01-22",
+        "date_retour_sommet": "2024-04-02",
+        "annees_recuperation": 0.514716,
+        "periode": [
+          "2021-11-12",
+          "2026-11-12"
+        ]
+      },
+      "valeur_affichee": "−19,1 % max · +28,8 %/an · 0,5 ans pour revenir au sommet",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada, extrait le 2026-11-13",
+      "traitement": "Prix adj_close convertis en CAD, calendrier des séances américaines (dernier prix reporté), 2021-11-12 → 2026-11-12 ; rendement annualisé composé, volatilité = écart type quotidien × √252, pire baisse depuis un sommet, temps de récupération du sommet précédant la pire baisse au retour à ce sommet",
+      "limites": "Une seule période de 5 ans ; une seule chute observée pour le temps de récupération ; biais du survivant ; le passé ne prédit pas l'avenir"
+    },
+    {
+      "id": "P9",
+      "type": "calculee",
+      "etiquette": "fait",
       "titre": "Jurisprudence : verdicts passés de ce profil",
       "outil": "consulter_jurisprudence",
       "valeurs": {
         "regle": "toutes",
-        "proces_archives": 0,
+        "proces_archives": 1,
         "proces_en_violation": 0,
         "maintenu": 0,
         "modifie": 0,
@@ -282,7 +329,7 @@
         "regles_violees_antecedents": [],
         "verdicts_antecedents": []
       },
-      "valeur_affichee": "Aucun procès archivé pour ce profil",
+      "valeur_affichee": "1 procès archivé · aucun en violation",
       "source": "Archive des verdicts du Tribunal (verdicts/<profil>/), écrite par la route /verdict quand l'utilisateur rend son verdict",
       "traitement": "Pour chaque procès archivé de ce profil : règles du Pacte en violation et verdict choisi par l'utilisateur. Au plus les 200 procès les plus récents ; les 5 derniers antécédents en violation sont détaillés.",
       "limites": "Seuls les procès dont l'utilisateur a rendu un verdict sont archivés. Les règles sont comparées par identifiant : le Pacte a pu changer depuis. Un verdict passé ne dit rien de la qualité de la décision prise."
@@ -294,7 +341,7 @@
       "regle": "pire_baisse_max",
       "message": "Pire baisse −10,0 % dans la limite du seuil −15,1 %",
       "pieces": [
-        "P3",
+        "P4",
         "P1",
         "P2"
       ]
@@ -310,9 +357,9 @@
     {
       "statut": "violation",
       "regle": "controverses_esg",
-      "message": "Critère « controverse_esg_importante » rempli pour XOM selon P5",
+      "message": "Critère « controverse_esg_importante » rempli pour XOM selon P6",
       "pieces": [
-        "P5",
+        "P6",
         "P1"
       ]
     },
@@ -327,12 +374,12 @@
     {
       "statut": "conforme",
       "regle": "verifier_chiffres",
-      "message": "Chiffres cités vérifiés contre leurs pièces : 20/20 chiffres, 6 arguments"
+      "message": "Chiffres cités vérifiés contre leurs pièces : 22/22 chiffres, 7 arguments"
     },
     {
       "statut": "conforme",
       "regle": "cadre_simulation",
-      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 6 arguments vérifiés"
+      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés"
     },
     {
       "statut": "a_verifier",
@@ -353,18 +400,186 @@
     "Montants convertis en CAD",
     "Financement proportionnel par défaut : toutes les lignes du portefeuille sont réduites au prorata",
     "Seuil de pire baisse mesuré sur les réponses de l'utilisateur (P2) ; autres seuils choisis par l'équipe",
-    "Portefeuille et capital fictifs"
+    "Portefeuille et capital fictifs",
+    "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période"
   ],
   "sources": [
     {
-      "nom": "Yahoo Finance via yfinance",
-      "fichier": "prices_daily.csv",
-      "date_extraction": "2026-11-13"
+      "nom": "Pacte de l'investisseur",
+      "fichier": "personas/mateo.json",
+      "date_extraction": "2026-11-14",
+      "format": "JSON (règles déclarées)",
+      "usage": "Les règles que l'investisseur s'est fixées et que le procès vérifie",
+      "pieces": [
+        {
+          "id": "P1",
+          "raison": "Toujours au dossier : les règles que le procès vérifie"
+        }
+      ]
     },
     {
-      "nom": "Banque du Canada (API Valet)",
+      "nom": "Réponses de l'investisseur",
+      "date_extraction": "2026-11-15",
+      "format": "déclarations",
+      "usage": "Ce que l'investisseur a lui-même répondu : questionnaire, jours de marché revécus",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Versée d'office : les réponses aux jours de marché revécus fixent le seuil de pire baisse"
+        }
+      ]
+    },
+    {
+      "nom": "Yahoo Finance via yfinance (prix ajustés)",
+      "fichier": "prices_daily.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Les prix des titres : simulations, rejeu de 2022, indicateurs",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Versée d'office : les réponses aux jours de marché revécus fixent le seuil de pire baisse"
+        },
+        {
+          "id": "P3",
+          "raison": "x"
+        },
+        {
+          "id": "P4",
+          "raison": "Simulation complète du portefeuille avec la décision demandée."
+        },
+        {
+          "id": "P5",
+          "raison": "Règle de pire baisse : rejouer l'année de crise où actions et obligations ont reculé ensemble."
+        },
+        {
+          "id": "P7",
+          "raison": "Le portefeuille est déjà proche du seuil de pire baisse ; vérifier si une version plus modeste est compatible."
+        },
+        {
+          "id": "P8",
+          "raison": "Juger le risque propre du titre, sa pire baisse et sa récupération au regard de l'horizon."
+        }
+      ]
+    },
+    {
+      "nom": "Banque du Canada, API Valet : change USD/CAD",
       "fichier": "fx_usdcad_daily.csv",
-      "date_extraction": "2026-11-13"
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Toujours utilisée avec les prix : tous les montants sont convertis en CAD",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Versée d'office : les réponses aux jours de marché revécus fixent le seuil de pire baisse"
+        },
+        {
+          "id": "P3",
+          "raison": "x"
+        },
+        {
+          "id": "P4",
+          "raison": "Simulation complète du portefeuille avec la décision demandée."
+        },
+        {
+          "id": "P5",
+          "raison": "Règle de pire baisse : rejouer l'année de crise où actions et obligations ont reculé ensemble."
+        },
+        {
+          "id": "P7",
+          "raison": "Le portefeuille est déjà proche du seuil de pire baisse ; vérifier si une version plus modeste est compatible."
+        },
+        {
+          "id": "P8",
+          "raison": "Juger le risque propre du titre, sa pire baisse et sa récupération au regard de l'horizon."
+        }
+      ]
+    },
+    {
+      "nom": "Univers d'actifs des organisateurs du datathon",
+      "fichier": "assets_universe.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "La devise et la catégorie de chaque titre : conversion en CAD, plafonds du Pacte",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Versée d'office : les réponses aux jours de marché revécus fixent le seuil de pire baisse"
+        },
+        {
+          "id": "P3",
+          "raison": "x"
+        },
+        {
+          "id": "P4",
+          "raison": "Simulation complète du portefeuille avec la décision demandée."
+        },
+        {
+          "id": "P5",
+          "raison": "Règle de pire baisse : rejouer l'année de crise où actions et obligations ont reculé ensemble."
+        },
+        {
+          "id": "P7",
+          "raison": "Le portefeuille est déjà proche du seuil de pire baisse ; vérifier si une version plus modeste est compatible."
+        },
+        {
+          "id": "P8",
+          "raison": "Juger le risque propre du titre, sa pire baisse et sa récupération au regard de l'horizon."
+        }
+      ],
+      "controles": [
+        "pas_de_speculation"
+      ]
+    },
+    {
+      "nom": "Banque du Canada, API Valet : IPC, taux directeur, obligation à 10 ans",
+      "fichier": "macro_rates.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Le pouvoir d'achat : inflation, rendement réel, taux sans risque, ratio de Sharpe",
+      "pieces": [
+        {
+          "id": "P3",
+          "raison": "x"
+        },
+        {
+          "id": "P4",
+          "raison": "Simulation complète du portefeuille avec la décision demandée."
+        },
+        {
+          "id": "P5",
+          "raison": "Règle de pire baisse : rejouer l'année de crise où actions et obligations ont reculé ensemble."
+        }
+      ]
+    },
+    {
+      "nom": "Documents publics sur les critères ESG, choisis et lus par l'équipe",
+      "fichier": "donnees_externes/documents_esg.json",
+      "date_extraction": "2026-11-14",
+      "format": "JSON (texte)",
+      "usage": "Les critères non financiers du Pacte, comme les controverses ESG",
+      "pieces": [
+        {
+          "id": "P6",
+          "raison": "Le Pacte exclut les entreprises liées à des controverses environnementales ou sociales importantes."
+        }
+      ],
+      "controles": [
+        "controverses_esg"
+      ]
+    },
+    {
+      "nom": "Archives des verdicts de ce profil",
+      "fichier": "verdicts/mateo/ (S3)",
+      "date_extraction": "2026-11-15",
+      "format": "JSON",
+      "usage": "Les procès passés de ce profil et les verdicts rendus",
+      "pieces": [
+        {
+          "id": "P9",
+          "raison": "Voir si un conflit avec le Pacte s'est déjà produit pour ce profil et comment il a été tranché."
+        }
+      ]
     }
   ],
   "limites": [
@@ -446,11 +661,11 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Mesurer la pire baisse, le rendement et la volatilité du portefeuille avec la décision.",
+      "raison": "x",
       "entree": {
         "financement": "proportionnel",
         "periode": "complete",
-        "taille": 0.1,
+        "taille": 0,
         "ticker": "XOM"
       },
       "sortie": "P3"
@@ -458,10 +673,10 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "Rejouer l'année de crise où actions et obligations ont baissé ensemble, au regard de la règle de pire baisse.",
+      "raison": "Simulation complète du portefeuille avec la décision demandée.",
       "entree": {
         "financement": "proportionnel",
-        "periode": "2022",
+        "periode": "complete",
         "taille": 0.1,
         "ticker": "XOM"
       },
@@ -469,19 +684,22 @@
     },
     {
       "etape": "orchestrateur",
-      "outil": "rechercher_documents",
-      "raison": "Vérifier le critère documentaire du Pacte sur les controverses environnementales ou sociales de ce titre.",
+      "outil": "simuler_portefeuille",
+      "raison": "Règle de pire baisse : rejouer l'année de crise où actions et obligations ont reculé ensemble.",
       "entree": {
-        "critere": "controverse_esg_importante",
+        "financement": "proportionnel",
+        "periode": "2022",
+        "taille": 0.1,
         "ticker": "XOM"
       },
       "sortie": "P5"
     },
     {
       "etape": "orchestrateur",
-      "outil": "indicateurs_actif",
-      "raison": "Juger le risque propre du titre pétrolier, notamment sa pire baisse et son comportement en année de crise.",
+      "outil": "rechercher_documents",
+      "raison": "Le Pacte exclut les entreprises liées à des controverses environnementales ou sociales importantes.",
       "entree": {
+        "critere": "controverse_esg_importante",
         "ticker": "XOM"
       },
       "sortie": "P6"
@@ -489,7 +707,7 @@
     {
       "etape": "orchestrateur",
       "outil": "taille_max_compatible",
-      "raison": "Déterminer si une version plus modeste de la position resterait compatible avec les règles calculables du Pacte.",
+      "raison": "Le portefeuille est déjà proche du seuil de pire baisse ; vérifier si une version plus modeste est compatible.",
       "entree": {
         "financement": "proportionnel",
         "taille": 0.1,
@@ -499,12 +717,21 @@
     },
     {
       "etape": "orchestrateur",
+      "outil": "indicateurs_actif",
+      "raison": "Juger le risque propre du titre, sa pire baisse et sa récupération au regard de l'horizon.",
+      "entree": {
+        "ticker": "XOM"
+      },
+      "sortie": "P8"
+    },
+    {
+      "etape": "orchestrateur",
       "outil": "consulter_jurisprudence",
-      "raison": "Voir si un conflit semblable avec le Pacte s'est déjà produit pour ce profil et comment il a été tranché.",
+      "raison": "Voir si un conflit avec le Pacte s'est déjà produit pour ce profil et comment il a été tranché.",
       "entree": {
         "regle": "toutes"
       },
-      "sortie": "P8"
+      "sortie": "P9"
     },
     {
       "etape": "procureur",
@@ -517,33 +744,34 @@
         "P5",
         "P6",
         "P7",
-        "P8"
+        "P8",
+        "P9"
       ],
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Votre règle « Exclure les entreprises liées à des controverses environnementales ou sociales importantes » est en jeu : XOM fait l'objet d'une poursuite climatique documentée. Il s'agit d'allégations contestées par l'entreprise, sans jugement sur le fond, et vous aviez répondu « garder » à propos de cette règle.",
+          "texte": "Vous avez écrit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes », or XOM fait l'objet d'une controverse documentée. Il s'agit d'une poursuite de l'État du Massachusetts sur l'information climatique, encore en cours, dont les allégations sont contestées par l'entreprise et sans jugement sur le fond.",
           "pieces": [
-            "P1",
-            "P2",
-            "P5"
+            "P6",
+            "P2"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Pris seul, XOM a connu une chute de 19,1 % depuis un sommet, au-delà de votre pire baisse tolérée de −15,1 %. Avec 10 % en XOM, la pire baisse du portefeuille est de −10,0 %, sous cette limite.",
+          "texte": "Pris seul, XOM a connu une chute de 19,1 % depuis un sommet, au-delà de votre « Pire baisse tolérée : −15,1 % (mesurée) ». Dans votre portefeuille avec 10 % en XOM, la pire baisse reste toutefois à −10,0 %.",
           "pieces": [
+            "P8",
             "P1",
-            "P3",
-            "P6"
+            "P4"
           ]
         },
         {
           "etiquette": "hypothese",
-          "texte": "Le rendement du portefeuille passerait de +11,5 % à +13,5 % par an, grâce à une action qui a progressé de +28,8 % par an. Si les années à venir ne ressemblaient pas à cette période, cet écart pourrait ne pas se retrouver.",
+          "texte": "Avec XOM, le rendement par an passe de +11,5 % à +13,5 %, mais ce gain s'appuie sur une seule période passée où XOM seul a fait +28,8 % par an. Si XOM ne retrouvait pas une telle période, ce gain pourrait s'amoindrir, ce qui questionnerait l'« Équilibre entre croissance et stabilité ».",
           "pieces": [
             "P3",
-            "P6"
+            "P4",
+            "P8"
           ]
         }
       ]
@@ -559,30 +787,39 @@
         "P5",
         "P6",
         "P7",
-        "P8"
+        "P8",
+        "P9"
       ],
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Au pire moment, votre portefeuille de 180 000 $ aurait perdu 17 974 $ avec 10 % en XOM, contre 27 230 $ sans cette position.",
+          "texte": "Au pire moment, votre portefeuille de 180 000 $ aurait perdu 17 974 $ avec 10 % en XOM, contre 27 230 $ sans cette position. C'est une période passée unique, qui ne dit rien de la suite.",
           "pieces": [
-            "P3"
+            "P3",
+            "P4"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Avec 10 % en XOM, la plus forte chute depuis un sommet est de −10,0 %, dans la limite de « Pire baisse tolérée : −15,1 % (mesurée) ». La taille de 10 % est aussi la taille maximale compatible avec les règles calculables du Pacte.",
+          "texte": "En 2022, votre portefeuille de 180 000 $ aurait perdu 3 819 $ avec 10 % en XOM, contre 18 146 $ sans cette position. Cela ne vaut que pour une seule année de crise.",
+          "pieces": [
+            "P5"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Avec 10 % en XOM, la plus forte chute aurait été de −10,0 %, moins que la pire baisse tolérée de −15,1 %. Cette vérification ne couvre pas les règles qualitatives ni documentaires du Pacte.",
           "pieces": [
             "P1",
-            "P2",
-            "P3",
+            "P4",
             "P7"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "En 2022, avec 10 % en XOM, votre portefeuille aurait perdu 3 819 $ au lieu de 18 146 $. Cette année de crise reste une seule année : la suivante peut être différente.",
+          "texte": "Avec 10 % en XOM, le rendement par an du portefeuille aurait été de +13,5 %, contre +11,5 % sans cette position. Ce résultat décrit le passé, sans promesse pour la suite.",
           "pieces": [
+            "P3",
             "P4"
           ]
         }
@@ -603,28 +840,28 @@
       "etape": "avocat",
       "outil": "bedrock_correction",
       "entree": {
-        "argument": "En 2022, avec 10 % en XOM, votre portefeuille aurait perdu 3 819 $ au lieu de 18 146 $. Cette année de crise reste une seule année : la suivante peut être différente.",
-        "motif": "« 3 819 » introuvable dans P4 : valeur négative, écrire le signe « − » ; « 18 146 » introuvable dans P4 : valeur négative, écrire le signe « − »"
+        "argument": "En 2022, votre portefeuille de 180 000 $ aurait perdu 3 819 $ avec 10 % en XOM, contre 18 146 $ sans cette position. Cela ne vaut que pour une seule année de crise.",
+        "motif": "« 3 819 » introuvable dans P5 : valeur négative, écrire le signe « − » ; « 18 146 » introuvable dans P5 : valeur négative, écrire le signe « − »"
       },
       "sortie": {
         "etiquette": "fait",
-        "texte": "En 2022, avec 10 % en XOM, votre portefeuille de 180 000 $ aurait enregistré un résultat de −3 819 $ au lieu de −18 146 $. Cette année de crise reste une seule année : la suivante peut être différente.",
+        "texte": "En 2022, avec 10 % en XOM, votre portefeuille de 180 000 $ aurait affiché −3 819 $, contre −18 146 $ sans cette position. Cela ne décrit qu'une seule année de crise passée.",
         "pieces": [
-          "P4"
+          "P5"
         ]
       }
     },
     {
       "etape": "greffier",
       "outil": "verifier_chiffres",
-      "entree": "6 arguments",
-      "sortie": "Chiffres cités vérifiés contre leurs pièces : 20/20 chiffres, 6 arguments"
+      "entree": "7 arguments",
+      "sortie": "Chiffres cités vérifiés contre leurs pièces : 22/22 chiffres, 7 arguments"
     },
     {
       "etape": "greffier",
       "outil": "verifier_cadre_simulation",
-      "entree": "6 arguments",
-      "sortie": "Aucun conseil personnalisé ni promesse sur l'avenir : 6 arguments vérifiés"
+      "entree": "7 arguments",
+      "sortie": "Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés"
     }
   ],
   "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.",
@@ -647,53 +884,61 @@
   "requisitoire": [
     {
       "etiquette": "fait",
-      "texte": "Votre règle « Exclure les entreprises liées à des controverses environnementales ou sociales importantes » est en jeu : XOM fait l'objet d'une poursuite climatique documentée. Il s'agit d'allégations contestées par l'entreprise, sans jugement sur le fond, et vous aviez répondu « garder » à propos de cette règle.",
+      "texte": "Vous avez écrit : « Exclure les entreprises liées à des controverses environnementales ou sociales importantes », or XOM fait l'objet d'une controverse documentée. Il s'agit d'une poursuite de l'État du Massachusetts sur l'information climatique, encore en cours, dont les allégations sont contestées par l'entreprise et sans jugement sur le fond.",
       "pieces": [
-        "P1",
-        "P2",
-        "P5"
+        "P6",
+        "P2"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Pris seul, XOM a connu une chute de 19,1 % depuis un sommet, au-delà de votre pire baisse tolérée de −15,1 %. Avec 10 % en XOM, la pire baisse du portefeuille est de −10,0 %, sous cette limite.",
+      "texte": "Pris seul, XOM a connu une chute de 19,1 % depuis un sommet, au-delà de votre « Pire baisse tolérée : −15,1 % (mesurée) ». Dans votre portefeuille avec 10 % en XOM, la pire baisse reste toutefois à −10,0 %.",
       "pieces": [
+        "P8",
         "P1",
-        "P3",
-        "P6"
+        "P4"
       ]
     },
     {
       "etiquette": "hypothese",
-      "texte": "Le rendement du portefeuille passerait de +11,5 % à +13,5 % par an, grâce à une action qui a progressé de +28,8 % par an. Si les années à venir ne ressemblaient pas à cette période, cet écart pourrait ne pas se retrouver.",
+      "texte": "Avec XOM, le rendement par an passe de +11,5 % à +13,5 %, mais ce gain s'appuie sur une seule période passée où XOM seul a fait +28,8 % par an. Si XOM ne retrouvait pas une telle période, ce gain pourrait s'amoindrir, ce qui questionnerait l'« Équilibre entre croissance et stabilité ».",
       "pieces": [
         "P3",
-        "P6"
+        "P4",
+        "P8"
       ]
     }
   ],
   "plaidoirie": [
     {
       "etiquette": "fait",
-      "texte": "Au pire moment, votre portefeuille de 180 000 $ aurait perdu 17 974 $ avec 10 % en XOM, contre 27 230 $ sans cette position.",
+      "texte": "Au pire moment, votre portefeuille de 180 000 $ aurait perdu 17 974 $ avec 10 % en XOM, contre 27 230 $ sans cette position. C'est une période passée unique, qui ne dit rien de la suite.",
       "pieces": [
-        "P3"
+        "P3",
+        "P4"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Avec 10 % en XOM, la plus forte chute depuis un sommet est de −10,0 %, dans la limite de « Pire baisse tolérée : −15,1 % (mesurée) ». La taille de 10 % est aussi la taille maximale compatible avec les règles calculables du Pacte.",
+      "texte": "En 2022, avec 10 % en XOM, votre portefeuille de 180 000 $ aurait affiché −3 819 $, contre −18 146 $ sans cette position. Cela ne décrit qu'une seule année de crise passée.",
+      "pieces": [
+        "P5"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Avec 10 % en XOM, la plus forte chute aurait été de −10,0 %, moins que la pire baisse tolérée de −15,1 %. Cette vérification ne couvre pas les règles qualitatives ni documentaires du Pacte.",
       "pieces": [
         "P1",
-        "P2",
-        "P3",
+        "P4",
         "P7"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "En 2022, avec 10 % en XOM, votre portefeuille de 180 000 $ aurait enregistré un résultat de −3 819 $ au lieu de −18 146 $. Cette année de crise reste une seule année : la suivante peut être différente.",
+      "texte": "Avec 10 % en XOM, le rendement par an du portefeuille aurait été de +13,5 %, contre +11,5 % sans cette position. Ce résultat décrit le passé, sans promesse pour la suite.",
       "pieces": [
+        "P3",
         "P4"
       ]
     }

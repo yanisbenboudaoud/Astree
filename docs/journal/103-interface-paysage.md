@@ -1,6 +1,6 @@
 # #103 — Recherche au premier plan, mise en page en paysage, chiffres compacts, contrastes et retours visuels
 
-- **Issue** : #103 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #103 · **PR** : #104 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

@@ -1,6 +1,6 @@
 # #145 — Police de l'interface : une typographie de finance, la même sur tous les systèmes
 
-- **Issue** : #145 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #145 · **PR** : #146 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

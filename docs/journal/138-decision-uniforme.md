@@ -1,6 +1,6 @@
 # #138 — Mêmes fonctions de l'écran Décision pour tous les profils
 
-- **Issue** : #138 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #138 · **PR** : #139 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

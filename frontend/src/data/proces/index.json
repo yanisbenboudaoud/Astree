@@ -1,9 +1,12 @@
 {
-  "description": "Procès réellement tenus par la Lambda du Tribunal (POST /tribunal, Bedrock us.anthropic.claude-sonnet-5-5) et archivés dans S3 (traces/<date>/<id>.json), copiés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct, seulement pour la décision qu'ils ont jugée. Leur identifiant permet à « Trompez le Greffier » (POST /verifier) de les relire dans S3. Chaque contrat passe python -m contrat.valider.",
+  "description": "Procès réellement tenus par la Lambda du Tribunal (POST /tribunal, Bedrock us.anthropic.claude-sonnet-5-5) et archivés dans S3 (traces/<date>/<id>.json), copiés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct, seulement pour la décision qu'ils ont jugée. Leur identifiant permet à « Trompez le Greffier » (POST /verifier) de les relire dans S3. Chaque contrat passe python -m contrat.valider. Les entrées « calibrage » sont tenues avec les réponses préenregistrées du Pacte vécu (#68 : deploiement/tester_function_url.py … --calibrage-demo) ; elles ne sont rejouées qu'avec exactement ces réponses.",
   "proces": [
     {"procesId": "2026-11-15-dfad1e96d34e", "profil": "robert", "note": "30 % en TSLA"},
     {"procesId": "2026-11-15-5944335b5a5c", "profil": "robert", "note": "25 % en TSLA : un argument du Procureur renvoyé par le Greffier puis corrigé"},
     {"procesId": "2026-11-15-741f038b00f1", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %"},
-    {"procesId": "2026-11-14-51c84bd19c16", "profil": "mateo", "note": "10 % en XOM"}
+    {"procesId": "2026-11-14-51c84bd19c16", "profil": "mateo", "note": "10 % en XOM"},
+    {"procesId": "2026-11-15-cd9914bdb1af", "profil": "robert", "note": "30 % en TSLA, Pacte vécu (pire baisse mesurée : −10,2 %)", "calibrage": true},
+    {"procesId": "2026-11-15-2a7b5ce951aa", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, Pacte vécu (−40,6 %)", "calibrage": true},
+    {"procesId": "2026-11-15-651ad5c7f489", "profil": "mateo", "note": "10 % en XOM, Pacte vécu (−15,1 %)", "calibrage": true}
   ]
 }

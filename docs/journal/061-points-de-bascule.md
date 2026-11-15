@@ -1,6 +1,6 @@
 # #61 — « Qu'est-ce qui changerait la réponse ? » : points de bascule par règle
 
-- **Issue** : #61 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #61 · **PR** : #75 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

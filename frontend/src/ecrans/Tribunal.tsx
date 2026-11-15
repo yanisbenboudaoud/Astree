@@ -555,6 +555,12 @@ export function Tribunal({ profil }: { profil: Profil }) {
                       <span className={styles.texteControle}>
                         <span className="t-petit-fort">{c.titre}</span>
                         {c.detail && <span className="t-petit c-700">{c.detail}</span>}
+                        {c.epreuve && (
+                          <span className="t-petit c-500">
+                            {c.epreuve.texte}{' '}
+                            <a href={c.epreuve.lien} target="_blank" rel="noreferrer">Voir la mesure</a>
+                          </span>
+                        )}
                       </span>
                       <span className={styles.piecesControle}>
                         {c.pieces.map((p) => <PastillePiece key={p} code={p} onOuvrir={ouvrirPiece} />)}

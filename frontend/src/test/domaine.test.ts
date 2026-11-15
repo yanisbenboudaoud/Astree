@@ -159,21 +159,23 @@ describe('options du Verdict', () => {
 
 describe('contre-interrogatoire (#55)', () => {
   const contrat = contratRobert as ContratTribunal;
-  const simulation15 = { ...contrat.pieces[1], id: 'P7', titre: 'Simulation à 15 %', valeur_affichee: '−16,4 % max · +11,0 %/an' };
+  // Pièce ajoutée par la question : numérotée à la suite du dossier enregistré.
+  const nouvelle = `P${contrat.pieces.length + 1}`;
+  const simulation15 = { ...contrat.pieces[1], id: nouvelle, titre: 'Simulation à 15 %', valeur_affichee: '−16,4 % max · +11,0 %/an' };
   const echange = {
     question: 'Et si je mettais 15 % au lieu de 30 % ?',
-    pieces_ajoutees: ['P7'],
-    requisitoire: [{ etiquette: 'fait' as const, texte: 'À 15 %, la pire baisse simulée serait de −16,4 %.', pieces: ['P1', 'P7'] }],
-    plaidoirie: [{ etiquette: 'fait' as const, texte: 'Le rendement annuel serait de +11,0 %.', pieces: ['P7'] }],
+    pieces_ajoutees: [nouvelle],
+    requisitoire: [{ etiquette: 'fait' as const, texte: 'À 15 %, la pire baisse simulée serait de −16,4 %.', pieces: ['P1', nouvelle] }],
+    plaidoirie: [{ etiquette: 'fait' as const, texte: 'Le rendement annuel serait de +11,0 %.', pieces: [nouvelle] }],
     arguments_rejetes: [],
     controle_chiffres: { statut: 'conforme' as const, regle: 'verifier_chiffres', message: 'Chiffres cités vérifiés contre leurs pièces : 3/3 chiffres, 2 arguments' },
-    trace: [{ etape: 'orchestrateur', outil: 'simuler_portefeuille', raison: 'Simuler la taille demandée.', entree: { taille: 0.15 }, sortie: 'P7' }],
+    trace: [{ etape: 'orchestrateur', outil: 'simuler_portefeuille', raison: 'Simuler la taille demandée.', entree: { taille: 0.15 }, sortie: nouvelle }],
   };
 
   it('adapte la réponse : arguments des deux camps, pièce ajoutée citée, contrôle du Greffier', () => {
     const resultat = adapterEchange(echange, [...contrat.pieces, simulation15]);
     expect(resultat.arguments.map((a) => a.camp)).toEqual(['Procureur', 'Avocat']);
-    expect(resultat.piecesAjoutees.map((p) => p.code)).toEqual(['P7']);
+    expect(resultat.piecesAjoutees.map((p) => p.code)).toEqual([nouvelle]);
     expect(resultat.piecesAjoutees[0].citeePar).toEqual(['Procureur · réponse 1', 'Avocat · réponse 1']);
     expect(resultat.controle).toContain('3/3 chiffres');
   });
@@ -181,7 +183,7 @@ describe('contre-interrogatoire (#55)', () => {
   it('un procès relu avec ses questions archivées les affiche et les cite', () => {
     const avecQuestion = adapter({ ...contrat, pieces: [...contrat.pieces, simulation15], contre_interrogatoire: [echange] }, 'Robert', decisionRobert);
     expect(avecQuestion.echanges).toHaveLength(1);
-    expect(avecQuestion.pieces.find((p) => p.code === 'P7')!.citeePar).toContain('Procureur · question 1, réponse 1');
+    expect(avecQuestion.pieces.find((p) => p.code === nouvelle)!.citeePar).toContain('Procureur · question 1, réponse 1');
   });
 });
 

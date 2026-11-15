@@ -227,7 +227,7 @@ Garde-fous de coût : 2 procès en même temps au maximum, une alerte de budget,
 ```
 Datathon2026/
 ├── CLAUDE.md               les règles du projet (la référence)
-├── README.md               démarrage rapide et carte du dépôt
+├── README.md               démarrage rapide et organisation du dépôt
 ├── alphaforge_starter/     les données de marché fournies par le datathon
 ├── personas/               les profils et leurs Pactes (un fichier par profil)
 ├── config/                 les catégories (tech, crypto) communes à tous
@@ -247,7 +247,8 @@ Datathon2026/
 | Fichier | Rôle |
 |---|---|
 | `CLAUDE.md` | **Les règles du projet** : le but, l'architecture, le format du contrat, les pièges des données. En cas de doute, c'est lui qui fait foi. |
-| `README.md` | Comment démarrer, et la **carte du dépôt** : une ligne par fichier important. |
+| `README.md` | Comment démarrer, et l'organisation du dépôt par dossier. |
+| `docs/CARTE_DU_DEPOT.md` | La **carte du dépôt** : une ligne par fichier important, avec sa fiche du journal. |
 | `requirements.txt` | Les bibliothèques Python embarquées dans la Lambda. |
 | `requirements-dev.txt` | Les bibliothèques Python du poste de travail (dont pandas, aux mêmes versions que sur AWS). |
 | `pyproject.toml` | La configuration des tests. |

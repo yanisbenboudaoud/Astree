@@ -1,6 +1,6 @@
 # #131 — Écran Tribunal : débat sur un seul écran, verdict toujours visible
 
-- **Issue** : #131 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #131 · **PR** : #133 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

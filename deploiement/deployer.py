@@ -43,7 +43,7 @@ REGION = "us-east-1"
 FONCTION = "alphaforge-tribunal"
 ROLE = "alphaforge-lambda"
 COUCHE_PANDAS = "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python314:12"
-MODELE = "us.anthropic.claude-sonnet-5-5"
+MODELE = "global.anthropic.claude-sonnet-5-5"
 CONCURRENCE_RESERVEE = 2
 # Procès lancé en arrière-plan (#90). Aucune relance : un procès raté ne doit pas se rejouer
 # seul (nouveaux appels Bedrock). Un procès qui ne peut pas démarrer en 60 s (deux procès en

@@ -47,7 +47,7 @@ Valider un contrat JSON (`-X utf8` est nécessaire sous Windows pour afficher �
 | Variable | Rôle | Valeur |
 |---|---|---|
 | `AWS_REGION` | Région Bedrock | `us-east-1` |
-| `BEDROCK_MODEL_ID` | Modèle des agents (profil d'inférence) | `us.anthropic.claude-sonnet-5-5` ; `us.anthropic.claude-haiku-5-5` pour les tests |
+| `BEDROCK_MODEL_ID` | Modèle des agents (profil d'inférence) | `global.anthropic.claude-sonnet-5-5` ; `global.anthropic.claude-haiku-5-5` pour les tests |
 | `SOURCE_DONNEES` | Où lire les CSV | `local` (par défaut) ; `s3` dans la Lambda (#13), avec `BUCKET_PROJET` = nom du bucket |
 
 Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws login`.

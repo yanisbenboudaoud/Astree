@@ -59,7 +59,8 @@ async function attendreProces(page, profil, appels) {
   const phasesVues = new Set();
   while (!(await page.locator('#titre-bilan').count())) {
     if (Date.now() - debut > DELAI_PROCES_MS) throw new Error(`${profil} : pas de résultat après ${DELAI_PROCES_MS / 1000} s`);
-    const phase = await page.locator('li[aria-current="step"] .t-petit-fort').first().textContent({ timeout: 200 }).catch(() => null);
+    // Nom de la phase en cours (ChargementTribunal) ; .t-petit-fort y désigne les renvois du Greffier.
+    const phase = await page.locator('li[aria-current="step"] .t-intertitre').first().textContent({ timeout: 200 }).catch(() => null);
     if (phase) phasesVues.add(phase);
     await page.waitForTimeout(300);
   }
@@ -103,7 +104,9 @@ try {
     await axe(page, 'Robert · tribunal en direct');
     await page.screenshot({ path: `${DOSSIER}/direct-robert-tribunal.png`, fullPage: true });
 
-    // « Trompez le Greffier » sur ce vrai procès (POST /verifier, sans Bedrock).
+    // « Trompez le Greffier » sur ce vrai procès (POST /verifier, sans Bedrock), replié dans
+    // « Le dossier » depuis l'écran Tribunal sur une page (#131), comme dans greffier.mjs.
+    await page.getByRole('button', { name: /Mettre le Greffier à l’épreuve/ }).click();
     await page.getByRole('button', { name: 'Un chiffre inventé' }).click();
     try {
       await page.getByText(/Argument rejeté/).waitFor({ timeout: 10_000 });

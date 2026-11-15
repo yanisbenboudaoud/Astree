@@ -38,6 +38,7 @@ npm run dev          # http://localhost:5173
 | Questionnaire (#84, #86) : questions, cartes de portefeuilles, exemple de démonstration | `config/questionnaire.json`, avec `pipeline.questionnaire` | `src/data/generated/questionnaire.json` (et `decisions/investisseur_exemple/`) |
 | Profil créé par le questionnaire, en direct | la Lambda, avec `pipeline.vues_interface` (mêmes fonctions que le script) | `POST /profil` (vues renvoyées à la signature), `POST /table` (une table de décision par titre) |
 | Arguments, contrôles, pièces, trace | le Tribunal (Bedrock + Python) | procès enregistrés dans `src/data/proces/`, ou Lambda en direct |
+| Sources du dossier (#111) : chaque source, ses pièces et la raison de l'orchestrateur | champ `sources` du contrat, écrit par `pipeline/sources.py` | bloc « D'où viennent les données » de l'écran Tribunal (`domaine/sources.ts`) |
 | Libellés français, textes de démonstration | écrits à la main | `src/data/libelles.json`, `src/data/profils_ui.json` |
 
 Le script réutilise le code du pipeline : l'interface affiche exactement les chiffres que le Tribunal citerait (ex. : Robert, 30 % en TSLA → −29,0 %, 278 séances sous la limite, maximum conforme 9 %).

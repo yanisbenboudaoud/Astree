@@ -1,0 +1,60 @@
+# #111 — Diversité des sources : toutes les sources d'un procès, et les données macro
+
+- **Issue** : #111 · **PR** : à venir · **Statut** : en cours (code et tests faits ; redéploiement et procès de démo à refaire)
+- **Dernière mise à jour** : 2026-11-15
+
+## Ce qui a été construit
+**Partie B : le pouvoir d'achat dans les pièces de simulation**
+- **`pipeline/macro.py`** (nouveau) : lit `macro_rates.csv` comme les autres CSV (en local ou dans S3) et renvoie les séries canadiennes en décimales.
+  - `inflation(debut, fin)` : IPC du Canada chaîné par années entières, jusqu'au dernier mois publié avant la fin de la période ;
+  - `taux_au(serie, date)`, `taux_moyen(serie, debut, fin)` ;
+  - `rendement_reel(rendement, inflation)` : relation de Fisher, (1 + r) / (1 + π) − 1 ;
+  - `source_macro()`, `HYPOTHESE_TAUX_SANS_RISQUE`.
+- **`pipeline/simulation.py`** : les deux pièces de `simuler_portefeuille` gagnent des valeurs calculées en Python, sur le modèle des comparaisons en dollars de #107. Les agents peuvent les citer, et le Greffier les vérifie comme les autres.
+  - période complète : `inflation_annuelle`, `rendement_reel_annuel` et `_actuel`, `taux_sans_risque_moyen`, `ratio_sharpe` et `_actuel` ;
+  - rejeu de 2022 : `inflation_2022`, `rendement_reel_2022_actuel` et `_apres`, `taux_directeur_debut_2022`, `_fin_2022`, `_moyen_2022`, `obligation_10_ans_debut_2022` et `_fin_2022` ;
+  - la source, le traitement et les limites de la pièce sont complétés (`LIMITES_MACRO`, sans chiffre).
+- **`pipeline/debat.py`** : une ligne de consigne, « un rendement réel se compare à un rendement réel ; écris « après inflation » ou « réel » ».
+- **`pipeline/tribunal.py`** : l'hypothèse du taux sans risque est ajoutée quand une pièce l'utilise.
+
+**Partie A : toutes les sources d'un procès, reliées aux pièces**
+- **`pipeline/sources.py`** (nouveau) : `sources_du_proces(contrat)` construit le champ `sources` à partir du dossier. Une source n'y figure que si une pièce ou un contrôle s'en sert : Pacte, réponses de l'investisseur, prix, change, univers d'actifs, données macro, documents ESG, archives des verdicts.
+  - Chaque source a `nom`, `fichier` (sauf des réponses), `date_extraction`, `format`, `usage` ;
+  - `pieces` : chaque pièce qui l'utilise, avec la **raison de l'orchestrateur** reprise de la trace (ou une raison d'office pour le Pacte, le questionnaire et le Pacte vécu) ;
+  - `controles` : les règles du Pacte contrôlées grâce à elle (plafonds → univers, critère documentaire → documents).
+- **`pipeline/tribunal.py`** : `sources()` (deux sources fixes) remplacée par `sources_du_proces`, appelée à la fin du procès. **`pipeline/contre_interrogatoire.py`** : la liste est recalculée après chaque question (les dates déjà calculées sont gardées).
+- **`contrat/schema_sortie.json`** : `fichier` devient facultatif ; `format`, `usage`, `pieces` et `controles` facultatifs. **`contrat/valider.py`** : `erreurs_sources` (pièces existantes, règles contrôlées, pas de source en double). Les anciens contrats restent valides.
+- **`pipeline/proces_verbal.py`** : tableau « Source | Utilisée par (et pourquoi) ». Les procès-verbaux de démo sont régénérés.
+- **Interface** : bloc repliable « D'où viennent les données » sur l'écran Tribunal (`ecrans/Tribunal.tsx`). Chaque source montre ses pièces en pastilles cliquables et la raison de chacune ; une raison n'est écrite qu'une fois, sous la première source qui utilise la pièce (`domaine/sources.ts`). Types `SourceContrat` (`api/contrat.ts`) et `SourceDossier` (`api/types.ts`), adaptateur `adapterSource`.
+
+## Comment l'utiliser
+```python
+from pipeline.simulation import piece_simulation
+piece = piece_simulation("P3", portefeuille, decision, periode="2022")
+piece["valeurs"]["rendement_reel_2022_actuel"]   # −0,0837 pour Robert
+
+from pipeline.sources import sources_du_proces
+contrat["sources"] = sources_du_proces(contrat)  # fait par juger_decision et interroger
+```
+
+## Comment vérifier
+```bash
+pytest tests/test_macro.py tests/test_simulation.py tests/test_sources.py tests/test_proces_verbal.py
+python -m validation     # groupe 10 : pouvoir d'achat et taux
+cd frontend && npm test  # tests/sources.test.ts
+```
+Les tests vérifient : l'inflation de 2022 (6,3 %) et de la période complète (septembre 2021 → septembre 2026, 3,54 %/an) ; la relation de Fisher ; le ratio de Sharpe refait à partir de la pièce (Robert, 30 % en TSLA : 1,09 → 0,46) ; qu'un rendement réel cité passe `verifier_chiffres` et qu'une soustraction (−2,6 − 6,3 = −8,9 %) est rejetée ; qu'une pièce sans données macro reste valide ; les sources de Robert, Mateo (documents ESG) et du Pacte vécu (réponses) ; que chaque outil de l'orchestrateur a ses sources.
+
+## Choix faits en cours de route
+- **Taux sans risque : taux directeur moyen de la Banque du Canada** (l'équivalent d'un placement liquide en CAD), plutôt que l'obligation à 2 ans. Écrit dans les hypothèses du procès.
+- **Ratio de Sharpe avec le rendement annualisé composé** de la pièce, pour qu'un lecteur puisse le refaire à la main ; la moyenne arithmétique des rendements quotidiens donnerait un chiffre un peu différent, que la pièce n'affiche pas.
+- **Publication de l'IPC** (`CLAUDE.md`, section 6) : on mesure après coup le pouvoir d'achat d'une période terminée, avec des valeurs publiées avant l'extraction des données. Pour la période complète, l'inflation s'arrête au dernier mois publié (septembre 2026) : la période d'inflation est décalée de deux mois sur celle des prix, ce que dit le traitement de la pièce.
+- **Données macro facultatives** : si `macro_rates.csv` manque (par exemple dans le bucket), la pièce reste celle des prix seuls et le message va dans CloudWatch. La pièce obligatoire du procès ne doit pas échouer pour une donnée de contexte.
+- **La raison vient de la trace**, pas d'un nouvel appel à Bedrock : elle a été écrite au moment de choisir l'outil, avant le calcul.
+- **Univers d'actifs relié à toutes les pièces de prix** : il donne la devise de chaque titre (conversion en CAD), en plus des catégories des plafonds.
+- **`valeur_affichee` inchangée** : les nouveaux chiffres se lisent en ouvrant la pièce.
+
+## Limites et suite
+- **Redéployer et refaire les procès de démo** (`deploiement/deployer.py --sans-donnees` si `macro_rates.csv` est déjà dans `donnees/` du bucket, sinon sans l'option ; puis `deploiement/tester_function_url.py` et copie depuis S3, et `python -m pipeline.proces_verbal --demo`). Les procès enregistrés avant #111 n'ont ni données macro ni sources reliées : le bloc de l'interface montre leurs deux sources, sans pièces.
+- Dans l'interface, une question libre ajoute des pièces sans mettre à jour le bloc des sources (la route `/question` ne renvoie pas les sources) ; elles sont à jour dans le contrat archivé et le procès-verbal.
+- Rendre « Préserver mon capital » mesurable (nouveau type de règle) et chiffrer l'incertitude (plusieurs périodes, fourchettes) restent hors périmètre.

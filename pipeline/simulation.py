@@ -16,6 +16,9 @@ Méthode (CLAUDE.md, section 6 bis) :
   ``depuis_<ticker>`` (une seule ligne réduite).
 - **Indicateurs** : les fonctions de calcul de ``pipeline.indicateurs`` (#6),
   appliquées à la série de valeurs du portefeuille.
+- **Pouvoir d'achat** (#111) : inflation, rendements réels, taux et ratio de Sharpe,
+  tirés de ``pipeline.macro`` (Banque du Canada). Sans données macro, la pièce reste
+  celle des prix seuls : la pièce obligatoire du procès n'en dépend pas.
 
 Le code ne connaît aucun persona : il lit seulement le portefeuille reçu.
 V1 : décisions de type « position ». Les réallocations vers un panier arrivent
@@ -29,6 +32,7 @@ from typing import Any
 
 import pandas as pd
 
+from pipeline import macro
 from pipeline.donnees import ErreurDonnees, charger_donnees, date_extraction
 from pipeline.indicateurs import (
     DECIMALES_VALEURS,
@@ -46,6 +50,9 @@ TOLERANCE_POIDS = 1e-6
 
 LIMITES_PERIODE_COMPLETE = "Une seule période de {annees} ans ; biais du survivant ; le passé ne prédit pas l'avenir"
 LIMITES_REJEU = "Une seule année de crise ; la suivante peut être différente"
+# Ajoutée aux limites quand la pièce contient les données macro (#111). Sans chiffre : les
+# agents ne reprennent aucun nombre des limites (CLAUDE.md, section 4 ter).
+LIMITES_MACRO = "inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
 
 
 class ErreurSimulation(ValueError):
@@ -207,13 +214,92 @@ def piece_simulation(
         piece = _piece_periode_complete(id_piece, actuel, apres, decision)
         if capital:
             piece["valeurs"].update(comparaisons_periode_complete(piece["valeurs"], capital))
-        return piece
+        return _avec_contexte_macro(piece, lambda: contexte_macro_periode_complete(piece["valeurs"], apres.valeurs))
     if periode == "2022":
         piece = _piece_rejeu_2022(id_piece, actuel, apres, decision)
         if capital:
             piece["valeurs"].update(comparaisons_2022(piece["valeurs"], capital))
-        return piece
+        return _avec_contexte_macro(piece, lambda: contexte_macro_2022(piece["valeurs"]))
     raise ErreurSimulation(f"Période « {periode} » inconnue : « complete » ou « 2022 » attendue")
+
+
+def contexte_macro_periode_complete(valeurs: dict[str, Any], serie_apres: pd.Series) -> tuple[dict[str, float], str]:
+    """Inflation, rendements réels et ratio de Sharpe de la période complète (#111).
+
+    Calculés ici pour que l'agent n'en dérive aucun (section 4 ter, règle 6). Le ratio de
+    Sharpe reprend les valeurs affichées dans la pièce, pour qu'un lecteur puisse le refaire :
+    (rendement annualisé − taux sans risque moyen) ÷ volatilité annuelle.
+
+    Returns:
+        Les valeurs à ajouter à la pièce, et la phrase de méthode à ajouter au traitement.
+    """
+    debut, fin = serie_apres.index[0], serie_apres.index[-1]
+    mesure = macro.inflation(debut, fin)
+    sans_risque = macro.taux_moyen(macro.SERIE_TAUX_DIRECTEUR, debut, fin)
+    contexte = {
+        "inflation_annuelle": mesure.annuelle,
+        "rendement_reel_annuel": macro.rendement_reel(valeurs["rendement_annuel"], mesure.annuelle),
+        "rendement_reel_annuel_actuel": macro.rendement_reel(valeurs["rendement_annuel_actuel"], mesure.annuelle),
+        "taux_sans_risque_moyen": sans_risque,
+    }
+    for nom, rendement, volatilite in (
+        ("ratio_sharpe", "rendement_annuel", "volatilite_annuelle"),
+        ("ratio_sharpe_actuel", "rendement_annuel_actuel", "volatilite_annuelle_actuelle"),
+    ):
+        if valeurs[volatilite] > 0:
+            contexte[nom] = (valeurs[rendement] - sans_risque) / valeurs[volatilite]
+    traitement = (
+        f"inflation : IPC du Canada de {mesure.mois_debut} à {mesure.mois_fin} (dernier mois publié) ; "
+        "rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé "
+        "− taux directeur moyen) ÷ volatilité annuelle"
+    )
+    return _arrondir(contexte), traitement
+
+
+def contexte_macro_2022(valeurs: dict[str, Any]) -> tuple[dict[str, float], str]:
+    """L'année 2022 en pouvoir d'achat, et les taux qui l'expliquent (#111).
+
+    Inflation de l'année (IPC de décembre à décembre), rendements réels avant et après la
+    décision, taux directeur et obligation du Canada à 10 ans au début et à la fin de
+    l'année, et taux directeur moyen (ce qu'a rapporté un placement liquide en CAD).
+    """
+    debut, fin = (pd.Timestamp(date) for date in valeurs["periode"])
+    mesure = macro.inflation(debut, fin)
+    contexte = {
+        "inflation_2022": mesure.cumulee,
+        "rendement_reel_2022_actuel": macro.rendement_reel(valeurs["rendement_2022_actuel"], mesure.cumulee),
+        "rendement_reel_2022_apres": macro.rendement_reel(valeurs["rendement_2022_apres"], mesure.cumulee),
+        "taux_directeur_debut_2022": macro.taux_au(macro.SERIE_TAUX_DIRECTEUR, debut),
+        "taux_directeur_fin_2022": macro.taux_au(macro.SERIE_TAUX_DIRECTEUR, fin),
+        "taux_directeur_moyen_2022": macro.taux_moyen(macro.SERIE_TAUX_DIRECTEUR, debut, fin),
+        "obligation_10_ans_debut_2022": macro.taux_au(macro.SERIE_OBLIGATION_10_ANS, debut),
+        "obligation_10_ans_fin_2022": macro.taux_au(macro.SERIE_OBLIGATION_10_ANS, fin),
+    }
+    traitement = (
+        f"inflation : IPC du Canada de {mesure.mois_debut} à {mesure.mois_fin} ; rendement réel = "
+        "(1 + rendement) ÷ (1 + inflation) − 1 ; taux directeur et obligation à 10 ans au début et à la fin "
+        "de l'année"
+    )
+    return _arrondir(contexte), traitement
+
+
+def _avec_contexte_macro(piece: dict[str, Any], calculer) -> dict[str, Any]:
+    """Ajoute les données macro à la pièce ; sans elles, la pièce reste celle des prix seuls.
+
+    Une donnée macro manquante (fichier absent du bucket, mois non publié) ne doit pas
+    faire échouer la pièce obligatoire du procès : elle est signalée dans CloudWatch.
+    """
+    try:
+        contexte, traitement = calculer()
+        source = macro.source_macro()
+    except ErreurDonnees as erreur:
+        print(f"Données macro non ajoutées à {piece['id']} : {erreur}")
+        return piece
+    piece["valeurs"].update(contexte)
+    piece["source"] = f"{piece['source']} ; {source}"
+    piece["traitement"] = f"{piece['traitement']} ; {traitement}"
+    piece["limites"] = f"{piece['limites']} ; {LIMITES_MACRO}"
+    return piece
 
 
 def comparaisons_periode_complete(valeurs: dict[str, float], capital: float) -> dict[str, float]:

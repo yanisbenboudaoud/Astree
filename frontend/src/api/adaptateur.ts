@@ -2,8 +2,8 @@
  * Contrat du pipeline (CLAUDE.md, section 5) → types de l'écran Tribunal (annexe D.7).
  * Le même adaptateur sert aux procès enregistrés (mode démonstration) et au Tribunal en direct.
  */
-import type { ContratTribunal, EchangeContrat, EtapeTraceContrat, EtiquetteContrat, PieceContrat } from './contrat';
-import type { Argument, ArgumentRejete, Controle, Correction, Echange, EtapeTrace, Piece, Provenance, ResultatTribunal } from './types';
+import type { ContratTribunal, EchangeContrat, EtapeTraceContrat, EtiquetteContrat, PieceContrat, SourceContrat } from './contrat';
+import type { Argument, ArgumentRejete, Controle, Correction, Echange, EtapeTrace, Piece, Provenance, ResultatTribunal, SourceDossier } from './types';
 import { paragraphe, parGravite, statutUi } from '../domaine/pacte';
 import { phaseDeLEtape } from '../domaine/progression';
 import { part } from '../lib/format';
@@ -238,8 +238,22 @@ export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdapt
     argumentsRejetes,
     corrections,
     echanges: echangesContrat.map((e) => adapterEchange(e, contrat.pieces)),
+    sources: (contrat.sources ?? []).map((s) => adapterSource(s, regles)),
     procesId: contexte.procesId,
     contrat,
+  };
+}
+
+/** Une source du contrat → affichage : détails sur une ligne, pièces et libellés des règles (#111). */
+export function adapterSource(source: SourceContrat, regles: { id: string; libelle: string }[]): SourceDossier {
+  const libelles = new Map(regles.map((r) => [r.id, r.libelle]));
+  const date = source.date_extraction ? `extrait le ${source.date_extraction}` : undefined;
+  return {
+    nom: source.nom,
+    details: [source.fichier, source.format, date].filter(Boolean).join(' · '),
+    usage: source.usage,
+    pieces: (source.pieces ?? []).map((p) => ({ code: p.id, raison: p.raison })),
+    regles: (source.controles ?? []).map((id) => libelles.get(id) ?? id),
   };
 }
 

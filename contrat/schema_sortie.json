@@ -48,11 +48,31 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["nom", "fichier", "date_extraction"],
+        "required": ["nom", "date_extraction"],
         "properties": {
           "nom": {"type": "string", "minLength": 1},
           "fichier": {"type": "string", "minLength": 1},
-          "date_extraction": {"$ref": "#/$defs/date_iso"}
+          "date_extraction": {"$ref": "#/$defs/date_iso"},
+          "format": {"type": "string", "minLength": 1},
+          "usage": {"type": "string", "minLength": 1},
+          "pieces": {
+            "description": "Pièces qui utilisent cette source, avec la raison de l'orchestrateur ou d'office (#111).",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id"],
+              "properties": {
+                "id": {"$ref": "#/$defs/id_piece"},
+                "raison": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "controles": {
+            "description": "Règles du Pacte contrôlées grâce à cette source (#111).",
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          }
         }
       }
     },

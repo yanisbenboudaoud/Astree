@@ -122,3 +122,25 @@ def test_proces_verbaux_de_l_interface_a_jour():
     attendus = {f"{identifiant}.html": proces_verbal_html(contrat, identifiant) for identifiant, contrat in proces_demo()}
     presents = {chemin.name: chemin.read_text(encoding="utf-8") for chemin in DOSSIER_PV_DEMO.glob("*.html")}
     assert presents == attendus
+
+
+# --- Sources reliées aux pièces (#111) -------------------------------------------------
+
+
+def test_les_sources_montrent_leurs_pieces_et_leurs_raisons():
+    from pipeline.sources import sources_du_proces
+
+    contrat = lire(RACINE / "docs" / "exemples" / "contrat_robert.json")
+    contrat["sources"] = sources_du_proces(contrat)
+    page = proces_verbal_html(contrat)
+    assert "Utilisée par (et pourquoi)" in page
+    assert "Contrôle de la règle « plafond_crypto »" in page
+    assert "Toujours au dossier : les règles que le procès vérifie" in page
+    assert "assets_universe.csv, CSV" in page
+
+
+def test_une_source_a_l_ancien_format_reste_lisible():
+    contrat = lire(RACINE / "docs" / "exemples" / "contrat_robert.json")
+    contrat["sources"] = [{"nom": "Yahoo <b>Finance</b>", "fichier": "prices_daily.csv", "date_extraction": "2026-11-13"}]
+    page = proces_verbal_html(contrat)
+    assert "Yahoo &lt;b&gt;Finance&lt;/b&gt; (prices_daily.csv), extrait le 2026-11-13" in page

@@ -165,6 +165,9 @@ def test_interroger_ajoute_les_pieces_et_l_echange(monkeypatch):
     assert all(QUESTION in message for message in recus)
     assert pieces_de_l_echange(complete, echange) == [complete["pieces"][-1]]
     assert "contre_interrogatoire" not in depart  # le contrat reçu n'est pas modifié
+    # #111 : la pièce ajoutée rejoint ses sources, avec la raison de l'orchestrateur.
+    prix = next(s for s in complete["sources"] if s["fichier"] == "prices_daily.csv")
+    assert any(u["id"] == nouvelle and u.get("raison") for u in prix["pieces"])
 
 
 def test_un_chiffre_invente_est_rejete_par_le_greffier(monkeypatch):

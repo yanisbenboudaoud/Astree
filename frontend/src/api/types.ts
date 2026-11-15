@@ -111,9 +111,21 @@ export interface ResultatTribunal {
   corrections: Correction[];
   /** Questions libres déjà posées sur ce procès (contrat relu dans S3). */
   echanges: Echange[];
+  /** D'où viennent les données du procès, et pourquoi chacune a servi (#111). */
+  sources: SourceDossier[];
   procesId?: string;
   /** Contrat brut, pour le Verdict (taille maximale compatible, pièces de calcul). */
   contrat: ContratTribunal;
+}
+
+export interface SourceDossier {
+  nom: string;
+  /** « prices_daily.csv · CSV · extrait le 2026-11-13 » */
+  details: string;
+  usage?: string;
+  pieces: { code: string; raison?: string }[];
+  /** Libellés des règles du Pacte contrôlées grâce à cette source. */
+  regles: string[];
 }
 
 export interface SimulationDecision {

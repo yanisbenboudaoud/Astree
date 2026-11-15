@@ -237,7 +237,9 @@ Conventions : les nombres sont des **décimales** (0.30 = 30 %), en CAD sauf men
   ],
   "verdict": null,
   "hypotheses": ["Période : 2021-11-12 au 2026-11-12", "Rendements calculés sur adj_close", "Montants convertis en CAD", "Seuils du Pacte choisis par l'équipe"],
-  "sources": [{"nom": "Yahoo Finance via yfinance", "fichier": "prices_daily.csv", "date_extraction": "2026-11-13"}],
+  "sources": [{"nom": "Yahoo Finance via yfinance (prix ajustés)", "fichier": "prices_daily.csv", "date_extraction": "2026-11-13",
+               "format": "CSV", "usage": "Les prix des titres : simulations, rejeu de 2022, indicateurs",
+               "pieces": [{"id": "P1", "raison": "Pièce obligatoire : comparer le portefeuille avant et après la décision"}]}],
   "limites": ["Les rendements passés ne garantissent pas les rendements futurs", "Biais du survivant dans l'univers d'actifs"],
   "trace": [
     {"etape": "agent_profil", "outil": "charger_pacte", "entree": "robert", "sortie": "P3"},
@@ -259,6 +261,7 @@ Règles du contrat :
 - Dans `trace`, les appels de l'orchestrateur ont `etape: "orchestrateur"` et une `raison` courte, sans chiffre. Une pièce ajoutée d'office par Python a la raison « Pièce obligatoire ajoutée d'office ». Un appel refusé ou en erreur (outil non autorisé, raison invalide, titre hors univers, source manquante…) ne crée pas de pièce : sa `sortie` est « Erreur : <motif> ». La simulation obligatoire, elle, doit avoir produit une pièce. L'étape `calibrage` (Pacte vécu) donne les questions posées et les réponses, et sa `sortie` est la pièce `declaree`.
 - Les valeurs des pièces et de `comparaison` sont brutes (au moins 4 décimales) ; seul `valeur_affichee` est arrondi.
 - `verdict` est rempli par l'interface quand l'utilisateur choisit : `maintenu`, `modifie` ou `pacte_ajuste`.
+- `sources` (#111) : les sources **réellement utilisées** par le procès, construites par Python à partir du dossier (`pipeline/sources.py`) ; une source n'y figure que si une pièce ou un contrôle s'en sert. Chacune a `nom` et `date_extraction`, et, depuis #111, `fichier` (absent pour des réponses de l'investisseur), `format`, `usage`, `pieces` (chaque pièce qui l'utilise, avec la `raison` de l'orchestrateur reprise de la trace, ou une raison d'office) et `controles` (règles du Pacte contrôlées grâce à elle). Les contrats antérieurs (`nom`, `fichier`, `date_extraction` seulement) restent valides. Les pièces de `simuler_portefeuille` contiennent aussi les données macro de la Banque du Canada (`pipeline/macro.py`) : inflation, rendement réel (relation de Fisher), taux directeur, obligation à 10 ans, taux sans risque moyen et ratio de Sharpe.
 - `contre_interrogatoire` (facultatif, #55) : une entrée par question posée après le procès, avec `question`, `pieces_ajoutees`, `requisitoire`, `plaidoirie`, `arguments_rejetes`, `controle_chiffres` (contrôle `verifier_chiffres` de la réponse) et `trace`. Les pièces créées pour répondre sont ajoutées au champ `pieces`, numérotées à la suite : une question suivante peut les citer.
 
 ## 6. Pièges des données de départ (dossier `alphaforge_starter/`)
@@ -284,6 +287,8 @@ Ces choix ont servi à produire les chiffres de la maquette. Le code doit les re
 - **Rendement 2022** : dernière valeur de 2021 → dernière valeur de 2022.
 - **Simulation de portefeuille** : rééquilibrage quotidien aux poids cibles. Financement `proportionnel` (tous les titres réduits au prorata) ou `depuis_<ticker>` (une seule ligne réduite).
 - **Temps de récupération** : du sommet précédant la pire baisse jusqu'au retour à ce sommet.
+- **Inflation et rendement réel** (#111, `pipeline/macro.py`) : IPC du Canada (variation sur 12 mois, Banque du Canada), chaîné par années entières jusqu'au dernier mois **publié** avant la fin de la période (septembre 2026 pour la période complète, décembre 2022 pour le rejeu de 2022). On mesure après coup le pouvoir d'achat d'une période terminée, avec des valeurs toutes publiées avant l'extraction des données : aucune valeur n'est utilisée avant sa publication. Rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 (relation de Fisher).
+- **Taux sans risque et ratio de Sharpe** (#111) : taux directeur moyen de la Banque du Canada sur la période ; ratio de Sharpe = (rendement annualisé − taux sans risque) ÷ volatilité annualisée, avec les valeurs de la pièce (refaisable à la main).
 
 ## 7. Encadrement responsable (obligatoire)
 

@@ -38,6 +38,7 @@ from pipeline.chiffres import controle_verifier_chiffres
 from pipeline.debat import debattre
 from pipeline.llm import converser_avec_outils
 from pipeline.orchestrateur import instruire_question
+from pipeline.sources import sources_du_proces
 from pipeline.tribunal import bornes_periode, prochain_numero, verifier_cote
 
 LONGUEUR_MAX_QUESTION = 500  # une question tient en une ou deux phrases
@@ -103,6 +104,8 @@ def interroger(
     complete = copy.deepcopy(contrat)
     complete["pieces"] = copy.deepcopy(pieces)
     complete["contre_interrogatoire"] = [*contrat.get("contre_interrogatoire", []), echange]
+    # Les nouvelles pièces peuvent ajouter une source (ex. : les documents ESG) (#111).
+    complete["sources"] = sources_du_proces(complete, anciennes=contrat.get("sources"))
     return complete
 
 

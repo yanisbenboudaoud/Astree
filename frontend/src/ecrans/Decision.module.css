@@ -88,9 +88,9 @@
   overflow: hidden;
 }
 .piste > span { position: absolute; top: 0; bottom: 0; }
-.zoneCompatible { background: var(--statut-conforme-teinte); box-shadow: inset 0 0 0 1px rgb(11 122 75 / 0.25); }
+.zoneCompatible { background: var(--statut-conforme-teinte); box-shadow: inset 0 0 0 1px rgb(8 107 65 / 0.45); }
 /* Hors limite : hachures rouges claires, lisibles sans dépendre de la teinte seule (#103). */
-.zoneHors { background: repeating-linear-gradient(-45deg, rgb(194 38 29 / 0.28) 0 2px, var(--statut-violation-teinte) 2px 6px); }
+.zoneHors { background: repeating-linear-gradient(-45deg, rgb(179 33 26 / 0.45) 0 2px, var(--statut-violation-teinte) 2px 6px); }
 .pisteRemplie { left: 0; border-radius: var(--rayon-pilule); background: var(--encre-900); }
 .pisteHorsLimite { background: var(--statut-violation); }
 .repereLimite { width: 2px; margin-left: -1px; background: var(--encre-900); }

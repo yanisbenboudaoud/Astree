@@ -24,8 +24,8 @@
   align-items: start;
   gap: 4px 16px;
   padding: 18px 22px 18px 20px;
-  background: var(--fond-carte);
-  border: 1px solid var(--trait-fin);
+  background: color-mix(in srgb, var(--ton-teinte) 45%, var(--fond-carte));
+  border: 1px solid color-mix(in srgb, var(--ton) 35%, var(--fond-carte));
   border-left: 4px solid var(--ton);
   border-radius: var(--rayon);
 }
@@ -221,8 +221,8 @@
   min-width: 0;
   padding: 16px 18px 18px;
   border-radius: var(--rayon-moyen);
-  background: var(--fond-carte);
-  border: 1px solid var(--trait-fin);
+  background: color-mix(in srgb, var(--ton-teinte) 35%, var(--fond-carte));
+  border: 1px solid color-mix(in srgb, var(--ton) 35%, var(--fond-carte));
   border-top: 3px solid var(--ton);
   box-shadow: 0 1px 2px rgb(17 17 17 / 0.04);
 }

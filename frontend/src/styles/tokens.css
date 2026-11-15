@@ -1,47 +1,67 @@
 /* Jetons de design d'Astrée (spec de l'interface, annexe A).
-   Une couleur = un sens : rouge, ocre, vert pour les statuts du Greffier ;
-   prune et pétrole pour les deux camps ; bleu pour la sélection, le focus et les liens. */
+   Direction « fintech minimaliste » : fond blanc, encre presque noire, une seule famille sans empattement,
+   surfaces gris très clair, boutons en pilule, arrondis généreux.
+   Une couleur = un sens : rouge, ambre, vert pour les statuts du Greffier ;
+   framboise et sarcelle pour les deux camps ; bleu pour la sélection, le focus et les liens ;
+   indigo pour les données (courbes, répartition). Contrastes mesurés sur #ffffff. */
 :root {
-  --fond-papier: #f2eee5;
-  --fond-carte: #faf8f3;
-  --fond-creux: #e9e3d6;
-  --encre-900: #1a1712;
-  --encre-700: #3f3a31;
-  --encre-500: #675f52;
-  --encre-300: #a39a89; /* décoratif uniquement, jamais pour du texte */
-  --encre-200: #bdb4a2; /* décoratif uniquement (teintes de répartition) */
-  /* Filets et bords de cartes : décoratifs, 1,5:1 sur le papier. */
-  --trait-fin: #cbc3b2;
-  /* Bords et traits qui montrent un état ou un contrôle (pastilles, champs, boutons) :
-     au moins 3:1 sur le papier et sur les cartes (WCAG 1.4.11, #103). */
-  --trait-moyen: #8a8171;
-  --accent-bleu: #1e3a5c;
-  --accent-bleu-teinte: #dce4ee;
-  --statut-violation: #a1281d;
-  --statut-violation-teinte: #f5ddd8;
-  --statut-verifier: #8a5800;
-  --statut-verifier-teinte: #f4e5c2;
-  --statut-conforme: #2b6a3e;
-  --statut-conforme-teinte: #ddebdf;
-  --camp-procureur: #6b2f55;
-  --camp-procureur-teinte: #eedfe8;
-  --camp-avocat: #1f5a61;
-  --camp-avocat-teinte: #dae9ea;
-  --inverse-texte: #f2eee5;
+  --fond-papier: #ffffff;
+  --fond-carte: #ffffff;
+  --fond-creux: #f4f4f2;
+  --fond-sourdine: #f7f7f5; /* grands panneaux posés sur la page (recherche, Pacte) */
+  --encre-900: #111111; /* 18,9:1 */
+  --encre-700: #3a3a3a; /* 11,3:1 */
+  --encre-500: #626262; /* 6,1:1 */
+  --encre-300: #b5b5b5; /* décoratif uniquement, jamais pour du texte */
+  --encre-200: #dcdcdc; /* décoratif uniquement */
+  /* Filets et bords de cartes : décoratifs. */
+  --trait-fin: #e8e8e5;
+  /* Bords et traits qui montrent un état ou un contrôle : au moins 3:1 (WCAG 1.4.11, #103). */
+  --trait-moyen: #8a8a8a; /* 3,4:1 */
+  --accent-bleu: #2747c9; /* 7,3:1 */
+  --accent-bleu-teinte: #eef1fd;
+  --statut-violation: #c2261d; /* 5,6:1 */
+  --statut-violation-teinte: #fdeeed;
+  --statut-verifier: #9a5b00; /* 5,2:1 */
+  --statut-verifier-teinte: #fdf3e1;
+  --statut-conforme: #0b7a4b; /* 5,4:1 */
+  --statut-conforme-teinte: #e7f6ee;
+  --camp-procureur: #a3245c; /* 6,9:1 */
+  --camp-procureur-teinte: #fcedf3;
+  --camp-avocat: #0b6e79; /* 5,7:1 */
+  --camp-avocat-teinte: #e5f4f5;
+  --inverse-texte: #ffffff;
 
-  --police-titre: 'Newsreader', 'Iowan Old Style', Georgia, serif;
-  --police-texte: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
-  --police-mono: 'Atkinson Hyperlegible Mono', ui-monospace, 'Cascadia Mono', monospace;
+  /* Données : la décision en indigo, l'actuel en gris (3,4:1), une palette de catégories pour la répartition. */
+  --donnee-principale: #4c5fd5; /* 5,4:1 */
+  --donnee-principale-aire: rgb(76 95 213 / 0.16);
+  --donnee-secondaire: #8a8a8a;
+  --categorie-1: #4c5fd5;
+  --categorie-2: #17a2b8;
+  --categorie-3: #f2a93b;
+  --categorie-4: #a35bd6;
+  --categorie-5: #5cb85c;
+  --categorie-6: #ef7b6c;
+
+  --police-titre: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --police-texte: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Chiffres : la même famille, en chasse fixe (tabular-nums) ; la trace garde une vraie police à chasse fixe. */
+  --police-mono: 'Inter', system-ui, sans-serif;
+  --police-code: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
 
   /* Paysage (#103) : 1344 px = 1440 px − 2 × 48 px de marge. */
   --conteneur-large: 1344px;
   --conteneur-etroit: 776px;
   --colonne-laterale: 376px;
   --marge-page: 48px;
-  --rayon: 4px;
+  --rayon: 16px;
+  --rayon-moyen: 12px;
+  --rayon-petit: 8px;
+  --rayon-pilule: 999px;
   /* Retours visuels (#103) : ombre d'une carte cliquable survolée, durée des transitions. */
-  --ombre-survol: 0 2px 10px rgba(26, 23, 18, 0.1);
-  --transition: 120ms ease-out;
+  --ombre-survol: 0 4px 20px rgb(17 17 17 / 0.08);
+  --ombre-flottante: 0 12px 32px rgb(17 17 17 / 0.12);
+  --transition: 140ms ease-out;
 }
 
 @media (max-width: 1023px) {

@@ -3,8 +3,8 @@
   align-items: center;
   gap: 6px;
   padding: 2px 8px 2px 6px;
-  border: 1px solid var(--encre-700);
-  border-radius: 2px;
+  border: 1px solid var(--trait-moyen);
+  border-radius: var(--rayon-pilule);
   color: var(--encre-900);
   font-family: var(--police-texte);
   font-weight: 600;
@@ -33,8 +33,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 9px 3px 7px;
-  border-radius: 2px;
+  padding: 3px 10px 3px 8px;
+  border-radius: var(--rayon-pilule);
   font-family: var(--police-texte);
   font-weight: 600;
   font-size: 12px;
@@ -60,9 +60,10 @@
   gap: 4px;
   padding: 2px 7px 2px 5px;
   border: 1px solid var(--trait-moyen);
-  border-radius: 2px;
+  border-radius: var(--rayon-petit);
   background: var(--fond-carte);
   color: var(--encre-900);
+  font-weight: 600;
   font-family: var(--police-mono);
   font-size: 12px;
   line-height: 16px;

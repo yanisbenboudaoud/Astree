@@ -16,8 +16,8 @@ import { regleMesuree } from '../domaine/calibrage';
 import { useEtatProfil } from '../state/store';
 import styles from './Portefeuille.module.css';
 
-const TEINTES = ['var(--encre-900)', 'var(--encre-700)', 'var(--encre-500)', 'var(--encre-300)', 'var(--encre-200)', 'var(--trait-fin)'];
-const TEINTES_COURTES = ['var(--encre-900)', 'var(--encre-500)', 'var(--encre-300)'];
+const TEINTES = ['var(--categorie-1)', 'var(--categorie-2)', 'var(--categorie-3)', 'var(--categorie-4)', 'var(--categorie-5)', 'var(--categorie-6)'];
+const TEINTES_COURTES = ['var(--categorie-1)', 'var(--categorie-2)', 'var(--categorie-3)'];
 
 /** Titres proposés en un clic sous la recherche : ceux de la décision de démonstration du profil, puis des exemples variés. */
 const SUGGESTIONS_PAR_DEFAUT = ['TSLA', 'NVDA', 'XOM', 'BTC-USD'];

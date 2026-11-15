@@ -1,22 +1,24 @@
 .conteneur { width: 100%; display: flex; flex-direction: column; gap: 16px; }
 .svg { display: block; overflow: visible; }
 
-.repere { stroke: var(--trait-fin); stroke-width: 1; }
-.axe { fill: var(--encre-500); font-family: var(--police-mono); font-size: 12px; }
-.aire { fill: var(--encre-900); fill-opacity: 0.06; }
-.courbeValeur { fill: none; stroke: var(--encre-900); stroke-width: 1.75; stroke-linejoin: round; }
-.pointBas { fill: var(--fond-papier); stroke: var(--encre-900); stroke-width: 2; }
+.repere { stroke: var(--trait-fin); stroke-width: 1; stroke-dasharray: 2 4; }
+.axe { fill: var(--encre-500); font-family: var(--police-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.aire { fill: url(#degrade-valeur); }
+.degradeHaut { stop-color: var(--donnee-principale); stop-opacity: 0.22; }
+.degradeBas { stop-color: var(--donnee-principale); stop-opacity: 0; }
+.courbeValeur { fill: none; stroke: var(--donnee-principale); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.pointBas { fill: var(--fond-papier); stroke: var(--statut-violation); stroke-width: 2; }
 .annotation { fill: var(--encre-700); font-family: var(--police-texte); font-size: 13px; }
 .annotationForte { fill: var(--encre-900); font-family: var(--police-texte); font-size: 13px; font-weight: 600; }
 .annotationViolation { fill: var(--statut-violation); font-weight: 600; }
-.pastilleValeur { fill: var(--encre-900); }
-.texteInverse { fill: var(--inverse-texte); font-family: var(--police-mono); font-size: 12px; }
+.pastilleValeur { fill: var(--donnee-principale); }
+.texteInverse { fill: var(--inverse-texte); font-family: var(--police-mono); font-size: 12px; font-weight: 600; }
 
 /* Courbe « Actuel » : --trait-moyen (3,3:1) au lieu d'--encre-300 (2,4:1), WCAG 1.4.11 (#103). */
-.courbeActuel { fill: none; stroke: var(--trait-moyen); stroke-width: 1.5; stroke-linejoin: round; }
-.courbeDecision { fill: none; stroke: var(--encre-900); stroke-width: 2; stroke-linejoin: round; }
-.limite { stroke: var(--encre-900); stroke-width: 1.5; stroke-dasharray: 5 4; }
-.zoneSousLimite { fill: var(--statut-violation); fill-opacity: 0.22; }
+.courbeActuel { fill: none; stroke: var(--donnee-secondaire); stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
+.courbeDecision { fill: none; stroke: var(--donnee-principale); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.limite { stroke: var(--statut-violation); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.zoneSousLimite { fill: var(--statut-violation); fill-opacity: 0.12; }
 
 .legende {
   display: flex;
@@ -28,17 +30,17 @@
   line-height: 18px;
 }
 .legende li { display: inline-flex; align-items: center; gap: 6px; }
-.traitActuel { width: 18px; height: 1.5px; background: var(--trait-moyen); }
-.traitDecision { width: 18px; height: 2.5px; background: var(--encre-900); }
-.carreLimite { width: 14px; height: 10px; background: var(--statut-violation); opacity: 0.22; }
-.traitLimite { width: 18px; border-top: 1.5px dashed var(--encre-900); }
+.traitActuel { width: 18px; height: 2px; border-radius: 2px; background: var(--donnee-secondaire); }
+.traitDecision { width: 18px; height: 3px; border-radius: 2px; background: var(--donnee-principale); }
+.carreLimite { width: 14px; height: 10px; border-radius: 3px; background: var(--statut-violation); opacity: 0.12; }
+.traitLimite { width: 18px; border-top: 1.5px dashed var(--statut-violation); }
 
 /* Lecture dynamique de la courbe de valeur : repère, point et bulle (date · valeur). */
 .interactif { touch-action: pan-y; cursor: crosshair; }
 .interactif:focus-visible { outline-offset: 4px; }
-.repereLecture { stroke: var(--encre-700); stroke-width: 1; stroke-dasharray: 3 3; }
-.pointLecture { fill: var(--encre-900); stroke: var(--fond-papier); stroke-width: 2; }
-.bulle { fill: var(--fond-carte); stroke: var(--encre-700); stroke-width: 1; }
+.repereLecture { stroke: var(--encre-300); stroke-width: 1; }
+.pointLecture { fill: var(--donnee-principale); stroke: var(--fond-papier); stroke-width: 2.5; }
+.bulle { fill: var(--fond-carte); stroke: var(--trait-fin); stroke-width: 1; filter: drop-shadow(0 4px 12px rgb(17 17 17 / 0.1)); }
 .bulleDate { fill: var(--encre-700); font-family: var(--police-texte); font-size: 12px; }
 .bulleValeur { fill: var(--encre-900); font-family: var(--police-mono); font-size: 14px; font-weight: 600; }
 

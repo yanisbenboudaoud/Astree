@@ -6,44 +6,45 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
   gap: 48px;
   padding: 32px 36px;
-  border-radius: 4px;
-  background: var(--encre-900);
-  color: var(--inverse-texte);
+  border-radius: var(--rayon);
+  background: var(--fond-sourdine);
+  border: 1px solid var(--trait-fin);
+  color: var(--encre-900);
 }
 .principal { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .enteteBandeau { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
 .titres { display: flex; flex-direction: column; gap: 6px; }
-.surtitre { color: var(--inverse-texte); opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; }
-.titreBandeau { color: var(--inverse-texte); }
-.aide { color: var(--inverse-texte); opacity: 0.85; }
+.surtitre { color: var(--encre-500); text-transform: uppercase; letter-spacing: 0.08em; }
+.titreBandeau { color: var(--encre-900); }
+.aide { color: var(--encre-500); }
 .complement {
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding-left: 32px;
-  border-left: 1px solid rgba(242, 238, 229, 0.25);
+  border-left: 1px solid var(--trait-fin);
 }
 
 .modes {
   display: inline-flex;
   align-self: flex-end;
-  padding: 2px;
-  border: 1px solid var(--encre-300);
-  border-radius: 3px;
+  padding: 3px;
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-creux);
 }
 .mode {
   height: 32px;
   padding: 0 14px;
   border: 0;
-  border-radius: 2px;
+  border-radius: var(--rayon-pilule);
   background: none;
-  color: var(--inverse-texte);
+  color: var(--encre-700);
   font-weight: 600;
   font-size: 13px;
 }
-.mode:hover { background: rgba(255, 255, 255, 0.12); }
-.mode:focus-visible { outline: 2px solid var(--inverse-texte); outline-offset: 2px; }
-.modeActif, .modeActif:hover { background: var(--fond-carte); color: var(--encre-900); }
+.mode:hover { color: var(--encre-900); }
+.modeActif, .modeActif:hover { background: var(--fond-carte); color: var(--encre-900); box-shadow: 0 1px 3px rgb(17 17 17 / 0.12); }
 
 .panier { display: flex; flex-direction: column; gap: 8px; }
 .pastilles { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -55,6 +56,7 @@
   padding: 0 4px 0 10px;
   border-radius: 13px;
   background: var(--fond-carte);
+  border: 1px solid var(--trait-moyen);
   color: var(--encre-900);
   font-family: var(--police-mono);
   font-size: 12px;
@@ -79,15 +81,15 @@
   align-items: center;
   gap: 12px;
   height: 56px;
-  padding: 0 16px;
-  border: 1px solid var(--encre-500);
-  border-radius: 3px;
+  padding: 0 20px;
+  border: 1px solid var(--trait-moyen);
+  border-radius: var(--rayon-pilule);
   background: var(--fond-carte);
   color: var(--encre-700);
   transition: box-shadow var(--transition);
 }
-.champ:hover { box-shadow: 0 0 0 4px rgba(242, 238, 229, 0.22); }
-.champ:focus-within { border: 2px solid var(--accent-bleu); padding: 0 15px; box-shadow: 0 0 0 4px rgba(242, 238, 229, 0.3); }
+.champ:hover { border-color: var(--encre-700); box-shadow: var(--ombre-survol); }
+.champ:focus-within { border: 2px solid var(--accent-bleu); padding: 0 19px; box-shadow: 0 0 0 4px var(--accent-bleu-teinte); }
 .champ input {
   flex: 1;
   min-width: 0;
@@ -99,7 +101,7 @@
   outline: none;
 }
 .champ input::placeholder { color: var(--encre-500); opacity: 1; }
-.champ:has(input:focus-visible) { outline: 2px solid var(--inverse-texte); outline-offset: 2px; }
+.champ:has(input:focus-visible) { outline: none; }
 .effacer {
   display: inline-flex;
   align-items: center;
@@ -119,9 +121,10 @@
   right: 0;
   top: calc(100% + 4px);
   background: var(--fond-carte);
-  border: 1px solid var(--encre-700);
-  border-radius: 3px;
-  box-shadow: 0 8px 24px rgba(26, 23, 18, 0.18);
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon-moyen);
+  overflow: hidden;
+  box-shadow: var(--ombre-flottante);
   color: var(--encre-900);
   z-index: 30;
 }
@@ -150,8 +153,8 @@
   flex: none;
   height: 30px;
   padding: 0 10px;
-  border: 1.5px solid var(--encre-900);
-  border-radius: 3px;
+  border: 1px solid var(--trait-moyen);
+  border-radius: var(--rayon-pilule);
   background: var(--fond-carte);
   font-weight: 600;
   font-size: 13px;
@@ -168,7 +171,7 @@
 .piedListe kbd {
   padding: 1px 6px;
   border: 1px solid var(--trait-moyen);
-  border-radius: 2px;
+  border-radius: var(--rayon-petit);
   background: var(--fond-papier);
   font-family: var(--police-mono);
   font-size: 12px;
@@ -183,19 +186,18 @@
   gap: 6px;
   height: 32px;
   padding: 0 12px;
-  border: 1px solid var(--encre-300);
+  border: 1px solid var(--trait-moyen);
   border-radius: 16px;
-  background: transparent;
-  color: var(--inverse-texte);
+  background: var(--fond-carte);
+  color: var(--encre-900);
   font-size: 13px;
   line-height: 18px;
   transition: border-color var(--transition), transform var(--transition);
 }
-.suggestion:hover:not(:disabled) { background: var(--fond-carte); border-color: var(--fond-carte); color: var(--encre-900); }
+.suggestion:hover:not(:disabled) { background: var(--encre-900); border-color: var(--encre-900); color: var(--inverse-texte); }
 .suggestion:active:not(:disabled) { transform: translateY(1px); }
-.suggestion:focus-visible { outline: 2px solid var(--inverse-texte); outline-offset: 2px; }
 .suggestion:disabled { opacity: 0.6; cursor: default; }
-.tickerSuggestion { font-family: var(--police-mono); font-size: 12px; opacity: 0.8; }
+.tickerSuggestion { font-family: var(--police-mono); font-size: 12px; font-weight: 600; opacity: 0.75; }
 .instruirePanier { align-self: flex-start; }
 
 /* Sans fondu d'opacité : le texte garde son contraste pendant l'animation. */
@@ -206,7 +208,7 @@
 
 @media (max-width: 1023px) {
   .bandeau { grid-template-columns: 1fr; gap: 24px; padding: 24px; }
-  .complement { padding-left: 0; padding-top: 20px; border-left: 0; border-top: 1px solid rgba(242, 238, 229, 0.25); }
+  .complement { padding-left: 0; padding-top: 20px; border-left: 0; border-top: 1px solid var(--trait-fin); }
 }
 @media (max-width: 599px) {
   .bandeau { padding: 20px 16px; }

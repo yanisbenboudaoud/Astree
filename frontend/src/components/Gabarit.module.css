@@ -20,8 +20,8 @@
   gap: 8px;
   min-height: 28px;
   padding: 5px 16px;
-  background: var(--encre-900);
-  color: var(--inverse-texte);
+  background: var(--fond-creux);
+  color: var(--encre-700);
   font-size: 13px;
   line-height: 18px;
   text-align: center;
@@ -33,9 +33,10 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 16px;
-  min-height: 64px;
+  min-height: 72px;
   padding: 0 var(--marge-page);
   border-bottom: 1px solid var(--trait-fin);
+  background: var(--fond-papier);
 }
 .logo {
   display: inline-flex;
@@ -48,8 +49,8 @@
 .outils { display: flex; align-items: center; justify-content: flex-end; gap: 20px; grid-column: 3; }
 
 .procedure { display: flex; align-items: center; gap: 12px; }
-.etape { display: flex; align-items: center; gap: 10px; font-size: 15px; line-height: 22px; white-space: nowrap; }
-.liaison { width: 24px; height: 1px; background: var(--trait-moyen); margin-right: 2px; }
+.etape { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 22px; white-space: nowrap; }
+.liaison { width: 24px; height: 1px; background: var(--encre-300); margin-right: 2px; }
 .pastille {
   display: inline-flex;
   align-items: center;
@@ -58,10 +59,11 @@
   height: 26px;
   border-radius: 13px;
   font-family: var(--police-mono);
+  font-weight: 600;
   font-size: 12px;
   line-height: 16px;
 }
-.faite .pastille { border: 1.25px solid var(--encre-900); background: var(--fond-carte); color: var(--encre-900); }
+.faite .pastille { border: 1px solid var(--statut-conforme); background: var(--statut-conforme-teinte); color: var(--statut-conforme); }
 .courante { font-weight: 600; }
 .courante .pastille { background: var(--encre-900); color: var(--inverse-texte); }
 .avenir { color: var(--encre-500); }
@@ -91,8 +93,9 @@
   gap: 8px;
   padding: 16px;
   background: var(--fond-carte);
-  border: 1px solid var(--encre-700);
-  border-radius: 4px;
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon-moyen);
+  box-shadow: var(--ombre-flottante);
   z-index: 20;
 }
 
@@ -102,7 +105,7 @@
   gap: 8px;
   padding: 4px 10px 4px 4px;
   border: 1px solid var(--trait-moyen);
-  border-radius: 20px;
+  border-radius: var(--rayon-pilule);
   background: none;
   color: var(--encre-900);
   font-weight: 600;
@@ -129,8 +132,9 @@
   min-width: 200px;
   padding: 4px;
   background: var(--fond-carte);
-  border: 1px solid var(--encre-700);
-  border-radius: 4px;
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon-moyen);
+  box-shadow: var(--ombre-flottante);
   z-index: 20;
 }
 .elementMenu {
@@ -138,7 +142,7 @@
   width: 100%;
   padding: 10px 12px;
   border: 0;
-  border-radius: 2px;
+  border-radius: var(--rayon-petit);
   background: none;
   text-align: left;
   font-size: 15px;

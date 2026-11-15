@@ -18,7 +18,7 @@
 .sections .faite { color: var(--encre-700); }
 .sections .faite::before { content: '✓ '; color: var(--statut-conforme); }
 .sections .courante { color: var(--encre-900); font-weight: 600; }
-.barre { height: 4px; background: var(--fond-creux); border-radius: 2px; overflow: hidden; }
+.barre { height: 4px; background: var(--fond-creux); border-radius: var(--rayon-petit); overflow: hidden; }
 .barre span { display: block; height: 100%; background: var(--encre-900); transition: width 0.25s ease-out; }
 
 /* Question */
@@ -97,7 +97,7 @@
 }
 .enteteRegle { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
 .enteteRegle h3 { flex: 1; min-width: 200px; margin: 0; }
-.choisiParVous { padding: 2px 8px; border-radius: 2px; background: var(--accent-bleu-teinte); color: var(--accent-bleu); }
+.choisiParVous { padding: 2px 8px; border-radius: var(--rayon-petit); background: var(--accent-bleu-teinte); color: var(--accent-bleu); }
 .justification summary { cursor: pointer; color: var(--accent-bleu); }
 .justification p { margin: 6px 0 0; }
 .modifier { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }

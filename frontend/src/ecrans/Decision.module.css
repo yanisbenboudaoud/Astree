@@ -43,7 +43,7 @@
   height: 34px;
   padding: 0 12px;
   border: 1px solid var(--trait-moyen);
-  border-radius: 3px;
+  border-radius: var(--rayon-moyen);
   background: var(--fond-carte);
   color: var(--encre-900);
   font-weight: 600;
@@ -67,8 +67,8 @@
   white-space: nowrap;
   pointer-events: none;
 }
-.piste { position: absolute; left: 0; right: 0; top: 32px; height: 4px; border-radius: 2px; background: var(--trait-moyen); }
-.pisteRemplie { height: 4px; border-radius: 2px; background: var(--encre-900); transition: background-color var(--transition); }
+.piste { position: absolute; left: 0; right: 0; top: 32px; height: 4px; border-radius: var(--rayon-petit); background: var(--trait-moyen); }
+.pisteRemplie { height: 4px; border-radius: var(--rayon-petit); background: var(--encre-900); transition: background-color var(--transition); }
 .pisteHorsLimite { background: var(--statut-violation); }
 .entreeCurseur {
   position: absolute;
@@ -149,7 +149,7 @@
   border-bottom: 1px solid var(--trait-fin);
 }
 .nomLigne { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.pasAPas { display: inline-flex; align-items: stretch; border: 1px solid var(--trait-moyen); border-radius: 3px; background: var(--fond-carte); }
+.pasAPas { display: inline-flex; align-items: stretch; border: 1px solid var(--trait-moyen); border-radius: var(--rayon-moyen); background: var(--fond-carte); }
 .pasAPas button {
   display: inline-flex;
   align-items: center;
@@ -191,7 +191,7 @@
   overflow-x: auto;
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
-  border-radius: 4px;
+  border-radius: var(--rayon);
 }
 .tableauEffets table { width: 100%; border-collapse: collapse; }
 .tableauEffets th,
@@ -204,7 +204,7 @@
 .ligneViolation th .c-500 { color: var(--encre-700); }
 .celluleStatut { width: 1%; }
 /* Le chiffre « avec la décision » clignote quand il change (clé React = valeur). */
-.valeurApres { display: inline-block; padding: 0 4px; border-radius: 2px; animation: changement 0.6s ease-out; }
+.valeurApres { display: inline-block; padding: 0 4px; border-radius: var(--rayon-petit); animation: changement 0.6s ease-out; }
 @keyframes changement {
   from { background: var(--accent-bleu-teinte); }
   to { background: transparent; }

@@ -29,7 +29,7 @@
   gap: 10px;
   padding: 14px 20px;
   border: 1px solid var(--trait-fin);
-  border-radius: 4px;
+  border-radius: var(--rayon);
   background: var(--fond-carte);
 }
 
@@ -39,7 +39,7 @@
   gap: 10px;
   padding: 16px 20px;
   background: var(--fond-creux);
-  border-radius: 4px;
+  border-radius: var(--rayon);
 }
 .bascule ul { display: flex; flex-direction: column; gap: 10px; }
 .point { display: flex; flex-direction: column; gap: 2px; }
@@ -50,7 +50,7 @@
 .option {
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
-  border-radius: 4px;
+  border-radius: var(--rayon);
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 /* Retour visuel (#103) : l'option survolée se détache ; l'option choisie garde son bord encre. */
@@ -91,7 +91,7 @@
   gap: 4px;
   padding: 10px 12px;
   border: 1px solid var(--encre-500);
-  border-radius: 3px;
+  border-radius: var(--rayon-moyen);
   background: var(--fond-papier);
 }
 .zoneTexte:focus-within { border: 2px solid var(--accent-bleu); padding: 9px 11px; }
@@ -106,7 +106,7 @@
 .zoneTexte span { align-self: flex-end; }
 .case { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
 .case input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--encre-900); }
-.note { margin: 0 20px 18px 52px; padding: 10px 12px; background: var(--fond-creux); border-radius: 2px; }
+.note { margin: 0 20px 18px 52px; padding: 10px 12px; background: var(--fond-creux); border-radius: var(--rayon-petit); }
 
 .lienPacte { align-self: flex-start; text-decoration: underline; text-underline-offset: 3px; }
 

@@ -43,12 +43,16 @@
   --categorie-5: #5cb85c;
   --categorie-6: #ef7b6c;
 
-  /* Police du système sur Apple (SF Pro), Geist ailleurs : tirets et signe moins plus serrés qu'Inter. */
-  --police-titre: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Geist', 'Segoe UI', system-ui, sans-serif;
-  --police-texte: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Geist', 'Segoe UI', system-ui, sans-serif;
+  /*
+   * Titres et grands chiffres : Source Serif 4, un ton éditorial de presse financière.
+   * Texte : IBM Plex Sans, sobre, lisible en petit, chiffres alignés et vrai signe moins.
+   * Les mêmes polices sur tous les systèmes (plus de SF Pro ni de Geist selon la machine).
+   */
+  --police-titre: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --police-texte: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
   /* Chiffres : la même famille, en chasse fixe (tabular-nums) ; la trace garde une vraie police à chasse fixe. */
   --police-mono: var(--police-texte);
-  --police-code: ui-monospace, 'SF Mono', 'Geist Mono', 'Cascadia Mono', monospace;
+  --police-code: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
 
   /* Paysage : jusqu’à 1600 px de contenu, pour occuper un portable de 14 à 16 pouces (1344 px avant). */
   --conteneur-large: 1600px;

@@ -1,6 +1,6 @@
 # #14 — Interface Astrée : les écrans de la maquette, branchés sur le Tribunal
 
-- **Issue** : #14 · **PR** : #62, à venir · **Statut** : terminée
+- **Issue** : #14 · **PR** : #62, #71 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

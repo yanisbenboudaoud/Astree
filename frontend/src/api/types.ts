@@ -4,6 +4,7 @@
  * que ces types : brancher le vrai Tribunal ne demande de toucher que `api/`.
  */
 import type { ContratTribunal, DecisionContrat, StatutContrat } from './contrat';
+import type { PhaseProces } from '../domaine/progression';
 
 export type Provenance = 'Fait' | 'Hypothèse' | 'Fictif';
 export type Statut = 'Violation' | 'À vérifier' | 'Conforme';
@@ -42,9 +43,23 @@ export interface EtapeTrace {
   role: string;
   appel: string;
   etat: 'ok' | 'signalement';
+  /** Phase du procès où l'étape a lieu (#90). */
+  phase: PhaseProces;
   dureeMs?: number;
   raison?: string;
   sortie?: string;
+}
+
+/** Progression réelle d'un procès en direct (#90), relue sur la Lambda pendant l'attente. */
+export interface ProgressionTribunal {
+  /** Phase en cours ; null tant que le procès accepté n'a pas commencé. */
+  phase: PhaseProces | null;
+  /** Étapes déjà faites, dans l'ordre où elles ont eu lieu. */
+  etapes: EtapeTrace[];
+  /** Ce que le Tribunal fait en ce moment (« Argument renvoyé au Procureur… »). */
+  activite?: string;
+  /** Message sur le suivi lui-même (Tribunal occupé, réseau) : la relecture continue. */
+  avis?: string;
 }
 
 export interface ArgumentRejete {

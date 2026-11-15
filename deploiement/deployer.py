@@ -7,7 +7,8 @@
    ``politique_iam_lambda.json`` appliquée à ce bucket ;
 3. **Lambda** ``alphaforge-tribunal`` : créée, ou code et configuration mis à jour
    (python3.14, couche pandas, 300 s, 1024 Mo, variables d'environnement) ;
-4. **concurrence réservée** de 2 (coûts Bedrock) ;
+4. **concurrence réservée** de 2 (coûts Bedrock) ; **invocation asynchrone** (procès lancé
+   en arrière-plan, #90) sans relance automatique et abandonnée après 60 s d'attente ;
 5. **Function URL** : créée si elle manque, en ``NONE`` (un navigateur ne sait pas signer
    une requête AWS) avec un **CORS limité aux origines de l'interface** (#14) et la
    permission publique que Lambda exige : ``lambda:InvokeFunctionUrl`` et
@@ -44,6 +45,10 @@ ROLE = "alphaforge-lambda"
 COUCHE_PANDAS = "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python314:12"
 MODELE = "us.anthropic.claude-sonnet-5-5"
 CONCURRENCE_RESERVEE = 2
+# Procès lancé en arrière-plan (#90). Aucune relance : un procès raté ne doit pas se rejouer
+# seul (nouveaux appels Bedrock). Un procès qui ne peut pas démarrer en 60 s (deux procès en
+# cours) est abandonné, plutôt que de tourner quand l'interface a cessé d'attendre.
+INVOCATION_ASYNCHRONE = {"MaximumRetryAttempts": 0, "MaximumEventAgeInSeconds": 60}
 CONFIGURATION = {
     "Runtime": "python3.14",
     "Handler": "lambda_tribunal.handler",
@@ -56,7 +61,7 @@ CONFIGURATION = {
 ORIGINES_INTERFACE = ["http://localhost:5173"]
 STATEMENT_URL = "function-url-publique"
 STATEMENT_INVOCATION = "function-url-publique-invocation"
-ROUTES = "/tribunal, /verdict, /question, /verifier, /proces-verbal, /questionnaire, /profil"  # lambda_tribunal.ROUTES
+ROUTES = "/tribunal, /progression, /verdict, /question, /verifier, /proces-verbal, /questionnaire, /profil"  # lambda_tribunal.ROUTES
 CONFIANCE_LAMBDA = {
     "Version": "2012-10-17",
     "Statement": [{"Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"},
@@ -115,7 +120,8 @@ def preparer_role(iam, bucket: str) -> str:
         print(f"IAM : rôle {ROLE} créé")
         time.sleep(10)  # le temps que le nouveau rôle soit visible par Lambda
     iam.put_role_policy(RoleName=ROLE, PolicyName=ROLE, PolicyDocument=politique_pour_bucket(bucket))
-    print("IAM : politique minimale appliquée (Bedrock Sonnet 5.5 sur 3 régions, CloudWatch, bucket)")
+    print("IAM : politique minimale appliquée (Bedrock Sonnet 5.5 sur 3 régions, CloudWatch, bucket, "
+          "invocation de la fonction elle-même)")
     return arn
 
 
@@ -142,6 +148,13 @@ def deployer_fonction(lam, code: bytes, role_arn: str, bucket: str) -> None:
 def regler_concurrence(lam) -> None:
     lam.put_function_concurrency(FunctionName=FONCTION, ReservedConcurrentExecutions=CONCURRENCE_RESERVEE)
     print(f"Lambda : concurrence réservée de {CONCURRENCE_RESERVEE}")
+
+
+def regler_invocation_asynchrone(lam) -> None:
+    """Procès en arrière-plan (#90) : aucune relance automatique, abandon après 60 s d'attente."""
+    lam.put_function_event_invoke_config(FunctionName=FONCTION, **INVOCATION_ASYNCHRONE)
+    print("Lambda : invocation asynchrone sans relance, abandonnée après "
+          f"{INVOCATION_ASYNCHRONE['MaximumEventAgeInSeconds']} s d'attente")
 
 
 def cors_interface(origines: list[str]) -> dict:
@@ -216,6 +229,7 @@ def main(arguments: list[str] | None = None) -> int:
     zip_lambda = options.zip or construire()
     deployer_fonction(lam, zip_lambda.read_bytes(), role_arn, bucket)
     regler_concurrence(lam)
+    regler_invocation_asynchrone(lam)
     print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST : {ROUTES})")
     return 0
 

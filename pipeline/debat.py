@@ -28,7 +28,7 @@ from __future__ import annotations
 import json
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
 from pipeline.llm import appeler_llm
 
@@ -49,11 +49,27 @@ class ResultatDebat:
     trace: list[dict[str, Any]] = field(default_factory=list)
 
 
-def debattre(dossier: dict[str, Any]) -> ResultatDebat:
-    """Appelle le Procureur et l'Avocat **en même temps** sur le même dossier."""
+def debattre(
+    dossier: dict[str, Any],
+    signaler_etape: Callable[[dict[str, Any]], None] | None = None,
+) -> ResultatDebat:
+    """Appelle le Procureur et l'Avocat **en même temps** sur le même dossier.
+
+    Args:
+        signaler_etape: appelée avec l'étape de trace de chaque rôle **dès qu'il a
+            répondu**, depuis son fil d'exécution (progression en direct, #90) : le
+            premier qui finit est signalé le premier. La trace rendue garde l'ordre
+            fixe Procureur, puis Avocat.
+    """
+    def plaider_et_signaler(role: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        arguments, etape = plaider(role, dossier)
+        if signaler_etape is not None:
+            signaler_etape(etape)
+        return arguments, etape
+
     with ThreadPoolExecutor(max_workers=2) as executeur:
-        procureur = executeur.submit(plaider, "procureur", dossier)
-        avocat = executeur.submit(plaider, "avocat", dossier)
+        procureur = executeur.submit(plaider_et_signaler, "procureur")
+        avocat = executeur.submit(plaider_et_signaler, "avocat")
         requisitoire, etape_procureur = procureur.result()
         plaidoirie, etape_avocat = avocat.result()
     return ResultatDebat(requisitoire, plaidoirie, [etape_procureur, etape_avocat])

@@ -1,0 +1,70 @@
+.chargement { display: flex; flex-direction: column; gap: 16px; }
+.phases { display: flex; flex-direction: column; margin-top: 8px; }
+
+.phase {
+  position: relative;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 14px;
+  padding: 0 0 20px;
+}
+.phase::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 26px;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--trait-moyen);
+}
+.phase:last-child::before { display: none; }
+.phaseFaite::before { background: var(--encre-900); }
+
+.pastille {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  border: 1.25px solid var(--trait-moyen);
+  background: var(--fond-carte);
+  color: var(--encre-900);
+}
+.phaseFaite .pastille { border-color: var(--encre-900); }
+.phaseEnCours .pastille { border-color: var(--encre-900); }
+/* Phase en cours : pastille pulsée (immobile si l'utilisateur réduit les animations, base.css). */
+.phaseEnCours .pastille::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--encre-900);
+  animation: pulsation 1.2s ease-in-out infinite;
+}
+@keyframes pulsation {
+  0%, 100% { transform: scale(0.6); opacity: 0.55; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+.textePhase { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding-top: 3px; }
+.activite { display: flex; align-items: center; gap: 8px; }
+
+.etapes { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.etape {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 8px;
+  align-items: start;
+  animation: apparition 0.25s ease-out;
+}
+.etape code { overflow-wrap: anywhere; }
+.iconeEtape { display: inline-flex; padding-top: 2px; color: var(--encre-900); }
+.iconeSignalement { color: var(--statut-verifier); }
+@keyframes apparition {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+
+.avis { padding: 10px 14px; border-left: 4px solid var(--statut-verifier); background: var(--statut-verifier-teinte); }

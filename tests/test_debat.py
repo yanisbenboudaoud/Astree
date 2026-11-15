@@ -113,6 +113,28 @@ def test_debattre_appelle_les_deux_roles_en_parallele(monkeypatch):
     assert [etape["etape"] for etape in resultat.trace] == ["procureur", "avocat"]
 
 
+def test_debattre_signale_chaque_role_des_qu_il_repond(monkeypatch):
+    """#90 : l'Avocat répond avant le Procureur, il est signalé le premier ; la trace garde l'ordre fixe."""
+    procureur_peut_repondre = threading.Event()
+    signales = []
+
+    def faux_llm(systeme, message, schema):
+        if "Procureur" in systeme:
+            assert procureur_peut_repondre.wait(timeout=5)
+            return {"arguments": [{"etiquette": "fait", "texte": "Contre.", "pieces": ["P1"]}]}
+        return {"arguments": [{"etiquette": "fait", "texte": "Pour.", "pieces": ["P1"]}]}
+
+    def signaler(etape):
+        signales.append(etape["etape"])
+        procureur_peut_repondre.set()
+
+    monkeypatch.setattr(debat, "appeler_llm", faux_llm)
+    resultat = debat.debattre(DOSSIER, signaler_etape=signaler)
+
+    assert signales == ["avocat", "procureur"]
+    assert [etape["etape"] for etape in resultat.trace] == ["procureur", "avocat"]
+
+
 def test_corriger_argument_transmet_le_motif_du_greffier(monkeypatch):
     recu = {}
 

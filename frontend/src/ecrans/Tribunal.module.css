@@ -10,7 +10,6 @@
 .corpsLarge { max-width: calc(var(--conteneur-large) + 2 * var(--marge-page)); }
 .titre { display: flex; flex-direction: column; gap: 8px; }
 
-.chargement { display: flex; flex-direction: column; gap: 16px; }
 
 .bilan {
   display: grid;
@@ -117,7 +116,6 @@
   gap: 14px;
   padding: 0 0 18px;
 }
-.chargement .etapeChrono { grid-template-columns: 26px 140px 1fr; align-items: center; }
 .etapeChrono::before {
   content: '';
   position: absolute;
@@ -140,7 +138,6 @@
   color: var(--encre-900);
 }
 .pastilleSignalement { border-color: var(--statut-verifier); background: var(--statut-verifier-teinte); color: var(--statut-verifier); }
-.enCours .pastilleChrono { border-color: var(--trait-moyen); }
 .texteChrono { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .texteChrono code { overflow-wrap: anywhere; }
 
@@ -216,8 +213,6 @@
   .controle { grid-template-columns: 1fr; gap: 6px; }
   .lignePiece { grid-template-columns: auto auto 1fr; }
   .lignePiece > :last-child { grid-column: 1 / -1; }
-  .chargement .etapeChrono { grid-template-columns: 26px 1fr; }
-  .chargement .etapeChrono code { grid-column: 2; }
 }
 @media (max-width: 599px) {
   .saisie { flex-direction: column; }

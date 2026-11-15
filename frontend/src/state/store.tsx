@@ -14,6 +14,8 @@ export interface EtatTribunal {
   resultat?: ResultatTribunal;
   erreur?: string;
   decisionEnregistree?: DecisionUI | null;
+  /** Procès en direct accepté par la Lambda (#90) : de quoi reprendre la relecture de sa progression. */
+  procesId?: string;
 }
 
 export interface EtatVerdict {
@@ -137,9 +139,10 @@ export function FournisseurEtat({ children, initial }: { children: ReactNode; in
   const [etat, envoyer] = useReducer(reducteur, initial ?? {}, (i) => (initial ? i : lireStockage()));
   useEffect(() => {
     try {
+      // Un procès en direct déjà accepté (procesId) se reprend après un rechargement ; sinon on repart de zéro.
       const copie = Object.fromEntries(Object.entries(etat).map(([id, e]) => [
         id,
-        e.tribunal.statut === 'chargement' ? { ...e, tribunal: { statut: 'vide' } } : e,
+        e.tribunal.statut === 'chargement' && !e.tribunal.procesId ? { ...e, tribunal: { statut: 'vide' } } : e,
       ]));
       sessionStorage.setItem(CLE_STOCKAGE, JSON.stringify(copie));
     } catch {

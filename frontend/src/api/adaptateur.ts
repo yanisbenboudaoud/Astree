@@ -5,6 +5,7 @@
 import type { ContratTribunal, EchangeContrat, EtapeTraceContrat, EtiquetteContrat, PieceContrat } from './contrat';
 import type { Argument, ArgumentRejete, Controle, Correction, Echange, EtapeTrace, Piece, Provenance, ResultatTribunal } from './types';
 import { paragraphe, parGravite, statutUi } from '../domaine/pacte';
+import { phaseDeLEtape } from '../domaine/progression';
 import { part } from '../lib/format';
 
 export function provenanceUi(etiquette: EtiquetteContrat): Provenance {
@@ -72,7 +73,7 @@ export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
   }
   if (etape.raison && /d.office/i.test(etape.raison)) etat = 'signalement';
 
-  return { role, appel, etat, raison: etape.raison, sortie: idPiece };
+  return { role, appel, etat, phase: phaseDeLEtape(etape), raison: etape.raison, sortie: idPiece };
 }
 
 export function adapterPiece(p: PieceContrat, citeePar: string[] = []): Piece {

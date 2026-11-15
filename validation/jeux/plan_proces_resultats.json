@@ -1,0 +1,164 @@
+[
+ {
+  "decision": "tsla_30",
+  "demande": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)",
+  "profil": "robert",
+  "repetition": 1,
+  "proces_id": "2026-11-15-97eb693fa981",
+  "statut": 200,
+  "duree_s": 32.2
+ },
+ {
+  "decision": "tsla_30",
+  "demande": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)",
+  "profil": "amira",
+  "repetition": 1,
+  "proces_id": "2026-11-15-e3800bd7a4b4",
+  "statut": 200,
+  "duree_s": 63.7
+ },
+ {
+  "decision": "tsla_30",
+  "demande": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)",
+  "profil": "mateo",
+  "repetition": 1,
+  "proces_id": "2026-11-15-1965ff1e9e48",
+  "statut": 200,
+  "duree_s": 61.1
+ },
+ {
+  "decision": "panier_crypto_tech",
+  "demande": "Je veux tout réallouer vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %",
+  "profil": "robert",
+  "repetition": 1,
+  "proces_id": "2026-11-15-3a3d049e2179",
+  "statut": 200,
+  "duree_s": 57.5
+ },
+ {
+  "decision": "panier_crypto_tech",
+  "demande": "Je veux tout réallouer vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %",
+  "profil": "amira",
+  "repetition": 1,
+  "proces_id": "2026-11-15-f8f9eb150c08",
+  "statut": 200,
+  "duree_s": 41.2
+ },
+ {
+  "decision": "panier_crypto_tech",
+  "demande": "Je veux tout réallouer vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %",
+  "profil": "mateo",
+  "repetition": 1,
+  "proces_id": "2026-11-15-fb4c22680f5f",
+  "statut": 200,
+  "duree_s": 56.9
+ },
+ {
+  "decision": "xom_10",
+  "demande": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)",
+  "profil": "robert",
+  "repetition": 1,
+  "proces_id": "2026-11-15-b1ab8fd948b8",
+  "statut": 200,
+  "duree_s": 54.8
+ },
+ {
+  "decision": "xom_10",
+  "demande": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)",
+  "profil": "amira",
+  "repetition": 1,
+  "proces_id": "2026-11-15-ac60cbdafbad",
+  "statut": 200,
+  "duree_s": 61.9
+ },
+ {
+  "decision": "xom_10",
+  "demande": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)",
+  "profil": "mateo",
+  "repetition": 1,
+  "proces_id": "2026-11-15-39a6b77883c7",
+  "statut": 200,
+  "duree_s": 41.2
+ },
+ {
+  "decision": "tsla_30",
+  "demande": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)",
+  "profil": "robert",
+  "repetition": 2,
+  "proces_id": "2026-11-15-388cb2bcc830",
+  "statut": 200,
+  "duree_s": 32.6
+ },
+ {
+  "decision": "tsla_30",
+  "demande": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)",
+  "profil": "amira",
+  "repetition": 2,
+  "proces_id": "2026-11-15-04ad0146615f",
+  "statut": 200,
+  "duree_s": 47.3
+ },
+ {
+  "decision": "tsla_30",
+  "demande": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)",
+  "profil": "mateo",
+  "repetition": 2,
+  "proces_id": "2026-11-15-3c3e303149d8",
+  "statut": 200,
+  "duree_s": 44.5
+ },
+ {
+  "decision": "panier_crypto_tech",
+  "demande": "Je veux tout réallouer vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %",
+  "profil": "robert",
+  "repetition": 2,
+  "proces_id": "2026-11-15-ed26356d7b57",
+  "statut": 200,
+  "duree_s": 44.5
+ },
+ {
+  "decision": "panier_crypto_tech",
+  "demande": "Je veux tout réallouer vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %",
+  "profil": "amira",
+  "repetition": 2,
+  "proces_id": "2026-11-15-97661df6ea3a",
+  "statut": 200,
+  "duree_s": 39.7
+ },
+ {
+  "decision": "panier_crypto_tech",
+  "demande": "Je veux tout réallouer vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %",
+  "profil": "mateo",
+  "repetition": 2,
+  "proces_id": "2026-11-15-eb26d0c1aab8",
+  "statut": 200,
+  "duree_s": 57.4
+ },
+ {
+  "decision": "xom_10",
+  "demande": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)",
+  "profil": "robert",
+  "repetition": 2,
+  "proces_id": "2026-11-15-93121ce521d8",
+  "statut": 200,
+  "duree_s": 44.3
+ },
+ {
+  "decision": "xom_10",
+  "demande": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)",
+  "profil": "amira",
+  "repetition": 2,
+  "proces_id": "2026-11-15-293e756c8c74",
+  "statut": 200,
+  "duree_s": 44.2
+ },
+ {
+  "decision": "xom_10",
+  "demande": "Je veux mettre 10 % de mon portefeuille en Exxon Mobil (XOM)",
+  "profil": "mateo",
+  "repetition": 2,
+  "proces_id": "2026-11-15-e58fb632f023",
+  "statut": 200,
+  "duree_s": 44.6
+ }
+]

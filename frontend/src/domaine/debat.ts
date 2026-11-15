@@ -59,7 +59,7 @@ const REGLES: [Theme, RegExp][] = [
   ['valeurs', /controvers|poursuite|valeurs|ESG|climat/i],
   ['annee_2022', /2022/],
   ['taille', /jusqu.à \d|plus modeste|respecterait|serait respectée|au maximum respecte|(position|taille) de \d|\bà \d+(,\d+)?\s%\sen [A-Z]/i],
-  ['diversification', /ensemble|corrélation|\blien\b|\bliés\b|moteur|d.un seul bloc/i],
+  ['diversification', /ensemble|corrélation|\blien\b|\bliés\b|moteur|d.un seul bloc|indépendamment/i],
   ['regles', /crypto|\btech\b|règles calculables|seule la règle|équilibre|stabilité|votre Pacte (demande|prévoit|dit|pose)/i],
   ['rendement', /par an|rendement/i],
   ['perte', /pire moment|chute|pire baisse|perdu/i],

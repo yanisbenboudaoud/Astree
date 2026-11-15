@@ -1,6 +1,6 @@
 # #116 — Composition des FNB : plafonds calculés par transparence
 
-- **Issue** : #116 · **PR** : à venir · **Statut** : terminée (Lambda à redéployer ; procès de démo d'Amira à refaire)
+- **Issue** : #116 · **PR** : #140 · **Statut** : terminée (Lambda à redéployer ; procès de démo d'Amira à refaire)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

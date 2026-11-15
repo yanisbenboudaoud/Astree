@@ -19,6 +19,9 @@ Méthode (CLAUDE.md, section 6 bis) :
 - **Pouvoir d'achat** (#111) : inflation, rendements réels, taux et ratio de Sharpe,
   tirés de ``pipeline.macro`` (Banque du Canada). Sans données macro, la pièce reste
   celle des prix seuls : la pièce obligatoire du procès n'en dépend pas.
+- **Exposition en devise** (#112) : part du portefeuille dans chaque devise de cotation
+  (``part_usd``, ``part_cad``), avant et après la décision, dans la pièce de la période
+  complète : le risque de change d'un investisseur qui vit en CAD.
 
 Le code ne connaît aucun persona : il lit seulement le portefeuille reçu.
 V1 : décisions de type « position ». Les réallocations vers un panier arrivent
@@ -33,7 +36,7 @@ from typing import Any
 import pandas as pd
 
 from pipeline import macro
-from pipeline.donnees import ErreurDonnees, charger_donnees, date_extraction
+from pipeline.donnees import ErreurDonnees, charger_donnees, charger_univers, date_extraction
 from pipeline.indicateurs import (
     DECIMALES_VALEURS,
     calculer_pire_baisse,
@@ -53,6 +56,9 @@ LIMITES_REJEU = "Une seule année de crise ; la suivante peut être différente"
 # Ajoutée aux limites quand la pièce contient les données macro (#111). Sans chiffre : les
 # agents ne reprennent aucun nombre des limites (CLAUDE.md, section 4 ter).
 LIMITES_MACRO = "inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
+# Exposition en devise de la pièce de la période complète (#112), sans chiffre non plus.
+TRAITEMENT_DEVISES = "exposition en devise : part du portefeuille par devise de cotation (assets_universe.csv)"
+LIMITES_DEVISES = "exposition selon la devise de cotation, pas selon celle des titres détenus par un fonds"
 
 
 class ErreurSimulation(ValueError):
@@ -349,6 +355,40 @@ def comparaisons_2022(valeurs: dict[str, Any], capital: float) -> dict[str, floa
     }
 
 
+def exposition_devises(poids: dict[str, float]) -> dict[str, float]:
+    """Part du portefeuille dans chaque devise de cotation de l'univers (#112), valeurs brutes.
+
+    C'est le risque de devise : pour un investisseur qui vit en CAD, un titre coté en USD
+    varie aussi avec le taux USD/CAD. Toutes les devises de l'univers sont présentes, même
+    à 0, pour que la pièce ait toujours les mêmes clés et qu'aucun agent n'ait à calculer
+    la part restante (section 4 ter, règle 6).
+
+    Args:
+        poids: un poids par titre (``poids_apres_decision`` ou portefeuille de départ).
+
+    Returns:
+        Une part par devise, ex. ``{"CAD": 0.6, "USD": 0.4}``.
+
+    Raises:
+        ErreurDonnees: titre absent de assets_universe.csv (sa devise n'est jamais devinée).
+    """
+    devises = charger_univers().set_index("ticker")["currency"]
+    parts = {devise: 0.0 for devise in sorted(devises.unique())}
+    for ticker, part in poids.items():
+        if ticker not in devises.index:
+            raise ErreurDonnees(f"« {ticker} » est absent de assets_universe.csv : sa devise est inconnue")
+        parts[devises[ticker]] += part
+    return parts
+
+
+def valeurs_exposition_devises(poids_actuels: dict[str, float], poids_apres: dict[str, float]) -> dict[str, float]:
+    """Valeurs de la pièce : ``part_usd`` (après la décision) et ``part_usd_actuelle``, pour chaque devise."""
+    valeurs = {f"part_{devise.lower()}": part for devise, part in exposition_devises(poids_apres).items()}
+    valeurs.update({f"part_{devise.lower()}_actuelle": part
+                    for devise, part in exposition_devises(poids_actuels).items()})
+    return _arrondir(valeurs)
+
+
 def decision_simulee(decision: dict[str, Any]) -> tuple[str, dict[str, float]]:
     """Ce que la pièce dit de la décision simulée : un libellé pour le titre, et sa taille brute.
 
@@ -375,6 +415,7 @@ class _Simulation:
     """Valeurs quotidiennes d'un portefeuille rééquilibré chaque jour (départ à 1)."""
 
     def __init__(self, debut: pd.Timestamp, rendements_titres: pd.DataFrame, poids: dict[str, float]):
+        self.poids = poids
         ponderation = pd.Series(poids).reindex(rendements_titres.columns, fill_value=0.0)
         valeurs = (1 + rendements_titres @ ponderation).cumprod()
         # La valeur de départ (1) est datée de la première séance : un sommet possible.
@@ -454,7 +495,7 @@ def _piece_periode_complete(id_piece: str, actuel: _Simulation, apres: _Simulati
             "pire_baisse_actuelle": ind_actuel["pire_baisse"],
             "rendement_annuel_actuel": ind_actuel["rendement_annuel"],
             "volatilite_annuelle_actuelle": ind_actuel["volatilite_annuelle"],
-        }),
+        }) | valeurs_exposition_devises(actuel.poids, apres.poids),
         "valeur_affichee": (
             f"{formater_pourcentage(ind_apres['pire_baisse'])} max · "
             f"{formater_pourcentage(ind_apres['rendement_annuel'])}/an"
@@ -462,9 +503,9 @@ def _piece_periode_complete(id_piece: str, actuel: _Simulation, apres: _Simulati
         "source": source_des_prix(),
         "traitement": (
             "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage "
-            f"quotidien, {debut.date().isoformat()} → {fin.date().isoformat()}"
+            f"quotidien, {debut.date().isoformat()} → {fin.date().isoformat()} ; {TRAITEMENT_DEVISES}"
         ),
-        "limites": LIMITES_PERIODE_COMPLETE.format(annees=annees),
+        "limites": f"{LIMITES_PERIODE_COMPLETE.format(annees=annees)} ; {LIMITES_DEVISES}",
     }
 
 
@@ -525,7 +566,8 @@ def formater_pourcentage(valeur: float, decimales: int = 1) -> str:
 DESCRIPTION = (
     "Simule le portefeuille du profil avant et après la décision (prix en CAD, rééquilibrage "
     "quotidien) et produit une pièce. periode « complete » : pire baisse, rendement annualisé "
-    "et volatilité sur toute la période d'analyse. periode « 2022 » : rejeu de l'année où "
+    "et volatilité sur toute la période d'analyse, et part du portefeuille cotée en USD (risque "
+    "de devise). periode « 2022 » : rejeu de l'année où "
     "actions et obligations ont baissé ensemble. Pièce obligatoire : la simulation complète "
     "de la décision demandée."
 )

@@ -150,6 +150,17 @@
       ]
     },
     {
+      "id": "hors_canada", "nom_court": "Hors du Canada", "section": "Préférences et limites", "type": "choix",
+      "libelle": "Quelle part maximale de votre portefeuille accepteriez-vous hors du Canada (actions américaines, or, cryptoactifs) ?",
+      "alimente": "règle plafond sur la catégorie hors_canada (question facultative : passée, aucune règle ni contrôle ; aucune règle sans limite)",
+      "choix": [
+        {"id": "quart", "libelle": "Un quart", "max": 0.25},
+        {"id": "moitie", "libelle": "La moitié", "max": 0.50},
+        {"id": "trois_quarts", "libelle": "Les trois quarts", "max": 0.75},
+        {"id": "sans_limite", "libelle": "Pas de limite", "max": null}
+      ]
+    },
+    {
       "id": "exclusions", "nom_court": "Exclusions", "section": "Préférences et limites", "type": "choix_multiples",
       "libelle": "Y a-t-il des titres que vous ne voulez pas détenir ?",
       "alimente": "exclusion d'une catégorie (plafond à 0) ou critère documentaire",

@@ -1,28 +1,61 @@
 {
-  "description": "Catégories d'actifs utilisées par les règles de type « plafond » des Pactes. Un seul fichier pour tous les profils. Un titre appartient à une catégorie si sa classe d'actifs (asset_class) ou son secteur (sector) dans assets_universe.csv figure dans la définition, ou s'il est listé dans « ajouts ». Un titre absent de l'univers n'est jamais classé au hasard : le Greffier rend « a_verifier ».",
+  "description": "Catégories d'actifs utilisées par les règles de type « plafond » des Pactes. Un seul fichier pour tous les profils. Un titre appartient à une catégorie si sa classe d'actifs (asset_class), son secteur (sector) ou son marché de cotation (market) dans assets_universe.csv figure dans la définition, ou s'il est listé dans « ajouts » ; un titre listé dans « retraits » n'y appartient jamais. Un titre absent de l'univers n'est jamais classé au hasard : le Greffier rend « a_verifier ».",
   "etiquette": "hypothese",
-  "source": "alphaforge_starter/assets_universe.csv (champs asset_class et sector)",
+  "source": "alphaforge_starter/assets_universe.csv (champs asset_class, sector et market)",
   "categories": {
     "crypto": {
       "libelle": "Cryptoactifs",
       "classes_actifs": ["crypto"],
       "secteurs": [],
+      "marches": [],
       "ajouts": [],
+      "retraits": [],
       "justification": "Classe d'actifs « crypto » du fichier d'univers (BTC-USD, ETH-USD)."
     },
     "tech": {
       "libelle": "Technologie",
       "classes_actifs": [],
       "secteurs": ["Information Technology"],
+      "marches": [],
       "ajouts": ["GOOGL", "AMZN", "QQQ"],
+      "retraits": [],
       "justification": "Hypothèse de l'équipe : secteur GICS « Information Technology », plus GOOGL et AMZN (classés ailleurs par le GICS, mais à activité largement technologique) et QQQ (FNB Nasdaq-100 à forte pondération tech, compté en entier par simplicité)."
     },
     "energie_fossile": {
       "libelle": "Énergies fossiles",
       "classes_actifs": [],
       "secteurs": ["Energy"],
+      "marches": [],
       "ajouts": [],
+      "retraits": [],
       "justification": "Secteur GICS « Energy » du fichier d'univers (questionnaire, #84) : XOM (pétrole et gaz intégrés), CNQ.TO (production de pétrole et de gaz) et ENB.TO (transport de pétrole et de gaz par pipelines). Hypothèse de l'équipe : le transport est compté avec la production. Les fonds larges (SPY, XIU.TO…) ne sont pas comptés, même s'ils détiennent des titres de l'énergie."
+    },
+    "canada": {
+      "libelle": "Canada",
+      "classes_actifs": [],
+      "secteurs": [],
+      "marches": ["TSX"],
+      "ajouts": [],
+      "retraits": [],
+      "justification": "Diversification géographique (#112). Titres cotés à la Bourse de Toronto (market « TSX ») : 10 actions canadiennes et 3 FNB qui ne détiennent que des titres canadiens (XIU.TO, XBB.TO, ZST.TO). Hypothèse de l'équipe : la place de cotation donne la région. C'est vrai pour cet univers, pas pour tous les FNB : un FNB coté à Toronto qui détient des actions américaines (ex. : XSP, 98 % États-Unis, absent de l'univers) serait mis dans « retraits » ici et dans les « ajouts » de etats_unis."
+    },
+    "etats_unis": {
+      "libelle": "États-Unis",
+      "classes_actifs": [],
+      "secteurs": [],
+      "marches": ["NASDAQ", "NYSE", "NYSE Arca", "Cboe BZX"],
+      "ajouts": [],
+      "retraits": ["GLD"],
+      "justification": "Diversification géographique (#112). Titres cotés aux États-Unis : 10 actions américaines, FNB d'actions (SPY, QQQ, ESGV) et d'obligations (AGG, TLT) qui ne détiennent que des titres américains. GLD est retiré : coté à New York, il détient de l'or physique, qui n'a pas de pays. Les cryptoactifs (market « Crypto (24/7) ») n'ont pas de pays non plus. Hypothèse de l'équipe : la région est celle de la cotation et du siège, pas celle des revenus (une entreprise américaine vend dans le monde entier)."
+    },
+    "hors_canada": {
+      "libelle": "Placements hors du Canada",
+      "classes_actifs": [],
+      "secteurs": [],
+      "marches": ["NASDAQ", "NYSE", "NYSE Arca", "Cboe BZX", "Crypto (24/7)"],
+      "ajouts": [],
+      "retraits": [],
+      "justification": "Diversification géographique (#112) : tout ce qui n'est pas coté à Toronto, y compris l'or (GLD) et les cryptoactifs, qui n'ont pas de pays mais ne sont pas des placements canadiens. Sert à la question « part maximale hors du Canada » du questionnaire. Dans cet univers, ce sont aussi exactement les titres cotés en USD (champ currency) : leur valeur en CAD varie avec le taux de change USD/CAD."
     }
   }
 }

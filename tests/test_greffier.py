@@ -148,6 +148,41 @@ def test_titre_hors_univers_a_verifier_jamais_devine():
     assert "DOGE-USD" in controle["message"]
 
 
+# --- Plafonds géographiques (#112) --------------------------------------------------
+
+PLAFOND_ETATS_UNIS = regle("plafond_etats_unis", "plafond", categories=["etats_unis"], max=0.40)
+
+
+def test_plafond_etats_unis_depasse_violation():
+    # Robert : JNJ (10 %) ; avec 40 % de SPY financés au prorata, 46 % du portefeuille aux États-Unis.
+    profil = charger_pacte(PERSONAS / "robert.json")
+    poids = poids_apres_decision(profil["portefeuille"], {**TSLA_30, "ticker": "SPY", "taille": 0.40})
+    controle = verifier_pacte([PLAFOND_ETATS_UNIS], poids, None, "P3")[0]
+    assert controle["statut"] == "violation"
+    assert controle["message"] == "États-Unis : 46,0 % du portefeuille après la décision, au-delà du plafond de 40,0 %"
+
+
+def test_plafond_etats_unis_respecte_conforme():
+    profil = charger_pacte(PERSONAS / "robert.json")
+    poids = poids_apres_decision(profil["portefeuille"], {**TSLA_30, "ticker": "SPY", "taille": 0.30})
+    controle = verifier_pacte([PLAFOND_ETATS_UNIS], poids, None, "P3")[0]
+    assert controle["statut"] == "conforme"  # 10 % × 0,7 + 30 % = 37 %
+
+
+def test_l_or_et_la_crypto_ne_comptent_pas_aux_etats_unis_mais_hors_du_canada():
+    poids = {"GLD": 0.2, "BTC-USD": 0.2, "SPY": 0.3, "XIU.TO": 0.3}
+    assert controle_unique(PLAFOND_ETATS_UNIS, poids=poids)["statut"] == "conforme"  # SPY seul : 30 %
+    hors_canada = controle_unique(regle("hc", "plafond", categories=["hors_canada"], max=0.5), poids=poids)
+    assert hors_canada["statut"] == "violation"
+    assert hors_canada["message"].startswith("Placements hors du Canada : 70,0 % du portefeuille")
+
+
+def test_plafond_geographique_titre_hors_univers_a_verifier():
+    controle = controle_unique(PLAFOND_ETATS_UNIS, poids={"XSP.TO": 0.5, "SPY": 0.5})
+    assert controle["statut"] == "a_verifier"
+    assert controle["message"] == "États-Unis : part inconnue, titre absent de l'univers (XSP.TO)"
+
+
 # --- critere_documentaire et qualitative ---------------------------------------------
 
 def test_critere_documentaire_selon_la_piece():

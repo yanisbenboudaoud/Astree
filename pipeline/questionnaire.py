@@ -14,12 +14,14 @@ Barème (paramètres dans la config, étiquette « hypothese ») :
    investissait déjà. ``pire_baisse_max.seuil`` en découle, arrondi vers le prudent.
 3. La baisse **vraiment acceptée** n'est pas demandée ici : le Pacte vécu (#68) la
    mesure ensuite devant de vrais jours de marché, et le seuil mesuré l'emporte.
-4. Les préférences (crypto, concentration, exclusions, objectif, règle personnelle)
-   deviennent directement des règles ``plafond``, ``critere_documentaire`` ou
-   ``qualitative``.
+4. Les préférences (crypto, concentration, hors du Canada, exclusions, objectif,
+   règle personnelle) deviennent directement des règles ``plafond``,
+   ``critere_documentaire`` ou ``qualitative``.
 
 Une réponse manquante ne devine rien : la règle correspondante n'est pas créée
-et un contrôle « à vérifier » le dit (``detail_bareme``).
+et un contrôle « à vérifier » le dit (``detail_bareme``). Seule exception, la
+question facultative « hors du Canada » (#112) : passée, elle ne crée ni règle
+ni contrôle.
 
 Usage ::
 
@@ -283,7 +285,19 @@ def analyser(reponses: dict[str, Any], date_reponses: str) -> Analyse:
     else:
         manquante("concentration", "aucun plafond sectoriel n'est créé")
 
-    # 4. Exclusions : catégorie exclue (plafond à 0) ou critère documentaire.
+    # 4. Placements hors du Canada (#112) : question facultative, passée sans aucun contrôle.
+    if "hors_canada" in reponses:
+        maximum = _choix(q["hors_canada"], reponses["hors_canada"])["max"]
+        if maximum is not None:
+            libelle = f"Hors du Canada : {_part(maximum)} du portefeuille au maximum"
+            ajouter({"id": "plafond_hors_canada", "type": "plafond", "categories": ["hors_canada"], "max": maximum,
+                     "libelle": libelle,
+                     "justification": f"{entete} : {_citation(q['hors_canada'], reponses['hors_canada'])}. Hors du Canada : "
+                                      "tout titre qui n'est pas coté à Toronto (config/categories.json), donc en dollars "
+                                      "américains dans l'univers d'actifs : un risque de change en plus du risque des titres."},
+                    "fait", ["hors_canada"], libelle)
+
+    # 5. Exclusions : catégorie exclue (plafond à 0) ou critère documentaire.
     if "exclusions" in reponses:
         for id_choix in reponses["exclusions"]:
             choix = _choix(q["exclusions"], id_choix)
@@ -300,7 +314,7 @@ def analyser(reponses: dict[str, Any], date_reponses: str) -> Analyse:
     else:
         manquante("exclusions", "aucune exclusion n'est créée")
 
-    # 5. Objectif et règle personnelle : règles qualitatives, à juger par l'utilisateur.
+    # 6. Objectif et règle personnelle : règles qualitatives, à juger par l'utilisateur.
     if "objectif" in reponses:
         libelle = _choix(q["objectif"], reponses["objectif"])["regle"]
         ajouter({"id": "objectif", "type": "qualitative", "libelle": libelle,

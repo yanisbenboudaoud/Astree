@@ -187,8 +187,13 @@ def _part(valeur: float) -> str:
 
 
 def nom_categories(noms: list[str]) -> str:
-    """["tech", "crypto"] → « Technologie et cryptoactifs » (libellés de config/categories.json)."""
+    """["tech", "crypto"] → « Technologie et cryptoactifs » (libellés de config/categories.json).
+
+    Un libellé seul est repris tel quel : « États-Unis », « Placements hors du Canada » (#112).
+    """
     definitions = charger_categories()
     libelles = [definitions[nom]["libelle"] for nom in noms]
-    texte = libelles[0] if len(libelles) == 1 else ", ".join(libelles[:-1]) + " et " + libelles[-1]
+    if len(libelles) == 1:
+        return libelles[0]
+    texte = ", ".join(libelles[:-1]) + " et " + libelles[-1]
     return texte[0].upper() + texte[1:].lower()

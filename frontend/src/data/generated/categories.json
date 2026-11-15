@@ -1,5 +1,8 @@
 {
  "crypto": "Cryptoactifs",
  "tech": "Technologie",
- "energie_fossile": "Énergies fossiles"
+ "energie_fossile": "Énergies fossiles",
+ "canada": "Canada",
+ "etats_unis": "États-Unis",
+ "hors_canada": "Placements hors du Canada"
 }

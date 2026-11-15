@@ -23,6 +23,7 @@
     "quiz_baisse": "100",
     "crypto": "aucune",
     "concentration": "moitie",
+    "hors_canada": "moitie",
     "exclusions": ["energies_fossiles"],
     "regle_perso": "Pas de titre que je ne comprends pas"
   }

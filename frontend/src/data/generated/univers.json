@@ -9,7 +9,9 @@
   "devise": "CAD",
   "secteur": "Finance",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.21015,
   "volatilite": 0.154492,
   "chuteMax": -0.210155,
@@ -28,7 +30,9 @@
   "devise": "CAD",
   "secteur": "Finance",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.185135,
   "volatilite": 0.176496,
   "chuteMax": -0.26065,
@@ -47,7 +51,9 @@
   "devise": "CAD",
   "secteur": "Finance",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.260162,
   "volatilite": 0.215672,
   "chuteMax": -0.210465,
@@ -67,6 +73,7 @@
   "secteur": "Énergie",
   "groupe": "Actions canadiennes",
   "categories": [
+   "canada",
    "energie_fossile"
   ],
   "rendement": 0.128042,
@@ -88,6 +95,7 @@
   "secteur": "Énergie",
   "groupe": "Actions canadiennes",
   "categories": [
+   "canada",
    "energie_fossile"
   ],
   "rendement": 0.286765,
@@ -108,7 +116,9 @@
   "devise": "CAD",
   "secteur": "Industrie",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.04435,
   "volatilite": 0.198605,
   "chuteMax": -0.272475,
@@ -127,7 +137,9 @@
   "devise": "CAD",
   "secteur": "Services publics",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.127138,
   "volatilite": 0.14699,
   "chuteMax": -0.240108,
@@ -146,7 +158,9 @@
   "devise": "CAD",
   "secteur": "Consommation de base",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.113947,
   "volatilite": 0.24081,
   "chuteMax": -0.221591,
@@ -166,6 +180,7 @@
   "secteur": "Technologies de l'information",
   "groupe": "Technologie",
   "categories": [
+   "canada",
    "tech"
   ],
   "rendement": -8.7e-05,
@@ -187,6 +202,7 @@
   "secteur": "Technologies de l'information",
   "groupe": "Technologie",
   "categories": [
+   "canada",
    "tech"
   ],
   "rendement": 0.09992,
@@ -208,6 +224,8 @@
   "secteur": "Technologies de l'information",
   "groupe": "Technologie",
   "categories": [
+   "etats_unis",
+   "hors_canada",
    "tech"
   ],
   "rendement": 0.224284,
@@ -229,6 +247,8 @@
   "secteur": "Technologies de l'information",
   "groupe": "Technologie",
   "categories": [
+   "etats_unis",
+   "hors_canada",
    "tech"
   ],
   "rendement": 0.129237,
@@ -250,6 +270,8 @@
   "secteur": "Technologies de l'information",
   "groupe": "Technologie",
   "categories": [
+   "etats_unis",
+   "hors_canada",
    "tech"
   ],
   "rendement": 0.441914,
@@ -271,6 +293,8 @@
   "secteur": "Services de communication",
   "groupe": "Technologie",
   "categories": [
+   "etats_unis",
+   "hors_canada",
    "tech"
   ],
   "rendement": 0.181384,
@@ -292,6 +316,8 @@
   "secteur": "Consommation discrétionnaire",
   "groupe": "Technologie",
   "categories": [
+   "etats_unis",
+   "hors_canada",
    "tech"
   ],
   "rendement": 0.114765,
@@ -312,7 +338,10 @@
   "devise": "USD",
   "secteur": "Consommation discrétionnaire",
   "groupe": "Actions américaines",
-  "categories": [],
+  "categories": [
+   "etats_unis",
+   "hors_canada"
+  ],
   "rendement": 0.055333,
   "volatilite": 0.589116,
   "chuteMax": -0.708806,
@@ -331,7 +360,10 @@
   "devise": "USD",
   "secteur": "Finance",
   "groupe": "Actions américaines",
-  "categories": [],
+  "categories": [
+   "etats_unis",
+   "hors_canada"
+  ],
   "rendement": 0.214205,
   "volatilite": 0.238477,
   "chuteMax": -0.322449,
@@ -350,7 +382,10 @@
   "devise": "USD",
   "secteur": "Santé",
   "groupe": "Actions américaines",
-  "categories": [],
+  "categories": [
+   "etats_unis",
+   "hors_canada"
+  ],
   "rendement": 0.175205,
   "volatilite": 0.183676,
   "chuteMax": -0.155494,
@@ -369,7 +404,10 @@
   "devise": "USD",
   "secteur": "Consommation de base",
   "groupe": "Actions américaines",
-  "categories": [],
+  "categories": [
+   "etats_unis",
+   "hors_canada"
+  ],
   "rendement": 0.081517,
   "volatilite": 0.187872,
   "chuteMax": -0.234682,
@@ -389,7 +427,9 @@
   "secteur": "Énergie",
   "groupe": "Actions américaines",
   "categories": [
-   "energie_fossile"
+   "energie_fossile",
+   "etats_unis",
+   "hors_canada"
   ],
   "rendement": 0.288328,
   "volatilite": 0.259778,
@@ -418,7 +458,9 @@
   "devise": "CAD",
   "secteur": "Marché large (Canada)",
   "groupe": "Actions canadiennes",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.136579,
   "volatilite": 0.130156,
   "chuteMax": -0.163601,
@@ -437,7 +479,10 @@
   "devise": "USD",
   "secteur": "Marché large (É.-U.)",
   "groupe": "Actions américaines",
-  "categories": [],
+  "categories": [
+   "etats_unis",
+   "hors_canada"
+  ],
   "rendement": 0.144716,
   "volatilite": 0.166614,
   "chuteMax": -0.222457,
@@ -457,6 +502,8 @@
   "secteur": "Marché large (É.-U., croissance et tech)",
   "groupe": "Technologie",
   "categories": [
+   "etats_unis",
+   "hors_canada",
    "tech"
   ],
   "rendement": 0.153058,
@@ -477,7 +524,10 @@
   "devise": "USD",
   "secteur": "Marché large (É.-U., filtré ESG)",
   "groupe": "Actions filtrées ESG",
-  "categories": [],
+  "categories": [
+   "etats_unis",
+   "hors_canada"
+  ],
   "rendement": 0.128558,
   "volatilite": 0.180256,
   "chuteMax": -0.268629,
@@ -513,7 +563,9 @@
   "devise": "CAD",
   "secteur": "Obligations (Canada)",
   "groupe": "Revenu fixe",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.007122,
   "volatilite": 0.066812,
   "chuteMax": -0.154797,
@@ -532,7 +584,9 @@
   "devise": "CAD",
   "secteur": "Obligations (Canada, ultra court terme)",
   "groupe": "Revenu fixe",
-  "categories": [],
+  "categories": [
+   "canada"
+  ],
   "rendement": 0.034139,
   "volatilite": 0.005573,
   "chuteMax": -0.004283,
@@ -551,7 +605,10 @@
   "devise": "USD",
   "secteur": "Obligations (É.-U.)",
   "groupe": "Revenu fixe",
-  "categories": [],
+  "categories": [
+   "etats_unis",
+   "hors_canada"
+  ],
   "rendement": 0.022359,
   "volatilite": 0.073828,
   "chuteMax": -0.12751,
@@ -570,7 +627,10 @@
   "devise": "USD",
   "secteur": "Obligations (Trésor américain, long terme)",
   "groupe": "Revenu fixe",
-  "categories": [],
+  "categories": [
+   "etats_unis",
+   "hors_canada"
+  ],
   "rendement": -0.059357,
   "volatilite": 0.160528,
   "chuteMax": -0.397282,
@@ -589,7 +649,9 @@
   "devise": "USD",
   "secteur": "Or",
   "groupe": "Or",
-  "categories": [],
+  "categories": [
+   "hors_canada"
+  ],
   "rendement": 0.182103,
   "volatilite": 0.183868,
   "chuteMax": -0.259993,
@@ -609,7 +671,8 @@
   "secteur": "Cryptoactif",
   "groupe": "Cryptoactifs",
   "categories": [
-   "crypto"
+   "crypto",
+   "hors_canada"
   ],
   "rendement": 0.047578,
   "volatilite": 0.508453,
@@ -630,7 +693,8 @@
   "secteur": "Cryptoactif",
   "groupe": "Cryptoactifs",
   "categories": [
-   "crypto"
+   "crypto",
+   "hors_canada"
   ],
   "rendement": -0.132885,
   "volatilite": 0.679216,

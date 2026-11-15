@@ -14,7 +14,8 @@ régénère à l'identique.
 Un raté n'est jamais corrigé en silence : il reste dans le rapport. Si une règle est
 corrigée, la mesure suivante se fait sur un second jeu, écrit après la correction.
 
-Usage : ``python -m validation.evaluation chiffres``.
+Usage : ``python -m validation.evaluation chiffres``, ou, pour une évaluation qui relit
+les procès tenus au lieu d'un jeu, ``python -m validation.evaluation orchestrateur`` (#167).
 """
 
 from __future__ import annotations
@@ -131,11 +132,25 @@ def chemin_rapport(nom: str) -> Path:
     return DOSSIER_RAPPORTS / f"evaluation_{nom}.md"
 
 
+def _evaluations_sans_jeu() -> dict[str, Callable[[list[str]], tuple[str, str]]]:
+    """Évaluations qui lisent des procès tenus au lieu d'un jeu écrit à l'avance (#167)."""
+    from validation import evaluation_orchestrateur
+    return {"orchestrateur": evaluation_orchestrateur.executer}
+
+
 def main(arguments: list[str]) -> int:
-    if len(arguments) != 1:
-        print("Usage : python -m validation.evaluation <jeu>   (ex. : chiffres)")
+    if not arguments:
+        print("Usage : python -m validation.evaluation <jeu>   (ex. : chiffres, orchestrateur [--local])")
         return 2
-    nom = arguments[0]
+    nom, options = arguments[0], arguments[1:]
+    sans_jeu = _evaluations_sans_jeu()
+    if nom in sans_jeu:
+        chemin, resume = sans_jeu[nom](options)
+        print(f"{resume} → {chemin}")
+        return 0
+    if options:
+        print(f"Options inconnues pour le jeu « {nom} » : {' '.join(options)}")
+        return 2
     _, resultats, texte = evaluer_jeu(nom)
     chemin = chemin_rapport(nom)
     chemin.parent.mkdir(parents=True, exist_ok=True)

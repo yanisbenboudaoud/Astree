@@ -129,3 +129,7 @@ def test_rapport_garde_chaque_rate():
 
 def test_commande_sans_argument():
     assert main([]) == 2
+
+
+def test_option_inconnue_pour_un_jeu():
+    assert main(["chiffres", "--local"]) == 2

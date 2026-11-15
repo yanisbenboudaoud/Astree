@@ -8,7 +8,7 @@
   color: var(--encre-900);
   font-family: var(--police-texte);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 16px;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -37,7 +37,7 @@
   border-radius: var(--rayon-pilule);
   font-family: var(--police-texte);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 16px;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -65,7 +65,7 @@
   color: var(--encre-900);
   font-weight: 600;
   font-family: var(--police-mono);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 16px;
   white-space: nowrap;
   vertical-align: middle;

@@ -41,6 +41,54 @@ function parametres(entree: unknown): string {
 
 const ID_PIECE = /^P\d+$/;
 
+const VERIFICATIONS_GREFFIER: Record<string, string> = {
+  verifier_pacte: 'Vérifier chaque règle de votre Pacte',
+  verifier_chiffres: 'Vérifier chaque chiffre cité contre sa pièce',
+  verifier_cadre_simulation: 'Vérifier qu’aucun argument ne conseille ni ne promet',
+  'verifier_pacte+verifier_chiffres': 'Vérifier les règles du Pacte et chaque chiffre cité',
+};
+
+function arguments_(n: number | undefined): string {
+  return n === undefined ? 'ses arguments' : `${n} argument${n > 1 ? 's' : ''}`;
+}
+
+/** Ce que fait une étape, en langage courant, à partir de son outil et de ses paramètres. */
+function titreEtape(etape: EtapeTraceContrat, nombre: number | undefined, libelleDecision: string): string {
+  const outil = etape.outil ?? '';
+  const entree = (typeof etape.entree === 'object' && etape.entree !== null && !Array.isArray(etape.entree)
+    ? etape.entree : {}) as Record<string, unknown>;
+  const ticker = typeof entree.ticker === 'string' ? entree.ticker : undefined;
+  const avec = ticker && typeof entree.taille === 'number' ? ` avec ${part(entree.taille)} en ${ticker}`
+    : typeof entree.part_reallouee === 'number' ? ` avec ${part(entree.part_reallouee)} réallouée` : '';
+
+  if (outil === 'bedrock' && etape.etape === 'procureur') return `Le Procureur plaide contre : ${arguments_(nombre)}`;
+  if (outil === 'bedrock' && etape.etape === 'avocat') return `L’Avocat plaide pour : ${arguments_(nombre)}`;
+  if (outil === 'bedrock') return 'Comprendre votre demande';
+  if (outil === 'bedrock_correction') return 'Un argument renvoyé par le Greffier, puis corrigé';
+  if (outil === 'valider_decision') return libelleDecision ? `Décision retenue : ${libelleDecision}` : 'Décision retenue';
+  if (outil === 'charger_pacte') return 'Lire votre Pacte';
+  if (etape.etape === 'calibrage') return 'Reprendre vos réponses au Pacte vécu';
+  if (etape.etape === 'greffier') return VERIFICATIONS_GREFFIER[outil] ?? 'Contrôle du Greffier';
+  switch (outil) {
+    case 'simuler_portefeuille':
+      return entree.periode === '2022' ? `Rejouer l’année 2022${avec}` : `Simuler votre portefeuille${avec}`;
+    case 'indicateurs_actif':
+      return ticker ? `Mesurer le risque de ${ticker} seul` : 'Mesurer le risque du titre';
+    case 'calculer_correlations':
+      return Array.isArray(entree.tickers) ? `Voir si ${entree.tickers.join(', ')} bougent ensemble` : 'Voir si les titres bougent ensemble';
+    case 'taille_max_compatible':
+      return ticker ? `Chercher la plus grande part de ${ticker} compatible avec votre Pacte` : 'Chercher la plus grande part compatible avec votre Pacte';
+    case 'rechercher_documents':
+      return ticker ? `Chercher des sources sur ${ticker}` : 'Chercher des sources';
+    case 'consulter_jurisprudence':
+      return 'Relire vos verdicts passés';
+    case 'points_de_bascule':
+      return 'Trouver ce qui changerait la réponse';
+    default:
+      return outil.replace(/_/g, ' ');
+  }
+}
+
 export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
   const role = ROLES[etape.etape] ?? etape.etape;
   const outil = etape.outil ?? '';
@@ -66,14 +114,18 @@ export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
   else appel = `${outil}(${parametres(etape.entree)})`;
 
   const idPiece = typeof sortie === 'string' && ID_PIECE.test(sortie) ? sortie : undefined;
+  const libelleDecision = outil === 'valider_decision' && typeof sortie === 'object' && sortie !== null && 'libelle' in sortie
+    ? String((sortie as { libelle: string }).libelle) : '';
+  let titre = titreEtape(etape, nombre, libelleDecision);
   if (etape.etape === 'orchestrateur' && !idPiece) {
     // Appel refusé ou en erreur : pas de pièce, la sortie donne le motif (« Erreur : … », #65).
     etat = 'signalement';
     if (typeof sortie === 'string' && sortie) appel = `${appel} → ${sortie}`;
+    titre = `${titre} : refusé`;
   }
   if (etape.raison && /d.office/i.test(etape.raison)) etat = 'signalement';
 
-  return { role, appel, etat, phase: phaseDeLEtape(etape), raison: etape.raison, sortie: idPiece };
+  return { role, titre, appel, etat, phase: phaseDeLEtape(etape), raison: etape.raison, sortie: idPiece };
 }
 
 export function adapterPiece(p: PieceContrat, citeePar: string[] = []): Piece {

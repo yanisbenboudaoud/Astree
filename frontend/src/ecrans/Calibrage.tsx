@@ -7,7 +7,7 @@
  * (pipeline/calibrage.py) ; le Tribunal recalcule tout en Python à partir des réponses.
  */
 import type { ReactNode } from 'react';
-import type { Profil, QuestionCalibrage } from '../api/types';
+import type { Profil, QuestionBaisse, QuestionCalibrage } from '../api/types';
 import { donneesCalibrage, profil as profilDe } from '../api/donnees';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { GraphiqueValeur } from '../components/graphiques/GraphiqueValeur';
@@ -47,20 +47,20 @@ function Question({ question, onRepondre }: { question: QuestionCalibrage; onRep
           <h2 className="t-h2">Le {date(question.date_jour)}</h2>
           <span className="t-petit c-500">{question.serie}</span>
         </div>
-        <p className="t-corps">
-          Depuis son sommet du {date(question.date_sommet)}, la valeur a baissé de{' '}
-          <strong className={styles.baisse}>{pourcent(question.baisse)}</strong>. Vous ne savez pas ce qui se passe ensuite.
+        <p className="t-corps c-700">
+          <strong className={styles.baisse}>{pourcent(question.baisse)}</strong> depuis le sommet du {date(question.date_sommet)}.
         </p>
         <p className={styles.montants}>
           <span className="t-tableau">{dollars(question.valeur_sommet)}</span>
           <span className={styles.fleche} aria-hidden="true">→</span>
           <span className="visuellement-cache">sont devenus</span>
           <span className="t-chiffre-moyen">{dollars(question.valeur_jour)}</span>
-          <span className="t-petit c-500">sur votre capital, s’il était investi ainsi au sommet</span>
+          <span className="t-petit c-500">votre capital, investi au sommet</span>
         </p>
         <GraphiqueValeur
           serie={question.historique}
           pointBas={{ date: question.date_jour, valeur: question.valeur_jour, recul: question.baisse }}
+          hauteurTrace={300}
         />
         <p className="t-intertitre">Ce jour-là, que faites-vous ?</p>
       </>
@@ -124,6 +124,44 @@ function Question({ question, onRepondre }: { question: QuestionCalibrage; onRep
   );
 }
 
+/** Fil des jours, à gauche : jours répondus (date, baisse, réponse), jour en cours, jours encore possibles. */
+function Etapes({ jours, joursMax, question }: {
+  jours: { question: QuestionBaisse; reponse: string }[];
+  joursMax: number;
+  question: QuestionCalibrage;
+}) {
+  const enCours = question.type === 'baisse';
+  const restants = enCours ? Math.max(0, joursMax - jours.length - 1) : 0;
+  return (
+    <ol className={styles.etapes} aria-label="Progression">
+      {jours.map(({ question: q, reponse }, i) => (
+        <li key={q.id} className={`${styles.etape} ${styles.etapeFaite}`}>
+          <span className={styles.pastille} aria-hidden="true">{i + 1}</span>
+          <span className={styles.texteEtape}>
+            <span className="t-petit-fort">{date(q.date_jour)}</span>
+            <span className="t-petit c-500">
+              <span className={styles.baisse}>{pourcent(q.baisse)}</span> · {REPONSES_COURTES[reponse] ?? reponse}
+            </span>
+          </span>
+        </li>
+      ))}
+      <li className={`${styles.etape} ${styles.etapeCourante}`} aria-current="step">
+        <span className={styles.pastille} aria-hidden="true">{enCours ? jours.length + 1 : '?'}</span>
+        <span className={styles.texteEtape}>
+          <span className="t-petit-fort">{question.type === 'baisse' ? `Le ${date(question.date_jour)}` : 'Dernières questions'}</span>
+          <span className="t-petit c-500">En cours</span>
+        </span>
+      </li>
+      {Array.from({ length: restants }, (_, i) => (
+        <li key={i} className={styles.etape}>
+          <span className={styles.pastille} aria-hidden="true">{jours.length + 2 + i}</span>
+          <span className="t-petit c-500">Jour {jours.length + 2 + i}, si vous restez</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export function Calibrage({ profil }: { profil: Profil }) {
   useTitre('Pacte vécu');
   const { etat, definirCalibrage } = useEtatProfil(profil.id);
@@ -149,53 +187,46 @@ export function Calibrage({ profil }: { profil: Profil }) {
   const repondre = (choix: string) => question && definirCalibrage({ reponses: { ...reponses, [question.id]: choix }, date: aujourdhui() });
   const recommencer = () => definirCalibrage(null);
   const seuilDeclare = seuilPireBaisse(base);
-  const joursRepondus = resultat.jours.length;
   const demo = donnees.demo;
   const reponsesDemo = Boolean(demo) && JSON.stringify(Object.entries(reponses).sort()) === JSON.stringify(Object.entries(demo!.reponses).sort());
 
   return (
     <Gabarit nomProfil={profil.nom} idProfil={profil.id}>
-      <div className={styles.corps}>
+      <div className={`${styles.corps} ${styles.corpsLarge}`}>
         <LienRetour vers={`/${profil.id}/portefeuille`}>Portefeuille</LienRetour>
-        <div className={styles.titre}>
-          <p className="t-etiquette c-500">Pacte vécu</p>
-          <h1 className="t-h1">Revivez {resultat.joursMax} jours de marché</h1>
-          <p className="t-corps c-700">
-            {seuilDeclare !== undefined
-              ? `Votre Pacte fixe votre pire baisse tolérée à ${seuilTexte(seuilDeclare)}, mais ce chiffre est une hypothèse. `
-              : ''}
-            Mesurons-la : voici de vrais jours de baisse, en dollars, sans la suite. Répondez comme si c’était votre argent.
-          </p>
-        </div>
+        <div className={styles.grille}>
+          <aside className={styles.colonne}>
+            <div className={styles.titre}>
+              <p className="t-etiquette c-500">Pacte vécu</p>
+              <h1 className="t-h1">Revivez {resultat.joursMax} jours de marché</h1>
+              <p className="t-corps c-700">
+                {seuilDeclare !== undefined ? `Votre limite de ${seuilTexte(seuilDeclare)} est une hypothèse. ` : ''}
+                Revivez de vrais jours de baisse, sans connaître la suite.
+              </p>
+            </div>
+            {question && (
+              <>
+                <Etapes jours={resultat.jours} joursMax={resultat.joursMax} question={question} />
+                <p className={`t-petit c-700 ${styles.regle}`}>
+                  Votre limite = la baisse du dernier jour où vous restez investi.
+                </p>
+                <div className={styles.aide}>
+                  {Object.keys(reponses).length > 0 && (
+                    <Bouton variante="tertiaire" compact fleche={false} onClick={recommencer}>Recommencer</Bouton>
+                  )}
+                  {demo && (
+                    <Bouton variante="tertiaire" compact fleche={false} onClick={() => definirCalibrage({ reponses: demo.reponses, date: demo.date })}>
+                      Utiliser les réponses de démonstration
+                    </Bouton>
+                  )}
+                  {demo && <Provenance type="Fictif" />}
+                </div>
+              </>
+            )}
+          </aside>
 
-        {question && (
-          <>
-            <div className={styles.progression}>
-              <span className={styles.points} aria-hidden="true">
-                {Array.from({ length: resultat.joursMax }, (_, i) => (
-                  <span key={i} className={`${styles.point} ${i < joursRepondus ? styles.pointFait : ''} ${i === joursRepondus && question.type === 'baisse' ? styles.pointCourant : ''}`} />
-                ))}
-              </span>
-              <span className="t-petit c-500">
-                {question.type === 'baisse'
-                  ? `Jour ${joursRepondus + 1} sur ${resultat.joursMax} au plus`
-                  : 'Dernières questions'}
-              </span>
-            </div>
-            <Question key={question.id} question={question} onRepondre={repondre} />
-            <div className={styles.aide}>
-              {Object.keys(reponses).length > 0 && (
-                <Bouton variante="tertiaire" compact fleche={false} onClick={recommencer}>Recommencer</Bouton>
-              )}
-              {demo && (
-                <Bouton variante="tertiaire" compact fleche={false} onClick={() => definirCalibrage({ reponses: demo.reponses, date: demo.date })}>
-                  Utiliser les réponses de démonstration
-                </Bouton>
-              )}
-              {demo && <Provenance type="Fictif" />}
-            </div>
-          </>
-        )}
+          <div className={styles.principal}>
+        {question && <Question key={question.id} question={question} onRepondre={repondre} />}
 
         {!question && (
           <section className={styles.resultat} aria-labelledby="titre-resultat" role="status">
@@ -249,6 +280,8 @@ export function Calibrage({ profil }: { profil: Profil }) {
             </div>
           </section>
         )}
+          </div>
+        </div>
       </div>
     </Gabarit>
   );

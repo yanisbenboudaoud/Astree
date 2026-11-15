@@ -43,31 +43,44 @@ interface ProprietesMessage {
   aide?: string;
 }
 
-/** Message : fond teinte arrondi, icône de 20 px, bouton de correction compact. */
+/** « Cette taille enfreint votre Pacte (§1) » → titre sans renvoi + « §1 », affiché dans l'étiquette. */
+function separerParagraphe(titre: string): { titre: string; paragraphe?: string } {
+  const trouve = titre.match(/^(.*?)\s*\((?:Pacte\s*)?(§\d+)\)$/);
+  return trouve ? { titre: trouve[1], paragraphe: trouve[2] } : { titre };
+}
+
+/** Message : carte blanche, pastille d'icône teintée, étiquette de statut, pied séparé pour la correction. */
 export function Message({ type, titre, children, correction, aide }: ProprietesMessage) {
   const violation = type === 'Violation';
+  const { titre: titreCourt, paragraphe } = separerParagraphe(titre);
   return (
     <section className={`${styles.message} ${violation ? styles.messageViolation : styles.messageVerifier}`} aria-label={`${type} : ${titre}`}>
-      <span className={styles.iconeMessage}>
-        <Icone nom={violation ? 'interdit' : 'alerte'} taille={20} />
-      </span>
-      <div className={styles.texteMessage}>
-        <h2 className={`t-intertitre ${styles.titreMessage}`}>
-          <span className="visuellement-cache">{type} : </span>
-          {titre}
-        </h2>
-        <div className="t-corps">{children}</div>
-        {(correction || aide) && (
-          <div className={styles.correction}>
-            {correction && (
-              <Bouton variante="secondaire" compact onClick={correction.onClick}>
-                {correction.libelle}
-              </Bouton>
-            )}
-            {aide && <span className="t-petit c-700">{aide}</span>}
-          </div>
-        )}
+      <div className={styles.enteteMessage}>
+        <span className={styles.iconeMessage}>
+          <Icone nom={violation ? 'interdit' : 'alerte'} taille={18} />
+        </span>
+        <div className={styles.texteMessage}>
+          <span className={styles.statutMessage}>
+            {violation ? 'Hors Pacte' : 'À vérifier'}
+            {paragraphe && <span className={styles.paragrapheMessage}>Pacte {paragraphe}</span>}
+          </span>
+          <h2 className={`t-intertitre ${styles.titreMessage}`}>
+            <span className="visuellement-cache">{type} : </span>
+            {titreCourt}
+          </h2>
+          <div className={`t-corps ${styles.corpsMessage}`}>{children}</div>
+        </div>
       </div>
+      {(correction || aide) && (
+        <div className={styles.correction}>
+          {correction && (
+            <Bouton variante="secondaire" compact onClick={correction.onClick}>
+              {correction.libelle}
+            </Bouton>
+          )}
+          {aide && <span className="t-petit c-700">{aide}</span>}
+        </div>
+      )}
     </section>
   );
 }

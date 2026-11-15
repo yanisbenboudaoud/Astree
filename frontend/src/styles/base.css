@@ -11,9 +11,10 @@ body {
   background: var(--fond-papier);
   color: var(--encre-900);
   font-family: var(--police-texte);
-  font-size: 15px;
-  line-height: 22px;
-  font-feature-settings: 'kern', 'cv11', 'ss01';
+  font-size: 17px;
+  line-height: 26px;
+  font-feature-settings: 'kern';
+  text-rendering: optimizeLegibility;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
@@ -33,21 +34,21 @@ a { color: var(--accent-bleu); }
 }
 
 /* Styles typographiques de l'annexe A.2 : une seule famille, titres serrés et gras, chiffres en chasse fixe. */
-.t-affiche { font-family: var(--police-titre); font-weight: 600; font-size: 52px; line-height: 58px; letter-spacing: -0.035em; }
-.t-h1 { font-family: var(--police-titre); font-weight: 600; font-size: 38px; line-height: 44px; letter-spacing: -0.03em; }
-.t-h2 { font-family: var(--police-titre); font-weight: 600; font-size: 24px; line-height: 30px; letter-spacing: -0.02em; }
-.t-panneau { font-family: var(--police-titre); font-weight: 600; font-size: 19px; line-height: 26px; letter-spacing: -0.015em; }
-.t-citation { font-family: var(--police-titre); font-style: italic; font-weight: 400; font-size: 17px; line-height: 26px; color: var(--encre-700); }
-.t-intertitre { font-family: var(--police-texte); font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.005em; }
-.t-corps { font-family: var(--police-texte); font-weight: 400; font-size: 15px; line-height: 22px; }
-.t-corps-fort { font-family: var(--police-texte); font-weight: 600; font-size: 15px; line-height: 22px; }
-.t-petit { font-family: var(--police-texte); font-weight: 400; font-size: 13px; line-height: 18px; }
-.t-petit-fort { font-family: var(--police-texte); font-weight: 600; font-size: 13px; line-height: 18px; }
-.t-etiquette { font-family: var(--police-texte); font-weight: 600; font-size: 12px; line-height: 16px; letter-spacing: 0.01em; }
-.t-chiffre-moyen { font-family: var(--police-titre); font-weight: 600; font-size: 28px; line-height: 32px; letter-spacing: -0.03em; }
-.t-tableau { font-family: var(--police-mono); font-weight: 400; font-size: 14px; line-height: 20px; }
-.t-tableau-fort { font-family: var(--police-mono); font-weight: 600; font-size: 14px; line-height: 20px; }
-.t-trace { font-family: var(--police-code); font-weight: 400; font-size: 12px; line-height: 16px; }
+.t-affiche { font-family: var(--police-titre); font-weight: 600; font-size: 56px; line-height: 62px; letter-spacing: -0.03em; }
+.t-h1 { font-family: var(--police-titre); font-weight: 600; font-size: 40px; line-height: 46px; letter-spacing: -0.025em; }
+.t-h2 { font-family: var(--police-titre); font-weight: 600; font-size: 26px; line-height: 32px; letter-spacing: -0.02em; }
+.t-panneau { font-family: var(--police-titre); font-weight: 600; font-size: 21px; line-height: 28px; letter-spacing: -0.015em; }
+.t-citation { font-family: var(--police-titre); font-style: italic; font-weight: 400; font-size: 18px; line-height: 28px; color: var(--encre-700); }
+.t-intertitre { font-family: var(--police-texte); font-weight: 600; font-size: 17px; line-height: 24px; letter-spacing: -0.005em; }
+.t-corps { font-family: var(--police-texte); font-weight: 400; font-size: 17px; line-height: 26px; }
+.t-corps-fort { font-family: var(--police-texte); font-weight: 600; font-size: 17px; line-height: 26px; }
+.t-petit { font-family: var(--police-texte); font-weight: 400; font-size: 15px; line-height: 21px; }
+.t-petit-fort { font-family: var(--police-texte); font-weight: 600; font-size: 15px; line-height: 21px; }
+.t-etiquette { font-family: var(--police-texte); font-weight: 600; font-size: 13px; line-height: 18px; letter-spacing: 0.01em; }
+.t-chiffre-moyen { font-family: var(--police-titre); font-weight: 600; font-size: 30px; line-height: 36px; letter-spacing: -0.03em; }
+.t-tableau { font-family: var(--police-mono); font-weight: 400; font-size: 15px; line-height: 22px; }
+.t-tableau-fort { font-family: var(--police-mono); font-weight: 600; font-size: 15px; line-height: 22px; }
+.t-trace { font-family: var(--police-code); font-weight: 400; font-size: 13px; line-height: 18px; }
 
 .c-500 { color: var(--encre-500); }
 .c-700 { color: var(--encre-700); }

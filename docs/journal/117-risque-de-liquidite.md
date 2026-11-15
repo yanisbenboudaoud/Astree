@@ -14,7 +14,7 @@
 - **`pipeline/sources.py`** : nouvelle source « Yahoo Finance via yfinance (volumes et prix de clôture) », fichier `prices_daily.csv`, reliée aux pièces de liquidité avec le change et l'univers.
 - **`pipeline/debat.py`** : une phrase de consigne, « les montants échangés existent aussi en millions : « 1,6 million $ par jour » ; n'écris jamais « milliard » ».
 - **Interface** : libellé de l'étape dans la trace (`api/adaptateur.ts`).
-- **Validation** (`validation/scenarios.py`, groupe 11) : ligne la plus longue à revendre, volume crypto, titre sans volume (55/55).
+- **Validation** (`validation/scenarios.py`, groupe 12) : ligne la plus longue à revendre, volume crypto, titre sans volume (58/58).
 - **Documentation** : `CLAUDE.md` (section 4 bis, outil 9), carte du `README.md`, `docs/GUIDE_DU_PROJET.md`.
 
 ## Comment l'utiliser
@@ -29,7 +29,7 @@ Profil prudent avec 30 % de TSLA : la ligne la plus longue à revendre n'est pas
 ## Comment vérifier
 ```bash
 pytest tests/test_liquidite.py
-python -m validation          # groupe 11
+python -m validation          # groupe 12
 ```
 - **Calcul à la main** : 1 000 × 10 $ + 2 000 × 11 $ + (volume absent, ignoré) + 0 × 13 $ = 32 000 $ sur 3 séances ; 5 000 $ à 10 % des échanges = 4,6875 jours. Conversion au taux de chaque séance ; volume crypto non multiplié par le prix.
 - **Titre sans volume** : valeur absente (`None`), listé dans `titres_sans_volume`, sans aucune clé, jamais 0 ; tous les titres sans volume → erreur d'outil, sans pièce.

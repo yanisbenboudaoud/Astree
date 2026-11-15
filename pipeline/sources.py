@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from pipeline import calibrage, documents, jurisprudence, liquidite, points_de_bascule, simulation, taille_max
+from pipeline import calibrage, documents, frais, jurisprudence, liquidite, points_de_bascule, simulation, taille_max
 from pipeline.donnees import date_extraction
 from pipeline.macro import FICHIER_MACRO
 from pipeline.questionnaire import NOM_OUTIL_PIECE as OUTIL_QUESTIONNAIRE
@@ -32,6 +32,8 @@ FORMAT_PIECE = re.compile(r"P\d+")
 
 # Valeurs qui signalent qu'une pièce de simulation contient les données macro.
 VALEURS_MACRO = ("inflation_annuelle", "inflation_2022")
+# Valeurs qui signalent qu'une pièce de simulation a consulté le relevé des frais (#114).
+VALEURS_FRAIS = ("frais_annuels", "frais_annuels_actuels", "frais_inconnus")
 
 
 @dataclass(frozen=True)
@@ -56,6 +58,9 @@ SOURCES = {
                        "Les montants échangés chaque jour : le temps qu'il faudrait pour revendre une ligne"),
     "macro": _Source("Banque du Canada, API Valet : IPC, taux directeur, obligation à 10 ans", "CSV",
                      "Le pouvoir d'achat : inflation, rendement réel, taux sans risque, ratio de Sharpe"),
+    "frais": _Source("Pages et documents des émetteurs des FNB : ratio des frais, relevé par l'équipe",
+                     "JSON (relevé)",
+                     "Le coût annuel des frais de gestion des FNB, déjà prélevés dans leurs cours"),
     "documents": _Source("Documents publics sur les critères ESG, choisis et lus par l'équipe", "JSON (texte)",
                          "Les critères non financiers du Pacte, comme les controverses ESG"),
     "jurisprudence": _Source("Archives des verdicts de ce profil", "JSON",
@@ -106,6 +111,8 @@ def sources_du_proces(contrat: dict[str, Any], anciennes: list[dict[str, Any]] |
         cles = list(SOURCES_PAR_OUTIL.get(piece.get("outil"), ()))
         if piece.get("outil") == simulation.NOM_OUTIL and any(v in piece["valeurs"] for v in VALEURS_MACRO):
             cles.append("macro")
+        if piece.get("outil") == simulation.NOM_OUTIL and any(v in piece["valeurs"] for v in VALEURS_FRAIS):
+            cles.append("frais")
         for cle in cles:
             utilisation = {"id": piece["id"]}
             if piece["id"] in raisons:
@@ -163,6 +170,7 @@ def _fichier(cle: str, contrat: dict[str, Any]) -> str | None:
         "change": "fx_usdcad_daily.csv",
         "univers": "assets_universe.csv",
         "macro": FICHIER_MACRO,
+        "frais": frais.FICHIER_FRAIS,
         "documents": "donnees_externes/documents_esg.json",
         "jurisprudence": f"verdicts/{persona}/ (S3)",
     }.get(cle)
@@ -176,6 +184,8 @@ def _date(cle: str, contrat: dict[str, Any]) -> str:
                    if piece.get("outil") in (OUTIL_QUESTIONNAIRE, calibrage.NOM_OUTIL))
     if cle == "documents":
         return documents.charger_corpus()["date_constitution"]
+    if cle == "frais":
+        return frais.charger_frais()["date_releve"]
     if cle == "jurisprudence":  # les archives sont lues le jour du procès
         return datetime.now(timezone.utc).date().isoformat()
     return date_extraction({"prix": "prices_daily.csv", "volumes": "prices_daily.csv", "change": "fx_usdcad_daily.csv",

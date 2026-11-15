@@ -107,7 +107,7 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 
 ## Choix 6 — Le Greffier : gouvernance déterministe
 
-**Décision.** Le Greffier est du **Python sans LLM**. Il applique les règles du Pacte (`conforme`, `violation`, `a_verifier`) et vérifie que chaque nombre cité par le Procureur et l'Avocat existe dans une pièce. Un argument non prouvé est régénéré une fois, puis retiré et signalé dans `arguments_rejetes`.
+**Décision.** Le Greffier est du **Python sans LLM**. Il applique les règles du Pacte (`conforme`, `violation`, `a_verifier`) et vérifie que chaque nombre cité par le Procureur et l'Avocat existe dans une pièce. Il vérifie aussi le cadre « simulation seulement » : aucun argument ne conseille une transaction ni ne promet l'avenir (#60). Sans ce contrôle, un agent pourrait écrire « vous devriez vendre » et faire basculer l'outil dans le conseil. Un argument non prouvé ou hors cadre est régénéré une fois, puis retiré et signalé dans `arguments_rejetes`.
 
 **Pourquoi.**
 - Une vérification doit être **fiable** : la même situation donne toujours la même réponse.

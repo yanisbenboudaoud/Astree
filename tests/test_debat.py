@@ -71,6 +71,12 @@ def test_les_deux_roles_partagent_les_regles_sur_les_chiffres():
     assert "HONNÊTEMENT" in debat.CONSIGNES["avocat"]
 
 
+def test_consignes_rappellent_le_cadre_simulation():
+    """#60 : aucun conseil, aucune promesse, dans les deux rôles et dans le mode correction."""
+    assert "A. Aucun conseil" in debat.REGLES_COMMUNES
+    assert "B. Aucune promesse ni prévision" in debat.REGLES_COMMUNES
+
+
 def test_plaider_nettoie_les_arguments_et_ecrit_la_trace(monkeypatch):
     def faux_llm(systeme, message, schema):
         return {"arguments": [
@@ -121,6 +127,7 @@ def test_corriger_argument_transmet_le_motif_du_greffier(monkeypatch):
 
     assert "« +12,5 % » introuvable dans P1" in recu["message"]
     assert "Le rendement serait de +12,5 %." in recu["message"]
+    assert "sans recommander de transaction ni présenter l'avenir comme certain" in recu["message"]
     assert corrige["texte"] == "Le rendement annualisé serait de +12,0 %."
     assert etape["etape"] == "avocat" and etape["outil"] == "bedrock_correction"
     valide_contre_le_contrat(etape, "etape_trace")

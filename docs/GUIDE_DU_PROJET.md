@@ -151,7 +151,7 @@ Ajouter un quatrième profil ne demande **aucun code** : on écrit seulement un 
 | 1. **Agent Profil** | `pipeline/agent_profil.py` | Oui | Charge le Pacte (pièce P1) et transforme la phrase de l'utilisateur en décision précise : quel titre, quelle taille, comment c'est financé. Si la phrase est ambiguë, il le signale. |
 | 2. **Orchestrateur** | `pipeline/orchestrateur.py` | Oui | Choisit lui-même les outils à appeler (au plus 8 appels) et donne une raison courte, sans chiffre, pour chacun. Chaque résultat devient une pièce. Python ajoute d'office la simulation de la décision si le LLM l'a oubliée. |
 | 3. **Procureur et Avocat** | `pipeline/debat.py` | Oui | Deux LLM, appelés en même temps, écrivent 2 à 4 arguments chacun, contre et pour, en citant les pièces. Ils n'ont accès à aucun outil. |
-| 4. **Greffier** | `pipeline/greffier.py`, `pipeline/chiffres.py` | **Non** | Contrôle chaque règle du Pacte (conforme, violation, à vérifier), puis chaque chiffre de chaque argument. Un argument faux est renvoyé une fois, puis rejeté. |
+| 4. **Greffier** | `pipeline/greffier.py`, `pipeline/chiffres.py`, `pipeline/cadre_simulation.py` | **Non** | Contrôle chaque règle du Pacte (conforme, violation, à vérifier), puis chaque chiffre de chaque argument, et vérifie qu'aucun argument ne conseille une transaction ni ne promet l'avenir. Un argument faux est renvoyé une fois, puis rejeté. |
 | 5. **Contrat** | `pipeline/tribunal.py` | Non | Assemble tout dans le contrat JSON. |
 | 6. **Verdict** | L'utilisateur, dans l'interface | — | Maintenir, modifier ou ajuster le Pacte. Le choix est archivé. |
 
@@ -509,7 +509,7 @@ Deux règles d'équipe : aucune mention de l'assistant de code dans les commits 
 | #55 | Contre-interrogatoire : poser une question libre au Tribunal |
 | #57 | Export du procès-verbal (dossier de convenance) |
 | #58 | Démo : montrer le Greffier qui rejette un chiffre inventé |
-| #59, #60, #61, #68, #69 | Améliorations proposées (scénarios, contrôle du cadre, points de bascule, « Pacte vécu », « Trompez le Greffier ») |
+| #59, #61, #68, #69 | Améliorations proposées (scénarios, points de bascule, « Pacte vécu », « Trompez le Greffier ») |
 
 La liste à jour est toujours sur GitHub, onglet *Issues*.
 

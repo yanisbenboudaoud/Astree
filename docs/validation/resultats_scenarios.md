@@ -4,7 +4,7 @@ Fichier généré par `python -m validation` (issue #15) : ne pas le modifier à
 Partie calculée du procès (Pacte, simulation, Greffier, taille maximale) sur les données du dépôt,
 sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèle et les vrais outils.
 
-**Bilan : 34 réussis, 0 en échec, 0 en attente.**
+**Bilan : 40 réussis, 0 en échec, 0 en attente.**
 
 ## 1. Même décision, profils différents
 
@@ -49,7 +49,7 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Portefeuille après la décision : pire baisse | identique : la pire baisse de la période est atteinte en 2022 | période complète −29,0 % ; 2022 seule −29,0 % | ✅ |
 | Portefeuille après la décision : volatilité annualisée | plus élevée en 2022 (année de crise) | période complète 19,0 % ; 2022 seule 21,7 % | ✅ |
 
-## 5. Robustesse du Greffier (verifier_chiffres)
+## 5. Robustesse du Greffier (verifier_chiffres et cadre_simulation)
 
 | Scénario | Attendu | Obtenu | |
 |---|---|---|---|
@@ -59,6 +59,12 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Mauvaise pièce citée : « La pire chute observée passe de −7,8 % à −29,0 %. » (P3) | rejeté | rejeté : « −7,8 % » introuvable dans P3 (présent dans P1, pièce non citée) ; « −29,0 % » introuvable dans P3 (présent dans P1, pièce non citée) | ✅ |
 | Signe manquant : « Si 2022 se répétait, le portefeuille ferait 2,6 %. » (P2) | rejeté | rejeté : « 2,6 % » introuvable dans P2 : valeur négative, écrire le signe « − » | ✅ |
 | Nombre dérivé : « La pire chute serait 21 points de plus qu'aujourd'hui. » (P1) | rejeté | rejeté : « 21 » introuvable dans P1 | ✅ |
+| Conseil personnalisé : « La pire chute passe à −29,0 % : vous devriez vendre TSLA. » (P1) | rejeté | rejeté : Conseil personnalisé : « vous devriez » (le Tribunal ne recommande aucune transaction : exposer ce que montrent les pièces et laisser l'utilisateur décider) | ✅ |
+| Impératif : « Limitez TSLA : la pire chute passe de −7,8 % à −29,0 %. » (P1) | rejeté | rejeté : Conseil personnalisé : « Limitez » (le Tribunal ne recommande aucune transaction : exposer ce que montrent les pièces et laisser l'utilisateur décider) | ✅ |
+| Promesse : « Le rendement annualisé de +12,0 % va continuer à progresser. » (P1) | rejeté | rejeté : Promesse ou prévision sur l'avenir : « va continuer à progresser » (le passé ne prédit pas l'avenir : décrire ce que montrent les pièces, ou un scénario au conditionnel avec l'étiquette « hypothese ») | ✅ |
+| Prévision au futur : « Avec 30 % en TSLA, la pire chute de −29,0 % se répétera. » (P1) | rejeté | rejeté : Promesse ou prévision sur l'avenir : « répétera » (le passé ne prédit pas l'avenir : décrire ce que montrent les pièces, ou un scénario au conditionnel avec l'étiquette « hypothese ») | ✅ |
+| Promesse niée : « Le rendement annualisé passe à +12,0 %, mais le passé ne prédit pas l'avenir. » (P1) | accepté | accepté | ✅ |
+| Citation du Pacte : « Vous avez écrit : « Préserver mon capital ». » (P3) | accepté | accepté | ✅ |
 
 ## 6. Garde-fous de l'orchestrateur
 

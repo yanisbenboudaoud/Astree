@@ -7,10 +7,11 @@ parallèle** et **n'appellent aucun outil** : ils ne produisent jamais un
 chiffre eux-mêmes, ils citent ceux des pièces.
 
 Leurs consignes reprennent les règles de ``verifier_chiffres`` (CLAUDE.md,
-section 4 ter). Le Greffier vérifie ensuite chaque chiffre
-(``pipeline.chiffres.trier_arguments``) ; un argument refusé revient **une
-fois** à son agent avec ``corriger_argument``, puis est rejeté s'il échoue
-encore.
+section 4 ter) et celles du cadre « simulation seulement » (aucun conseil,
+aucune promesse, ``pipeline.cadre_simulation``, #60). Le Greffier vérifie
+ensuite chaque argument (``pipeline.chiffres.trier_arguments``) ; un argument
+refusé revient **une fois** à son agent avec ``corriger_argument``, puis est
+rejeté s'il échoue encore.
 
 Le dossier est un dict au format du contrat (section 5) ::
 
@@ -101,7 +102,8 @@ def corriger_argument(
         f"Motif : {motif}\n\n"
         "Réécris cet argument une seule fois, en respectant toutes les règles. "
         "Si un chiffre ne peut pas être prouvé par les pièces, retire-le ou cite la pièce "
-        "qui le contient."
+        "qui le contient. Si le motif est un conseil ou une promesse, reformule en constat "
+        "sur les pièces, sans recommander de transaction ni présenter l'avenir comme certain."
     )
     reponse = appeler_llm(CONSIGNES[role], message, schema_argument(ids_pieces))
     corrige = _nettoyer_argument(reponse)
@@ -120,6 +122,17 @@ REGLES_COMMUNES = """Le dossier contient la décision de l'utilisateur, son Pact
 lui-même déclarées à l'avance) et des pièces numérotées (P1, P2…) calculées en Python.
 Tu ne recommandes rien et tu ne donnes aucun conseil personnalisé : c'est l'utilisateur
 qui rendra le verdict. Tu t'adresses à lui en le vouvoyant.
+
+Règles sur le cadre « simulation seulement » (un vérificateur automatique rejette tout
+argument qui ne les respecte pas) :
+A. Aucun conseil : pas de « vous devriez », « je recommande », « il faut vendre »,
+   « il vaudrait mieux alléger », ni d'impératif comme « achetez » ou « ne vendez pas ».
+   Tu exposes ce que montrent les pièces ; l'utilisateur décide.
+B. Aucune promesse ni prévision : pas de « va monter », « rapportera », « devrait
+   rebondir », « se répétera », « garanti » ou « à coup sûr ». Les pièces décrivent le
+   passé : écris au passé ou au présent ce qu'elles montrent. Un scénario s'écrit au
+   conditionnel avec l'étiquette « hypothese » (« si une année comme 2022 se répétait,
+   le portefeuille ferait… »).
 
 Règles sur les chiffres (un vérificateur automatique rejette tout argument qui ne les
 respecte pas) :
@@ -151,7 +164,7 @@ Règles sur le fond :
 - Ne compare un chiffre qu'à un seuil du même indicateur : une pire baisse à la règle de
   pire baisse ; un rendement sur une année n'est pas une pire baisse.
 - Le passé ne prédit pas l'avenir : ne présente jamais une performance passée comme une
-  promesse.
+  promesse (règle B).
 - Pour citer une règle du Pacte, reprends son libellé et cite la pièce du Pacte.
 - 2 à 4 arguments, une ou deux phrases chacun, du plus fort au plus faible."""
 

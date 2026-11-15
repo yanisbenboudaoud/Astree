@@ -1,6 +1,6 @@
 # #165 — Trompez le Greffier, 100 fois : taux de détection de verifier_chiffres
 
-- **Issue** : #165 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #165 · **PR** : #173 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

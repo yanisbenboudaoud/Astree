@@ -2,7 +2,7 @@
  * « Construire mon Pacte » (#86) : questionnaire investisseur, portefeuille, aperçu et signature.
  *
  * Une question par écran, par sections (Horizon · Capacité · Tolérance · Expérience ·
- * Préférences). Les questions et les cartes viennent du pipeline ; le Pacte est calculé par
+ * Préférences). Les questions viennent du pipeline ; le Pacte est calculé par
  * Python (`POST /profil` en direct, exemple préenregistré en démonstration). Une fois signé,
  * le profil est disponible pour tous les écrans, à commencer par « Revivez 4 jours ».
  */
@@ -12,7 +12,7 @@ import { MODE_DIRECT } from '../api/config';
 import { TITRES, libelleProfilRisque } from '../api/donnees';
 import {
   PacteNonDisponible, QUESTIONS, ReponsesRefusees, apercuPacte, saisieDemo, signerPacte,
-  type CarteFourchette, type LigneSaisie, type Question, type Reponses, type ResultatPacte, type SaisiePacte, type ValeurReponse,
+  type LigneSaisie, type Question, type Reponses, type ResultatPacte, type SaisiePacte, type ValeurReponse,
 } from '../api/questionnaire';
 import { Bouton } from '../components/Bouton';
 import { Message } from '../components/Elements';
@@ -22,7 +22,7 @@ import {
   basculerChoixMultiple, blocage, erreurPortefeuille, questionsPassees, raisonsRegle, reponsesNettoyees, sections,
   seuilModifiable, totalPoids, valeurDepuisPoints,
 } from '../domaine/questionnaire';
-import { date, dollars, horizon, nombre, pourcent } from '../lib/format';
+import { date, dollars, horizon, nombre } from '../lib/format';
 import styles from './ConstruireMonPacte.module.css';
 
 const MENTION = 'Simulation éducative. Ce questionnaire décrit vos propres règles ; il ne constitue pas un conseil financier.';
@@ -226,29 +226,6 @@ function ChampReponse({ question, valeur, onRepondre }: { question: Question; va
       </div>
     );
   }
-  if (question.type === 'cartes') {
-    const cartes = question.cartes ?? [];
-    return (
-      <>
-        <ul className={styles.cartes}>
-          {cartes.map((carte) => (
-            <li key={carte.id}>
-              <label className={`${styles.carte} ${valeur === carte.id ? styles.choisie : ''}`}>
-                <input type="radio" name={nom} value={carte.id} checked={valeur === carte.id} onChange={() => onRepondre(carte.id)} />
-                <ContenuCarte carte={carte} />
-              </label>
-            </li>
-          ))}
-        </ul>
-        {cartes[0] && (
-          <p className={`t-petit c-700 ${styles.provenance}`}>
-            <Provenance type="Fait" />
-            <span>Prix réels du {date(cartes[0].periode[0])} au {date(cartes[0].periode[1])}, en CAD, pour {dollars(cartes[0].capital)} placés. Le passé ne prédit pas l’avenir.</span>
-          </p>
-        )}
-      </>
-    );
-  }
   const multiple = question.type === 'choix_multiples';
   const choisis = Array.isArray(valeur) ? valeur : valeur ? [valeur] : [];
   return (
@@ -271,26 +248,6 @@ function ChampReponse({ question, valeur, onRepondre }: { question: Question; va
         );
       })}
     </ul>
-  );
-}
-
-function ContenuCarte({ carte }: { carte: CarteFourchette }) {
-  return (
-    <span className={styles.contenuCarte}>
-      <span className="t-corps-fort">{carte.libelle}</span>
-      <span className="t-petit c-700">{carte.portefeuille.map((l) => `${l.ticker} ${nombre(l.poids * 100)} %`).join(' · ')}</span>
-      <span className={styles.chiffresCarte}>
-        <span>
-          <span className="t-petit c-700">Au pire moment</span>
-          <span className="t-tableau-fort">{dollars(carte.montant_pire_moment)}</span>
-          <span className="t-petit c-700">({pourcent(carte.pire_baisse)})</span>
-        </span>
-        <span>
-          <span className="t-petit c-700">À la fin</span>
-          <span className="t-tableau-fort">{dollars(carte.valeur_finale)}</span>
-        </span>
-      </span>
-    </span>
   );
 }
 

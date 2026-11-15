@@ -1,7 +1,7 @@
 /**
  * Questionnaire investisseur et Pacte construit à partir des réponses (#84, #86).
  *
- * Les questions et les cartes de portefeuilles viennent du pipeline
+ * Les questions viennent du pipeline
  * (`pipeline.questionnaire.questions`, précalculées dans generated/questionnaire.json) :
  * aucun texte de question ni chiffre n'est écrit dans l'interface.
  *
@@ -22,28 +22,15 @@ export interface ChoixQuestion {
   libelle: string;
 }
 
-/** Une carte de la question « fourchettes » : un vrai portefeuille et ce qu'il a vécu, pour 100 000 $. */
-export interface CarteFourchette {
-  id: string;
-  libelle: string;
-  portefeuille: { ticker: string; poids: number }[];
-  pire_baisse: number;
-  montant_pire_moment: number;
-  valeur_finale: number;
-  capital: number;
-  periode: [string, string];
-}
-
 export interface Question {
   id: string;
   nom_court: string;
   section: string;
-  type: 'choix' | 'choix_multiples' | 'cartes' | 'texte';
+  type: 'choix' | 'choix_multiples' | 'texte';
   obligatoire?: boolean;
   libelle: string;
   justification?: string;
   choix?: ChoixQuestion[];
-  cartes?: CarteFourchette[];
   longueur_max?: number;
 }
 
@@ -90,9 +77,10 @@ export interface ProfilPython {
 /** `detail_bareme` : quelle réponse a produit quelle règle, et ce qui reste à vérifier. */
 export interface Bareme {
   date: string;
-  tolerance: { seuil: number; carte: string; libelle_carte: string; resserre: boolean } | null;
+  /** Le seuil est resserré d'un cran si la personne vend quand ça baisse (vécu de 2022, sinon réaction). */
+  resserrement: { resserre: boolean; cran: number; source: string | null; reponse_source: string | null };
   capacite: { plafond: number; decisifs: { question: string; reponse: string; plafond: number }[] } | null;
-  seuil_retenu: { valeur: number; decisif: string } | null;
+  seuil_retenu: { valeur: number; brut: number; resserre: boolean } | null;
   profil_risque: string;
   regles: { id: string; etiquette: 'fait' | 'hypothese'; reponses: Reponses; explication: string }[];
   controles: { statut: string; regle: string; message: string }[];

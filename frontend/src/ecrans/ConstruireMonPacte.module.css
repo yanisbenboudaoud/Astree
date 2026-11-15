@@ -28,9 +28,8 @@
 .legende h1:focus { outline: none; }
 .legende h1:focus-visible { outline: 2px solid var(--accent-bleu); outline-offset: 4px; }
 
-.choix, .cartes { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.cartes { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
-.option, .carte {
+.choix { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.option {
   display: flex;
   gap: 12px;
   align-items: flex-start;
@@ -40,14 +39,10 @@
   border-radius: var(--rayon);
   cursor: pointer;
 }
-.carte { height: 100%; }
-.option:hover, .carte:hover { border-color: var(--encre-500); }
-.option:has(:focus-visible), .carte:has(:focus-visible) { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
+.option:hover { border-color: var(--encre-500); }
+.option:has(:focus-visible) { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
 .choisie { border-color: var(--encre-900); box-shadow: inset 0 0 0 1px var(--encre-900); }
-.option input, .carte input { margin-top: 3px; accent-color: var(--encre-900); }
-.contenuCarte { display: flex; flex-direction: column; gap: 6px; }
-.chiffresCarte { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid var(--trait-fin); }
-.chiffresCarte > span { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.option input { margin-top: 3px; accent-color: var(--encre-900); }
 
 .texte { display: flex; flex-direction: column; gap: 6px; }
 .texte textarea, .champs input, .lignes select, .lignes input, .modifier input {

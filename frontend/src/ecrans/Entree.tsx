@@ -1,6 +1,7 @@
 /** Écran d'entrée : choisir un profil de démonstration (annexe C.1). */
 import { Link, useNavigate } from 'react-router-dom';
 import { configUi, idsProfils, libelleProfilRisque, profil as profilDe, profilsCrees } from '../api/donnees';
+import { QUESTIONS } from '../api/questionnaire';
 import { Bouton } from '../components/Bouton';
 import { Provenance } from '../components/Etiquettes';
 import { Gabarit, useTitre } from '../components/Gabarit';
@@ -72,7 +73,7 @@ export function Entree() {
             <p className="t-etiquette c-500">Votre profil</p>
             <h2 className="t-h2" id="titre-construire">Construire mon Pacte</h2>
             <p className="t-corps c-700">
-              Environ 5 minutes : 16 questions sur votre horizon, ce que vous pouvez vous permettre de perdre, ce que vous
+              Environ 5 minutes : {QUESTIONS.length} questions sur votre horizon, ce que vous pouvez vous permettre de perdre, ce que vous
               êtes prêt à accepter et vos préférences, puis votre portefeuille. Le Tribunal en tire vos règles, que vous
               relisez et signez.
             </p>

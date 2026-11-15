@@ -7,13 +7,13 @@ un profil au format de ``personas/``, avec une justification par règle qui cite
 la réponse d'origine. **Aucun LLM**, aucun nom de profil dans le code.
 
 Barème (paramètres dans la config, étiquette « hypothese ») :
-1. **Tolérance déclarée** : la pire baisse **réelle** du portefeuille de la carte
-   choisie (``cartes_fourchettes``, mêmes calculs que ``simuler_portefeuille``).
-   Elle est resserrée d'un cran si la personne vend ; le vécu de 2022 l'emporte
-   sur la réaction imaginée quand la personne investissait déjà.
-2. **Plafond de capacité** : la baisse que la situation permet (horizon, retraits,
+1. **Plafond de capacité** : la baisse que la situation permet (horizon, retraits,
    coussin, part du patrimoine, revenu) ; le facteur le plus contraignant l'emporte.
-3. ``pire_baisse_max.seuil`` = **le plus prudent des deux**, arrondi vers le prudent.
+2. **Resserrement** : le seuil est resserré d'un cran si la personne vend quand ça
+   baisse ; le vécu de 2022 l'emporte sur la réaction imaginée quand la personne
+   investissait déjà. ``pire_baisse_max.seuil`` en découle, arrondi vers le prudent.
+3. La baisse **vraiment acceptée** n'est pas demandée ici : le Pacte vécu (#68) la
+   mesure ensuite devant de vrais jours de marché, et le seuil mesuré l'emporte.
 4. Les préférences (crypto, concentration, exclusions, objectif, règle personnelle)
    deviennent directement des règles ``plafond``, ``critere_documentaire`` ou
    ``qualitative``.
@@ -42,14 +42,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from pipeline.indicateurs import DECIMALES_VALEURS, calculer_pire_baisse
+from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.pacte import CHEMIN_SCHEMA, DOSSIER_PERSONAS, erreurs_profil
-from pipeline.simulation import formater_pourcentage, valeurs_avant_apres
+from pipeline.simulation import formater_pourcentage
 from pipeline.univers import charger_univers
 
 CHEMIN_CONFIG = Path(__file__).resolve().parent.parent / "config" / "questionnaire.json"
 FORMAT_IDENTIFIANT = re.compile(r"[a-z][a-z0-9_]*")
-QUESTION_CARTES = "fourchettes"
 QUESTIONS_TOLERANCE = ("reaction", "vecu_2022")
 CHOIX_AUCUNE_EXCLUSION = "aucune"
 
@@ -76,55 +75,13 @@ def _questions_config() -> dict[str, dict[str, Any]]:
 
 
 def _choix(question: dict[str, Any], id_choix: str) -> dict[str, Any] | None:
-    options = question.get("cartes") if question["type"] == "cartes" else question.get("choix", [])
-    return next((c for c in options if c["id"] == id_choix), None)
+    return next((c for c in question.get("choix", []) if c["id"] == id_choix), None)
 
 
 @lru_cache(maxsize=1)
-def cartes_fourchettes() -> tuple[dict[str, Any], ...]:
-    """Les cartes de la question ``fourchettes``, avec ce que chaque portefeuille a vraiment vécu.
-
-    Pour le capital de référence (100 000 $) : pire baisse depuis un sommet, montant au
-    pire moment et valeur finale, en CAD, sur la période des données. Mêmes calculs que
-    ``simuler_portefeuille`` (rééquilibrage quotidien) ; pour un seul titre, identiques
-    à ``indicateurs_actif``. Aucun chiffre écrit à la main.
-    """
-    config = charger_config()
-    capital = config["capital_reference_cad"]
-    question = _questions_config()[QUESTION_CARTES]
-    cartes = []
-    for carte in question["cartes"]:
-        portefeuille = carte["portefeuille"]
-        neutre = {"type": "position", "ticker": portefeuille[0]["ticker"], "taille": 0.0, "financement": "proportionnel"}
-        valeurs = valeurs_avant_apres(portefeuille, neutre)[0]
-        pire = float(calculer_pire_baisse(valeurs))
-        cartes.append({
-            "id": carte["id"],
-            "libelle": carte["libelle"],
-            "portefeuille": portefeuille,
-            "pire_baisse": round(pire, DECIMALES_VALEURS),
-            "montant_pire_moment": round(capital * (1 + pire)),
-            "valeur_finale": round(capital * float(valeurs.iloc[-1])),
-            "capital": capital,
-            "periode": [valeurs.index[0].date().isoformat(), valeurs.index[-1].date().isoformat()],
-        })
-    return tuple(cartes)
-
-
 def questions() -> list[dict[str, Any]]:
-    """Les questions prêtes à afficher, dans l'ordre ; les cartes portent leurs vrais chiffres."""
-    calculees = {c["id"]: c for c in cartes_fourchettes()}
-    resultat = []
-    for question in charger_config()["questions"]:
-        copie = copy.deepcopy(question)
-        if copie["type"] == "cartes":
-            copie["cartes"] = [calculees[c["id"]] for c in copie["cartes"]]
-        resultat.append(copie)
-    return resultat
-
-
-def _carte(id_carte: str) -> dict[str, Any]:
-    return next(c for c in cartes_fourchettes() if c["id"] == id_carte)
+    """Les questions prêtes à afficher, dans l'ordre (copie : la config en cache reste intacte)."""
+    return copy.deepcopy(charger_config()["questions"])
 
 
 # --- Validation des réponses -------------------------------------------------------
@@ -145,7 +102,7 @@ def valider_reponses(reponses: dict[str, Any]) -> dict[str, Any]:
             if question.get("obligatoire"):
                 erreurs.append(f"Réponse obligatoire manquante : « {question['libelle']} »")
             continue
-        if question["type"] in ("choix", "cartes"):
+        if question["type"] == "choix":
             if not isinstance(valeur, str) or _choix(question, valeur) is None:
                 erreurs.append(f"Réponse « {valeur} » inconnue pour « {qid} »")
                 continue
@@ -184,7 +141,7 @@ class Analyse:
     profil_risque: str
     regles: list[dict[str, Any]] = field(default_factory=list)
     detail_regles: list[dict[str, Any]] = field(default_factory=list)
-    tolerance: dict[str, Any] | None = None
+    resserrement: dict[str, Any] | None = None
     capacite: dict[str, Any] | None = None
     seuil: dict[str, Any] | None = None
     controles: list[dict[str, Any]] = field(default_factory=list)
@@ -205,12 +162,9 @@ def plafond_capacite(reponses: dict[str, Any]) -> dict[str, Any] | None:
     return {"plafond": plafond, "decisifs": [c for c in contraintes if c["plafond"] == plafond], "contraintes": contraintes}
 
 
-def tolerance_declaree(reponses: dict[str, Any]) -> dict[str, Any] | None:
-    """Tolérance : pire baisse réelle de la carte choisie, resserrée d'un cran si la personne vend."""
-    if QUESTION_CARTES not in reponses:
-        return None
+def resserrement(reponses: dict[str, Any]) -> dict[str, Any]:
+    """La personne vend-elle quand ça baisse ? Le vécu de 2022 décide quand elle investissait, sinon la réaction."""
     config_questions = _questions_config()
-    carte = _carte(reponses[QUESTION_CARTES])
     vecu = _choix(config_questions["vecu_2022"], reponses["vecu_2022"]) if "vecu_2022" in reponses else None
     reaction = _choix(config_questions["reaction"], reponses["reaction"]) if "reaction" in reponses else None
     if vecu and vecu.get("investissait"):
@@ -219,15 +173,11 @@ def tolerance_declaree(reponses: dict[str, Any]) -> dict[str, Any] | None:
         source, vend = "reaction", bool(reaction.get("vend"))
     else:
         source, vend = None, False
-    cran = charger_config()["bareme"]["tolerance"]["cran_resserrement"]
-    seuil = carte["pire_baisse"] * (1 - cran) if vend else carte["pire_baisse"]
     return {
-        "carte": carte,
-        "pire_baisse_carte": carte["pire_baisse"],
         "resserre": vend,
+        "cran": charger_config()["bareme"]["resserrement"]["cran_resserrement"],
         "source": source,
         "reponse_source": (vecu if source == "vecu_2022" else reaction or {}).get("libelle"),
-        "seuil": round(seuil, DECIMALES_VALEURS),
     }
 
 
@@ -264,18 +214,18 @@ def analyser(reponses: dict[str, Any], date_reponses: str) -> Analyse:
     entete = f"Réponse au questionnaire du {date_reponses}"
     horizon = _choix(q["horizon"], reponses["horizon"])["horizon_ans"]
 
-    tolerance = tolerance_declaree(reponses)
+    comportement = resserrement(reponses)
     capacite = plafond_capacite(reponses)
     seuil = None
-    if tolerance:
-        brut = tolerance["seuil"] if capacite is None else max(tolerance["seuil"], capacite["plafond"])
-        decisif = "tolerance" if capacite is None or tolerance["seuil"] >= capacite["plafond"] else "capacite"
-        seuil = {"valeur": arrondir_vers_le_prudent(brut), "brut": round(brut, DECIMALES_VALEURS), "decisif": decisif}
+    if capacite:
+        brut = capacite["plafond"] * (1 - comportement["cran"]) if comportement["resserre"] else capacite["plafond"]
+        seuil = {"valeur": arrondir_vers_le_prudent(brut), "brut": round(brut, DECIMALES_VALEURS),
+                 "resserre": comportement["resserre"]}
 
     analyse = Analyse(
         horizon_ans=list(horizon),
-        profil_risque=profil_risque_du_seuil(seuil["valeur"] if seuil else (capacite or {}).get("plafond")),
-        tolerance=tolerance, capacite=capacite, seuil=seuil,
+        profil_risque=profil_risque_du_seuil(seuil["valeur"] if seuil else None),
+        resserrement=comportement, capacite=capacite, seuil=seuil,
     )
 
     def ajouter(regle: dict[str, Any], etiquette: str, questions_sources: list[str], explication: str) -> None:
@@ -290,33 +240,27 @@ def analyser(reponses: dict[str, Any], date_reponses: str) -> Analyse:
         analyse.controles.append({"statut": "a_verifier", "regle": "questionnaire",
                                   "message": f"Réponse manquante (« {q[qid]['nom_court']} ») : {consequence}"})
 
-    # 1. Pire baisse tolérée : le plus prudent de la tolérance déclarée et du plafond de capacité.
+    # 1. Pire baisse tolérée : le plafond de capacité, resserré d'un cran si la personne vend.
     if seuil:
-        carte = tolerance["carte"]
-        texte_tolerance = (
-            f"tolérance déclarée {formater_pourcentage(tolerance['seuil'])} (carte « {carte['libelle']} » : "
-            f"pire baisse réelle {formater_pourcentage(carte['pire_baisse'])} du {carte['periode'][0]} au {carte['periode'][1]}"
-            + (f", resserrée d'un cran car « {tolerance['reponse_source']} »" if tolerance["resserre"] else "") + ")"
-        )
-        if capacite:
-            raisons = ", ".join(f"{q[d['question']]['nom_court'].lower()} : « {d['reponse']} »" for d in capacite["decisifs"])
-            texte_capacite = f"plafond de capacité {formater_pourcentage(capacite['plafond'])} ({raisons})"
-        else:
-            texte_capacite = "aucun plafond de capacité"
-        retenu = "la tolérance" if seuil["decisif"] == "tolerance" else "la capacité"
+        raisons = ", ".join(f"{q[d['question']]['nom_court'].lower()} : « {d['reponse']} »" for d in capacite["decisifs"])
+        texte_resserrement = (f", resserré d'un cran car « {comportement['reponse_source']} »"
+                              if comportement["resserre"] else "")
         justification = (
-            f"{entete}. Le seuil retenu est le plus prudent des deux : {texte_tolerance} ; {texte_capacite}. "
-            f"C'est {retenu} qui décide : seuil {formater_pourcentage(seuil['valeur'])}, arrondi au dixième de point vers le plus prudent. "
+            f"{entete}. Le seuil vient de votre capacité à encaisser une baisse : plafond "
+            f"{formater_pourcentage(capacite['plafond'])} ({raisons}){texte_resserrement}. Seuil "
+            f"{formater_pourcentage(seuil['valeur'])}, arrondi au dixième de point vers le plus prudent. "
+            "La baisse que vous acceptez vraiment se mesure ensuite devant de vrais jours de marché (Pacte vécu). "
             "Barème : hypothèse de l'équipe (config/questionnaire.json)."
         )
-        etiquette = "fait" if seuil["decisif"] == "tolerance" and not tolerance["resserre"] else "hypothese"
         ajouter({"id": "pire_baisse_max", "type": "pire_baisse_max", "seuil": seuil["valeur"],
                  "libelle": f"Pire baisse tolérée : {formater_pourcentage(seuil['valeur'])}", "justification": justification},
-                etiquette, [QUESTION_CARTES, *QUESTIONS_TOLERANCE, *charger_config()["bareme"]["capacite"]["plafonds"]],
-                f"Tolérance {formater_pourcentage(tolerance['seuil'])}, capacité "
-                f"{formater_pourcentage(capacite['plafond']) if capacite else 'sans plafond'} : seuil {formater_pourcentage(seuil['valeur'])}.")
+                "hypothese", [*charger_config()["bareme"]["capacite"]["plafonds"], *QUESTIONS_TOLERANCE],
+                f"Capacité {formater_pourcentage(capacite['plafond'])}"
+                + (f", resserrée d'un cran (« {comportement['reponse_source']} »)" if comportement["resserre"] else "")
+                + f" : seuil {formater_pourcentage(seuil['valeur'])}.")
     else:
-        manquante(QUESTION_CARTES, "aucune règle de pire baisse n'est créée")
+        analyse.controles.append({"statut": "a_verifier", "regle": "questionnaire",
+                                  "message": "Aucun plafond de capacité : aucune règle de pire baisse n'est créée"})
 
     # 2. Cryptoactifs.
     if "crypto" in reponses:
@@ -432,7 +376,7 @@ def profil_depuis_reponses(
     propres = valider_reponses(reponses)
     analyse = analyser(propres, date_reponses)
     if not analyse.regles:
-        raise ReponsesInvalides(["Aucune règle : répondez au moins à la question des portefeuilles ou à une préférence"])
+        raise ReponsesInvalides(["Aucune règle : répondez au moins à une question de capacité ou de préférence"])
     profil = {
         "id": identifiant,
         "nom": nom,
@@ -453,14 +397,12 @@ def profil_depuis_reponses(
 
 
 def detail_bareme(reponses: dict[str, Any], date_reponses: str) -> dict[str, Any]:
-    """Quelle réponse a produit quelle règle, la tolérance, la capacité et les contrôles « à vérifier »."""
+    """Quelle réponse a produit quelle règle, la capacité, le resserrement et les contrôles « à vérifier »."""
     analyse = analyser(valider_reponses(reponses), date_reponses)
-    tolerance = analyse.tolerance and {k: v for k, v in analyse.tolerance.items() if k != "carte"} | {
-        "carte": analyse.tolerance["carte"]["id"], "libelle_carte": analyse.tolerance["carte"]["libelle"]}
     return {
         "date": date_reponses,
         "etiquette_bareme": charger_config()["etiquette"],
-        "tolerance": tolerance,
+        "resserrement": analyse.resserrement,
         "capacite": analyse.capacite,
         "seuil_retenu": analyse.seuil,
         "profil_risque": analyse.profil_risque,
@@ -504,12 +446,6 @@ CONTROLE_COHERENCE = "coherence_questionnaire"
 NOM_OUTIL_PIECE = "lire_questionnaire"
 
 
-def _cran(seuil: float) -> int:
-    """Rang de la tranche de profil_risque du barème : 0 = le plus prudent."""
-    tranches = charger_config()["bareme"]["profil_risque"]["tranches"]
-    return next((i for i, t in enumerate(tranches) if seuil >= t["seuil_min"]), len(tranches) - 1)
-
-
 def _libelle_reponse(qid: str, valeur: Any) -> str:
     """« Libellé » de la réponse, tel qu'affiché dans le questionnaire (texte libre : repris tel quel)."""
     return _citation(_questions_config()[qid], valeur)
@@ -518,9 +454,8 @@ def _libelle_reponse(qid: str, valeur: Any) -> str:
 def contradictions(reponses: dict[str, Any]) -> list[dict[str, Any]]:
     """Réponses qui se contredisent, selon les règles de ``config/questionnaire.json`` (aucun LLM).
 
-    Deux sortes : une paire de réponses incompatibles (ex. : « J'en rachète » et « J'ai vendu »
-    en 2022), et une tolérance déclarée d'au moins ``crans_min`` tranches au-delà du plafond
-    de capacité. Une contradiction ne change aucune règle du Pacte.
+    Une contradiction est une paire de réponses incompatibles (ex. : « J'en rachète » et « J'ai
+    vendu » en 2022). Elle ne change aucune règle du Pacte.
 
     Returns:
         ``[{"id", "questions", "message"}]``, dans l'ordre de la config ; liste vide si tout est cohérent.
@@ -533,21 +468,6 @@ def contradictions(reponses: dict[str, Any]) -> list[dict[str, Any]]:
             citations = {qid: _libelle_reponse(qid, reponses[qid]) for qid in paire["si"]}
             trouvees.append({"id": paire["id"], "questions": list(paire["si"]), "message": paire["message"].format_map(citations)})
 
-    ecart = config["ecart_tolerance_capacite"]
-    tolerance, capacite = tolerance_declaree(reponses), plafond_capacite(reponses)
-    if tolerance and capacite and _cran(tolerance["seuil"]) - _cran(capacite["plafond"]) >= ecart["crans_min"]:
-        q = _questions_config()
-        raisons = ", ".join(f"{q[d['question']]['nom_court'].lower()} : « {d['reponse']} »" for d in capacite["decisifs"])
-        trouvees.append({
-            "id": ecart["id"],
-            "questions": [QUESTION_CARTES, *(d["question"] for d in capacite["decisifs"])],
-            "message": ecart["message"].format_map({
-                "tolerance": formater_pourcentage(tolerance["seuil"]),
-                "carte": f"« {tolerance['carte']['libelle']} »",
-                "capacite": formater_pourcentage(capacite["plafond"]),
-                "raisons": raisons,
-            }),
-        })
     return trouvees
 
 
@@ -555,7 +475,7 @@ def piece_questionnaire(profil: dict[str, Any], id_piece: str) -> dict[str, Any]
     """Pièce ``declaree`` : les réponses au questionnaire et ce que le barème en tire.
 
     Le Procureur et l'Avocat peuvent la citer ; ``verifier_chiffres`` en lit les valeurs
-    (date, horizon, tolérance déclarée, plafond de capacité, seuil retenu).
+    (date, horizon, plafond de capacité, seuil retenu).
 
     Args:
         profil: profil validé qui porte ``questionnaire`` (``date``, ``reponses``, ``etiquette``).
@@ -564,26 +484,22 @@ def piece_questionnaire(profil: dict[str, Any], id_piece: str) -> dict[str, Any]
     bloc = profil["questionnaire"]
     reponses = valider_reponses(bloc["reponses"])
     analyse = analyser(reponses, bloc["date"])
-    tolerance, capacite, seuil = analyse.tolerance, analyse.capacite, analyse.seuil
+    capacite, seuil = analyse.capacite, analyse.seuil
     trouvees = contradictions(reponses)
     q = _questions_config()
     valeurs = {
         "date_reponses": bloc["date"],
         "horizon_ans": analyse.horizon_ans,
-        "tolerance_declaree": tolerance["seuil"] if tolerance else None,
-        "pire_baisse_carte": tolerance["pire_baisse_carte"] if tolerance else None,
         "capacite_plafond": capacite["plafond"] if capacite else None,
         "seuil_retenu": seuil["valeur"] if seuil else None,
+        "seuil_resserre": bool(seuil and seuil["resserre"]),
         "questions": [q[qid]["nom_court"] for qid in reponses],
         "reponses": [_libelle_reponse(qid, valeur) for qid, valeur in reponses.items()],
         "contradictions": [c["id"] for c in trouvees],
     }
-    morceaux = []
-    if tolerance:
-        morceaux.append(f"Tolérance {formater_pourcentage(tolerance['seuil'])}")
-    morceaux.append(f"capacité {formater_pourcentage(capacite['plafond'])}" if capacite else "capacité sans plafond")
+    morceaux = [f"Capacité {formater_pourcentage(capacite['plafond'])}" if capacite else "Capacité sans plafond"]
     if seuil:
-        morceaux.append(f"seuil retenu {formater_pourcentage(seuil['valeur'])}")
+        morceaux.append(f"seuil retenu {formater_pourcentage(seuil['valeur'])}" + (" (resserré)" if seuil["resserre"] else ""))
     if trouvees:
         morceaux.append(f"{len(trouvees)} contradiction{'s' if len(trouvees) > 1 else ''}")
     etiquette = bloc.get("etiquette", "fait")
@@ -596,12 +512,10 @@ def piece_questionnaire(profil: dict[str, Any], id_piece: str) -> dict[str, Any]
         "outil": NOM_OUTIL_PIECE,
         "valeurs": valeurs,
         "valeur_affichee": " · ".join(morceaux),
-        "source": f"{provenance} au questionnaire du {bloc['date']} ; cartes calculées sur les prix "
-                  "réels de l'univers (alphaforge_starter/prices_daily.csv)",
-        "traitement": "Barème de config/questionnaire.json : tolérance = pire baisse réelle de la carte "
-                      "choisie, resserrée d'un cran si vente ; capacité = plafond le plus contraignant ; "
-                      "seuil retenu = le plus prudent des deux, arrondi vers le prudent. Contradictions : "
-                      "règles de la même config. Aucun LLM.",
+        "source": f"{provenance} au questionnaire du {bloc['date']}",
+        "traitement": "Barème de config/questionnaire.json : capacité = plafond le plus contraignant ; "
+                      "seuil retenu = ce plafond, resserré d'un cran si la personne vend, arrondi vers le "
+                      "prudent. Contradictions : règles de la même config. Aucun LLM.",
         "limites": "Un questionnaire mesure ce que la personne dit, pas ce qu'elle fera. "
                    "Barèmes et règles de contradiction : hypothèses de l'équipe.",
     }

@@ -1,8 +1,7 @@
 {
   "description": "Questionnaire investisseur (#84) : questions, choix et barèmes qui transforment les réponses en un fichier profil (même format que personas/). Inspiré de la connaissance du client (KYC) : objectifs, horizon, situation financière, tolérance au risque, connaissances. Changer une question ou un barème ne demande aucun code.",
   "etiquette": "hypothese",
-  "justification": "Barèmes choisis par l'équipe, pas une méthode réglementaire. Trois idées : la tolérance (vouloir accepter une baisse) et la capacité (pouvoir se la permettre) sont mesurées séparément et le seuil retenu est le plus prudent des deux ; on parle en dollars et en situations ; le comportement passé (2022) pèse plus que le comportement imaginé.",
-  "capital_reference_cad": 100000,
+  "justification": "Barèmes choisis par l'équipe, pas une méthode réglementaire. Trois idées : le seuil de pire baisse vient de la capacité (pouvoir se permettre une baisse) ; il est resserré si la personne vend quand ça baisse, et le comportement passé (2022) pèse plus que le comportement imaginé ; la baisse vraiment acceptée se mesure ensuite devant de vrais jours de marché (Pacte vécu, #68).",
 
   "questions": [
     {
@@ -72,22 +71,9 @@
       ]
     },
     {
-      "id": "fourchettes", "nom_court": "Portefeuille choisi", "section": "Tolérance : voulez-vous accepter une baisse ?", "type": "cartes",
-      "libelle": "Voici des portefeuilles réels et ce qu'ils ont vécu sur la période, pour 100 000 $ placés. Lequel auriez-vous choisi ?",
-      "alimente": "seuil déclaré de pire_baisse_max",
-      "justification": "Cinq portefeuilles de l'univers, du plus prudent au plus audacieux. XBB.TO seul n'est pas proposé : en 2022, les obligations ont baissé plus qu'un portefeuille 60/40, ce qui brouillerait l'ordre. Tous les chiffres affichés sont calculés par pipeline.questionnaire.cartes_fourchettes (mêmes calculs que simuler_portefeuille).",
-      "cartes": [
-        {"id": "tres_prudent", "libelle": "Obligations à très court terme", "portefeuille": [{"ticker": "ZST.TO", "poids": 1.0}]},
-        {"id": "equilibre", "libelle": "60 % obligations, 40 % actions canadiennes", "portefeuille": [{"ticker": "XBB.TO", "poids": 0.6}, {"ticker": "XIU.TO", "poids": 0.4}]},
-        {"id": "actions", "libelle": "Actions américaines (S&P 500)", "portefeuille": [{"ticker": "SPY", "poids": 1.0}]},
-        {"id": "croissance", "libelle": "Actions technologiques (Nasdaq-100)", "portefeuille": [{"ticker": "QQQ", "poids": 1.0}]},
-        {"id": "audacieux", "libelle": "Croissance et cryptoactifs : 50 % Nasdaq-100, 25 % Bitcoin, 25 % actions canadiennes", "portefeuille": [{"ticker": "QQQ", "poids": 0.5}, {"ticker": "BTC-USD", "poids": 0.25}, {"ticker": "XIU.TO", "poids": 0.25}]}
-      ]
-    },
-    {
       "id": "reaction", "nom_court": "Réaction à une baisse", "section": "Tolérance : voulez-vous accepter une baisse ?", "type": "choix",
       "libelle": "Votre portefeuille de 100 000 $ vaut 82 000 $ trois mois plus tard. Que faites-vous ?",
-      "alimente": "resserre le seuil déclaré si vous vendez (sauf si votre vécu de 2022 dit le contraire)",
+      "alimente": "resserre le seuil si vous vendez (sauf si votre vécu de 2022 dit le contraire)",
       "choix": [
         {"id": "vend_tout", "libelle": "Je vends tout", "vend": true},
         {"id": "vend_partie", "libelle": "J'en vends une partie", "vend": true},
@@ -191,8 +177,8 @@
         "revenu": {"tres_stable": null, "assez_stable": -0.40, "incertain": -0.20, "sans_revenu": -0.15}
       }
     },
-    "tolerance": {
-      "justification": "Tolérance déclarée : la pire baisse réelle du portefeuille de la carte choisie. Elle est resserrée d'un cran si la personne vend : la baisse acceptée est réduite d'un quart. Quand la personne investissait en 2022, son vécu décide ; sinon, sa réaction imaginée décide.",
+    "resserrement": {
+      "justification": "Le seuil part du plafond de capacité. Il est resserré d'un cran si la personne vend quand ça baisse : la baisse acceptée est réduite d'un quart. Quand la personne investissait en 2022, son vécu décide ; sinon, sa réaction imaginée décide. La baisse vraiment acceptée se mesure ensuite au Pacte vécu (#68).",
       "cran_resserrement": 0.25
     },
     "arrondi": {
@@ -210,39 +196,23 @@
     }
   },
   "contradictions": {
-    "justification": "Règles choisies par l'équipe (hypothèse) : deux réponses qui ne vont pas ensemble, ou une tolérance très au-delà de la capacité. Une contradiction ne change aucune règle du Pacte : elle devient un contrôle « à vérifier » (coherence_questionnaire), pour que l'utilisateur la voie au lieu qu'elle soit cachée dans une moyenne.",
+    "justification": "Règles choisies par l'équipe (hypothèse) : deux réponses qui ne vont pas ensemble. Une contradiction ne change aucune règle du Pacte : elle devient un contrôle « à vérifier » (coherence_questionnaire), pour que l'utilisateur la voie au lieu qu'elle soit cachée dans une moyenne.",
     "paires": [
       {
         "id": "reaction_contre_vecu_2022",
         "si": {"reaction": ["rien", "rachete"], "vecu_2022": ["vendu"]},
-        "message": "Vous répondez {reaction} face à une baisse, mais {vecu_2022} en 2022. Votre vécu pèse plus que votre réaction imaginée : c'est lui qui fixe la tolérance."
+        "message": "Vous répondez {reaction} face à une baisse, mais {vecu_2022} en 2022. Votre vécu pèse plus que votre réaction imaginée : c'est lui qui décide si le seuil est resserré."
       },
       {
         "id": "vente_imaginee_contre_rachat_2022",
         "si": {"reaction": ["vend_tout", "vend_partie"], "vecu_2022": ["rachete"]},
-        "message": "Vous répondez {reaction} face à une baisse, mais {vecu_2022} en 2022 : vous êtes peut-être plus tolérant que vous ne le pensez. Le vécu de 2022 fixe la tolérance."
+        "message": "Vous répondez {reaction} face à une baisse, mais {vecu_2022} en 2022 : vous êtes peut-être plus tolérant que vous ne le pensez. Le vécu de 2022 décide si le seuil est resserré."
       },
       {
         "id": "proches_prudents_contre_crypto",
         "si": {"regard_proches": ["tres_prudent"], "crypto": ["10", "25"]},
         "message": "Vos proches vous décrivent comme {regard_proches}, mais vous acceptez {crypto} de cryptoactifs, l'une des classes d'actifs les plus volatiles."
-      },
-      {
-        "id": "proches_prudents_contre_carte",
-        "si": {"regard_proches": ["tres_prudent"], "fourchettes": ["croissance", "audacieux"]},
-        "message": "Vos proches vous décrivent comme {regard_proches}, mais vous choisissez le portefeuille {fourchettes}."
-      },
-      {
-        "id": "proches_joueur_contre_carte",
-        "si": {"regard_proches": ["joueur"], "fourchettes": ["tres_prudent"]},
-        "message": "Vos proches vous décrivent comme {regard_proches}, mais vous choisissez le portefeuille le plus prudent, {fourchettes}."
       }
-    ],
-    "ecart_tolerance_capacite": {
-      "id": "tolerance_contre_capacite",
-      "crans_min": 2,
-      "justification": "Les crans sont les tranches de profil_risque du barème. Deux crans d'écart ou plus : la personne veut accepter bien plus que sa situation ne le permet.",
-      "message": "Vous acceptez {tolerance} (portefeuille {carte}), mais votre situation ne permet que {capacite} ({raisons}). Le seuil retenu est le plus prudent des deux : vouloir accepter une baisse ne veut pas dire pouvoir se la permettre."
-    }
+    ]
   }
 }

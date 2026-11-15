@@ -110,7 +110,7 @@ async function robertAuClavier(largeur, suffixe) {
   await verifierEcran(page, `Décision ${suffixe}`, `robert-2-decision${suffixe}`);
   await tabulerJusqua(page, /Soumettre au Tribunal/);
   await page.keyboard.press('Enter');
-  await page.waitForSelector('text=Bilan du Greffier', { timeout: 20000 });
+  await page.waitForSelector('#titre-bilan', { timeout: 20000 });
   await verifierEcran(page, `Tribunal ${suffixe}`, `robert-3-tribunal${suffixe}`);
   await tabulerJusqua(page, /Ouvrir la pièce P5/);
   await page.keyboard.press('Enter');
@@ -185,7 +185,7 @@ async function amira() {
   if (!erreur) problemes.push('panier : le total différent de 100 % devrait être signalé');
   await page.getByRole('button', { name: /Diminuer Bitcoin/ }).click();
   await page.getByRole('button', { name: /Soumettre au Tribunal/ }).click();
-  await page.waitForSelector('text=Bilan du Greffier', { timeout: 20000 });
+  await page.waitForSelector('#titre-bilan', { timeout: 20000 });
   await verifierEcran(page, 'Amira · tribunal');
   await page.getByRole('button', { name: /Rendre mon verdict/ }).click();
   await page.waitForSelector('text=Quelle est votre décision');
@@ -207,7 +207,7 @@ async function mateo() {
   await page.waitForSelector('text=Effet sur votre Pacte');
   await verifierEcran(page, 'Mateo · décision');
   await page.getByRole('button', { name: /Soumettre au Tribunal/ }).click();
-  await page.waitForSelector('text=Bilan du Greffier', { timeout: 20000 });
+  await page.waitForSelector('#titre-bilan', { timeout: 20000 });
   await page.getByRole('button', { name: /Pourquoi le Greffier/ }).click();
   await verifierEcran(page, 'Mateo · tribunal');
   await page.getByRole('button', { name: /Rendre mon verdict/ }).click();

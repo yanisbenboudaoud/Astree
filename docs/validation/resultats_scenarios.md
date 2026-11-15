@@ -56,7 +56,7 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Argument d'origine : « La pire chute observée passe de −7,8 % à −29,0 %. » (P1) | accepté | accepté | ✅ |
 | Chiffre inventé : « La pire chute observée passe de −7,8 % à −31,0 %. » (P1) | rejeté | rejeté : « −31,0 % » introuvable dans P1 | ✅ |
 | Arrondi faux : « La pire chute observée passe de −7,8 % à −29,03 %. » (P1) | rejeté | rejeté : « −29,03 % » introuvable dans P1 | ✅ |
-| Mauvaise pièce citée : « La pire chute observée passe de −7,8 % à −29,0 %. » (P3) | rejeté | rejeté : « −7,8 % » introuvable dans P3 (présent dans P1, pièce non citée) ; « −29,0 % » introuvable dans P3 (présent dans P1, pièce non citée) | ✅ |
+| Mauvaise pièce citée : « La pire chute observée passe de −7,8 % à −29,0 %. » (P3) | rejeté | rejeté : « −7,8 % » introuvable dans P3 (présent dans P1, pièce non citée) ; « −29,0 % » introuvable dans P3 (présent dans P1, P6, pièce non citée) | ✅ |
 | Signe manquant : « Si 2022 se répétait, le portefeuille ferait 2,6 %. » (P2) | rejeté | rejeté : « 2,6 % » introuvable dans P2 : valeur négative, écrire le signe « − » | ✅ |
 | Nombre dérivé : « La pire chute serait 21 points de plus qu'aujourd'hui. » (P1) | rejeté | rejeté : « 21 » introuvable dans P1 | ✅ |
 | Conseil personnalisé : « La pire chute passe à −29,0 % : vous devriez vendre TSLA. » (P1) | rejeté | rejeté : Conseil personnalisé : « vous devriez » (le Tribunal ne recommande aucune transaction : exposer ce que montrent les pièces et laisser l'utilisateur décider) | ✅ |

@@ -14,6 +14,11 @@ prend le seuil mesuré, et ses réponses deviennent la pièce P2 (``declaree``).
 l'orchestrateur ait demandé l'outil ou non : le curseur de l'écran Décision
 en a besoin dans tous les cas.
 
+Les **points de bascule** (#61) relisent la même recherche : dès qu'une règle
+calculable du Pacte est en violation, Python verse d'office leur pièce au
+dossier, avant le débat, et remplit le champ ``points_de_bascule`` du contrat
+(ce qui rendrait chaque règle conforme : taille maximale ou seuil suffisant).
+
 Le Greffier passe en dernier : ``verifier_pacte`` contrôle chaque règle du
 Pacte, puis chaque argument du débat est vérifié : ses chiffres
 (``verifier_chiffres``, CLAUDE.md, section 4 ter) et le cadre « simulation
@@ -35,13 +40,16 @@ from pipeline.greffier import controle_biais_survivant, controle_performance_pas
 from pipeline.donnees import HYPOTHESES_DONNEES, date_extraction, seances_americaines
 from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.llm import converser_avec_outils
-from pipeline.orchestrateur import instruire_dossier
+from pipeline.orchestrateur import RAISON_D_OFFICE, instruire_dossier
 from pipeline.pacte import charger_pacte, pacte_pour_contrat, piece_pacte
-from pipeline.taille_max import rechercher_taille_max
+from pipeline.points_de_bascule import NOM_OUTIL as OUTIL_POINTS_DE_BASCULE
+from pipeline.points_de_bascule import piece_points_de_bascule, pour_contrat
+from pipeline.taille_max import ResultatRecherche, rechercher_taille_max
 from pipeline.simulation import poids_apres_decision, simuler_portefeuille
 
 ID_PIECE_PACTE = "P1"  # le Pacte est la première pièce ; l'orchestrateur numérote la suite
 ID_PIECE_CALIBRAGE = "P2"  # réponses du Pacte vécu, quand il y en a (#68)
+RAISON_POINTS_DE_BASCULE = f"{RAISON_D_OFFICE} : une règle calculable du Pacte est en violation"
 
 AVERTISSEMENT = (
     "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé."
@@ -111,11 +119,13 @@ def juger_decision(
     instruction = instruire_dossier(profil.decision, profil.profil, premier_numero=len(pieces_initiales) + 1,
                                     converser=converser)
     contrat["comparaison"] = comparaison(profil.profil["portefeuille"], profil.decision)
-    contrat["taille_max_compatible"] = rechercher_taille_max(
+    recherche = rechercher_taille_max(
         profil.profil["portefeuille"], profil.decision, profil.profil["pacte"]["regles"]
-    ).taille_max
+    )
+    contrat["taille_max_compatible"] = recherche.taille_max
     contrat["pieces"] += instruction.pieces
     contrat["trace"] += instruction.trace
+    contrat["points_de_bascule"] = verser_points_de_bascule(recherche, profil.decision, contrat)
 
     # Débat : Procureur et Avocat en parallèle, sur les mêmes pièces.
     dossier = {"decision": profil.decision, "pacte": profil.pacte, "pieces": contrat["pieces"],
@@ -152,6 +162,41 @@ def juger_decision(
     if vecu is not None:
         contrat["limites"].append(LIMITE_PACTE_VECU)
     return contrat
+
+
+def verser_points_de_bascule(
+    recherche: ResultatRecherche,
+    decision: dict[str, Any],
+    contrat: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Verse d'office la pièce des points de bascule (#61) et renvoie le champ du contrat.
+
+    Sans règle calculable en violation : ni pièce ni étape de trace, champ vide.
+    Sinon, la pièce prend le numéro suivant et l'étape de trace porte la raison
+    d'office, comme la simulation obligatoire.
+    """
+    id_piece = f"P{prochain_numero(contrat['pieces'])}"
+    piece = piece_points_de_bascule(id_piece, recherche, decision)
+    if piece is None:
+        return []
+    contrat["pieces"].append(piece)
+    contrat["trace"].append({
+        "etape": "orchestrateur",
+        "outil": OUTIL_POINTS_DE_BASCULE,
+        "raison": RAISON_POINTS_DE_BASCULE,
+        "entree": {"regles": piece["valeurs"]["regles_en_violation"]},
+        "sortie": id_piece,
+    })
+    return pour_contrat(recherche, decision, id_piece)
+
+
+def prochain_numero(pieces: list[dict[str, Any]]) -> int:
+    """Numéro de la prochaine pièce : celui qui suit la plus grande pièce « P<n> » du dossier.
+
+    Sert aussi au contre-interrogatoire (#55), qui numérote ses pièces à la suite.
+    """
+    numeros = [int(piece["id"][1:]) for piece in pieces if piece["id"][1:].isdigit()]
+    return max(numeros, default=0) + 1
 
 
 def hypotheses_proces(seuil_mesure: float | None) -> list[str]:

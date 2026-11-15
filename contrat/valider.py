@@ -17,6 +17,7 @@ from jsonschema import Draft202012Validator
 CHEMIN_SCHEMA = Path(__file__).with_name("schema_sortie.json")
 CONTROLES_SYSTEME = {"verifier_chiffres", "cadre_simulation", "performance_passee", "biais_survivant",
                      "interpretation_demande"}
+TYPES_CALCULABLES = {"pire_baisse_max", "plafond"}  # règles qui ont un point de bascule (#61)
 TOLERANCE_SOMME_POIDS = 1e-6
 # Sortie d'un appel d'outil refusé ou en erreur (orchestrateur, #12) : le procès continue sans pièce.
 PREFIXE_ERREUR_OUTIL = "Erreur : "
@@ -48,8 +49,8 @@ def erreurs_renvois(contrat):
     if len(ids_pieces) != len(pieces_connues):
         erreurs.append("pieces : identifiants en double")
 
-    for champ in ("requisitoire", "plaidoirie", "arguments_rejetes", "controles"):
-        for i, element in enumerate(contrat[champ]):
+    for champ in ("requisitoire", "plaidoirie", "arguments_rejetes", "controles", "points_de_bascule"):
+        for i, element in enumerate(contrat.get(champ, [])):
             for id_piece in element.get("pieces", []):
                 if id_piece not in pieces_connues:
                     erreurs.append(f"{champ}/{i} : pièce {id_piece} inexistante")
@@ -78,6 +79,9 @@ def erreurs_renvois(contrat):
         sortie = etape["sortie"]
         if etape["etape"] == "orchestrateur" and sortie not in pieces_connues and not est_erreur_outil(sortie):
             erreurs.append(f"trace/{i} : la sortie « {sortie} » n'est ni une pièce ni une erreur d'outil")
+
+    if "points_de_bascule" in contrat:
+        erreurs += erreurs_points_de_bascule(contrat)
 
     decision = contrat["decision"]
     if decision["type"] == "reallocation":
@@ -112,6 +116,30 @@ def erreurs_contre_interrogatoire(contrat, pieces_connues):
             sortie = etape["sortie"]
             if etape["etape"] == "orchestrateur" and sortie not in pieces_connues and not est_erreur_outil(sortie):
                 erreurs.append(f"{chemin}/trace/{i} : la sortie « {sortie} » n'est ni une pièce ni une erreur d'outil")
+    return erreurs
+
+
+def erreurs_points_de_bascule(contrat):
+    """Un point de bascule par règle calculable en violation, et seulement pour elles (#61)."""
+    erreurs = []
+    regles = {regle["id"]: regle for regle in contrat["pacte"]["regles"]}
+    en_violation = {controle["regle"] for controle in contrat["controles"] if controle["statut"] == "violation"}
+    attendues = {id_regle for id_regle in en_violation
+                 if id_regle in regles and regles[id_regle]["type"] in TYPES_CALCULABLES}
+    vues = set()
+    for i, point in enumerate(contrat["points_de_bascule"]):
+        regle = regles.get(point["regle"])
+        if regle is None or regle["type"] not in TYPES_CALCULABLES:
+            erreurs.append(f"points_de_bascule/{i} : « {point['regle']} » n'est pas une règle calculable du Pacte")
+        elif regle["type"] != point["type"]:
+            erreurs.append(f"points_de_bascule/{i} : type « {point['type']} » au lieu de « {regle['type']} »")
+        elif point["regle"] not in en_violation:
+            erreurs.append(f"points_de_bascule/{i} : la règle « {point['regle']} » n'est pas en violation")
+        if point["regle"] in vues:
+            erreurs.append(f"points_de_bascule/{i} : règle « {point['regle']} » en double")
+        vues.add(point["regle"])
+    for id_regle in sorted(attendues - vues):
+        erreurs.append(f"points_de_bascule : la règle « {id_regle} » est en violation sans point de bascule")
     return erreurs
 
 

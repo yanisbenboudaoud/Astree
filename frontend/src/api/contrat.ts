@@ -69,6 +69,19 @@ export interface EtapeTraceContrat {
   sortie?: unknown;
 }
 
+/** Ce qui rendrait conforme une règle calculable en violation (#61) : décision ramenée à `taille_max`, ou Pacte ajusté à `seuil_suffisant`. */
+export interface PointDeBasculeContrat {
+  regle: string;
+  type: 'pire_baisse_max' | 'plafond';
+  seuil_actuel: number;
+  seuil_suffisant: number;
+  /** Plus grande taille (ou part réallouée) où cette règle est conforme ; null si même 0 % la viole. */
+  taille_max: number | null;
+  /** Phrase prête à afficher, écrite par Python. */
+  message: string;
+  pieces: string[];
+}
+
 export interface IndicateursContrat {
   rendement_annuel: number;
   volatilite_annuelle: number;
@@ -89,6 +102,8 @@ export interface ContratTribunal {
   };
   comparaison: { actuel: IndicateursContrat; apres: IndicateursContrat };
   taille_max_compatible: number | null;
+  /** Absent des procès enregistrés avant #61. */
+  points_de_bascule?: PointDeBasculeContrat[];
   pieces: PieceContrat[];
   requisitoire: ArgumentContrat[];
   plaidoirie: ArgumentContrat[];

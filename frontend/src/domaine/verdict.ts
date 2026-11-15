@@ -6,7 +6,7 @@ import type { VerdictContrat } from '../api/contrat';
 import type { DecisionUI, EntreeSimulation, Profil, ResultatTribunal, Statut, TablePosition } from '../api/types';
 import { correlation, part, pourcent, seuil as seuilTexte } from '../lib/format';
 import { entreePosition, libelleDecision } from './decision';
-import { libelleCategories, pireStatut } from './pacte';
+import { libelleCategories, paragraphe, pireStatut } from './pacte';
 
 export type IdOption = 'maintenir' | 'ramener' | 'renoncer' | 'pacte';
 
@@ -191,4 +191,26 @@ export function archivage(option: OptionVerdict, decision: DecisionUI, violation
     default:
       return { resume: `« ${libelle} » en attente d'un Pacte ajusté${suffixe}`, journal: `En attente : ${libelle}`, statut: 'a_verifier' };
   }
+}
+
+export interface PointDeBascule {
+  regle: string;
+  /** Numéro de la règle dans le Pacte (§1, §2…). */
+  paragraphe?: number;
+  libelle: string;
+  /** « Conforme jusqu'à 9 % en TSLA, ou avec un seuil de −29,0 % au lieu de −12,0 % » (écrit par Python). */
+  message: string;
+  pieces: string[];
+}
+
+/** « Qu'est-ce qui changerait la réponse ? » (#61) : un point par règle calculable en violation, lu dans le contrat. */
+export function pointsDeBascule(resultat: ResultatTribunal): PointDeBascule[] {
+  const regles = resultat.contrat.pacte.regles;
+  return (resultat.contrat.points_de_bascule ?? []).map((p) => ({
+    regle: p.regle,
+    paragraphe: paragraphe(regles, p.regle),
+    libelle: regles.find((r) => r.id === p.regle)?.libelle ?? p.regle,
+    message: p.message,
+    pieces: p.pieces,
+  }));
 }

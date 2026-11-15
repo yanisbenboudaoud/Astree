@@ -19,7 +19,7 @@ de renvoyer une taille.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from pipeline.categories import TitreHorsUnivers, categories_du_titre
@@ -43,6 +43,8 @@ class EtapeRecherche:
     pire_baisse: float  # pire baisse du portefeuille après la décision, à cette taille
     parts: dict[str, float]  # part des catégories de chaque règle « plafond » (id → part)
     violations: list[str]  # id des règles calculables qui ne sont pas « conforme »
+    # Statut rendu par le Greffier pour chaque règle calculable (id → statut), lu par les points de bascule (#61).
+    statuts: dict[str, str] = field(default_factory=dict)
 
     @property
     def compatible(self) -> bool:
@@ -119,6 +121,7 @@ def _evaluer(portefeuille, decision, taille, regles) -> EtapeRecherche:
         parts={regle["id"]: _part_des_categories(poids, regle["categories"])
                for regle in regles if regle["type"] == "plafond"},
         violations=[controle["regle"] for controle in controles if controle["statut"] != "conforme"],
+        statuts={controle["regle"]: controle["statut"] for controle in controles},
     )
 
 

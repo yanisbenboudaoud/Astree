@@ -39,7 +39,7 @@ from pipeline.debat import debattre
 from pipeline.llm import converser_avec_outils
 from pipeline.orchestrateur import instruire_question
 from pipeline.pacte import charger_pacte
-from pipeline.tribunal import bornes_periode, verifier_cote
+from pipeline.tribunal import bornes_periode, prochain_numero, verifier_cote
 
 LONGUEUR_MAX_QUESTION = 500  # une question tient en une ou deux phrases
 
@@ -115,12 +115,6 @@ def verifier_question(question: Any) -> str:
     if len(question) > LONGUEUR_MAX_QUESTION:
         raise QuestionInvalide(f"Question trop longue : {LONGUEUR_MAX_QUESTION} caractères au plus")
     return question
-
-
-def prochain_numero(pieces: list[dict[str, Any]]) -> int:
-    """Numéro de la prochaine pièce : celui qui suit la plus grande pièce « P<n> » du dossier."""
-    numeros = [int(piece["id"][1:]) for piece in pieces if piece["id"][1:].isdigit()]
-    return max(numeros, default=0) + 1
 
 
 def pieces_de_l_echange(contrat: dict[str, Any], echange: dict[str, Any]) -> list[dict[str, Any]]:

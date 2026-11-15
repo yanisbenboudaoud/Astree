@@ -1,6 +1,6 @@
 # #59 — Scénarios : panier crypto-tech et graphique de sensibilité
 
-- **Issue** : #59 · **PR** : #PR_A_RENSEIGNER · **Statut** : terminée
+- **Issue** : #59 · **PR** : #73 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

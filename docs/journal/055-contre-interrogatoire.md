@@ -1,6 +1,6 @@
 # #55 — Contre-interrogatoire : question libre de l'utilisateur
 
-- **Issue** : #55 · **PR** : #72, #74, #80 · **Statut** : terminée (route branchée dans l'interface)
+- **Issue** : #55 · **PR** : #72, #74, #83 · **Statut** : terminée (route branchée dans l'interface)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
@@ -13,7 +13,7 @@
 - **`pipeline/simulation.py`** (complète la fiche [009](009-simuler-portefeuille.md)) : les pièces de simulation disent quelle décision elles simulent. Le titre devient « Simulation du portefeuille avec 15 % en TSLA » ou « Rejeu de 2022 avec 15 % en TSLA » (`decision_simulee`), et les `valeurs` contiennent la taille simulée (`taille`, ou `part_reallouee` pour une réallocation). Sans cela, avec plusieurs simulations au dossier, les agents ne savaient pas laquelle correspondait à la question et ne pouvaient pas écrire « 15 % », que le Greffier aurait refusé. Les chiffres ne changent pas.
 - **`contrat/schema_sortie.json`** et **`contrat/valider.py`** : champ facultatif `contre_interrogatoire` (définition `echange_contre_interrogatoire`) et ses renvois : pièces ajoutées présentes dans `pieces` et jamais ajoutées deux fois, pièces citées existantes, sorties de l'orchestrateur valides, `controle_chiffres` portant sur `verifier_chiffres`. Les contrats sans ce champ restent valides.
 - **`deploiement/lambda_tribunal.py`** : route `POST /question` `{"id", "question"}`. Elle relit `traces/<date>/<id>.json`, appelle `interroger`, réarchive le contrat complété au même endroit et renvoie `{"id", "echange", "pieces"}`. Erreurs : 400 (identifiant ou question invalide), 404 (procès ou profil inconnu), 422 (Pacte ou données inutilisables), 500 (erreur inattendue, détail dans CloudWatch).
-- **Interface** (`frontend/`, PR #80) : la case de question libre de l'écran Tribunal appelle `/question`.
+- **Interface** (`frontend/`, PR #83) : la case de question libre de l'écran Tribunal appelle `/question`.
   - `poserQuestion(procesId, question)` (`src/api/tribunal.ts`) envoie `{"id", "question"}` à la Lambda ; `adapterEchange` (`src/api/adaptateur.ts`) transforme la réponse en réponses affichées : un argument du Procureur ou de l'Avocat par réponse, puis le compte rendu du Greffier (`controle_chiffres`, et le motif de chaque argument rejeté). Type `EchangeContrat` dans `src/api/contrat.ts`.
   - Les nouvelles pièces (`pieces` de la réponse) rejoignent « Pièces à conviction » (`nouvellesPieces` d'une `Reponse`, `src/domaine/questions.ts`), citées par « Contre-interrogatoire · <question> ».
   - Les questions suggérées restent calculées dans le navigateur, sans Bedrock. Le texte libre passe par la Lambda dès que `VITE_API_URL` est défini et que le procès a un identifiant S3, y compris pour un procès enregistré rejoué en démonstration (comme « Trompez le Greffier »). Pendant l'appel (environ 30 s), le champ est désactivé et un message d'attente s'affiche ; en cas d'erreur, le motif s'affiche et la question est remise dans le champ.

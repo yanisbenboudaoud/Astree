@@ -99,7 +99,6 @@
 .legendeZones li { display: inline-flex; align-items: center; gap: 6px; }
 .carreCompatible { width: 16px; height: 6px; background: var(--statut-conforme); }
 .carreHors { width: 16px; height: 6px; background: var(--statut-violation-teinte); outline: 1px solid var(--statut-violation); outline-offset: -1px; }
-.financement { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
 .lignesPanier { display: flex; flex-direction: column; }
 .lignePanier {

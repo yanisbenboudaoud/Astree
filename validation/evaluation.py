@@ -14,8 +14,8 @@ régénère à l'identique.
 Un raté n'est jamais corrigé en silence : il reste dans le rapport. Si une règle est
 corrigée, la mesure suivante se fait sur un second jeu, écrit après la correction.
 
-Usage : ``python -m validation.evaluation chiffres``, ou, pour une évaluation qui relit
-les procès tenus au lieu d'un jeu, ``python -m validation.evaluation orchestrateur`` (#167).
+Usage : ``python -m validation.evaluation chiffres`` (#165) ou ``cadre`` (#166) ; pour une évaluation
+qui relit les procès tenus au lieu d'un jeu, ``python -m validation.evaluation orchestrateur`` (#167).
 """
 
 from __future__ import annotations
@@ -116,8 +116,11 @@ def cellule(texte: str) -> str:
 # --- Commande ---------------------------------------------------------------------
 
 def _evaluations() -> dict[str, tuple[Callable, Callable]]:
-    from validation import evaluation_chiffres
-    return {"chiffres": (evaluation_chiffres.evaluer, evaluation_chiffres.rapport)}
+    from validation import evaluation_cadre, evaluation_chiffres
+    return {
+        "chiffres": (evaluation_chiffres.evaluer, evaluation_chiffres.rapport),
+        "cadre": (evaluation_cadre.evaluer, evaluation_cadre.rapport),
+    }
 
 
 def evaluer_jeu(nom: str) -> tuple[dict[str, Any], list[ResultatCas], str]:
@@ -140,7 +143,7 @@ def _evaluations_sans_jeu() -> dict[str, Callable[[list[str]], tuple[str, str]]]
 
 def main(arguments: list[str]) -> int:
     if not arguments:
-        print("Usage : python -m validation.evaluation <jeu>   (ex. : chiffres, orchestrateur [--local])")
+        print("Usage : python -m validation.evaluation <jeu>   (ex. : chiffres, cadre, orchestrateur [--local])")
         return 2
     nom, options = arguments[0], arguments[1:]
     sans_jeu = _evaluations_sans_jeu()

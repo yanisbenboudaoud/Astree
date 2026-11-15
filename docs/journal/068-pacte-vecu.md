@@ -1,6 +1,6 @@
 # #68 — Le Pacte vécu : mesurer les limites de l'investisseur sur de vrais jours de marché
 
-- **Issue** : #68 · **PR** : #78, PR_SUIVANTE · **Statut** : terminée
+- **Issue** : #68 · **PR** : #78, #79 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

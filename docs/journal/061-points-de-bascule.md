@@ -1,6 +1,6 @@
 # #61 — « Qu'est-ce qui changerait la réponse ? » : points de bascule par règle
 
-- **Issue** : #61 · **PR** : #75, PR de suite (procès de démo) · **Statut** : terminée
+- **Issue** : #61 · **PR** : #75, #81 (procès de démo) · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
@@ -41,7 +41,7 @@ Dans un procès (`juger_decision`), rien à faire : la pièce est versée d'offi
 
 **Lambda déployée** (`deployer.py` depuis cette branche, puis `tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"`) : HTTP 200 en 20,5 s, procès archivé `2026-11-15-1e35809282d3`. Le contrat passe `valider_contrat` ; la pièce P7 est versée d'office et citée par 3 arguments. Avant le déploiement, le code en ligne était celui de `main` avant #72 : aucun travail non fusionné n'a été écrasé. Quelques minutes plus tard, la Lambda a été redéployée depuis la branche de #78, sans #61. **Après la fusion de #75**, `main` a été redéployé (le code en ligne était exactement `main` avant #75 : rien d'autre n'a changé).
 
-**Procès de démo refaits par la Lambda** (PR de suite), copiés tels quels depuis S3 dans `frontend/src/data/proces/`. Les quatre passent `contrat.valider`, avec `cadre_simulation` conforme et aucun argument rejeté :
+**Procès de démo refaits par la Lambda** (#81), copiés tels quels depuis S3 dans `frontend/src/data/proces/`. Les quatre passent `contrat.valider`, avec `cadre_simulation` conforme et aucun argument rejeté :
 
 | Procès | Remplace | Points de bascule |
 |---|---|---|

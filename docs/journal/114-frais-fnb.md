@@ -1,6 +1,6 @@
 # #114 — Frais de gestion des FNB
 
-- **Issue** : #114 · **PR** : à venir · **Statut** : en cours (code, données et tests faits ; Lambda à redéployer et procès de démo à refaire)
+- **Issue** : #114 · **PR** : à venir · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -45,6 +45,26 @@ Résultats pour les profils de test :
 
 Une action ou un cryptoactif n'a pas de frais de gestion : ces décisions font donc baisser les frais. Cet argument est honnête pour l'Avocat, et il ne dit rien du risque.
 
+**Sur AWS**
+- **Lambda redéployée** (`deploiement/deployer.py --sans-donnees`). Le relevé est dans le zip avec `donnees_externes/` : aucun service, fichier S3 ni droit IAM de plus.
+- **Les 7 procès de démonstration refaits** sur la Lambda, copiés tels quels depuis `traces/2026-11-15/` du bucket. Ils remplacent ceux de #111 (fiche 111), avec `index.json` et les procès-verbaux. Chaque copie S3 est identique à la réponse reçue, et chaque contrat passe `contrat.valider`.
+  - La pièce de simulation de chacun contient le coût des frais.
+  - Le relevé figure dans les sources de chacun : 7 à 9 sources selon le procès.
+  - L'Avocat cite les frais dans 4 procès sur 7 (Robert 25 % et Pacte vécu, Amira et Amira Pacte vécu), par exemple « Les frais annuels du portefeuille réalloué coûtent 18 $ sur 40 000 $, contre 37 $ pour le portefeuille actuel. » Ces arguments passent le Greffier.
+  - `2026-11-15-449f913437d8` (Robert, 25 %) garde un argument rejeté : « aurait perdu 132 206 $ » sans signe « − ».
+
+| Procès | Profil, décision | Frais par an |
+|---|---|---|
+| `2026-11-15-fe7e9832703a` | Robert, 30 % en TSLA | 682 $ → 478 $ |
+| `2026-11-15-449f913437d8` | Robert, 25 % en TSLA | 682 $ → 512 $ |
+| `2026-11-15-b6795c03a385` | Amira, panier crypto-tech | 37 $ → 18 $ |
+| `2026-11-15-d6b68c21715f` | Mateo, 10 % en XOM | 191 $ → 172 $ |
+| `2026-11-15-6e4909122c29` | Robert, Pacte vécu | 682 $ → 478 $ |
+| `2026-11-15-bf35f3959b58` | Amira, Pacte vécu | 37 $ → 18 $ |
+| `2026-11-15-c6adf5094e76` | Mateo, Pacte vécu | 191 $ → 172 $ |
+
+- **Interface** (`frontend/src/domaine/debat.ts`) : le débat point par point a un point « Frais » (« Combien coûtent les frais des fonds chaque année ? »), et « Une réallocation de 28 % du portefeuille respecte… » est rangé dans « Taille modeste ». Les tests de l'interface suivent les nouveaux identifiants et les motifs des corrections du Greffier.
+
 ## Comment l'utiliser
 ```python
 from pipeline import frais
@@ -83,7 +103,7 @@ Les tests vérifient :
 - Les pages iShares Canada et Vanguard sont chargées en JavaScript : les ratios viennent des fiches PDF des mêmes émetteurs.
 
 ## Limites et suite
-- **À faire** : redéployer la Lambda (`deploiement/deployer.py --sans-donnees`) et refaire les 7 procès de démo, pour qu'un procès réel contienne le coût des frais (critère de l'issue).
+- La Lambda a été déployée depuis la branche de cette PR : la redéployer depuis `main` après la fusion ne change rien au pipeline.
 - Les ratios sont ceux d'aujourd'hui : certains ont pu changer pendant la période simulée (la limite de la pièce le dit, sans chiffre).
 - Commissions de courtage, écart entre prix d'achat et de vente, frais de garde et impôts ne sont pas comptés.
 - Mettre à jour le relevé demande une intervention manuelle : aucune lecture automatique des pages des émetteurs.

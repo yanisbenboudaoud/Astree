@@ -108,12 +108,17 @@
         "rendement_reel_annuel_actuel": 0.149652,
         "taux_sans_risque_moyen": 0.031906,
         "ratio_sharpe": 0.351436,
-        "ratio_sharpe_actuel": 0.770352
+        "ratio_sharpe_actuel": 0.770352,
+        "frais_annuels": 0.00045,
+        "frais_annuels_cad": 18,
+        "frais_annuels_actuels": 0.000922,
+        "frais_annuels_cad_actuels": 37,
+        "ecart_frais_annuels_cad": 19
       },
       "valeur_affichee": "−58,5 % max · +16,9 %/an",
-      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
-      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle",
-      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13 ; Pages et documents des émetteurs des FNB (ratio des frais), relevés le 2026-11-15",
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle ; frais : ratio des frais de chaque FNB (page ou document de l'émetteur), pondéré par les poids ; zéro pour un titre détenu en direct ; déjà prélevés dans les cours, donc affichés sans être déduits",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés ; frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage et écart entre prix d'achat et de vente non comptés"
     },
     {
       "id": "P3",
@@ -146,7 +151,7 @@
       "valeur_affichee": "−24,9 % → −49,3 %",
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
       "traitement": "Portefeuille avec et sans la position, de la dernière séance de 2021 à la dernière séance de 2022 ; inflation : IPC du Canada de 2021-12 à 2022-12 ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; taux directeur et obligation à 10 ans au début et à la fin de l'année",
-      "limites": "Une seule année de crise ; la suivante peut être différente ; inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
+      "limites": "Une seule année de crise ; la suivante peut être différente ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés"
     },
     {
       "id": "P4",
@@ -307,12 +312,17 @@
     {
       "statut": "conforme",
       "regle": "verifier_chiffres",
-      "message": "Chiffres cités vérifiés contre leurs pièces : 19/19 chiffres, 7 arguments"
+      "message": "Chiffres cités vérifiés contre leurs pièces : 23/23 chiffres, 8 arguments"
     },
     {
       "statut": "conforme",
       "regle": "cadre_simulation",
-      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés"
+      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 8 arguments vérifiés"
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "performance_passee",
+      "message": "Performance passée invoquée : elle ne prédit pas l'avenir"
     },
     {
       "statut": "a_verifier",
@@ -329,7 +339,8 @@
     "Réallocation prise au prorata de toutes les lignes du portefeuille",
     "Seuils du Pacte choisis par l'équipe",
     "Portefeuille et capital fictifs",
-    "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période"
+    "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période",
+    "Frais de gestion des FNB : déjà prélevés dans les cours (adj_close), affichés sans être déduits une seconde fois"
   ],
   "sources": [
     {
@@ -362,11 +373,11 @@
         },
         {
           "id": "P4",
-          "raison": "Le panier semble dépasser plusieurs plafonds du Pacte : vérifier si une réallocation plus modeste serait compatible."
+          "raison": "Les plafonds et le seuil de pire baisse semblent dépassés : vérifier si une réallocation plus modeste serait compatible."
         },
         {
           "id": "P5",
-          "raison": "Le panier concentre cryptoactifs et titres technologiques : vérifier s'ils se diversifient réellement entre eux."
+          "raison": "Le panier concentre cryptoactifs et titres technologiques : mesurer s'ils se diversifient réellement entre eux."
         },
         {
           "id": "P7",
@@ -391,11 +402,11 @@
         },
         {
           "id": "P4",
-          "raison": "Le panier semble dépasser plusieurs plafonds du Pacte : vérifier si une réallocation plus modeste serait compatible."
+          "raison": "Les plafonds et le seuil de pire baisse semblent dépassés : vérifier si une réallocation plus modeste serait compatible."
         },
         {
           "id": "P5",
-          "raison": "Le panier concentre cryptoactifs et titres technologiques : vérifier s'ils se diversifient réellement entre eux."
+          "raison": "Le panier concentre cryptoactifs et titres technologiques : mesurer s'ils se diversifient réellement entre eux."
         },
         {
           "id": "P7",
@@ -420,11 +431,11 @@
         },
         {
           "id": "P4",
-          "raison": "Le panier semble dépasser plusieurs plafonds du Pacte : vérifier si une réallocation plus modeste serait compatible."
+          "raison": "Les plafonds et le seuil de pire baisse semblent dépassés : vérifier si une réallocation plus modeste serait compatible."
         },
         {
           "id": "P5",
-          "raison": "Le panier concentre cryptoactifs et titres technologiques : vérifier s'ils se diversifient réellement entre eux."
+          "raison": "Le panier concentre cryptoactifs et titres technologiques : mesurer s'ils se diversifient réellement entre eux."
         },
         {
           "id": "P7",
@@ -454,6 +465,19 @@
       ]
     },
     {
+      "nom": "Pages et documents des émetteurs des FNB : ratio des frais, relevé par l'équipe",
+      "fichier": "donnees_externes/frais_fnb.json",
+      "date_extraction": "2026-11-15",
+      "format": "JSON (relevé)",
+      "usage": "Le coût annuel des frais de gestion des FNB, déjà prélevés dans leurs cours",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Pièce obligatoire : mesurer la pire baisse, le rendement et la volatilité du portefeuille après la décision."
+        }
+      ]
+    },
+    {
       "nom": "Archives des verdicts de ce profil",
       "fichier": "verdicts/amira/ (S3)",
       "date_extraction": "2026-11-15",
@@ -462,7 +486,7 @@
       "pieces": [
         {
           "id": "P6",
-          "raison": "Plusieurs règles sont probablement violées : regarder comment l'utilisateur a tranché dans des procès passés similaires."
+          "raison": "Plusieurs règles sont probablement violées : voir comment l'utilisateur a tranché dans des conflits passés similaires."
         }
       ]
     }
@@ -485,7 +509,7 @@
       "entree": "Je veux réallouer tout mon portefeuille vers un panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
       "sortie": {
         "type_decision": "reallocation",
-        "actif_mentionne": "Panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
+        "actif_mentionne": "panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
         "ticker": null,
         "taille": 1.0,
         "montant": null,
@@ -518,7 +542,7 @@
       "outil": "valider_decision",
       "entree": {
         "type_decision": "reallocation",
-        "actif_mentionne": "Panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
+        "actif_mentionne": "panier : 25 % Bitcoin (BTC-USD), 25 % Ether (ETH-USD), 25 % NVIDIA (NVDA), 25 % Invesco QQQ (Nasdaq-100) (QQQ)",
         "ticker": null,
         "taille": 1.0,
         "montant": null,
@@ -592,7 +616,7 @@
     {
       "etape": "orchestrateur",
       "outil": "taille_max_compatible",
-      "raison": "Le panier semble dépasser plusieurs plafonds du Pacte : vérifier si une réallocation plus modeste serait compatible.",
+      "raison": "Les plafonds et le seuil de pire baisse semblent dépassés : vérifier si une réallocation plus modeste serait compatible.",
       "entree": {
         "part_reallouee": 1.0
       },
@@ -601,7 +625,7 @@
     {
       "etape": "orchestrateur",
       "outil": "calculer_correlations",
-      "raison": "Le panier concentre cryptoactifs et titres technologiques : vérifier s'ils se diversifient réellement entre eux.",
+      "raison": "Le panier concentre cryptoactifs et titres technologiques : mesurer s'ils se diversifient réellement entre eux.",
       "entree": {
         "tickers": [
           "BTC-USD",
@@ -615,7 +639,7 @@
     {
       "etape": "orchestrateur",
       "outil": "consulter_jurisprudence",
-      "raison": "Plusieurs règles sont probablement violées : regarder comment l'utilisateur a tranché dans des procès passés similaires.",
+      "raison": "Plusieurs règles sont probablement violées : voir comment l'utilisateur a tranché dans des conflits passés similaires.",
       "entree": {
         "regle": "toutes"
       },
@@ -649,7 +673,7 @@
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "La plus forte chute depuis un sommet atteint −58,5 %, au-delà de votre règle « Pire baisse tolérée : −45 % ». Sur votre capital, cela représente une perte de 23 407 $ au pire moment.",
+          "texte": "Votre règle « Pire baisse tolérée : −45 % » est dépassée : la plus forte chute depuis un sommet atteint −58,5 % avec cette décision.",
           "pieces": [
             "P1",
             "P2"
@@ -657,7 +681,14 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Avec BTC-USD 25 % et ETH-USD 25 %, la part en cryptoactifs dépasse votre règle « Crypto : 25 % du portefeuille au maximum ». Cette règle serait respectée jusqu'à 28 % du portefeuille réalloué.",
+          "texte": "En rejouant 2022, la décision aurait fait perdre 19 708 $, contre 9 942 $ sans elle.",
+          "pieces": [
+            "P3"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Votre règle « Crypto : 25 % du portefeuille au maximum » serait respectée jusqu'à 28 % réalloués, alors que la décision en réalloue 100 %.",
           "pieces": [
             "P1",
             "P4"
@@ -665,15 +696,7 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Cette décision enfreint aussi votre règle « Ne pas miser exclusivement sur la tech (tech et crypto : 75 % au maximum) ». Cette règle serait respectée jusqu'à 50 % du portefeuille réalloué.",
-          "pieces": [
-            "P1",
-            "P7"
-          ]
-        },
-        {
-          "etiquette": "fait",
-          "texte": "Cette même décision a déjà été jugée 2 fois le 15 novembre 2026, avec les mêmes règles enfreintes. Les 2 fois, vous avez rendu le verdict « modifié ».",
+          "texte": "2 procès archivés, datés du 2026-11-15, portaient sur cette même décision, en violation des mêmes règles, et ont tous deux abouti au verdict « modifié ».",
           "pieces": [
             "P6"
           ]
@@ -695,7 +718,7 @@
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Une réallocation de 28 % au maximum respecte les trois règles de votre Pacte. Au pire moment, la baisse atteint −41,0 %, sous la limite « Pire baisse tolérée : −45 % ».",
+          "texte": "Une réallocation de 28 % du portefeuille respecte les trois règles du Pacte, au lieu des 100 % choisis. À cette taille, la pire baisse est de −41,0 %, sous la limite de −45 %.",
           "pieces": [
             "P4",
             "P1"
@@ -703,14 +726,21 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Avec la réallocation complète, le portefeuille a affiché +16,9 % par an, soit +12,9 % par an après inflation. Le passé ne dit rien de l'avenir.",
+          "texte": "Le portefeuille réalloué a gagné +16,9 % par an, contre +19,0 % pour le portefeuille actuel : le rendement reste positif, mais plus bas.",
           "pieces": [
             "P2"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Les quatre titres ne bougent pas tous ensemble : BTC-USD et QQQ affichent un lien de 0,40 entre leurs variations. En revanche, BTC-USD et ETH-USD vont de pair, avec 0,84.",
+          "texte": "Les frais annuels du portefeuille réalloué coûtent 18 $ sur 40 000 $, contre 37 $ pour le portefeuille actuel.",
+          "pieces": [
+            "P2"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "BTC-USD et ETH-USD n'ont suivi QQQ que de façon partielle, avec des corrélations de 0,40 et de 0,42. Entre BTC-USD et ETH-USD, elle atteint toutefois 0,84.",
           "pieces": [
             "P5"
           ]
@@ -728,16 +758,31 @@
       "sortie": "3 violations"
     },
     {
+      "etape": "procureur",
+      "outil": "bedrock_correction",
+      "entree": {
+        "argument": "En rejouant 2022, la décision aurait fait perdre 19 708 $, contre 9 942 $ sans elle.",
+        "motif": "« 19 708 » introuvable dans P3 : valeur négative, écrire le signe « − » ; « 9 942 » introuvable dans P3 : valeur négative, écrire le signe « − »"
+      },
+      "sortie": {
+        "etiquette": "fait",
+        "texte": "En rejouant 2022, la décision aurait donné un résultat de −19 708 $ sur 40 000 $, contre −9 942 $ sans elle.",
+        "pieces": [
+          "P3"
+        ]
+      }
+    },
+    {
       "etape": "greffier",
       "outil": "verifier_chiffres",
-      "entree": "7 arguments",
-      "sortie": "Chiffres cités vérifiés contre leurs pièces : 19/19 chiffres, 7 arguments"
+      "entree": "8 arguments",
+      "sortie": "Chiffres cités vérifiés contre leurs pièces : 23/23 chiffres, 8 arguments"
     },
     {
       "etape": "greffier",
       "outil": "verifier_cadre_simulation",
-      "entree": "7 arguments",
-      "sortie": "Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés"
+      "entree": "8 arguments",
+      "sortie": "Aucun conseil personnalisé ni promesse sur l'avenir : 8 arguments vérifiés"
     }
   ],
   "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.",
@@ -794,7 +839,7 @@
   "requisitoire": [
     {
       "etiquette": "fait",
-      "texte": "La plus forte chute depuis un sommet atteint −58,5 %, au-delà de votre règle « Pire baisse tolérée : −45 % ». Sur votre capital, cela représente une perte de 23 407 $ au pire moment.",
+      "texte": "Votre règle « Pire baisse tolérée : −45 % » est dépassée : la plus forte chute depuis un sommet atteint −58,5 % avec cette décision.",
       "pieces": [
         "P1",
         "P2"
@@ -802,7 +847,14 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Avec BTC-USD 25 % et ETH-USD 25 %, la part en cryptoactifs dépasse votre règle « Crypto : 25 % du portefeuille au maximum ». Cette règle serait respectée jusqu'à 28 % du portefeuille réalloué.",
+      "texte": "En rejouant 2022, la décision aurait donné un résultat de −19 708 $ sur 40 000 $, contre −9 942 $ sans elle.",
+      "pieces": [
+        "P3"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Votre règle « Crypto : 25 % du portefeuille au maximum » serait respectée jusqu'à 28 % réalloués, alors que la décision en réalloue 100 %.",
       "pieces": [
         "P1",
         "P4"
@@ -810,15 +862,7 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Cette décision enfreint aussi votre règle « Ne pas miser exclusivement sur la tech (tech et crypto : 75 % au maximum) ». Cette règle serait respectée jusqu'à 50 % du portefeuille réalloué.",
-      "pieces": [
-        "P1",
-        "P7"
-      ]
-    },
-    {
-      "etiquette": "fait",
-      "texte": "Cette même décision a déjà été jugée 2 fois le 15 novembre 2026, avec les mêmes règles enfreintes. Les 2 fois, vous avez rendu le verdict « modifié ».",
+      "texte": "2 procès archivés, datés du 2026-11-15, portaient sur cette même décision, en violation des mêmes règles, et ont tous deux abouti au verdict « modifié ».",
       "pieces": [
         "P6"
       ]
@@ -827,7 +871,7 @@
   "plaidoirie": [
     {
       "etiquette": "fait",
-      "texte": "Une réallocation de 28 % au maximum respecte les trois règles de votre Pacte. Au pire moment, la baisse atteint −41,0 %, sous la limite « Pire baisse tolérée : −45 % ».",
+      "texte": "Une réallocation de 28 % du portefeuille respecte les trois règles du Pacte, au lieu des 100 % choisis. À cette taille, la pire baisse est de −41,0 %, sous la limite de −45 %.",
       "pieces": [
         "P4",
         "P1"
@@ -835,14 +879,21 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Avec la réallocation complète, le portefeuille a affiché +16,9 % par an, soit +12,9 % par an après inflation. Le passé ne dit rien de l'avenir.",
+      "texte": "Le portefeuille réalloué a gagné +16,9 % par an, contre +19,0 % pour le portefeuille actuel : le rendement reste positif, mais plus bas.",
       "pieces": [
         "P2"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Les quatre titres ne bougent pas tous ensemble : BTC-USD et QQQ affichent un lien de 0,40 entre leurs variations. En revanche, BTC-USD et ETH-USD vont de pair, avec 0,84.",
+      "texte": "Les frais annuels du portefeuille réalloué coûtent 18 $ sur 40 000 $, contre 37 $ pour le portefeuille actuel.",
+      "pieces": [
+        "P2"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "BTC-USD et ETH-USD n'ont suivi QQQ que de façon partielle, avec des corrélations de 0,40 et de 0,42. Entre BTC-USD et ETH-USD, elle atteint toutefois 0,84.",
       "pieces": [
         "P5"
       ]

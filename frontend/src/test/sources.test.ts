@@ -2,7 +2,7 @@
  * Sources du dossier (#111) : chaque source du contrat devient une ligne affichée, avec ses
  * pièces, la raison de l'orchestrateur et le libellé des règles qu'elle a permis de contrôler.
  */
-import contratRobert from '../data/proces/2026-11-15-13325b58d2b9.json';
+import contratRobert from '../data/proces/2026-11-15-fe7e9832703a.json';
 import type { ContratTribunal, SourceContrat } from '../api/contrat';
 import { adapterContrat, adapterSource } from '../api/adaptateur';
 

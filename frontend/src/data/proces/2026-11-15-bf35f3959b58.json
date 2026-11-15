@@ -169,12 +169,17 @@
         "rendement_reel_annuel_actuel": 0.149652,
         "taux_sans_risque_moyen": 0.031906,
         "ratio_sharpe": 0.351436,
-        "ratio_sharpe_actuel": 0.770352
+        "ratio_sharpe_actuel": 0.770352,
+        "frais_annuels": 0.00045,
+        "frais_annuels_cad": 18,
+        "frais_annuels_actuels": 0.000922,
+        "frais_annuels_cad_actuels": 37,
+        "ecart_frais_annuels_cad": 19
       },
       "valeur_affichee": "−58,5 % max · +16,9 %/an",
-      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
-      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle",
-      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13 ; Pages et documents des émetteurs des FNB (ratio des frais), relevés le 2026-11-15",
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle ; frais : ratio des frais de chaque FNB (page ou document de l'émetteur), pondéré par les poids ; zéro pour un titre détenu en direct ; déjà prélevés dans les cours, donc affichés sans être déduits",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés ; frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage et écart entre prix d'achat et de vente non comptés"
     },
     {
       "id": "P4",
@@ -207,7 +212,7 @@
       "valeur_affichee": "−24,9 % → −49,3 %",
       "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
       "traitement": "Portefeuille avec et sans la position, de la dernière séance de 2021 à la dernière séance de 2022 ; inflation : IPC du Canada de 2021-12 à 2022-12 ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; taux directeur et obligation à 10 ans au début et à la fin de l'année",
-      "limites": "Une seule année de crise ; la suivante peut être différente ; inflation moyenne du Canada, pas celle de l'investisseur ; ni frais ni impôts"
+      "limites": "Une seule année de crise ; la suivante peut être différente ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés"
     },
     {
       "id": "P5",
@@ -369,7 +374,7 @@
     {
       "statut": "conforme",
       "regle": "verifier_chiffres",
-      "message": "Chiffres cités vérifiés contre leurs pièces : 21/21 chiffres, 8 arguments"
+      "message": "Chiffres cités vérifiés contre leurs pièces : 20/20 chiffres, 8 arguments"
     },
     {
       "statut": "conforme",
@@ -391,7 +396,8 @@
     "Réallocation prise au prorata de toutes les lignes du portefeuille",
     "Seuil de pire baisse mesuré sur les réponses de l'utilisateur (P2) ; autres seuils choisis par l'équipe",
     "Portefeuille et capital fictifs",
-    "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période"
+    "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période",
+    "Frais de gestion des FNB : déjà prélevés dans les cours (adj_close), affichés sans être déduits une seconde fois"
   ],
   "sources": [
     {
@@ -436,11 +442,11 @@
         },
         {
           "id": "P4",
-          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont reculé ensemble."
+          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont baissé ensemble."
         },
         {
           "id": "P5",
-          "raison": "La réallocation totale semble dépasser des plafonds et le seuil de baisse : chercher une taille plus modeste compatible avec le Pacte."
+          "raison": "La décision semble dépasser des plafonds et le seuil de pire baisse : chercher la part réallouable compatible avec le Pacte."
         },
         {
           "id": "P6",
@@ -469,11 +475,11 @@
         },
         {
           "id": "P4",
-          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont reculé ensemble."
+          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont baissé ensemble."
         },
         {
           "id": "P5",
-          "raison": "La réallocation totale semble dépasser des plafonds et le seuil de baisse : chercher une taille plus modeste compatible avec le Pacte."
+          "raison": "La décision semble dépasser des plafonds et le seuil de pire baisse : chercher la part réallouable compatible avec le Pacte."
         },
         {
           "id": "P6",
@@ -502,11 +508,11 @@
         },
         {
           "id": "P4",
-          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont reculé ensemble."
+          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont baissé ensemble."
         },
         {
           "id": "P5",
-          "raison": "La réallocation totale semble dépasser des plafonds et le seuil de baisse : chercher une taille plus modeste compatible avec le Pacte."
+          "raison": "La décision semble dépasser des plafonds et le seuil de pire baisse : chercher la part réallouable compatible avec le Pacte."
         },
         {
           "id": "P6",
@@ -535,7 +541,20 @@
         },
         {
           "id": "P4",
-          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont reculé ensemble."
+          "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont baissé ensemble."
+        }
+      ]
+    },
+    {
+      "nom": "Pages et documents des émetteurs des FNB : ratio des frais, relevé par l'équipe",
+      "fichier": "donnees_externes/frais_fnb.json",
+      "date_extraction": "2026-11-15",
+      "format": "JSON (relevé)",
+      "usage": "Le coût annuel des frais de gestion des FNB, déjà prélevés dans leurs cours",
+      "pieces": [
+        {
+          "id": "P3",
+          "raison": "Pièce obligatoire : mesurer la pire baisse, le rendement et la volatilité du portefeuille après la décision."
         }
       ]
     },
@@ -548,7 +567,7 @@
       "pieces": [
         {
           "id": "P7",
-          "raison": "Plusieurs règles sont probablement violées : voir comment l'utilisateur a tranché dans des conflits passés similaires."
+          "raison": "Plusieurs règles sont probablement violées : vérifier si ce conflit s'est déjà présenté pour ce profil et comment il a été tranché."
         }
       ]
     }
@@ -690,7 +709,7 @@
     {
       "etape": "orchestrateur",
       "outil": "simuler_portefeuille",
-      "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont reculé ensemble.",
+      "raison": "La règle de pire baisse rend utile le rejeu de l'année de crise où actions et obligations ont baissé ensemble.",
       "entree": {
         "part_reallouee": 1.0,
         "periode": "2022"
@@ -700,7 +719,7 @@
     {
       "etape": "orchestrateur",
       "outil": "taille_max_compatible",
-      "raison": "La réallocation totale semble dépasser des plafonds et le seuil de baisse : chercher une taille plus modeste compatible avec le Pacte.",
+      "raison": "La décision semble dépasser des plafonds et le seuil de pire baisse : chercher la part réallouable compatible avec le Pacte.",
       "entree": {
         "part_reallouee": 1.0
       },
@@ -723,7 +742,7 @@
     {
       "etape": "orchestrateur",
       "outil": "consulter_jurisprudence",
-      "raison": "Plusieurs règles sont probablement violées : voir comment l'utilisateur a tranché dans des conflits passés similaires.",
+      "raison": "Plusieurs règles sont probablement violées : vérifier si ce conflit s'est déjà présenté pour ce profil et comment il a été tranché.",
       "entree": {
         "regle": "toutes"
       },
@@ -758,14 +777,14 @@
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Au pire moment, votre portefeuille de 40 000 $ aurait perdu 23 407 $ avec cette réallocation, contre 13 180 $ sans elle.",
+          "texte": "Au pire moment, votre portefeuille aurait perdu 23 407 $ avec cette réallocation, contre 13 180 $ avec votre portefeuille actuel.",
           "pieces": [
             "P3"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Vous avez écrit « Pire baisse tolérée : −40,6 % (mesurée) » ; la réallocation mène à −58,5 % au pire moment. Cette règle serait respectée jusqu'à 26 % du portefeuille réalloué.",
+          "texte": "La plus forte chute depuis un sommet atteint −58,5 %, alors que votre Pacte indique « Pire baisse tolérée : −40,6 % (mesurée) ». Cette règle serait respectée jusqu'à une part réallouée de 26 %.",
           "pieces": [
             "P1",
             "P3",
@@ -774,7 +793,7 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Vous avez écrit « Crypto : 25 % du portefeuille au maximum » ; la réallocation de 100 % dépasse ce plafond. Cette règle serait respectée jusqu'à 28 % réalloués.",
+          "texte": "Avec BTC-USD et ETH-USD, votre décision dépasse la règle « Crypto : 25 % du portefeuille au maximum ». Cette règle serait respectée jusqu'à une part réallouée de 28 %.",
           "pieces": [
             "P1",
             "P8"
@@ -782,7 +801,7 @@
         },
         {
           "etiquette": "fait",
-          "texte": "Cette même réallocation a déjà été jugée dans 2 procès archivés, tous en violation du Pacte, et les verdicts ont été « modifié ». Ces procès datent du 2026-11-15.",
+          "texte": "Cette même décision figure déjà dans 2 procès archivés du 2026-11-15, et les 2 verdicts choisis ont été « modifié ». Ces procès signalaient les mêmes règles en violation.",
           "pieces": [
             "P7"
           ]
@@ -805,31 +824,31 @@
       "sortie": [
         {
           "etiquette": "fait",
-          "texte": "Une réallocation de 26 % au lieu de 100 % aurait respecté le Pacte : au pire moment, −40,4 %, pour une limite de −40,6 %. C'est la part la plus élevée qui respecte les trois règles.",
+          "texte": "Une réallocation de 26 % du portefeuille respecterait les trois règles de votre Pacte. Au pire moment, la baisse serait de −40,4 %, pour une limite de −40,6 %.",
           "pieces": [
-            "P5",
-            "P1"
+            "P5"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Bitcoin et NVIDIA n'ont bougé ensemble que modérément (+0,32), alors que Bitcoin et Ether ont suivi des mouvements très proches (+0,84). Le panier ne se résume donc pas à un seul bloc.",
+          "texte": "Face à une chute de 73,7 % sur les cryptoactifs, vous avez répondu rester. Votre limite de −40,6 % reste toutefois dépassée par la pire baisse de −58,5 % de cette réallocation.",
           "pieces": [
-            "P6"
+            "P2",
+            "P3"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Le portefeuille réalloué a rendu +16,9 % par an, soit +12,9 % après inflation. Ce résultat décrit une seule période passée.",
+          "texte": "Les frais annuels des fonds coûteraient 18 $ avec cette décision, contre 37 $ pour votre portefeuille actuel.",
           "pieces": [
             "P3"
           ]
         },
         {
           "etiquette": "fait",
-          "texte": "Face à une chute de 73,7 % de vos cryptoactifs, vous avez répondu rester. Vous avez toutefois répondu vendre à −48,4 % sur NVIDIA.",
+          "texte": "Les quatre positions ne bougeaient pas toutes ensemble : le bitcoin et NVIDIA n'affichaient qu'un lien de 0,32 dans leurs variations quotidiennes. Le bitcoin et l'ether, eux, étaient très liés, à 0,84.",
           "pieces": [
-            "P2"
+            "P6"
           ]
         }
       ]
@@ -845,10 +864,26 @@
       "sortie": "3 violations"
     },
     {
+      "etape": "avocat",
+      "outil": "bedrock_correction",
+      "entree": {
+        "argument": "Une réallocation de 26 % du portefeuille respecterait les trois règles de votre Pacte. Au pire moment, la baisse serait de −40,4 %, pour une limite de −40,6 %.",
+        "motif": "« −40,6 % » introuvable dans P5 (présent dans P1, P2, P8, pièce non citée)"
+      },
+      "sortie": {
+        "etiquette": "fait",
+        "texte": "Une réallocation de 26 % du portefeuille respecterait les trois règles de votre Pacte. Au pire moment, la baisse serait de −40,4 %, pour une limite de −40,6 %.",
+        "pieces": [
+          "P5",
+          "P1"
+        ]
+      }
+    },
+    {
       "etape": "greffier",
       "outil": "verifier_chiffres",
       "entree": "8 arguments",
-      "sortie": "Chiffres cités vérifiés contre leurs pièces : 21/21 chiffres, 8 arguments"
+      "sortie": "Chiffres cités vérifiés contre leurs pièces : 20/20 chiffres, 8 arguments"
     },
     {
       "etape": "greffier",
@@ -911,14 +946,14 @@
   "requisitoire": [
     {
       "etiquette": "fait",
-      "texte": "Au pire moment, votre portefeuille de 40 000 $ aurait perdu 23 407 $ avec cette réallocation, contre 13 180 $ sans elle.",
+      "texte": "Au pire moment, votre portefeuille aurait perdu 23 407 $ avec cette réallocation, contre 13 180 $ avec votre portefeuille actuel.",
       "pieces": [
         "P3"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Vous avez écrit « Pire baisse tolérée : −40,6 % (mesurée) » ; la réallocation mène à −58,5 % au pire moment. Cette règle serait respectée jusqu'à 26 % du portefeuille réalloué.",
+      "texte": "La plus forte chute depuis un sommet atteint −58,5 %, alors que votre Pacte indique « Pire baisse tolérée : −40,6 % (mesurée) ». Cette règle serait respectée jusqu'à une part réallouée de 26 %.",
       "pieces": [
         "P1",
         "P3",
@@ -927,7 +962,7 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Vous avez écrit « Crypto : 25 % du portefeuille au maximum » ; la réallocation de 100 % dépasse ce plafond. Cette règle serait respectée jusqu'à 28 % réalloués.",
+      "texte": "Avec BTC-USD et ETH-USD, votre décision dépasse la règle « Crypto : 25 % du portefeuille au maximum ». Cette règle serait respectée jusqu'à une part réallouée de 28 %.",
       "pieces": [
         "P1",
         "P8"
@@ -935,7 +970,7 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Cette même réallocation a déjà été jugée dans 2 procès archivés, tous en violation du Pacte, et les verdicts ont été « modifié ». Ces procès datent du 2026-11-15.",
+      "texte": "Cette même décision figure déjà dans 2 procès archivés du 2026-11-15, et les 2 verdicts choisis ont été « modifié ». Ces procès signalaient les mêmes règles en violation.",
       "pieces": [
         "P7"
       ]
@@ -944,7 +979,7 @@
   "plaidoirie": [
     {
       "etiquette": "fait",
-      "texte": "Une réallocation de 26 % au lieu de 100 % aurait respecté le Pacte : au pire moment, −40,4 %, pour une limite de −40,6 %. C'est la part la plus élevée qui respecte les trois règles.",
+      "texte": "Une réallocation de 26 % du portefeuille respecterait les trois règles de votre Pacte. Au pire moment, la baisse serait de −40,4 %, pour une limite de −40,6 %.",
       "pieces": [
         "P5",
         "P1"
@@ -952,23 +987,24 @@
     },
     {
       "etiquette": "fait",
-      "texte": "Bitcoin et NVIDIA n'ont bougé ensemble que modérément (+0,32), alors que Bitcoin et Ether ont suivi des mouvements très proches (+0,84). Le panier ne se résume donc pas à un seul bloc.",
+      "texte": "Face à une chute de 73,7 % sur les cryptoactifs, vous avez répondu rester. Votre limite de −40,6 % reste toutefois dépassée par la pire baisse de −58,5 % de cette réallocation.",
       "pieces": [
-        "P6"
+        "P2",
+        "P3"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Le portefeuille réalloué a rendu +16,9 % par an, soit +12,9 % après inflation. Ce résultat décrit une seule période passée.",
+      "texte": "Les frais annuels des fonds coûteraient 18 $ avec cette décision, contre 37 $ pour votre portefeuille actuel.",
       "pieces": [
         "P3"
       ]
     },
     {
       "etiquette": "fait",
-      "texte": "Face à une chute de 73,7 % de vos cryptoactifs, vous avez répondu rester. Vous avez toutefois répondu vendre à −48,4 % sur NVIDIA.",
+      "texte": "Les quatre positions ne bougeaient pas toutes ensemble : le bitcoin et NVIDIA n'affichaient qu'un lien de 0,32 dans leurs variations quotidiennes. Le bitcoin et l'ether, eux, étaient très liés, à 0,84.",
       "pieces": [
-        "P2"
+        "P6"
       ]
     }
   ],

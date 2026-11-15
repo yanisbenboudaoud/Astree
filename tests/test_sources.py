@@ -29,7 +29,7 @@ def par_nom(liste):
 def test_robert_toutes_les_sources_utilisees():
     contrat = proces_de_demo("robert")
     liste = par_nom(sources_du_proces(contrat))
-    assert set(liste) == {SOURCES[cle].nom for cle in ("pacte", "prix", "change", "univers", "macro", "jurisprudence")}
+    assert set(liste) == {SOURCES[cle].nom for cle in ("pacte", "prix", "change", "univers", "macro", "frais", "jurisprudence")}
     assert liste[SOURCES["pacte"].nom]["fichier"] == "personas/robert.json"
     assert liste[SOURCES["pacte"].nom]["date_extraction"] == contrat["pacte"]["date_signature"]
     assert liste[SOURCES["univers"].nom]["controles"] == ["plafond_crypto"]

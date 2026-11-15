@@ -1,12 +1,12 @@
 {
   "description": "Procès réellement tenus par la Lambda du Tribunal (POST /tribunal, Bedrock us.anthropic.claude-sonnet-5-5) et archivés dans S3 (traces/<date>/<id>.json), copiés tels quels. Le mode démonstration (VITE_USE_MOCKS=true) les rejoue par le même adaptateur que le mode direct, seulement pour la décision qu'ils ont jugée. Leur identifiant permet à « Trompez le Greffier » (POST /verifier) de les relire dans S3. Chaque contrat passe python -m contrat.valider. Les entrées « calibrage » sont tenues avec les réponses préenregistrées du Pacte vécu (#68 : deploiement/tester_function_url.py … --calibrage-demo) ; elles ne sont rejouées qu'avec exactement ces réponses.",
   "proces": [
-    {"procesId": "2026-11-15-13325b58d2b9", "profil": "robert", "note": "30 % en TSLA ; points de bascule (#61) ; 6 sources, archives des verdicts en P6 (#111)"},
-    {"procesId": "2026-11-15-4d25fab26751", "profil": "robert", "note": "25 % en TSLA : deux arguments renvoyés par le Greffier puis corrigés ; 6 sources (#111)"},
-    {"procesId": "2026-11-15-6f16a95962c3", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 % ; points de bascule (#61) ; rendement après inflation cité par l'Avocat (#111)"},
-    {"procesId": "2026-11-15-78210ebf41ab", "profil": "mateo", "note": "10 % en XOM ; documents ESG parmi les 7 sources (#111) ; un argument sans signe « − » renvoyé, puis rejeté par le Greffier"},
-    {"procesId": "2026-11-15-9c273b4e1dab", "profil": "robert", "note": "30 % en TSLA, Pacte vécu (pire baisse mesurée : −10,2 %) ; points de bascule (#61)", "calibrage": true},
-    {"procesId": "2026-11-15-c96a8185f784", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, Pacte vécu (−40,6 %) ; points de bascule (#61)", "calibrage": true},
-    {"procesId": "2026-11-15-dd412c702126", "profil": "mateo", "note": "10 % en XOM, Pacte vécu (−15,1 %) ; 8 sources (#111)", "calibrage": true}
+    {"procesId": "2026-11-15-fe7e9832703a", "profil": "robert", "note": "30 % en TSLA ; points de bascule (#61) ; 7 sources, archives des verdicts en P6 (#111) ; frais des FNB 682 $ → 478 $ par an (#114) ; deux corrections du Greffier"},
+    {"procesId": "2026-11-15-449f913437d8", "profil": "robert", "note": "25 % en TSLA : trois arguments renvoyés par le Greffier puis corrigés, un rejeté (montant sans signe « − ») ; frais cités par l'Avocat (#114)"},
+    {"procesId": "2026-11-15-b6795c03a385", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 % ; points de bascule (#61) ; frais cités par l'Avocat, 37 $ → 18 $ (#114)"},
+    {"procesId": "2026-11-15-d6b68c21715f", "profil": "mateo", "note": "10 % en XOM ; documents ESG parmi les 8 sources (#111, #114)"},
+    {"procesId": "2026-11-15-6e4909122c29", "profil": "robert", "note": "30 % en TSLA, Pacte vécu (pire baisse mesurée : −10,2 %) ; points de bascule (#61) ; frais cités par l'Avocat (#114)", "calibrage": true},
+    {"procesId": "2026-11-15-bf35f3959b58", "profil": "amira", "note": "panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, Pacte vécu (−40,6 %) ; points de bascule (#61) ; frais cités par l'Avocat (#114)", "calibrage": true},
+    {"procesId": "2026-11-15-c6adf5094e76", "profil": "mateo", "note": "10 % en XOM, Pacte vécu (−15,1 %) ; les 9 sources possibles (#111, #114)", "calibrage": true}
   ]
 }

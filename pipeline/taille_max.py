@@ -22,7 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from pipeline.categories import TitreHorsUnivers, categories_du_titre
+from pipeline.composition import part_des_categories
 from pipeline.greffier import verifier_pacte
 from pipeline.llm import decrire_outil
 from pipeline.simulation import poids_apres_decision, simuler_portefeuille, source_des_prix
@@ -126,14 +126,12 @@ def _evaluer(portefeuille, decision, taille, regles) -> EtapeRecherche:
 
 
 def _part_des_categories(poids: dict[str, float], categories: list[str]) -> float:
-    part = 0.0
-    for ticker, poids_titre in poids.items():
-        try:
-            if categories_du_titre(ticker) & set(categories):
-                part += poids_titre
-        except TitreHorsUnivers:
-            pass  # le Greffier rend alors « a_verifier » : la taille n'est pas compatible
-    return part
+    """Part calculée comme le Greffier : FNB par transparence (#116).
+
+    Un titre hors de l'univers ne compte pas ici : le Greffier rend alors « a_verifier » et
+    la taille n'est pas compatible.
+    """
+    return part_des_categories(poids, categories).part
 
 
 def _taille(decision: dict[str, Any]) -> float:

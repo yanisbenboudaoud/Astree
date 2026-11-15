@@ -1,0 +1,164 @@
+{
+  "description": "Composition des FNB de l'univers d'actifs, relevée sur les pages publiques de leurs émetteurs (issue #116). Elle sert à calculer la part d'une catégorie par transparence : poids du FNB × part de la catégorie dans le FNB. Les pourcentages sont copiés tels qu'affichés, avec la date indiquée par l'émetteur ; le code les convertit en décimales. Une répartition absente de la page vaut null : le FNB garde alors son classement direct (config/categories.json), signalé, jamais deviné.",
+  "etiquette": "fait",
+  "date_constitution": "2026-11-15",
+  "conditions_utilisation": "Quelques chiffres agrégés (répartitions par secteur et par pays, poids de trois titres), relevés sur les pages publiques des émetteurs et cités avec leur source et leur date, à des fins éducatives dans une simulation non commerciale. Aucun document n'est reproduit. State Street précise sur sa page que son contenu ne peut être reproduit en tout ou en partie : hors du datathon, il faudrait l'autorisation des émetteurs ou une source de données sous licence.",
+  "classifications": {
+    "GICS": "Global Industry Classification Standard (MSCI et S&P), 11 secteurs ; c'est aussi le champ sector de assets_universe.csv.",
+    "ICB": "Industry Classification Benchmark (FTSE Russell), 11 industries. Différences utiles avec le GICS : Alphabet et Meta sont dans Technology ; Amazon est dans Consumer Discretionary.",
+    "obligations_canada": "Secteurs d'émetteurs obligataires affichés par BlackRock Canada (XBB) et BMO (ZST) : Federal, Provincial, Financial, Energy, Infrastructure… Les obligations de sociétés de l'énergie sont dans Energy ; aucun secteur technologie.",
+    "obligations_etats_unis": "Secteurs d'émetteurs obligataires affichés par iShares (AGG) : Treasury, MBS Pass-Through, Industrial, Financial Institutions… Les sociétés de l'énergie et de la technologie sont mêlées dans Industrial : ces catégories ne peuvent pas être isolées.",
+    "obligations_d_etat": "Obligations d'un État et liquidités seulement : aucune entreprise, donc aucune part de secteur d'activité.",
+    "or_physique": "Lingots d'or détenus par le fonds : aucune entreprise, aucun pays d'activité."
+  },
+  "fonds": {
+    "SPY": {
+      "nom": "SPDR S&P 500 ETF Trust",
+      "emetteur": "State Street Global Advisors",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/spdr-sp-500-etf-trust-spy",
+      "date_consultation": "2026-11-15",
+      "secteurs": {
+        "classification": "GICS",
+        "date": "2026-11-12",
+        "pourcentages": {
+          "Information Technology": 36.15, "Financials": 12.50, "Health Care": 10.38, "Consumer Discretionary": 9.53,
+          "Communication Services": 8.88, "Industrials": 8.22, "Consumer Staples": 5.08, "Energy": 3.58,
+          "Utilities": 2.10, "Real Estate": 1.85, "Materials": 1.73
+        }
+      },
+      "titres": {"date": "2026-11-12", "pourcentages": {"GOOGL": 2.68, "GOOG": 2.14, "AMZN": 4.01}},
+      "pays": null,
+      "notes": "Tableau « Fund Sector Breakdown » et « Fund Top Holdings » de la page. Aucune répartition par pays n'est affichée."
+    },
+    "QQQ": {
+      "nom": "Invesco QQQ Trust (Nasdaq-100)",
+      "emetteur": "Invesco",
+      "url": "https://www.invesco.com/qqq-etf/en/about.html",
+      "date_consultation": "2026-11-15",
+      "secteurs": {
+        "classification": "ICB",
+        "date": "2026-10-30",
+        "pourcentages": {
+          "Technology": 64.4, "Consumer Discretionary": 16.62, "Telecommunications": 5.91, "Health Care": 4.81,
+          "Industrials": 3.17, "Consumer Staples": 2.07, "Basic Materials": 1.33, "Utilities": 1.17, "Energy": 0.51
+        }
+      },
+      "titres": {"date": "2026-11-11", "pourcentages": {"AMZN": 4.70}},
+      "pays": null,
+      "notes": "Section « Sector allocation » (la page précise que l'indice et le fonds utilisent l'ICB) et « Top 10 holdings ». Alphabet est déjà dans Technology en ICB : seul Amazon est relevé. Aucune répartition par pays n'est affichée, alors que le Nasdaq-100 compte quelques sociétés étrangères."
+    },
+    "ESGV": {
+      "nom": "Vanguard ESG U.S. Stock ETF",
+      "emetteur": "Vanguard",
+      "url": "https://investor.vanguard.com/investment-products/etfs/profile/esgv",
+      "date_consultation": "2026-11-15",
+      "secteurs": {
+        "classification": "ICB",
+        "date": "2026-09-30",
+        "pourcentages": {
+          "Basic Materials": 1.40, "Consumer Discretionary": 12.90, "Consumer Staples": 3.20, "Energy": 0.10,
+          "Financials": 9.30, "Health Care": 10.00, "Industrials": 7.30, "Real Estate": 2.40, "Technology": 50.60,
+          "Telecommunications": 2.50, "Utilities": 0.30
+        }
+      },
+      "titres": {"date": "2026-11-12", "pourcentages": {"AMZN": 4.40}},
+      "pays": null,
+      "notes": "Onglet « Portfolio composition », tableau « Sectors » des expositions pondérées et « Holding details ». La page ne nomme pas la classification du tableau : ses 11 noms (Basic Materials, Technology, Telecommunications…) sont ceux des industries ICB, que le prospectus cite pour les exclusions (hypothèse de l'équipe). Alphabet (GOOGL 2,95 %, GOOG 2,38 %) est déjà dans Technology en ICB : seul Amazon est relevé."
+    },
+    "XIU.TO": {
+      "nom": "iShares S&P/TSX 60 Index ETF",
+      "emetteur": "BlackRock Canada (iShares)",
+      "url": "https://www.blackrock.com/ca/investors/en/products/239832/ishares-sptsx-60-index-etf",
+      "date_consultation": "2026-11-15",
+      "secteurs": {
+        "classification": "GICS",
+        "date": "2026-11-12",
+        "pourcentages": {
+          "Financials": 41.23, "Energy": 16.65, "Materials": 12.73, "Information Technology": 9.61, "Industrials": 8.24,
+          "Consumer Staples": 3.51, "Consumer Discretionary": 3.32, "Utilities": 2.60, "Communication Services": 1.57,
+          "Liquidités et dérivés": 0.31, "Real Estate": 0.22
+        }
+      },
+      "titres": {"date": "2026-11-12", "pourcentages": {"GOOGL": 0, "GOOG": 0, "AMZN": 0}},
+      "pays": null,
+      "notes": "Section « Exposure Breakdowns » ; « Communication » et « Cash and/or Derivatives » de la page sont renommés Communication Services et Liquidités et dérivés. Titres à 0 : l'indice S&P/TSX 60 ne compte que des sociétés canadiennes cotées à Toronto, et la page les présente ainsi ; Alphabet et Amazon n'en font pas partie. Aucune répartition par pays n'est affichée."
+    },
+    "XBB.TO": {
+      "nom": "iShares Core Canadian Universe Bond Index ETF",
+      "emetteur": "BlackRock Canada (iShares)",
+      "url": "https://www.blackrock.com/ca/investors/en/products/239493/ishares-canadian-universe-bond-index-etf",
+      "date_consultation": "2026-11-15",
+      "secteurs": {
+        "classification": "obligations_canada",
+        "date": "2026-11-12",
+        "pourcentages": {
+          "Federal": 43.51, "Provincial": 29.78, "Financial": 9.15, "Energy": 5.16, "Infrastructure": 3.68,
+          "Industrial": 2.86, "Communication": 2.05, "Real Estate": 1.84, "Municipal": 1.73, "Securitized": 0.19,
+          "Liquidités et dérivés": 0.04, "Other": 0.01
+        }
+      },
+      "titres": null,
+      "pays": null,
+      "notes": "Section « Exposure Breakdowns », répartition par secteur d'émetteur. Aucune répartition par pays n'est affichée."
+    },
+    "ZST.TO": {
+      "nom": "BMO Ultra Short-Term Bond ETF",
+      "emetteur": "BMO Gestion mondiale d'actifs",
+      "url": "https://bmogam.com/ca-en/products/exchange-traded-fund/bmo-ultra-short-term-bond-etf-zst/",
+      "date_consultation": "2026-11-15",
+      "secteurs": {
+        "classification": "obligations_canada",
+        "date": "2026-11-13",
+        "pourcentages": {
+          "Financial": 35.93, "Real Estate": 19.06, "Energy": 13.60, "Industrial": 11.62, "Infrastructure": 10.04,
+          "Non-Agency": 6.95, "Communication": 2.06, "Ontario": 0.68, "SSA": 0.07
+        }
+      },
+      "titres": null,
+      "pays": {"date": "2026-11-13", "pourcentages": {"Canada": 100.00}},
+      "notes": "Onglet « Holdings », graphiques « Sector Allocation » et « Geographic Allocation »."
+    },
+    "AGG": {
+      "nom": "iShares Core U.S. Aggregate Bond ETF",
+      "emetteur": "BlackRock (iShares)",
+      "url": "https://www.ishares.com/us/products/239458/ishares-core-total-us-bond-market-etf",
+      "date_consultation": "2026-11-15",
+      "secteurs": {
+        "classification": "obligations_etats_unis",
+        "date": "2026-11-12",
+        "pourcentages": {
+          "Treasury": 46.69, "MBS Pass-Through": 23.00, "Industrial": 14.48, "Financial Institutions": 8.05,
+          "Utility": 2.51, "CMBS": 1.39, "Sovereign": 1.09, "Supranational": 0.94, "Local Authority": 0.59,
+          "Agency": 0.50, "ABS": 0.45, "Liquidités et dérivés": 0.32
+        }
+      },
+      "titres": null,
+      "pays": null,
+      "notes": "Tableau des secteurs (% of Market Value). Les obligations de sociétés de l'énergie et de la technologie sont comprises dans Industrial, sans détail : ces deux catégories gardent le classement direct. Aucune répartition par pays n'est affichée."
+    },
+    "TLT": {
+      "nom": "iShares 20+ Year Treasury Bond ETF",
+      "emetteur": "BlackRock (iShares)",
+      "url": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf",
+      "date_consultation": "2026-11-15",
+      "secteurs": {
+        "classification": "obligations_d_etat",
+        "date": "2026-11-12",
+        "pourcentages": {"Treasuries": 99.98, "Liquidités et dérivés": 0.02}
+      },
+      "titres": null,
+      "pays": {"date": "2026-11-12", "pourcentages": {"United States": 99.98, "Liquidités et dérivés": 0.02}},
+      "notes": "Tableau des secteurs. Pays : les Treasuries sont les obligations du Trésor des États-Unis ; la page n'affiche pas de répartition par pays, celle-ci se déduit du secteur."
+    },
+    "GLD": {
+      "nom": "SPDR Gold Shares",
+      "emetteur": "World Gold Trust Services / State Street",
+      "url": "https://www.spdrgoldshares.com/usa/gld/",
+      "date_consultation": "2026-11-15",
+      "secteurs": {"classification": "or_physique", "date": "2026-11-15", "pourcentages": {"Or physique": 100}},
+      "titres": null,
+      "pays": {"date": "2026-11-15", "pourcentages": {"Sans pays (or physique)": 100}},
+      "notes": "La page indique que la fiducie suit le prix de l'or en lingots, détenu par ses dépositaires (JPMorgan Chase Bank et HSBC Bank plc). Aucune entreprise ni aucun pays d'activité : la date est celle de la consultation."
+    }
+  }
+}

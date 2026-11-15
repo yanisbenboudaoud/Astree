@@ -1,6 +1,6 @@
 # #186 — Site de démonstration sur GitHub Pages (sans AWS)
 
-- **Issue** : #186 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #186 · **PR** : #187 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

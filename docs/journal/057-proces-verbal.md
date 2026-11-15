@@ -1,6 +1,6 @@
 # #57 — Dossier de convenance : export du procès-verbal et angle business
 
-- **Issue** : #57 · **PR** : #PR_A_RENSEIGNER · **Statut** : terminée (la diapositive du pitch reste à faire dans #18)
+- **Issue** : #57 · **PR** : #82 · **Statut** : terminée (la diapositive du pitch reste à faire dans #18)
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

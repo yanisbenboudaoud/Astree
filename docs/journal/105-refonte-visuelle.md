@@ -1,6 +1,6 @@
 # #105 — Refonte visuelle épurée : fond blanc, Inter, graphiques en couleur
 
-- **Issue** : #105 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #105 · **PR** : #106 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

@@ -37,7 +37,7 @@ Dans un procès, rien à brancher : `trier_arguments` l'applique déjà, et `jug
 - `pytest tests/test_orchestrateur.py -k conseille` : un conseil glissé dans le réquisitoire est renvoyé une fois, puis rejeté. Il n'est jamais affiché, et le contrat passe `contrat.valider`.
 - `pytest tests/test_contre_interrogatoire.py -k conseil` : au contre-interrogatoire, « le Tribunal ne vous dit pas s'il faut vendre » passe, et « vous devriez vendre » est rejeté après une relance.
 - `python -m validation` : 40 réussis, 0 en échec.
-- Suite complète : 502 tests.
+- Suite complète : 520 tests.
 - Faux positifs, vérifiés le 2026-11-14 : 0 sur les 38 arguments distincts produits par Bedrock dans les procès archivés (S3 `traces/` et `verdicts/`, premiers jets compris) et dans les procès enregistrés de l'interface.
 - Deux vrais débats Bedrock (`pytest -m bedrock tests/test_debat.py -k faux_contrat`), avec les nouvelles consignes : les 14 arguments passent les deux contrôles du premier coup.
 
@@ -55,3 +55,4 @@ Dans un procès, rien à brancher : `trier_arguments` l'applique déjà, et `jug
 - **Négation par proposition** : « Même sans dividendes TSLA va monter », sans virgule, est lu comme nié. C'est rare dans un texte de LLM.
 - **Lambda à redéployer** (`deploiement/deployer.py`) pour que le mode direct de l'interface produise le contrôle. Les 3 procès enregistrés de l'interface ne l'ont pas encore : il apparaîtra quand ils seront rejoués.
 - L'interface affiche le nouveau contrôle dans la liste des contrôles sans rien changer, comme les autres contrôles du système.
+- **« Trompez le Greffier » (#69)** ne vérifie encore que les chiffres (`detailler_argument`, route `POST /verifier`). Y ajouter le cadre (« Vous devriez acheter » rejeté) demanderait d'étendre le format de sa réponse et le composant de l'interface, avec l'équipe interface.

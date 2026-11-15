@@ -48,6 +48,7 @@ LONGUEUR_MAX_RAISON = 160
 
 RAISON_D_OFFICE = "Pièce obligatoire ajoutée d'office"
 RAISON_REFUSEE = "Raison refusée par le garde-fou"
+PREFIXE_ERREUR = "Erreur : "  # sortie de trace d'un appel refusé ; reconnue par contrat/valider.py
 
 # Erreurs d'outil renvoyées au modèle au lieu d'arrêter le procès.
 ERREURS_OUTIL = (ErreurDonnees, ErreurSimulation)
@@ -280,7 +281,7 @@ class _Instruction:
 
     def _refuser(self, demande: DemandeOutil, entree: dict[str, Any], raison: str,
                  motif: str) -> dict[str, Any]:
-        self._tracer(demande.nom, raison, entree, f"Erreur : {motif}")
+        self._tracer(demande.nom, raison, entree, f"{PREFIXE_ERREUR}{motif}")
         return resultat_outil(demande, {"erreur": motif}, erreur=True)
 
     def _tracer(self, outil: str, raison: str, entree: dict[str, Any], sortie: str) -> None:

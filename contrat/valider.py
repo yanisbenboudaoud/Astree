@@ -17,6 +17,14 @@ from jsonschema import Draft202012Validator
 CHEMIN_SCHEMA = Path(__file__).with_name("schema_sortie.json")
 CONTROLES_SYSTEME = {"verifier_chiffres", "performance_passee", "biais_survivant", "interpretation_demande"}
 TOLERANCE_SOMME_POIDS = 1e-6
+# Sortie d'un appel d'outil refusé ou en erreur (orchestrateur, #12) : le procès continue sans pièce.
+PREFIXE_ERREUR_OUTIL = "Erreur : "
+
+
+def est_erreur_outil(sortie):
+    """« Erreur : <motif> », avec un motif non vide."""
+    return (isinstance(sortie, str) and sortie.startswith(PREFIXE_ERREUR_OUTIL)
+            and bool(sortie[len(PREFIXE_ERREUR_OUTIL):].strip()))
 
 
 def charger_schema():
@@ -57,12 +65,13 @@ def erreurs_renvois(contrat):
         erreurs.append("controles : le contrôle verifier_chiffres est absent")
 
     appels_orchestrateur = [e for e in contrat["trace"] if e["etape"] == "orchestrateur"]
-    if not any(e["outil"] == "simuler_portefeuille" for e in appels_orchestrateur):
+    if not any(e["outil"] == "simuler_portefeuille" and e["sortie"] in pieces_connues
+               for e in appels_orchestrateur):
         erreurs.append("trace : la pièce obligatoire simuler_portefeuille est absente")
     for i, etape in enumerate(contrat["trace"]):
         sortie = etape["sortie"]
-        if etape["etape"] == "orchestrateur" and sortie not in pieces_connues:
-            erreurs.append(f"trace/{i} : la sortie « {sortie} » n'est pas une pièce")
+        if etape["etape"] == "orchestrateur" and sortie not in pieces_connues and not est_erreur_outil(sortie):
+            erreurs.append(f"trace/{i} : la sortie « {sortie} » n'est ni une pièce ni une erreur d'outil")
 
     decision = contrat["decision"]
     if decision["type"] == "reallocation":

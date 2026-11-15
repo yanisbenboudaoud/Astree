@@ -75,7 +75,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `pipeline/__main__.py` | Commande locale : `python -m pipeline <id_profil> "<demande>"` (vrais appels Bedrock) | [012](docs/journal/012-orchestrateur.md) |
 | `pipeline/univers.py` | `charger_univers` : vue de `donnees.charger_univers` en liste de dictionnaires (pour les prompts) ; respecte `SOURCE_DONNEES` | [008](docs/journal/008-agent-profil.md), [013](docs/journal/013-deploiement-aws.md) |
 | `contrat/schema_sortie.json` | Schéma JSON de la sortie du pipeline | [002](docs/journal/002-contrat-json.md) |
-| `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md) |
+| `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md), [065](docs/journal/065-valider-erreurs-outil.md) |
 | `pipeline/pacte.py` | Chargement et validation d'un fichier profil : `charger_pacte`, `pacte_pour_contrat`, `piece_pacte` | [003](docs/journal/003-pacte-generique.md) |
 | `pipeline/categories.py` | Catégories d'un titre : `categories_du_titre` (titre hors univers signalé, jamais deviné) | [003](docs/journal/003-pacte-generique.md) |
 | `personas/*.json` | Profils de test et leur Pacte, au format générique | [003](docs/journal/003-pacte-generique.md) |

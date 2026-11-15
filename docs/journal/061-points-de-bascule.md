@@ -11,7 +11,7 @@
   - `pour_contrat(recherche, decision, id_piece)` : le champ `points_de_bascule` du contrat, avec un `message` écrit par Python.
 - **`pipeline/taille_max.py`** : `EtapeRecherche.statuts` garde le statut que le Greffier rend pour chaque règle calculable, à chaque taille.
 - **`pipeline/tribunal.py`** : `verser_points_de_bascule` ajoute la pièce **d'office**, après l'orchestrateur et avant le débat. L'étape de trace porte `etape: "orchestrateur"` et la raison `RAISON_POINTS_DE_BASCULE` (« Pièce obligatoire ajoutée d'office : une règle calculable du Pacte est en violation »). La recherche de taille maximale est faite une seule fois, pour les deux champs. `prochain_numero` numérote la pièce à la suite du dossier ; il vient de `pipeline/contre_interrogatoire.py` (fiche 055), qui l'importe désormais de `tribunal.py`.
-- **`pipeline/debat.py`** : une phrase de consigne de plus pour le Procureur (rappeler ce qui changerait la réponse) et pour l'Avocat (version plus modeste).
+- **`pipeline/debat.py`** : une phrase de consigne de plus pour le Procureur (rappeler ce qui changerait la réponse) et pour l'Avocat (version plus modeste), **comme un constat, jamais comme un conseil** (« jamais « vous devriez » ni « il faudrait » »). Sans cette précision, un argument de l'Avocat disait « il faudrait envisager d'ajuster le seuil du Pacte ».
 - **`pipeline/greffier.py`** : `_nom_categories` devient public (`nom_categories`), pour le résumé de la pièce.
 - **Contrat** : champ `points_de_bascule` dans `contrat/schema_sortie.json` (`$defs/point_de_bascule`). `contrat/valider.py` (`erreurs_points_de_bascule`) exige un point par règle calculable en violation, et seulement pour elles. Il vérifie aussi le type, les doublons et les pièces citées. `docs/exemples/` : pièce P6, étape de trace et champ dans les deux exemples. `CLAUDE.md` : sections 4, 4 bis (outil 8) et 5.
 - **Interface** : `points_de_bascule?` dans `src/api/contrat.ts` ; `pointsDeBascule()` dans `src/domaine/verdict.ts`. L'écran Verdict affiche un encadré « Ce qui changerait la réponse » : paragraphe et libellé de la règle, message, lien vers la pièce (qui ouvre son tiroir). Sans le champ, rien n'est affiché.
@@ -39,7 +39,11 @@ Dans un procès (`juger_decision`), rien à faire : la pièce est versée d'offi
 1. Profil prudent, « 30 % en Tesla », 28 s : pièce P7 ; le Procureur la cite (« La règle de pire baisse serait respectée jusqu'à 9 % en TSLA, ou avec un seuil de −29,0 % inscrit au Pacte à la place de −12 % »), l'Avocat aussi. `verifier_chiffres` : 34/34 chiffres, 7 arguments, 0 rejeté.
 2. Profil audacieux, panier crypto-tech à 100 %, 36 s : 3 points de bascule ; le Procureur cite P7 deux fois ; 33/33 chiffres, 7 arguments, 0 rejeté.
 
-**Interface** : `npm run verifier` passe sans problème (23 écrans). Avec le vrai procès du profil prudent à la place du procès enregistré (le temps de la vérification), l'encadré s'affiche à 1440 et à 390 px, sans violation axe-core ni débordement, et le lien P7 ouvre le tiroir.
+**Lambda déployée** (`deployer.py` depuis cette branche, puis `tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"`) : HTTP 200 en 20,5 s, procès archivé `2026-11-15-1e35809282d3`. Le contrat passe `valider_contrat` ; la pièce P7 est versée d'office et citée par 3 arguments. Avant le déploiement, le code en ligne était celui de `main` avant #72 : aucun travail non fusionné n'a été écrasé.
+
+**Procès de démo réenregistrés** (`frontend/src/data/proces/`, `python -m pipeline`, mêmes demandes qu'avant, consigne « constat » incluse). Les trois passent `contrat.valider`, sans argument rejeté. Profil prudent : 1 point de bascule, cité par le Procureur et l'Avocat. Panier d'Amira : 3 points (pire baisse 42 %, crypto 28 %, tech et crypto 50 %). Profil ESG : aucun point, car sa seule violation est documentaire. `src/test/domaine.test.ts` suit le nouveau contenu ; `src/test/bascule.test.ts` vérifie les trois procès.
+
+**Interface** : `npm run verifier` passe sans problème (23 écrans, axe-core). Il vérifie maintenant que l'encadré s'affiche au Verdict de Robert, avec 3 points pour le panier d'Amira. L'encadré a aussi été vérifié à 390 px, et le lien de la pièce ouvre son tiroir.
 
 ## Choix faits en cours de route
 - **Pièce d'office, pas un outil de l'orchestrateur** : elle n'a aucun paramètre à choisir et doit être là à chaque violation. Un outil aurait été un faux choix qui consomme le budget d'appels. L'orchestrateur garde `taille_max_compatible` pour explorer. Le pourquoi est dans `docs/CHOIX_CONCEPTION.md`, choix 10 bis.
@@ -51,6 +55,5 @@ Dans un procès (`juger_decision`), rien à faire : la pièce est versée d'offi
 
 ## Limites et suite
 - Seules les règles calculables ont un point de bascule. Pour le cas 3 (profil ESG + XOM, critère documentaire), le champ est vide.
-- **Procès enregistrés de la démo** : ils n'ont pas encore le champ, donc l'encadré n'apparaît qu'avec un procès en direct. Il faut les réenregistrer (`python -m pipeline <profil> "<demande>"`) et ajuster `frontend/src/test/domaine.test.ts`. Le champ pourra alors devenir obligatoire dans le schéma.
-- **Lambda** : le code déployé ne produit pas encore le champ ; il faut redéployer (`deploiement/deployer.py`).
+- Le champ reste facultatif dans le schéma, alors que les procès enregistrés l'ont maintenant. On pourra le rendre obligatoire quand aucune branche en cours ne fabriquera plus de contrat sans lui.
 - Un seuil qui suffit sur la période passée ne protège pas d'une baisse future plus forte : la pièce le dit dans ses `limites`.

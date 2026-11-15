@@ -165,8 +165,9 @@ CONSIGNES = {
         "jurisprudence montre des procès passés de ce profil en violation d'une règle, "
         "rappelle cet antécédent (sa date, sa décision, le verdict choisi), sans reproche : "
         "il montre si ce conflit se répète. Si une pièce de points de bascule montre ce qui "
-        "rendrait une règle conforme, tu peux le rappeler : la taille jusqu'à laquelle la règle "
-        "serait respectée, ou le seuil qu'il faudrait inscrire au Pacte à la place du sien.\n\n"
+        "rendrait une règle conforme, tu peux le rappeler comme un constat, jamais comme un "
+        "conseil : la règle serait respectée jusqu'à telle taille, ou avec tel seuil inscrit au "
+        "Pacte (jamais « vous devriez » ni « il faudrait »).\n\n"
         + REGLES_COMMUNES
     ),
     "avocat": (
@@ -175,7 +176,8 @@ CONSIGNES = {
         "que les pièces montrent en sa faveur et les règles du Pacte qu'elle respecte, sans "
         "exagérer, sans nier les risques et sans prétendre que la performance passée se "
         "répétera. Si une version plus modeste de la décision respecte le Pacte (pièce de taille "
-        "maximale ou de points de bascule), tu peux le souligner.\n\n" + REGLES_COMMUNES
+        "maximale ou de points de bascule), tu peux le souligner comme un constat, jamais comme "
+        "un conseil (jamais « vous devriez » ni « il faudrait »).\n\n" + REGLES_COMMUNES
     ),
 }
 

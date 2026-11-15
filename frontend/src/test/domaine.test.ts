@@ -63,7 +63,7 @@ describe('adaptateur du contrat', () => {
   it('arguments, pièces et contrôles triés par gravité', () => {
     expect(resultat.titre).toBe(`Robert c. « 30${FINE}% en TSLA »`);
     expect(resultat.arguments.filter((a) => a.camp === 'Procureur')).toHaveLength(4);
-    expect(resultat.arguments.filter((a) => a.camp === 'Avocat')).toHaveLength(3);
+    expect(resultat.arguments.filter((a) => a.camp === 'Avocat')).toHaveLength(4);
     expect(resultat.controles[0].statut).toBe('Violation');
     expect(resultat.controles[0].paragraphe).toBe(1);
     expect(resultat.constat).toBe(`Pire baisse ${MOINS}29,0 % au-delà du seuil ${MOINS}12,0 % (Pacte §1).`);
@@ -71,7 +71,10 @@ describe('adaptateur du contrat', () => {
 
   it('chaque pièce sait quels arguments la citent', () => {
     const p5 = resultat.pieces.find((p) => p.code === 'P5')!;
-    expect(p5.citeePar).toEqual(['Procureur · argument 3', 'Procureur · argument 4', 'Avocat · argument 3']);
+    expect(p5.citeePar).toEqual(['Procureur · argument 2', 'Procureur · argument 3', 'Avocat · argument 2']);
+    // Points de bascule (#61), cités des deux côtés.
+    const bascule = resultat.pieces.find((p) => p.titre.startsWith('Ce qui changerait la réponse'))!;
+    expect(bascule.citeePar).toEqual(['Procureur · argument 4', 'Avocat · argument 3']);
   });
 
   it('trace : raison de l’orchestrateur et pièce produite', () => {
@@ -97,7 +100,7 @@ describe('questions du Greffier', () => {
   it('un nouveau calcul devient une nouvelle pièce, avec les chiffres de la table', () => {
     const reponse = repondre({ id: 'taille:15', libelle: 'Et à 15 % ?' }, contexte)!;
     expect(reponse.role).toBe('Greffier');
-    expect(reponse.nouvellePiece?.code).toBe('P6');
+    expect(reponse.nouvellePiece?.code).toBe(`P${resultat.pieces.length + 1}`);
     expect(reponse.texte).toContain(`${MOINS}16,4${FINE}%`);
     expect(reponse.texte).toContain(`${MOINS}13,4${FINE}%`);
   });

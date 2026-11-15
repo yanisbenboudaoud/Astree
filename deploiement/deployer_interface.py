@@ -45,12 +45,19 @@ import boto3
 from botocore.exceptions import ClientError
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from deployer import FONCTION, REGION, preparer_bucket  # noqa: E402
+from deployer import (  # noqa: E402
+    COMMENTAIRE_INTERFACE,
+    FONCTION,
+    REGION,
+    preparer_bucket,
+    trouver_distribution_interface,
+)
 from construire_zip import RACINE  # noqa: E402
 
 FRONTEND = RACINE / "frontend"
 DIST = FRONTEND / "dist"
-COMMENTAIRE = "alphaforge-interface"  # repère la distribution : une seule, jamais recréée
+# Repère la distribution : une seule, jamais recréée. deployer.py le lit aussi pour le CORS (#136).
+COMMENTAIRE = COMMENTAIRE_INTERFACE
 NOM_OAC = "alphaforge-interface"
 ID_ORIGINE = "site-s3"
 # Politiques gérées par AWS (identifiants publics et fixes, vérifiés sur le compte le 2026-11-15).
@@ -163,21 +170,12 @@ def resume_reglages(config: dict) -> dict:
     }
 
 
-def trouver_distribution(cf) -> dict | None:
-    """La distribution de l'interface, repérée par son commentaire, ou None."""
-    for page in cf.get_paginator("list_distributions").paginate():
-        for distribution in page["DistributionList"].get("Items", []):
-            if distribution["Comment"] == COMMENTAIRE:
-                return distribution
-    return None
-
-
 def assurer_distribution(cf, bucket: str, oac_id: str) -> dict:
     """Crée la distribution si elle manque, ou remet ses réglages si quelqu'un les a changés.
 
     Renvoie ``{"Id", "ARN", "DomainName", "Status"}``.
     """
-    existante = trouver_distribution(cf)
+    existante = trouver_distribution_interface(cf)
     if existante is None:
         config = config_distribution(bucket, oac_id, reference=f"{COMMENTAIRE}-{int(time.time())}")
         creee = cf.create_distribution(DistributionConfig=config)["Distribution"]
@@ -379,8 +377,9 @@ def main(arguments: list[str] | None = None) -> int:
     site = f"https://{distribution['DomainName']}"
     if url_api and not origine_autorisee(lam, site):
         print(f"Attention : le CORS de la Function URL n'autorise pas {site} : le site ne peut pas "
-              "appeler la Lambda (procès en direct, « Trompez le Greffier »). Pour l'ajouter :\n"
-              f"  .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --url-seulement --origine {site}")
+              "appeler la Lambda (procès en direct, « Trompez le Greffier »). Pour l'ajouter (le domaine "
+              "est lu sur le compte, #136) :\n"
+              "  .venv\\Scripts\\python -X utf8 deploiement\\deployer.py --url-seulement")
     if options.attendre:
         print("CloudFront : attente du déploiement de la distribution…")
         cf.get_waiter("distribution_deployed").wait(Id=distribution["Id"])

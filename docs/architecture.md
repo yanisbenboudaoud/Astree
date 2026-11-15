@@ -71,5 +71,6 @@ flowchart TB
 
 - **Aucune clé** dans le code ni dans Git : le rôle IAM de la Lambda reçoit des identifiants temporaires d'AWS.
 - **Rôle IAM minimal** (`deploiement/politique_iam_lambda.json`) : `bedrock:InvokeModel` sur Sonnet 5.5 seulement (profil d'inférence et ses trois régions), le bucket du projet, et l'invocation de la fonction elle-même (procès en arrière-plan, #90).
-- **Concurrence réservée de 2**, **alerte de budget** de 100 $ par mois, **Function URL en `NONE`** depuis #14, pour que le navigateur l'appelle, avec un CORS limité à l'interface (`http://localhost:5173` et, depuis #135, le domaine CloudFront du site). Elle sera supprimée après le jury.
+- **Concurrence réservée de 2**, **alerte de budget** de 100 $ par mois, **Function URL en `NONE`** depuis #14, pour que le navigateur l'appelle, avec un CORS limité à l'interface (`http://localhost:5173` et le domaine CloudFront du site, lu sur le compte à chaque déploiement, #136). Elle sera supprimée après le jury.
+- **Débit limité par adresse IP** (#136) : l'adresse de la Function URL est lisible dans le JavaScript du site. `/tribunal` (3 par minute) et `/question` (10 par minute) déclenchent Bedrock : au-delà, 429 avant tout appel. Hypothèses de l'équipe, en mémoire de chaque instance de la Lambda.
 - **Site hébergé** (#135) : bucket `alphaforge-site-<compte>` à accès public bloqué, lu par la distribution seulement (OAC et condition `AWS:SourceArn`), séparé du bucket des données.

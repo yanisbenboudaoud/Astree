@@ -86,6 +86,40 @@ def test_invocation_asynchrone_sans_relance():
     assert appels == [{"FunctionName": deployer.FONCTION, "MaximumRetryAttempts": 0, "MaximumEventAgeInSeconds": 60}]
 
 
+class FauxCloudFront:
+    """list_distributions : une distribution d'un autre projet, plus celle du site si elle existe."""
+
+    def __init__(self, site: str | None):
+        self.items = [{"Id": "EAUTRE", "Comment": "", "DomainName": "d999.cloudfront.net"}]
+        if site:
+            self.items.append({"Id": "E123", "Comment": "alphaforge-interface", "DomainName": site})
+
+    def get_paginator(self, nom):
+        assert nom == "list_distributions"
+        items = self.items
+
+        class Paginateur:
+            def paginate(self):
+                return iter([{"DistributionList": {"Items": items}}])
+        return Paginateur()
+
+
+def test_cors_garde_le_site_heberge_lu_sur_le_compte_sans_origine():
+    """#136 : un redéploiement lancé sans --origine garde toujours le site."""
+    origines = deployer.origines_cors(FauxCloudFront("d111.cloudfront.net"), [])
+    assert origines == ["http://localhost:5173", "https://d111.cloudfront.net"]
+
+
+def test_cors_sans_distribution_garde_l_interface_locale():
+    assert deployer.origines_cors(FauxCloudFront(None), []) == ["http://localhost:5173"]
+
+
+def test_cors_ajoute_les_origines_demandees_sans_doublon():
+    origines = deployer.origines_cors(FauxCloudFront("d111.cloudfront.net"),
+                                      ["http://localhost:5175/", "https://d111.cloudfront.net"])
+    assert origines == ["http://localhost:5173", "https://d111.cloudfront.net", "http://localhost:5175"]
+
+
 def test_relancer_ne_double_pas_les_permissions():
     lam = FauxLambda(url_existe=False)
     deployer.assurer_function_url(lam, ["http://localhost:5173"])

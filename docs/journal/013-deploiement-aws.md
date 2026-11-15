@@ -1,6 +1,6 @@
 # #13 — Déployer : Lambda, S3, Function URL, IAM
 
-- **Issue** : #13 · **PR** : à compléter · **Statut** : terminée
+- **Issue** : #13 · **PR** : #54 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit

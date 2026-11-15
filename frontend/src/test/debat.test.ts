@@ -23,6 +23,7 @@ describe('thème d’un argument (première phrase)', () => {
     ['Ce conflit s’est déjà présenté : 3 procès archivés portaient sur « 30 % en TSLA ».', 'antecedents'],
     ['Votre panier ne bouge pas d’un seul bloc : BTC-USD et NVDA ont évolué moins ensemble (0,32) que BTC-USD et ETH-USD (0,84).', 'diversification'],
     ['Lors du rejeu d’une chute des cryptoactifs, vous avez répondu rester malgré une baisse de 73,7 %.', 'reactions'],
+    ['Votre Pacte demande un « Équilibre entre croissance et stabilité ».', 'regles'],
     ['La règle « Crypto : exclue » est respectée : parmi les règles calculables, seule celle de pire baisse est en violation.', 'regles'],
   ])('%s → %s', (texte, theme) => {
     expect(themeArgument(texte)).toBe(theme);

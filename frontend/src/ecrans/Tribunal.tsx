@@ -21,7 +21,7 @@ import { date } from '../lib/format';
 import { libelleDecision } from '../domaine/decision';
 import { resultatCalibrage } from '../domaine/calibrage';
 import { phaseEnRelecture } from '../domaine/progression';
-import { accroche, regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
+import { LIBELLES_COURTS, accroche, regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
 import { donneesCalibrage } from '../api/donnees';
 import { questionsSuggerees, repondre, type QuestionSuggeree } from '../domaine/questions';
 import { useEtatProfil } from '../state/store';
@@ -42,42 +42,67 @@ export function sansCoupure(texte: string): string {
   return texte.replace(/(\d) (?=\d{3}(?!\d))/g, '$1\u202f').replace(/(\d) (?=[$%])/g, '$1\u00a0');
 }
 
-function CarteArgument({ argument, numero, surligne, ouvertAuDepart, onOuvrir }: {
+/** Un argument sur la scène : sa conclusion en gras, la preuve dessous, puis ses pièces. */
+function Plaidoyer({ argument, surligne, onOuvrir }: {
   argument: Argument;
-  numero: number;
   surligne: boolean;
-  ouvertAuDepart: boolean;
   onOuvrir: (code: string, el: HTMLElement) => void;
 }) {
-  const [ouvert, setOuvert] = useState(ouvertAuDepart);
-  const deplie = ouvert || surligne;
+  const [preuve, setPreuve] = useState(false);
   const { tete, suite } = accroche(sansCoupure(argument.texte));
-  const id = `argument-${argument.camp}-${numero}`;
-  const procureur = argument.camp === 'Procureur';
+  const ouverte = preuve || surligne;
   return (
-    <div className={`${styles.argument} ${procureur ? styles.argumentProcureur : styles.argumentAvocat} ${deplie ? styles.argumentOuvert : ''} ${surligne ? styles.argumentSurligne : ''}`}>
-      <button type="button" className={styles.teteArgument} aria-expanded={deplie} aria-controls={id} onClick={() => setOuvert((o) => !o)}>
-        <span className={styles.texteTete}>
-          <span className={styles.campArgument}>{procureur ? 'Procureur · contre' : 'Avocat · pour'}</span>
-          <span className={`t-corps ${styles.accroche}`}>
-            <span className="visuellement-cache">{argument.camp}, argument {numero} : </span>
-            {tete}
-          </span>
+    <article className={`${styles.plaidoyer} ${surligne ? styles.plaidoyerSurligne : ''}`}>
+      <p className={`t-corps ${styles.conclusion}`}>{tete}</p>
+      {suite && ouverte && <p className={`t-petit c-700 ${styles.preuve}`}>{suite}</p>}
+      <p className={styles.provenanceArgument}>
+        <Provenance type={argument.provenance} />
+        {argument.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={onOuvrir} />)}
+        {suite && (
+          <button type="button" className={styles.voirPreuve} aria-expanded={ouverte} onClick={() => setPreuve((p) => !p)}>
+            {ouverte ? 'Masquer' : 'Voir la preuve'}
+          </button>
+        )}
+      </p>
+    </article>
+  );
+}
+
+/** Un côté de la barre : le Procureur (contre) ou l'Avocat (pour), et ce qu'il plaide sur ce point. */
+function Tribune({ camp, args, surlignes, onOuvrir }: {
+  camp: 'Procureur' | 'Avocat';
+  args: ArgumentNumerote[];
+  surlignes: Set<string>;
+  onOuvrir: (code: string, el: HTMLElement) => void;
+}) {
+  const procureur = camp === 'Procureur';
+  return (
+    <div className={`${styles.tribune} ${procureur ? styles.tribuneProcureur : styles.tribuneAvocat}`}>
+      <div className={styles.enteteTribune}>
+        <span className={styles.blason} aria-hidden="true">{procureur ? 'P' : 'A'}</span>
+        <span className={styles.roleTribune}>
+          <span className={styles.nomCamp}>{camp}</span>
+          <span className="t-petit c-500">{procureur ? 'contre la décision' : 'pour la décision'}</span>
         </span>
-        <Icone nom={deplie ? 'chevron-haut' : 'chevron-bas'} taille={16} />
-      </button>
-      <div id={id} hidden={!deplie} className={styles.corpsArgument}>
-        {suite && <p className="t-corps c-700">{suite}</p>}
-        <p className={styles.provenanceArgument}>
-          <Provenance type={argument.provenance} />
-          {argument.pieces.map((c) => <PastillePiece key={c} code={c} onOuvrir={onOuvrir} />)}
-        </p>
       </div>
+      {args.length ? (
+        <div className={styles.plaidoyers}>
+          {args.map(({ argument, numero }) => (
+            <Plaidoyer key={argument.texte} argument={argument} surligne={surlignes.has(`${camp}-${numero}`)} onOuvrir={onOuvrir} />
+          ))}
+        </div>
+      ) : (
+        <p className={styles.silence}>{procureur ? 'Le Procureur' : 'L’Avocat'} garde le silence sur ce point.</p>
+      )}
     </div>
   );
 }
 
-/** Le débat point par point : une question, le Procureur à gauche, l'Avocat à droite. */
+/**
+ * Le débat en salle d'audience : un point à la fois, sans défilement. Le sommaire liste les
+ * points (deux pastilles disent quel camp a parlé) ; la scène met le Procureur et l'Avocat
+ * face à face de part et d'autre de la balance. Flèches ← → pour passer d'un point à l'autre.
+ */
 function Debat({ procureur, avocat, surlignes, onOuvrir, limite }: {
   procureur: Argument[];
   avocat: Argument[];
@@ -85,37 +110,104 @@ function Debat({ procureur, avocat, surlignes, onOuvrir, limite }: {
   onOuvrir: (code: string, el: HTMLElement) => void;
   limite?: string;
 }) {
-  const points = regrouperDebat(procureur, avocat);
-  const colonne = (camp: 'Procureur' | 'Avocat', args: ArgumentNumerote[], premier: boolean) => (
-    <div className={styles.colonneDebat}>
-      {args.length ? args.map(({ argument, numero }, i) => (
-        <CarteArgument key={argument.texte} argument={argument} numero={numero} ouvertAuDepart={premier && i === 0}
-          surligne={surlignes.has(`${camp}-${numero}`)} onOuvrir={onOuvrir} />
-      )) : (
-        <p className={`t-petit c-500 ${styles.silence}`}>{camp === 'Procureur' ? 'Le Procureur' : 'L’Avocat'} ne dit rien sur ce point.</p>
-      )}
-    </div>
-  );
+  const points = useMemo(() => regrouperDebat(procureur, avocat), [procureur, avocat]);
+  const [rang, setRang] = useState(0);
+  const onglets = useRef<(HTMLButtonElement | null)[]>([]);
+  const actuel = points[Math.min(rang, points.length - 1)];
+
+  // Une pièce ouverte amène sur le premier point dont un argument la cite.
+  const cleSurlignes = [...surlignes].join(',');
+  useEffect(() => {
+    if (!cleSurlignes) return;
+    const cles = new Set(cleSurlignes.split(','));
+    const cible = points.findIndex((p) => [...p.procureur.map((a) => `Procureur-${a.numero}`), ...p.avocat.map((a) => `Avocat-${a.numero}`)]
+      .some((cle) => cles.has(cle)));
+    if (cible >= 0) setRang(cible);
+  }, [cleSurlignes, points]);
+
+  // L'onglet du point affiché reste visible dans la bande, même sur téléphone ; pas au
+  // chargement, pour ne pas faire défiler la page jusqu'au débat.
+  const premierAffichage = useRef(true);
+  useEffect(() => {
+    if (premierAffichage.current) {
+      premierAffichage.current = false;
+      return;
+    }
+    onglets.current[rang]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  }, [rang]);
+
+  if (!actuel) return null;
+  const borner = (r: number) => (r + points.length) % points.length;
+  const aller = (nouveau: number, focus = false) => {
+    setRang(borner(nouveau));
+    if (focus) onglets.current[borner(nouveau)]?.focus();
+  };
+  // Les flèches partent du rang courant, même après plusieurs clics rapides.
+  const decaler = (pas: number) => setRang((r) => borner(r + pas));
+  const auClavier = (evenement: React.KeyboardEvent) => {
+    const sauts: Record<string, number> = { ArrowRight: rang + 1, ArrowLeft: rang - 1, Home: 0, End: points.length - 1 };
+    if (!(evenement.key in sauts)) return;
+    evenement.preventDefault();
+    aller(sauts[evenement.key], true);
+  };
+
   return (
     <section className={styles.debat} aria-labelledby="titre-debat">
+      <h2 className="visuellement-cache" id="titre-debat">L’audience : le débat point par point</h2>
       <div className={styles.enteteDebat}>
-        <h2 className="t-panneau" id="titre-debat">Le débat, point par point</h2>
+      <div className={styles.sommaire} role="tablist" aria-label="Points du débat" onKeyDown={auClavier}>
+        {points.map((point, i) => (
+          <button
+            key={point.theme}
+            ref={(el) => { onglets.current[i] = el; }}
+            type="button"
+            role="tab"
+            id={`onglet-${point.theme}`}
+            aria-selected={i === rang}
+            aria-controls="scene-debat"
+            tabIndex={i === rang ? 0 : -1}
+            className={`${styles.onglet} ${i === rang ? styles.ongletActif : ''}`}
+            onClick={() => aller(i)}
+          >
+            <span className={styles.numeroOnglet}>{i + 1}</span>
+            <span>{LIBELLES_COURTS[point.theme]}</span>
+            <span className={styles.voix} aria-hidden="true">
+              <span className={`${styles.voixProcureur} ${point.procureur.length ? '' : styles.voixMuette}`} />
+              <span className={`${styles.voixAvocat} ${point.avocat.length ? '' : styles.voixMuette}`} />
+            </span>
+          </button>
+        ))}
+      </div>
         <p className={styles.legendeDebat}>
-          <span className={styles.legendeProcureur}>Procureur · contre la décision · {procureur.length}</span>
-          <span className={styles.legendeAvocat}>Avocat · pour la décision · {avocat.length}</span>
+          <span className={styles.legendeProcureur}>Procureur · contre · {procureur.length}</span>
+          <span className={styles.legendeAvocat}>Avocat · pour · {avocat.length}</span>
         </p>
       </div>
-      <ol className={styles.points}>
-        {points.map((point, i) => (
-          <li key={point.theme} className={styles.point}>
-            <h3 className={`t-intertitre ${styles.question}`}>{point.question}</h3>
-            <div className={styles.faceAFace}>
-              {colonne('Procureur', point.procureur, i === 0)}
-              {colonne('Avocat', point.avocat, i === 0)}
-            </div>
-          </li>
-        ))}
-      </ol>
+
+      <div id="scene-debat" role="tabpanel" aria-labelledby={`onglet-${actuel.theme}`} className={styles.scene}>
+        <div className={styles.enteteScene}>
+          <div className={styles.questionScene}>
+            <p className={styles.compteurPoint}>Point {rang + 1} sur {points.length}</p>
+            <h3 className={`t-h2 ${styles.question}`} aria-live="polite">{actuel.question}</h3>
+          </div>
+          <div className={styles.navigationScene}>
+            <button type="button" className={styles.fleche} onClick={() => decaler(-1)} aria-label="Point précédent">
+              <Icone nom="fleche-gauche" taille={18} />
+            </button>
+            <button type="button" className={styles.fleche} onClick={() => decaler(1)} aria-label="Point suivant">
+              <Icone nom="fleche-droite" taille={18} />
+            </button>
+          </div>
+        </div>
+        <div key={actuel.theme} className={styles.arene}>
+          <Tribune camp="Procureur" args={actuel.procureur} surlignes={surlignes} onOuvrir={onOuvrir} />
+          <div className={styles.barre} aria-hidden="true">
+            <span className={styles.balance}><Icone nom="balance" taille={22} /></span>
+          </div>
+          <Tribune camp="Avocat" args={actuel.avocat} surlignes={surlignes} onOuvrir={onOuvrir} />
+        </div>
+      </div>
+
       {limite && (
         <p className={styles.limite}>
           <Icone nom="alerte" taille={16} />
@@ -468,18 +560,18 @@ export function Tribunal({ profil }: { profil: Profil }) {
                 ))}
               </div>
               <p className="t-corps">{resultat.constat}</p>
-              {reglePrincipale && (
-                <p className="t-petit c-700">
-                  Règle que vous avez signée le {date(resultat.contrat.pacte.date_signature)} (Pacte §{principal!.paragraphe}) :
-                  « {reglePrincipale.libelle} ».
-                </p>
-              )}
             </div>
             <button type="button" className={styles.voirControles} aria-expanded={controlesOuverts} aria-controls="liste-controles" onClick={() => setControlesOuverts((o) => !o)}>
               {controlesOuverts ? 'Masquer les contrôles' : `Voir les ${resultat.controles.length} contrôles`}
               <Icone nom={controlesOuverts ? 'chevron-haut' : 'chevron-bas'} taille={14} />
             </button>
             <ol id="liste-controles" className={styles.controles} hidden={!controlesOuverts}>
+              {reglePrincipale && (
+                <li className={`t-petit c-700 ${styles.rappelRegle}`}>
+                  Règle que vous avez signée le {date(resultat.contrat.pacte.date_signature)} (Pacte §{principal!.paragraphe}) :
+                  « {reglePrincipale.libelle} ».
+                </li>
+              )}
               {resultat.controles.map((c) => (
                 <li key={`${c.regle}-${c.texte}`} className={styles.controle}>
                   <Statut type={c.statut} />

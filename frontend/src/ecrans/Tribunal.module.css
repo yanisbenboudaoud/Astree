@@ -56,60 +56,187 @@
 .controle:last-child { border-bottom: 0; }
 .piecesControle { display: inline-flex; gap: 6px; }
 
-.debat { display: flex; flex-direction: column; gap: 16px; }
-.enteteDebat { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+.debat { display: flex; flex-direction: column; gap: 14px; }
+.enteteDebat { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
 .legendeDebat { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; font-size: 14px; font-weight: 600; }
 .legendeProcureur, .legendeAvocat { display: inline-flex; align-items: center; gap: 8px; }
 .legendeProcureur { color: var(--camp-procureur); }
 .legendeAvocat { color: var(--camp-avocat); }
 .legendeProcureur::before, .legendeAvocat::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: currentColor; }
 
-.points { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-.point { display: flex; flex-direction: column; gap: 12px; padding: 20px 0; border-top: 1px solid var(--trait-fin); }
+/* Sommaire : un onglet par point ; deux pastilles disent quel camp a parlé. */
+.sommaire { display: flex; gap: 8px; min-width: 0; max-width: 100%; overflow-x: auto; padding: 2px 2px 4px; scrollbar-width: none; }
+.sommaire::-webkit-scrollbar { display: none; }
+.onglet {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px 0 6px;
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-carte);
+  color: var(--encre-700);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.onglet:hover { border-color: var(--encre-300); color: var(--encre-900); }
+.numeroOnglet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--fond-creux);
+  font-size: 13px;
+}
+.ongletActif, .ongletActif:hover { background: var(--encre-900); border-color: var(--encre-900); color: var(--inverse-texte); }
+.ongletActif .numeroOnglet { background: rgb(255 255 255 / 0.16); }
+.voix { display: inline-flex; gap: 3px; }
+.voixProcureur, .voixAvocat { width: 7px; height: 7px; border-radius: 50%; }
+.voixProcureur { background: var(--camp-procureur); }
+.voixAvocat { background: var(--camp-avocat); }
+.voixMuette { background: transparent; box-shadow: inset 0 0 0 1.5px var(--encre-300); }
+.ongletActif .voixMuette { box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.45); }
+
+/* Scène : la question, puis le Procureur et l'Avocat de part et d'autre de la balance. */
+.scene {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 24px 22px;
+  border-radius: var(--rayon);
+  background:
+    linear-gradient(90deg, var(--camp-procureur-teinte) 0%, transparent 30%, transparent 70%, var(--camp-avocat-teinte) 100%),
+    var(--fond-sourdine);
+  border: 1px solid var(--trait-fin);
+}
+.enteteScene { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.questionScene { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.compteurPoint { margin: 0; color: var(--encre-500); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
 .question { color: var(--encre-900); }
-.faceAFace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
-.colonneDebat { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.silence {
-  margin: 0;
-  padding: 14px 16px;
-  border: 1px dashed var(--encre-200);
-  border-radius: var(--rayon-moyen);
+.navigationScene { display: flex; gap: 8px; flex: none; }
+.fleche {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--trait-moyen);
+  border-radius: 50%;
+  background: var(--fond-carte);
+  color: var(--encre-900);
+  transition: background var(--transition);
+}
+.fleche:hover { background: var(--fond-creux); }
+
+.arene {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 200px;
+  animation: entreeScene 0.28s ease-out;
+}
+@keyframes entreeScene {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.barre { position: relative; display: flex; justify-content: center; }
+.barre::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(var(--camp-procureur), var(--encre-300) 50%, var(--camp-avocat));
+  opacity: 0.5;
+}
+.balance {
+  position: relative;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--fond-carte);
+  color: var(--encre-900);
+  box-shadow: 0 0 0 1px var(--trait-fin), var(--ombre-flottante);
 }
 
-.argument {
+.tribune {
   --ton: var(--camp-procureur);
   --ton-teinte: var(--camp-procureur-teinte);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 18px 18px;
+  border-radius: var(--rayon-moyen);
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
-  border-left: 3px solid var(--ton);
-  border-radius: var(--rayon-moyen);
-  overflow: hidden;
+  border-top: 3px solid var(--ton);
+  box-shadow: 0 1px 2px rgb(17 17 17 / 0.04);
 }
-.argumentAvocat { --ton: var(--camp-avocat); --ton-teinte: var(--camp-avocat-teinte); }
-.teteArgument {
-  display: grid;
-  grid-template-columns: 1fr 16px;
-  gap: 12px;
-  align-items: start;
-  width: 100%;
-  padding: 14px 16px;
+.tribuneAvocat { --ton: var(--camp-avocat); --ton-teinte: var(--camp-avocat-teinte); }
+.enteteTribune { display: flex; align-items: center; gap: 10px; }
+.blason {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--ton);
+  color: var(--inverse-texte);
+  font-family: var(--police-titre);
+  font-size: 16px;
+  font-weight: 700;
+}
+.roleTribune { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.nomCamp { color: var(--ton); font-size: 17px; font-weight: 700; line-height: 22px; }
+.plaidoyers { display: flex; flex-direction: column; gap: 14px; }
+.plaidoyer { display: flex; flex-direction: column; gap: 8px; }
+.plaidoyer + .plaidoyer { padding-top: 14px; border-top: 1px solid var(--trait-fin); }
+.conclusion { font-weight: 600; color: var(--encre-900); }
+.preuve { animation: entreeScene 0.2s ease-out; }
+.voirPreuve {
+  margin-left: 4px;
+  padding: 0;
   border: 0;
   background: none;
-  text-align: left;
+  color: var(--accent-bleu);
+  font-size: 14px;
+  font-weight: 600;
 }
-.teteArgument:hover { background: var(--fond-sourdine); }
-.teteArgument > svg { margin-top: 3px; color: var(--encre-500); }
-.texteTete { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.campArgument { color: var(--ton); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-/* Replié : deux lignes au plus ; ouvert : la phrase entière, en gras. */
-.accroche { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.argumentOuvert .accroche { display: block; font-weight: 600; }
-.corpsArgument { display: flex; flex-direction: column; gap: 12px; padding: 0 16px 16px; }
-.corpsArgument[hidden] { display: none; }
-.argumentSurligne { background: var(--accent-bleu-teinte); box-shadow: 0 0 0 2px var(--accent-bleu); }
+.voirPreuve:hover { text-decoration: underline; }
+.rappelRegle { grid-column: 1 / -1; padding-bottom: 6px; }
+.plaidoyerSurligne { margin: -8px; padding: 8px; border-radius: var(--rayon-petit); background: var(--accent-bleu-teinte); box-shadow: 0 0 0 2px var(--accent-bleu); }
+.provenanceArgument { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.silence {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed var(--encre-200);
+  border-radius: var(--rayon-petit);
+  color: var(--encre-500);
+  font-size: 15px;
+  font-style: italic;
+  text-align: center;
+}
 
 @media (max-width: 760px) {
-  .faceAFace { grid-template-columns: minmax(0, 1fr); }
+  .scene { padding: 18px 16px; }
+  .arene { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 40px auto; min-height: 0; }
+  .barre::before { top: 50%; bottom: auto; left: 0; right: 0; width: auto; height: 2px; background: linear-gradient(90deg, var(--camp-procureur), var(--encre-300) 50%, var(--camp-avocat)); }
+  .balance { width: 40px; height: 40px; }
 }
 
 .limite {

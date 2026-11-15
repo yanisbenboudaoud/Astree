@@ -35,6 +35,21 @@ export const QUESTIONS: Record<Theme, string> = {
   autre: 'Autres points',
 };
 
+/** Nom court de chaque point, pour le sommaire du débat. */
+export const LIBELLES_COURTS: Record<Theme, string> = {
+  titre_seul: 'Le titre seul',
+  reactions: 'Vos réactions',
+  antecedents: 'Antécédents',
+  valeurs: 'Vos valeurs',
+  annee_2022: 'Crise de 2022',
+  taille: 'Taille modeste',
+  diversification: 'Diversification',
+  regles: 'Autres règles',
+  rendement: 'Rendement',
+  perte: 'Pire moment',
+  autre: 'Autres points',
+};
+
 /** Règles essayées dans cet ordre : la plus précise d'abord (« XOM seule » avant « chute »). */
 const REGLES: [Theme, RegExp][] = [
   // Sensible à la casse : « XOM seule » est un symbole, « d'un seul bloc » ne l'est pas.
@@ -45,7 +60,7 @@ const REGLES: [Theme, RegExp][] = [
   ['annee_2022', /2022/],
   ['taille', /jusqu.à \d|plus modeste|respecterait|serait respectée|au maximum respecte|(position|taille) de \d|\bà \d+(,\d+)?\s%\sen [A-Z]/i],
   ['diversification', /ensemble|corrélation|\blien\b|\bliés\b|moteur|d.un seul bloc/i],
-  ['regles', /crypto|\btech\b|règles calculables|seule la règle/i],
+  ['regles', /crypto|\btech\b|règles calculables|seule la règle|équilibre|stabilité|votre Pacte (demande|prévoit|dit|pose)/i],
   ['rendement', /par an|rendement/i],
   ['perte', /pire moment|chute|pire baisse|perdu/i],
 ];

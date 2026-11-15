@@ -173,11 +173,11 @@ def main(arguments: list[str]) -> int:
             table = table_panier(profil, candidats, semaines)
             ecrire(SORTIE / "paniers" / f"{profil['id']}.json", table, compact=True)
             print(f"{profil['id']} : {len(table['compositions'])} compositions du panier {candidats}")
-        else:
-            for ticker in par_ticker:
-                ecrire(SORTIE / "decisions" / profil["id"] / f"{ticker}.json",
-                       table_position(profil, ticker, semaines), compact=True)
-            print(f"{profil['id']} : {len(par_ticker)} titres × {len(TAILLES)} tailles")
+        # Tables d'une position pour tous les profils : un profil en mode panier peut aussi tester un titre seul (#99).
+        for ticker in par_ticker:
+            ecrire(SORTIE / "decisions" / profil["id"] / f"{ticker}.json",
+                   table_position(profil, ticker, semaines), compact=True)
+        print(f"{profil['id']} : {len(par_ticker)} titres × {len(TAILLES)} tailles")
     questionnaire, exemple = construire_questionnaire()
     ecrire(SORTIE / "questionnaire.json", questionnaire)
     for ticker in par_ticker:

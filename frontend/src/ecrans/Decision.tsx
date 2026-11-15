@@ -272,7 +272,12 @@ export function Decision({ profil }: { profil: Profil }) {
     // Profil créé (#86), en mode direct : la table est calculée par la Lambda et peut échouer.
     if (ticker) {
       chargerTablePosition(profil.id, ticker)
-        .then((t) => actif && setTablePosition(t))
+        .then((t) => {
+          if (!actif) return;
+          // Sans table (titre non précalculé pour ce profil), on le dit au lieu d'attendre indéfiniment.
+          if (t) setTablePosition(t);
+          else setErreurTable("aucune simulation précalculée pour ce titre et ce profil");
+        })
         .catch((e: Error) => actif && setErreurTable(e.message));
     }
     return () => { actif = false; };

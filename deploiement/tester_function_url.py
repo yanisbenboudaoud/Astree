@@ -13,6 +13,10 @@ Usage (depuis la racine du dépôt) ::
     .venv\\Scripts\\python -X utf8 deploiement\\tester_function_url.py robert "Je veux mettre 30 % de mon portefeuille en Tesla"
     .venv\\Scripts\\python -X utf8 deploiement\\tester_function_url.py amira "…" --sortie contrat.json
     .venv\\Scripts\\python -X utf8 deploiement\\tester_function_url.py robert "…" --calibrage-demo   # Pacte vécu (#68)
+    .venv\\Scripts\\python -X utf8 deploiement\\tester_function_url.py --creer-profil docs\\exemples\\reponses_questionnaire.json "Je veux mettre 30 % en Tesla"   # #87
+
+``--creer-profil`` envoie d'abord le fichier de réponses à ``/profil`` (sans Bedrock),
+puis fait le procès du profil créé, rangé dans ``profils/<id>.json`` du bucket.
 
 Chaque appel fait un vrai procès : quelques appels Bedrock payants.
 """
@@ -88,8 +92,10 @@ def resumer(contenu: bytes) -> str:
 
 def main(arguments: list[str] | None = None) -> int:
     lecteur = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    lecteur.add_argument("profil", help="identifiant du profil, ex. : robert")
+    lecteur.add_argument("profil", nargs="?", help="identifiant du profil, ex. : robert (sauf avec --creer-profil)")
     lecteur.add_argument("demande", help="la décision à juger, en une phrase")
+    lecteur.add_argument("--creer-profil", type=Path, metavar="REPONSES",
+                         help="crée d'abord le profil par /profil (fichier de réponses du questionnaire, #87)")
     lecteur.add_argument("--fonction", default=FONCTION, help=f"nom de la Lambda ({FONCTION})")
     lecteur.add_argument("--sortie", type=Path, help="fichier où écrire la réponse JSON")
     lecteur.add_argument("--calibrage-demo", action="store_true",
@@ -98,7 +104,20 @@ def main(arguments: list[str] | None = None) -> int:
                          help="envoie aussi ce verdict à /verdict pour le procès archivé (#13)")
     options = lecteur.parse_args(arguments)
 
+    if (options.profil is None) == (options.creer_profil is None):
+        lecteur.error("indiquez un identifiant de profil, ou --creer-profil REPONSES, pas les deux")
+
     adresse = adresse_function_url(options.fonction)
+    if options.creer_profil:
+        saisie = json.loads(options.creer_profil.read_text(encoding="utf-8"))
+        demande_profil = {"reponses": saisie["reponses"], "capital": saisie["capital_cad"],
+                          "portefeuille": saisie["portefeuille"], "nom": saisie.get("nom", "Investisseur")}
+        statut, duree, contenu, _ = envoyer(f"{adresse}/profil", demande_profil)
+        reponse = json.loads(contenu)
+        print(f"/profil : HTTP {statut} en {duree:.1f} s · {reponse.get('archive') or reponse}")
+        if statut != 201:
+            return 1
+        options.profil = reponse["id"]
     corps = {"profil": options.profil, "demande": options.demande}
     if options.calibrage_demo:
         corps["calibrage"] = {"reponses": reponses_demo(charger_pacte(chemin_profil(options.profil)))[0]}

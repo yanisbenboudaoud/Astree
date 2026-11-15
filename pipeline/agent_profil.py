@@ -12,8 +12,9 @@ renvoie aucune décision : le procès ne peut pas commencer et l'interface doit
 demander à l'utilisateur de préciser.
 
 Le code ne connaît aucun persona : ``lancer_agent_profil`` reçoit l'identifiant
-de n'importe quel profil, le charge et le valide avec ``charger_pacte`` (#3),
-puis ne lit que son portefeuille et son capital.
+de n'importe quel profil, le charge et le valide (``charger_profil`` : un fichier
+de ``personas/`` ou un profil créé par le questionnaire, #87), puis ne lit que son
+portefeuille et son capital.
 
 Deux types de décisions (CLAUDE.md, section 5) :
 - « position » : un titre, une taille et un financement ;
@@ -34,10 +35,13 @@ from pipeline.llm import appeler_llm
 from pipeline.pacte import (
     CHEMIN_SCHEMA,
     DOSSIER_PERSONAS,
+    PacteInvalide,
     charger_pacte,
+    erreurs_profil,
     pacte_pour_contrat,
     piece_pacte,
 )
+from pipeline.profils import cle_profil, lire_profil_cree
 from pipeline.univers import charger_univers
 
 REGLE_CONTROLE = "interpretation_demande"
@@ -90,7 +94,7 @@ def lancer_agent_profil(
         ProfilInconnu: aucun profil ne porte cet identifiant.
         PacteInvalide: le fichier profil ne respecte pas le format commun.
     """
-    profil = charger_pacte(chemin_profil(identifiant_profil))
+    profil = charger_profil(identifiant_profil)
     resultat = structurer_decision(demande, profil, charger_univers())
     etape_pacte = {
         "etape": "agent_profil",
@@ -113,6 +117,29 @@ def chemin_profil(identifiant: str) -> Path:
     if chemin == CHEMIN_SCHEMA or not chemin.is_file():
         raise ProfilInconnu(f"Aucun profil « {identifiant} » dans {DOSSIER_PERSONAS.name}/")
     return chemin
+
+
+def charger_profil(identifiant: str) -> dict[str, Any]:
+    """Profil validé : ``personas/<identifiant>.json``, sinon le profil créé sous cet identifiant (#87).
+
+    Raises:
+        ProfilInconnu: identifiant invalide, ou aucun profil ne le porte.
+        PacteInvalide: le profil ne respecte pas le format commun.
+        ErreurDonnees: profil créé illisible (source ou bucket inaccessible).
+    """
+    try:
+        return charger_pacte(chemin_profil(identifiant))
+    except ProfilInconnu:
+        if not isinstance(identifiant, str) or not FORMAT_IDENTIFIANT.fullmatch(identifiant):
+            raise
+    profil = lire_profil_cree(identifiant)
+    if profil is None:
+        raise ProfilInconnu(f"Aucun profil « {identifiant} » dans {DOSSIER_PERSONAS.name}/ "
+                            "ni parmi les profils créés")
+    erreurs = erreurs_profil(profil, nom_fichier=identifiant)
+    if erreurs:
+        raise PacteInvalide(Path(cle_profil(identifiant)), erreurs)
+    return profil
 
 
 def structurer_decision(

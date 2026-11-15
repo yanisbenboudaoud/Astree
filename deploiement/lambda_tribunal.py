@@ -1,8 +1,9 @@
 """Point d'entrée de la Lambda du Tribunal (#13), derrière une Lambda Function URL.
 
-Cinq routes, en POST, avec un corps JSON :
+Sept routes, en POST, avec un corps JSON :
 
-- ``/tribunal`` ``{"profil": "<id>", "demande": "<texte>"}`` : fait le procès. Champ
+- ``/tribunal`` ``{"profil": "<id>", "demande": "<texte>"}`` : fait le procès. ``profil`` est
+  un profil de démonstration (``personas/``) ou un profil créé par ``/profil``. Champ
   facultatif ``"calibrage": {"reponses": {"<id de question>": "<réponse>"}}`` : les
   réponses du Pacte vécu (#68), datées du jour par la Lambda.
   (``juger_decision``) et renvoie le contrat JSON tel quel. Le contrat est archivé
@@ -24,6 +25,15 @@ Cinq routes, en POST, avec un corps JSON :
   en page HTML imprimable (``pipeline.proces_verbal``, #57). Il relit l'archive du
   verdict si l'utilisateur a déjà tranché, sinon la trace du procès. Aucun appel à
   Bedrock : la page est produite par Python à partir du contrat.
+- ``/questionnaire`` ``{}`` : les questions du questionnaire investisseur (#84), avec les
+  vrais chiffres des cartes de portefeuilles. Sans Bedrock.
+- ``/profil`` ``{"reponses": {...}, "capital": <CAD>, "portefeuille": [{"ticker", "poids"}],
+  "nom": "<facultatif>", "modifications": {"<id de règle>": <valeur>}}`` (#87) : Python
+  construit le profil à partir des réponses (``profil_depuis_reponses``), applique les seuils
+  choisis par l'utilisateur, le valide et le range dans ``profils/<id>.json`` du bucket.
+  L'identifiant est généré ici, jamais tiré du nom saisi : un profil créé n'écrase jamais
+  un profil de démonstration. Sans Bedrock. Réponse 201 : ``{id, profil, bareme,
+  contradictions}``. Débit limité par adresse IP, car le point d'accès est public.
 
 Le pipeline est importé et les CSV sont lus au niveau du module, hors du
 handler : une Lambda déjà démarrée les garde en mémoire (caches de
@@ -57,10 +67,25 @@ from pipeline.donnees import ErreurDonnees, seances_americaines
 from pipeline.jurisprudence import cle_verdict
 from pipeline.pacte import PacteInvalide
 from pipeline.proces_verbal import proces_verbal_html
+from pipeline.profils import (
+    ProfilDejaExistant,
+    appliquer_modifications,
+    cle_profil,
+    enregistrer_profil,
+    nouvel_identifiant_profil,
+)
+from pipeline.questionnaire import (
+    ReponsesInvalides,
+    contradictions,
+    detail_bareme,
+    profil_depuis_reponses,
+    questions,
+    valider_reponses,
+)
 from pipeline.tribunal import bornes_periode, juger_decision
 
 VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # CLAUDE.md, section 5
-ROUTES = ("/tribunal", "/verdict", "/question", "/verifier", "/proces-verbal")
+ROUTES = ("/tribunal", "/verdict", "/question", "/verifier", "/proces-verbal", "/questionnaire", "/profil")
 LONGUEUR_MAX_DEMANDE = 2000  # une demande d'investissement tient en quelques phrases
 REPONSES_MAX_CALIBRAGE = 20  # le Pacte vécu pose une dizaine de questions au plus
 FORMAT_ID = re.compile(r"\d{4}-\d{2}-\d{2}-[0-9a-f]{12}")
@@ -75,6 +100,16 @@ DEBIT_MAX_VERIFIER = 30  # vérifications par minute et par adresse IP
 FENETRE_DEBIT_S = 60
 ADRESSES_SUIVIES_MAX = 1000
 _appels_verifier: dict[str, deque] = {}
+
+# /profil (#87) : chaque appel écrit un objet dans S3. Corps borné (une vingtaine de réponses
+# et au plus une ligne par titre de l'univers), débit borné par adresse IP.
+TAILLE_MAX_PROFIL = 20_000  # caractères du corps JSON
+LIGNES_MAX_PORTEFEUILLE = 31  # titres de assets_universe.csv
+LONGUEUR_MAX_NOM = 40
+MODIFICATIONS_MAX = 10
+NOM_PAR_DEFAUT = "Investisseur"
+DEBIT_MAX_PROFIL = 10  # profils créés par minute et par adresse IP
+_appels_profil: dict[str, deque] = {}
 
 
 class RequeteInvalide(Exception):
@@ -113,13 +148,17 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
         return _reponse(405, {"erreur": "Seule la méthode POST est acceptée"})
     try:
         corps = _lire_corps(event)
+        adresse = event.get("requestContext", {}).get("http", {}).get("sourceIp", "inconnue")
         if chemin == "/tribunal":
             return _tribunal(corps)
         if chemin == "/question":
             return _question(corps)
         if chemin == "/verifier":
-            adresse = event.get("requestContext", {}).get("http", {}).get("sourceIp", "inconnue")
             return _verifier(corps, adresse)
+        if chemin == "/questionnaire":
+            return _reponse(200, {"questions": questions()})
+        if chemin == "/profil":
+            return _profil(corps, adresse)
         if chemin == "/proces-verbal":
             return _proces_verbal(corps)
         return _verdict(corps)
@@ -174,6 +213,46 @@ def _lire_calibrage(brut: Any) -> dict[str, Any] | None:
             or not all(isinstance(c, str) and isinstance(v, str) for c, v in reponses.items())):
         raise RequeteInvalide("Champ « calibrage » invalide : {\"reponses\": {\"<id de question>\": \"<réponse>\"}}")
     return {"reponses": reponses, "date": datetime.now(timezone.utc).date().isoformat(), "etiquette": "fait"}
+
+
+def _profil(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
+    """Questionnaire → profil validé, rangé dans S3 sous un identifiant neuf (#87)."""
+    if trop_d_appels(_appels_profil, DEBIT_MAX_PROFIL, adresse):
+        return _reponse(429, {"erreur": f"Trop de profils créés : {DEBIT_MAX_PROFIL} par minute au plus, "
+                                        "réessayez dans un instant"})
+    if len(json.dumps(corps, ensure_ascii=False)) > TAILLE_MAX_PROFIL:
+        raise RequeteInvalide(f"Corps trop long : {TAILLE_MAX_PROFIL} caractères au plus")
+    reponses, capital, portefeuille = corps.get("reponses"), corps.get("capital"), corps.get("portefeuille")
+    nom, modifications = corps.get("nom", NOM_PAR_DEFAUT), corps.get("modifications", {})
+    if not isinstance(reponses, dict) or not reponses:
+        raise RequeteInvalide("Champ « reponses » manquant : {\"<id de question>\": <réponse>}")
+    if not isinstance(portefeuille, list) or len(portefeuille) > LIGNES_MAX_PORTEFEUILLE:
+        raise RequeteInvalide(f"Champ « portefeuille » invalide : une liste de lignes {{ticker, poids}} "
+                              f"({LIGNES_MAX_PORTEFEUILLE} au plus)")
+    if not isinstance(nom, str) or not nom.strip() or len(nom) > LONGUEUR_MAX_NOM:
+        raise RequeteInvalide(f"Champ « nom » invalide : {LONGUEUR_MAX_NOM} caractères au plus")
+    if not isinstance(modifications, dict) or len(modifications) > MODIFICATIONS_MAX:
+        raise RequeteInvalide("Champ « modifications » invalide : {\"<id de règle>\": <nouvelle valeur>}")
+
+    date_reponses = datetime.now(timezone.utc).date().isoformat()
+    identifiant = nouvel_identifiant_profil()
+    try:
+        profil = profil_depuis_reponses(reponses, capital, portefeuille, date_reponses,
+                                        identifiant=identifiant, nom=nom.strip())
+        if modifications:
+            profil = appliquer_modifications(profil, modifications, date_reponses)
+        enregistrer_profil(profil)
+    except ReponsesInvalides as erreur:
+        return _reponse(400, {"erreur": "Réponses refusées", "details": erreur.erreurs})
+    except ProfilDejaExistant as erreur:  # identifiant aléatoire : en pratique, jamais
+        return _reponse(409, {"erreur": str(erreur)})
+    return _reponse(201, {
+        "id": identifiant,
+        "profil": profil,
+        "bareme": detail_bareme(reponses, date_reponses),
+        "contradictions": contradictions(valider_reponses(reponses)),
+        "archive": cle_profil(identifiant),
+    })
 
 
 def _verdict(corps: dict[str, Any]) -> dict[str, Any]:
@@ -287,18 +366,23 @@ def _verifier(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
 
 
 def trop_de_verifications(adresse: str, maintenant: float | None = None) -> bool:
-    """Limite de débit de /verifier : fenêtre glissante d'une minute, par adresse IP.
+    """Limite de débit de /verifier (voir ``trop_d_appels``)."""
+    return trop_d_appels(_appels_verifier, DEBIT_MAX_VERIFIER, adresse, maintenant)
+
+
+def trop_d_appels(journal: dict[str, deque], maximum: int, adresse: str, maintenant: float | None = None) -> bool:
+    """Limite de débit d'une route : fenêtre glissante d'une minute, par adresse IP.
 
     En mémoire de l'instance : elle repart de zéro à chaque démarrage de la Lambda. C'est
     un garde-fou contre une boucle ou un abus, pas une protection complète.
     """
     maintenant = time.monotonic() if maintenant is None else maintenant
-    if adresse not in _appels_verifier and len(_appels_verifier) >= ADRESSES_SUIVIES_MAX:
-        _appels_verifier.clear()
-    appels = _appels_verifier.setdefault(adresse, deque())
+    if adresse not in journal and len(journal) >= ADRESSES_SUIVIES_MAX:
+        journal.clear()
+    appels = journal.setdefault(adresse, deque())
     while appels and maintenant - appels[0] >= FENETRE_DEBIT_S:
         appels.popleft()
-    if len(appels) >= DEBIT_MAX_VERIFIER:
+    if len(appels) >= maximum:
         return True
     appels.append(maintenant)
     return False

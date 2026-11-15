@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from pipeline.agent_profil import chemin_profil, lancer_agent_profil
+from pipeline.agent_profil import charger_profil, lancer_agent_profil
 from pipeline.cadre_simulation import controle_cadre_simulation
 from pipeline.calibrage import calibrer
 from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
@@ -41,7 +41,7 @@ from pipeline.donnees import HYPOTHESES_DONNEES, date_extraction, seances_americ
 from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.llm import converser_avec_outils
 from pipeline.orchestrateur import RAISON_D_OFFICE, instruire_dossier
-from pipeline.pacte import charger_pacte, pacte_pour_contrat, piece_pacte
+from pipeline.pacte import pacte_pour_contrat, piece_pacte
 from pipeline.points_de_bascule import NOM_OUTIL as OUTIL_POINTS_DE_BASCULE
 from pipeline.points_de_bascule import piece_points_de_bascule, pour_contrat
 from pipeline.questionnaire import NOM_OUTIL_PIECE as OUTIL_QUESTIONNAIRE
@@ -74,7 +74,7 @@ def juger_decision(
     """Fait le procès d'une demande pour n'importe quel profil de ``personas/``.
 
     Args:
-        identifiant_profil: ``id`` du profil (nom du fichier ``personas/<id>.json``).
+        identifiant_profil: ``id`` du profil : un fichier ``personas/<id>.json`` ou un profil créé (#87).
         demande: texte de l'utilisateur (ex. : « Je veux mettre 30 % en Tesla »).
         converser: tour de modèle de l'orchestrateur (remplacé dans les tests).
         calibrage: réponses du Pacte vécu, ou None : ``{"reponses": {id: réponse},
@@ -91,7 +91,7 @@ def juger_decision(
     """
     vecu = None
     if calibrage is not None:  # vérifié avant l'Agent Profil : une erreur ne coûte aucun appel Bedrock
-        vecu = calibrer(charger_pacte(chemin_profil(identifiant_profil)), calibrage["reponses"],
+        vecu = calibrer(charger_profil(identifiant_profil), calibrage["reponses"],
                         calibrage["date"], ID_PIECE_CALIBRAGE, calibrage.get("etiquette", "fait"))
     profil = lancer_agent_profil(demande, identifiant_profil, ID_PIECE_PACTE)
     pieces_initiales = [profil.piece_pacte]

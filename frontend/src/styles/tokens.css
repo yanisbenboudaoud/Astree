@@ -7,34 +7,34 @@
 :root {
   --fond-papier: #ffffff;
   --fond-carte: #ffffff;
-  --fond-creux: #efefec;
-  --fond-sourdine: #f3f3f0; /* grands panneaux posés sur la page (recherche, Pacte) */
+  --fond-creux: #f4f4f2;
+  --fond-sourdine: #f7f7f5; /* grands panneaux posés sur la page (recherche, Pacte) */
   --encre-900: #111111; /* 18,9:1 */
   --encre-700: #3a3a3a; /* 11,3:1 */
   --encre-500: #626262; /* 6,1:1 */
   --encre-300: #b5b5b5; /* décoratif uniquement, jamais pour du texte */
   --encre-200: #dcdcdc; /* décoratif uniquement */
   /* Filets et bords de cartes : décoratifs. */
-  --trait-fin: #dfdfdb;
+  --trait-fin: #e8e8e5;
   /* Bords et traits qui montrent un état ou un contrôle : au moins 3:1 (WCAG 1.4.11, #103). */
   --trait-moyen: #8a8a8a; /* 3,4:1 */
   --accent-bleu: #2747c9; /* 7,3:1 */
-  --accent-bleu-teinte: #e3e8fc;
+  --accent-bleu-teinte: #eef1fd;
   --statut-violation: #c2261d; /* 5,6:1 */
-  --statut-violation-teinte: #fbe1df;
+  --statut-violation-teinte: #fdeeed;
   --statut-verifier: #9a5b00; /* 5,2:1 */
-  --statut-verifier-teinte: #fbe9c8;
+  --statut-verifier-teinte: #fdf3e1;
   --statut-conforme: #0b7a4b; /* 5,4:1 */
-  --statut-conforme-teinte: #ddf2e6;
+  --statut-conforme-teinte: #e7f6ee;
   --camp-procureur: #a3245c; /* 6,9:1 */
-  --camp-procureur-teinte: #f8dde9;
+  --camp-procureur-teinte: #fcedf3;
   --camp-avocat: #0b6e79; /* 5,7:1 */
-  --camp-avocat-teinte: #d5eef0;
+  --camp-avocat-teinte: #e5f4f5;
   --inverse-texte: #ffffff;
 
   /* Données : la décision en indigo, l'actuel en gris (3,4:1), une palette de catégories pour la répartition. */
   --donnee-principale: #4c5fd5; /* 5,4:1 */
-  --donnee-principale-aire: rgb(76 95 213 / 0.24);
+  --donnee-principale-aire: rgb(76 95 213 / 0.16);
   --donnee-secondaire: #8a8a8a;
   --categorie-1: #4c5fd5;
   --categorie-2: #17a2b8;

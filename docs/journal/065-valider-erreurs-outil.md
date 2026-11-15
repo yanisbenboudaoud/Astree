@@ -1,6 +1,6 @@
 # #65 — contrat.valider refuse un contrat dont la trace contient un appel d'outil refusé
 
-- **Issue** : #65 · **PR** : à renseigner · **Statut** : terminée
+- **Issue** : #65 · **PR** : #66 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

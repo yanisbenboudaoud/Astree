@@ -1,6 +1,6 @@
 # #69 — « Trompez le Greffier » : vérifier en direct un argument tapé par le jury
 
-- **Issue** : #69 · **PR** : à venir · **Statut** : terminée (route à déployer après la fusion)
+- **Issue** : #69 · **PR** : #76 · **Statut** : terminée (route à déployer après la fusion)
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

@@ -10,13 +10,16 @@
  *   frontend\.env.local : VITE_USE_MOCKS=false et VITE_API_URL=<Function URL>
  *   npm run dev            (sur http://localhost:5173, l'origine autorisée par le CORS)
  *   node e2e/direct.mjs [dossier_captures]
+ *
+ * Sur le site hébergé (#135), construit en mode direct (#136) :
+ *   ASTREE_URL=https://<distribution>.cloudfront.net node e2e/direct.mjs
  */
 import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const require = createRequire(import.meta.url);
-const BASE = 'http://localhost:5173';
+const BASE = (process.env.ASTREE_URL ?? 'http://localhost:5173').replace(/\/$/, '');
 const DOSSIER = process.argv[2] ?? 'e2e/captures';
 const DELAI_PROCES_MS = 180_000; // Lambda : 300 s au plus ; procès mesurés de 26 à 44 s
 mkdirSync(DOSSIER, { recursive: true });

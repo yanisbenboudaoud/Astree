@@ -12,7 +12,8 @@ import { adapterEchange } from '../api/adaptateur';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
 import { ChargementTribunal, DossierInstruit, type PropsChargement } from '../components/ChargementTribunal';
-import { IconeStatut, PastillePiece, Provenance } from '../components/Etiquettes';
+import { IconeStatut, PastillePiece, Provenance, TitresPieces } from '../components/Etiquettes';
+import { DEFINITION_PIECE } from '../domaine/pieces';
 import { LienRetour, Message } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { TiroirPiece } from '../components/TiroirPiece';
@@ -314,6 +315,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
     ...etat.echanges.flatMap((e) => e.piecesAjoutees),
     ...etat.piecesQuestions,
   ], [resultat, etat.echanges, etat.piecesQuestions]);
+  const titresPieces = useMemo(() => Object.fromEntries(pieces.map((p) => [p.code, p.titre])), [pieces]);
   const echanges = useMemo(() => [...(resultat?.echanges ?? []), ...etat.echanges], [resultat, etat.echanges]);
   const sources = useMemo(() => sourcesAffichees(resultat?.sources ?? []), [resultat]);
 
@@ -467,7 +469,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
   };
 
   return (
-    <>
+    <TitresPieces.Provider value={titresPieces}>
       <Gabarit nomProfil={profil.nom} idProfil={profil.id} etape="tribunal" inerte={Boolean(pieceOuverte)}>
         <div className={styles.corpsLarge}>
           <LienRetour vers={`/${profil.id}/decision`}>Décision</LienRetour>
@@ -710,6 +712,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
               </ol>
             </Repli>
             <Repli id="repli-pieces" titre="Pièces à conviction" sousTitre={`${pieces.length} pièces`}>
+              <p className={`t-petit c-700 ${styles.definitionPieces}`}>{DEFINITION_PIECE}</p>
               <ul className={styles.listePieces}>
                 {pieces.map((p) => (
                   <li key={p.code} className={styles.lignePiece}>
@@ -776,6 +779,6 @@ export function Tribunal({ profil }: { profil: Profil }) {
         </div>
       </Gabarit>
       {pieceOuverte && createPortal(<TiroirPiece piece={pieceOuverte} onFermer={fermerPiece} />, document.body)}
-    </>
+    </TitresPieces.Provider>
   );
 }

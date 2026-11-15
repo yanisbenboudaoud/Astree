@@ -140,6 +140,8 @@ export function adapterPiece(p: PieceContrat, citeePar: string[] = []): Piece {
     traitement: p.traitement,
     limites: p.limites,
     citeePar,
+    outil: p.outil,
+    type: p.type,
     origine: 'tribunal',
   };
 }

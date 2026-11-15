@@ -78,6 +78,20 @@ def test_les_donnees_macro_apparaissent_avec_la_simulation():
     assert SOURCES["macro"].nom not in par_nom(sources_du_proces(contrat))
 
 
+def test_le_releve_des_frais_apparait_avec_la_simulation():
+    contrat = copy.deepcopy(proces_de_demo("robert"))
+    for piece in contrat["pieces"]:  # procès enregistré sans frais : la source n'y est pas
+        for cle in sources.VALEURS_FRAIS:
+            piece["valeurs"].pop(cle, None)
+    assert SOURCES["frais"].nom not in par_nom(sources_du_proces(contrat))
+    simulation = next(p for p in contrat["pieces"] if p["outil"] == "simuler_portefeuille")
+    simulation["valeurs"]["frais_annuels"] = 0.000735
+    releve = par_nom(sources_du_proces(contrat))[SOURCES["frais"].nom]
+    assert releve["fichier"] == "donnees_externes/frais_fnb.json"
+    assert releve["date_extraction"] == "2026-11-15"  # date du relevé
+    assert [u["id"] for u in releve["pieces"]] == [simulation["id"]]
+
+
 def test_ordre_fixe_et_contrat_valide():
     for profil in ("robert", "amira", "mateo"):
         contrat = copy.deepcopy(proces_de_demo(profil))

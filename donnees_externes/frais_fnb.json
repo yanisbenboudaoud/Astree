@@ -1,0 +1,28 @@
+{
+  "description": "Ratio des frais annuels de chaque FNB de l'univers d'actifs (issue #114), relevé par l'équipe sur la page ou le document officiel de l'émetteur. Les FNB canadiens publient un ratio des frais de gestion (RFG, en anglais MER : frais de gestion plus frais d'exploitation) ; les FNB américains, un ratio des frais (expense ratio). Un titre absent de ce fichier n'est jamais deviné : le coût des frais n'est pas calculé et le titre est signalé dans la pièce (frais_inconnus).",
+  "date_releve": "2026-11-15",
+  "conditions_utilisation": "Chiffres publics publiés par les émetteurs sur leurs pages et documents réglementaires, repris avec leur source à des fins éducatives et non commerciales. Aucun document n'est reproduit.",
+  "frais_dans_les_cours": {
+    "conclusion": "Les frais d'un FNB sont prélevés sur l'actif du fonds, chaque jour : l'investisseur ne les paie pas à part. La valeur liquidative, et donc le cours, est déjà nette de frais ; adj_close ajoute seulement les distributions. Les rendements calculés sur adj_close sont donc déjà nets de frais de gestion : la simulation ne les déduit pas une seconde fois et affiche seulement leur coût annuel.",
+    "preuves": [
+      {"ticker": "ZST.TO", "citation": "You don't pay these expenses directly. They affect you because they reduce the ETF's returns.", "document": "ETF Facts, 2026-01-23", "url": "https://fundfacts.bmo.com/EtfEnglish/BMO_Ultra_Short-Term_Bond_ETF-EN-CAD_Units.pdf"},
+      {"ticker": "XIU.TO", "citation": "Seeks long-term capital growth by replicating the performance of the S&P/TSX 60 Index, net of expenses.", "document": "Fiche du fonds, octobre 2026", "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xiu-ishares-s-p-tsx-60-index-etf-fund-fact-sheet-en-ca.pdf"},
+      {"ticker": "GLD", "citation": "GLD regularly sells gold to pay for its ongoing expenses, the amount of gold represented by each Share will decline over time to that extent.", "document": "Page du fonds", "url": "https://www.ssga.com/us/en/intermediary/etfs/spdr-gold-shares-gld"}
+    ]
+  },
+  "sans_frais_de_gestion": {
+    "classes": ["equity", "crypto"],
+    "justification": "Titre détenu en direct (action ou cryptoactif, champ asset_class de assets_universe.csv) : aucun fonds, donc aucun frais de gestion de fonds. Les commissions de courtage, les frais de garde et l'écart entre prix d'achat et de vente ne sont comptés pour aucun titre."
+  },
+  "fnb": [
+    {"ticker": "XIU.TO", "emetteur": "BlackRock Canada (iShares)", "ratio_frais": 0.0017, "type_ratio": "RFG (MER)", "frais_gestion": 0.0015, "date_donnee": "2026-10-31", "document": "Fiche du fonds, octobre 2026", "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xiu-ishares-s-p-tsx-60-index-etf-fund-fact-sheet-en-ca.pdf"},
+    {"ticker": "XBB.TO", "emetteur": "BlackRock Canada (iShares)", "ratio_frais": 0.0010, "type_ratio": "RFG (MER)", "frais_gestion": 0.0009, "date_donnee": "2026-10-31", "document": "Fiche du fonds, octobre 2026", "url": "https://www.blackrock.com/ca/investors/en/literature/fact-sheet/xbb-ishares-core-canadian-universe-bond-index-etf-fund-fact-sheet-en-ca.pdf"},
+    {"ticker": "ZST.TO", "emetteur": "BMO Gestion mondiale d'actifs", "ratio_frais": 0.0017, "type_ratio": "RFG (MER)", "date_donnee": "2025-06-30", "document": "Aperçu du FNB (ETF Facts), parts en CAD, 2026-01-23", "url": "https://fundfacts.bmo.com/EtfEnglish/BMO_Ultra_Short-Term_Bond_ETF-EN-CAD_Units.pdf"},
+    {"ticker": "SPY", "emetteur": "State Street Global Advisors (SPDR)", "ratio_frais": 0.000945, "type_ratio": "ratio des frais brut (gross expense ratio)", "date_donnee": "2026-11-15", "document": "Page du fonds", "url": "https://www.ssga.com/us/en/intermediary/etfs/spdr-sp-500-etf-trust-spy"},
+    {"ticker": "QQQ", "emetteur": "Invesco", "ratio_frais": 0.0018, "type_ratio": "ratio des frais total (total expense ratio)", "date_donnee": "2026-11-15", "document": "Page du fonds (aucune date indiquée : date du relevé)", "url": "https://www.invesco.com/qqq-etf/en/home.html"},
+    {"ticker": "ESGV", "emetteur": "Vanguard", "ratio_frais": 0.0009, "type_ratio": "ratio des frais (expense ratio), dernier prospectus", "date_donnee": "2026-09-30", "document": "Fiche du fonds, septembre 2026", "url": "https://fund-docs.vanguard.com/FA4393_MX.pdf"},
+    {"ticker": "AGG", "emetteur": "BlackRock (iShares)", "ratio_frais": 0.0003, "type_ratio": "ratio des frais (expense ratio), prospectus", "date_donnee": "2026-11-15", "document": "Page du fonds (aucune date indiquée : date du relevé)", "url": "https://www.ishares.com/us/products/239458/ishares-core-total-us-bond-market-etf"},
+    {"ticker": "TLT", "emetteur": "BlackRock (iShares)", "ratio_frais": 0.0015, "type_ratio": "ratio des frais (expense ratio), prospectus", "date_donnee": "2026-11-15", "document": "Page du fonds (aucune date indiquée : date du relevé)", "url": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf"},
+    {"ticker": "GLD", "emetteur": "State Street Global Advisors (SPDR)", "ratio_frais": 0.0040, "type_ratio": "ratio des frais brut (gross expense ratio)", "date_donnee": "2026-11-15", "document": "Page du fonds", "url": "https://www.ssga.com/us/en/intermediary/etfs/spdr-gold-shares-gld"}
+  ]
+}

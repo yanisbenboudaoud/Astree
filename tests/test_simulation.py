@@ -4,7 +4,7 @@ from pathlib import Path
 import jsonschema
 import pytest
 
-from pipeline import macro
+from pipeline import frais, macro
 from pipeline.donnees import ErreurDonnees
 from pipeline.simulation import (
     LIMITES_DEVISES,
@@ -227,6 +227,14 @@ def sans_macro(monkeypatch):
     monkeypatch.setattr(macro, "_series", absent)
 
 
+@pytest.fixture
+def sans_frais(monkeypatch):
+    """Relevé des frais des FNB indisponible (#114)."""
+    def absent():
+        raise ErreurDonnees("donnees_externes/frais_fnb.json absent")
+    monkeypatch.setattr(frais, "charger_frais", absent)
+
+
 def sans_exposition_devises(piece):
     """La pièce sans l'exposition en devise, ajoutée après la maquette (#112)."""
     valeurs = {cle: v for cle, v in piece["valeurs"].items() if not cle.startswith(("part_cad", "part_usd"))}
@@ -238,9 +246,9 @@ def sans_exposition_devises(piece):
     }
 
 
-def test_piece_periode_complete_reproduit_p1(sans_macro):
-    # Sans données macro, la pièce est exactement celle de la maquette, plus l'exposition en
-    # devise : la pièce obligatoire du procès ne dépend pas de macro_rates.csv (#111).
+def test_piece_periode_complete_reproduit_p1(sans_macro, sans_frais):
+    # Sans données macro ni relevé des frais, la pièce est exactement celle de la maquette, plus
+    # l'exposition en devise : elle ne dépend ni de macro_rates.csv (#111) ni des frais (#114).
     piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
     valider_piece(piece)
     comparer_a_la_maquette(sans_exposition_devises(piece), PIECES["P1"], "Simulation du portefeuille avec 30 % en TSLA")
@@ -432,7 +440,7 @@ def test_macro_de_la_periode_complete():
     assert round(v["ratio_sharpe_actuel"], 2) == 1.09
     assert "Banque du Canada, API Valet" in piece["source"]
     assert "2021-09 à 2026-09" in piece["traitement"]
-    assert piece["limites"].endswith(LIMITES_MACRO)
+    assert LIMITES_MACRO in piece["limites"]
 
 
 def test_macro_du_rejeu_2022():

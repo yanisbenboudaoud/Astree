@@ -366,5 +366,5 @@ Pour que n'importe qui puisse s'y retrouver dans le dépôt, chaque issue laisse
 
 - **Chaque PR qui termine ou avance une issue** ajoute ou met à jour la fiche `docs/journal/NNN-titre-court.md` (NNN = numéro de l'issue sur 3 chiffres, ex. : `007-client-llm-bedrock.md`). Le modèle et les règles sont dans `docs/journal/README.md`.
 - La fiche est écrite **dans la même PR que le code**, avant de l'ouvrir. Elle décrit ce qui existe vraiment : fichiers, fonctions publiques, comment l'utiliser, comment le vérifier, choix faits en cours de route, limites.
-- Une PR qui ajoute, déplace ou supprime un fichier ou un dossier important met aussi à jour la **carte du dépôt** dans `README.md`.
+- Une PR qui ajoute, déplace ou supprime un fichier ou un dossier important met aussi à jour la **carte du dépôt** dans `docs/CARTE_DU_DEPOT.md`.
 - Une PR sans issue qui ne touche que la configuration ou la documentation n'a pas de fiche. Si elle construit du code, on crée d'abord l'issue.

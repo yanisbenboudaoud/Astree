@@ -15,5 +15,5 @@ Si la PR ne termine pas l'issue, écrivez plutôt « Avance #4 » : l'issue rest
 ## Journal
 <!-- Règles et modèle de fiche : docs/journal/README.md -->
 - [ ] Fiche `docs/journal/NNN-titre-court.md` ajoutée ou mise à jour
-- [ ] Carte du dépôt (`README.md`) mise à jour si un fichier ou un dossier important a été ajouté, déplacé ou supprimé
+- [ ] Carte du dépôt (`docs/CARTE_DU_DEPOT.md`) mise à jour si un fichier ou un dossier important a été ajouté, déplacé ou supprimé
 

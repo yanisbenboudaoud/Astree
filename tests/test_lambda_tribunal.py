@@ -20,6 +20,7 @@ from deploiement import lambda_tribunal
 from pipeline import donnees
 from pipeline.agent_profil import ProfilInconnu
 from pipeline.calibrage import ErreurCalibrage
+from pipeline.poches import PocheInconnue
 
 
 class FauxS3:
@@ -60,8 +61,12 @@ CONTRAT = {"persona": "robert", "decision": {"libelle": "30 % en TSLA"}, "verdic
 def faux_proces(monkeypatch):
     appels = []
 
-    def juger(profil, demande, calibrage=None):
+    def juger(profil, demande, calibrage=None, poche=None):
         appels.append((profil, demande))
+        if poche is not None:
+            appels.append(("poche", poche))
+            if poche == "inconnue":
+                raise PocheInconnue("Aucune poche « inconnue » dans le profil « robert »")
         if calibrage is not None:
             appels.append(("calibrage", calibrage))
             if "baisse_25" not in calibrage["reponses"]:
@@ -158,6 +163,26 @@ def test_tribunal_reponses_incompletes_400(s3, faux_proces):
     corps = {"profil": "robert", "demande": "x", "calibrage": {"reponses": {"capacite": "attendre"}}}
     statut, contenu = reponse(lambda_tribunal.handler(evenement("/tribunal", corps)))
     assert statut == 400 and "baisse_25" in contenu["erreur"]
+
+
+def test_tribunal_transmet_la_poche(s3, faux_proces):
+    """Profil à poches (#115) : la poche choisie dans l'interface va au procès."""
+    corps = {"profil": "robert", "demande": "x", "poche": "retraite"}
+    statut, _ = reponse(lambda_tribunal.handler(evenement("/tribunal", corps)))
+    assert statut == 200 and ("poche", "retraite") in faux_proces
+
+
+@pytest.mark.parametrize("poche", [3, "", "../retraite", "Retraite"])
+def test_tribunal_poche_mal_formee_400(poche, s3, faux_proces):
+    corps = {"profil": "robert", "demande": "x", "poche": poche}
+    statut, contenu = reponse(lambda_tribunal.handler(evenement("/tribunal", corps)))
+    assert statut == 400 and "poche" in contenu["erreur"] and faux_proces == []
+
+
+def test_tribunal_poche_inconnue_400(s3, faux_proces):
+    corps = {"profil": "robert", "demande": "x", "poche": "inconnue"}
+    statut, contenu = reponse(lambda_tribunal.handler(evenement("/tribunal", corps)))
+    assert statut == 400 and "Aucune poche" in contenu["erreur"]
 
 
 # --- /verdict ----------------------------------------------------------------------
@@ -447,7 +472,8 @@ def test_tribunal_avec_progression_repond_202_et_lance_le_proces_en_arriere_plan
     [invocation] = lambda_client.invocations
     assert invocation["type"] == "Event" and invocation["fonction"] == "alphaforge-tribunal"
     assert invocation["evenement"] == {"action": lambda_tribunal.ACTION_JUGER, "id": identifiant,
-                                       "profil": "robert", "demande": "30 % en Tesla", "calibrage": None}
+                                       "profil": "robert", "demande": "30 % en Tesla", "calibrage": None,
+                                       "poche": None}
     # La progression existe dès la réponse : l'interface peut la relire tout de suite.
     statut, document = relire(identifiant)
     assert statut == 200 and document["statut"] == "en_cours" and document["etapes"] == []
@@ -457,11 +483,21 @@ def test_tribunal_avec_progression_repond_202_et_lance_le_proces_en_arriere_plan
     ({"profil": "inconnu", "demande": "x", "progression": True}, 404),
     ({"profil": "robert", "demande": "x", "progression": True,
       "calibrage": {"reponses": {"capacite": "attendre"}}}, 400),  # Pacte vécu incomplet
+    ({"profil": "sofia", "demande": "x", "progression": True, "poche": "vacances"}, 400),  # poche inconnue (#115)
+    ({"profil": "robert", "demande": "x", "progression": True, "poche": "retraite"}, 400),  # profil sans poches
+    ({"profil": "sofia", "demande": "x", "progression": True,
+      "calibrage": {"reponses": {"capacite": "attendre"}}}, 400),  # Pacte vécu sans poche
 ])
 def test_demande_invalide_refusee_avant_tout_lancement(corps, statut_attendu, s3, lambda_client):
     statut, contenu, _ = demarrer(corps)
     assert statut == statut_attendu and contenu["erreur"]
     assert lambda_client.invocations == [] and s3.objets == {}
+
+
+def test_progression_transmet_la_poche_au_proces_en_arriere_plan(s3, lambda_client):
+    statut, _, _ = demarrer({"profil": "sofia", "demande": "20 % en Tesla", "progression": True, "poche": "retraite"})
+    [invocation] = lambda_client.invocations
+    assert statut == 202 and invocation["evenement"]["poche"] == "retraite"
 
 
 def test_lancement_impossible_503_et_progression_en_erreur(s3, monkeypatch, lambda_client):
@@ -476,7 +512,7 @@ def test_proces_en_arriere_plan_publie_chaque_etape_pendant_le_proces(s3, lambda
     _, _, identifiant = demarrer()
     vu_pendant_le_proces = {}
 
-    def juger(profil, demande, calibrage=None, signaler=None):
+    def juger(profil, demande, calibrage=None, signaler=None, poche=None):
         signaler({"type": "phase", "phase": "agent_profil", "activite": "Lecture de la demande"})
         signaler({"type": "phase", "phase": "orchestrateur", "activite": "Choix des outils"})
         signaler({"type": "etape", "etape": ETAPE_SIMULATION})
@@ -503,7 +539,7 @@ def test_proces_en_arriere_plan_publie_chaque_etape_pendant_le_proces(s3, lambda
 def test_erreur_pendant_le_proces_ecrite_avec_son_motif(s3, lambda_client, monkeypatch):
     _, _, identifiant = demarrer()
 
-    def juger(profil, demande, calibrage=None, signaler=None):
+    def juger(profil, demande, calibrage=None, signaler=None, poche=None):
         signaler({"type": "phase", "phase": "agent_profil", "activite": "Lecture de la demande"})
         raise RuntimeError("Bedrock indisponible")
     monkeypatch.setattr(lambda_tribunal, "juger_decision", juger)

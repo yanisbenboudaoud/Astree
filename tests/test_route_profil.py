@@ -84,6 +84,32 @@ def test_reponse_inconnue_400_avec_le_motif_et_rien_n_est_range(local):
     assert not local.exists()
 
 
+OBJECTIFS = [
+    {"id": "maison", "objectif": "Mise de fonds", "horizon": "moins_3", "part": 0.4,
+     "portefeuille": [{"ticker": "ZST.TO", "poids": 1.0}]},
+    {"id": "retraite", "objectif": "Retraite", "horizon": "plus_15", "part": 0.6,
+     "portefeuille": [{"ticker": "XIU.TO", "poids": 0.5}, {"ticker": "SPY", "poids": 0.5}]},
+]
+
+
+def test_profil_a_plusieurs_objectifs_range_avec_ses_poches(local):
+    """#115 : une poche par objectif, sans portefeuille global (calculé), seuil d'une poche modifiable."""
+    corps = {key: valeur for key, valeur in CORPS.items() if key != "portefeuille"}
+    statut, contenu = appeler("/profil", {**corps, "objectifs": OBJECTIFS,
+                                          "modifications": {"retraite/pire_baisse_max": -0.3}})
+    assert statut == 201
+    assert [p["id"] for p in contenu["profil"]["poches"]] == ["maison", "retraite"]
+    assert contenu["profil"]["poches"][1]["regles"][0]["seuil"] == -0.3
+    assert [p["id"] for p in contenu["bareme"]["poches"]] == ["maison", "retraite"]
+    assert charger_profil(contenu["id"]) == contenu["profil"]
+
+
+@pytest.mark.parametrize("objectifs", ["deux", [{}] * 6])
+def test_objectifs_mal_formes_400(objectifs):
+    statut, contenu = appeler("/profil", {**CORPS, "objectifs": objectifs})
+    assert statut == 400 and "objectifs" in contenu["erreur"]
+
+
 def test_titre_hors_univers_400():
     portefeuille = [{"ticker": "INCONNU", "poids": 1.0}]
     statut, corps = appeler("/profil", {**CORPS, "portefeuille": portefeuille})

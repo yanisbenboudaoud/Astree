@@ -22,6 +22,13 @@ Deux types de décisions (CLAUDE.md, section 5) :
   portefeuille réallouée, prise au prorata de toutes les lignes. Un panier
   vague (« un panier crypto-tech ») n'est jamais complété au hasard : il faut
   que l'utilisateur donne les titres et leurs poids.
+
+Profil à poches (#115, ``pipeline.poches``) : la décision est jugée dans une seule
+poche. La poche est celle **imposée** par l'appelant (l'interface), sinon celle que
+le modèle **déduit** de la demande, sinon la poche la plus prudente (horizon le plus
+court), avec un contrôle « a_verifier ». Le profil est ensuite projeté sur cette
+poche : taille, montant et financement se lisent dans la poche, et tout l'aval du
+procès travaille sur elle. Sans poches, rien ne change (ni prompt, ni contrat).
 """
 
 from __future__ import annotations
@@ -40,6 +47,13 @@ from pipeline.pacte import (
     erreurs_profil,
     pacte_pour_contrat,
     piece_pacte,
+)
+from pipeline.poches import (
+    a_des_poches,
+    formater_horizon,
+    poche_la_plus_prudente,
+    profil_de_la_poche,
+    trouver_poche,
 )
 from pipeline.profils import cle_profil, lire_profil_cree
 from pipeline.univers import charger_univers
@@ -67,8 +81,10 @@ class ResultatAgentProfil:
     controles: list[dict[str, Any]] = field(default_factory=list)  # contrôles « a_verifier »
     hypotheses: list[str] = field(default_factory=list)  # à ajouter aux hypothèses du contrat
     trace: list[dict[str, Any]] = field(default_factory=list)  # étapes « agent_profil »
+    # Profil jugé (portefeuille, règles typées du Pacte) : le profil validé, ou sa
+    # projection sur la poche jugée (#115). Rempli par structurer_decision.
+    profil: dict[str, Any] | None = None
     # Remplis par lancer_agent_profil :
-    profil: dict[str, Any] | None = None  # profil validé (portefeuille, règles typées du Pacte)
     pacte: dict[str, Any] | None = None  # champ « pacte » du contrat
     piece_pacte: dict[str, Any] | None = None  # pièce « Pacte », citable par les agents
 
@@ -77,6 +93,7 @@ def lancer_agent_profil(
     demande: str,
     identifiant_profil: str,
     id_piece_pacte: str,
+    poche: str | None = None,
 ) -> ResultatAgentProfil:
     """Phase 1 du Tribunal : charge et valide le Pacte, puis structure la demande.
 
@@ -89,13 +106,18 @@ def lancer_agent_profil(
             ``personas/<id>.json`` (n'importe quel profil, pas seulement les profils de test).
         id_piece_pacte: numéro de la pièce « Pacte » (ex. : « P3 »), donné par le
             pipeline, qui numérote toutes les pièces.
+        poche: profil à poches (#115) : id de la poche choisie par l'utilisateur ;
+            None : le modèle la déduit de la demande.
 
     Raises:
         ProfilInconnu: aucun profil ne porte cet identifiant.
         PacteInvalide: le fichier profil ne respecte pas le format commun.
+        PocheInconnue: ``poche`` donnée, mais absente du profil (vérifié avant Bedrock).
     """
     profil = charger_profil(identifiant_profil)
-    resultat = structurer_decision(demande, profil, charger_univers())
+    if poche is not None:
+        trouver_poche(profil, poche)
+    resultat = structurer_decision(demande, profil, charger_univers(), poche)
     etape_pacte = {
         "etape": "agent_profil",
         "outil": "charger_pacte",
@@ -103,9 +125,8 @@ def lancer_agent_profil(
         "sortie": id_piece_pacte,
     }
     resultat.trace = [etape_pacte, *resultat.trace]
-    resultat.profil = profil
-    resultat.pacte = pacte_pour_contrat(profil)
-    resultat.piece_pacte = piece_pacte(profil, id_piece_pacte)
+    resultat.pacte = pacte_pour_contrat(resultat.profil)
+    resultat.piece_pacte = piece_pacte(resultat.profil, id_piece_pacte)
     return resultat
 
 
@@ -146,6 +167,7 @@ def structurer_decision(
     demande: str,
     profil: dict[str, Any],
     univers: list[dict[str, str]],
+    poche: str | None = None,
 ) -> ResultatAgentProfil:
     """Transforme une demande en langage naturel en décision du contrat.
 
@@ -153,26 +175,82 @@ def structurer_decision(
 
     Args:
         demande: texte de l'utilisateur (ex. : « Je veux mettre 30 % en Tesla »).
-        profil: profil déjà validé par ``charger_pacte`` ; seuls
-            « portefeuille » et « capital_fictif_cad » sont lus.
+        profil: profil déjà validé par ``charger_pacte`` ; seuls « portefeuille »,
+            « capital_fictif_cad » et, s'il y en a, « poches » sont lus.
         univers: titres connus du système (``pipeline.univers.charger_univers``).
+        poche: profil à poches (#115) : poche imposée par l'appelant, ou None.
     """
     extraction = appeler_llm(
         construire_systeme(univers),
         construire_message(demande, profil, univers),
         schema_extraction(univers, profil),
     )
-    decision, controles, hypotheses = interpreter_extraction(extraction, profil, univers)
-    trace = [
-        {"etape": "agent_profil", "outil": "bedrock", "entree": demande, "sortie": extraction},
-        {
-            "etape": "agent_profil",
-            "outil": "valider_decision",
-            "entree": extraction,
-            "sortie": decision if decision is not None else [c["message"] for c in controles],
-        },
-    ]
-    return ResultatAgentProfil(decision, controles, hypotheses, trace)
+    trace = [{"etape": "agent_profil", "outil": "bedrock", "entree": demande, "sortie": extraction}]
+    profil_juge, controles_poche, hypotheses_poche = profil, [], []
+    if a_des_poches(profil):
+        id_poche, controles_poche, hypotheses_poche, etape = choisir_poche(profil, extraction.get("poche"), poche)
+        profil_juge = profil_de_la_poche(profil, id_poche)
+        trace.append(etape)
+    decision, controles, hypotheses = interpreter_extraction(extraction, profil_juge, univers)
+    if decision is not None and "poche" in profil_juge:
+        decision["poche"] = profil_juge["poche"]["id"]
+        decision["libelle"] += f" (poche « {profil_juge['poche']['objectif']} »)"
+    controles = [*controles_poche, *controles]
+    trace.append({
+        "etape": "agent_profil",
+        "outil": "valider_decision",
+        "entree": extraction,
+        "sortie": decision if decision is not None else [c["message"] for c in controles],
+    })
+    return ResultatAgentProfil(decision, controles, [*hypotheses_poche, *hypotheses], trace, profil=profil_juge)
+
+
+def choisir_poche(
+    profil: dict[str, Any],
+    deduite: str | None,
+    imposee: str | None,
+) -> tuple[str, list[dict[str, Any]], list[str], dict[str, Any]]:
+    """Poche où la décision est jugée (#115) : imposée, sinon déduite par le modèle, sinon la plus prudente.
+
+    Le modèle ne fait que lire la demande ; Python choisit. Une poche déduite qui
+    contredit la poche imposée, ou une poche non précisée, donne un contrôle
+    « a_verifier » (``interpretation_demande``) : rien n'est deviné en silence.
+
+    Returns:
+        (id de la poche, contrôles « a_verifier », hypothèses, étape de trace « choisir_poche »)
+    """
+    poches = {poche["id"]: poche for poche in profil["poches"]}
+    controles: list[dict[str, Any]] = []
+    hypotheses: list[str] = []
+    deduite = deduite if deduite in poches else None
+
+    def nom(id_poche: str) -> str:
+        return f"« {poches[id_poche]['objectif']} »"
+
+    if imposee is not None:
+        choisie, motif = imposee, "poche choisie par l'utilisateur"
+        if deduite is not None and deduite != imposee:
+            controles.append({"statut": "a_verifier", "regle": REGLE_CONTROLE, "message": (
+                f"La demande semble viser la poche {nom(deduite)} (interprétation du modèle), mais la poche "
+                f"{nom(imposee)} a été choisie : la décision est jugée dans la poche choisie.")})
+    elif deduite is not None:
+        choisie, motif = deduite, "poche déduite de la demande par le modèle"
+        hypotheses.append(f"Poche {nom(deduite)} déduite de la demande (interprétation du modèle)")
+    else:
+        choisie = poche_la_plus_prudente(profil)["id"]
+        motif = "poche non précisée : la plus prudente (horizon le plus court)"
+        controles.append({"statut": "a_verifier", "regle": REGLE_CONTROLE, "message": (
+            f"Poche non précisée : la décision est jugée dans la poche {nom(choisie)} "
+            f"(horizon de {formater_horizon(poches[choisie]['horizon_ans'])}), la plus courte donc la plus "
+            "prudente. Précisez la poche si ce n'est pas elle.")})
+    hypotheses.append(
+        f"Décision jugée dans la poche {nom(choisie)} ({formater_part(poches[choisie]['part'])} du portefeuille) : "
+        "la taille est une part de cette poche ; simulation, taille maximale et règles portent sur la poche, "
+        "pas sur le portefeuille global")
+    etape = {"etape": "agent_profil", "outil": "choisir_poche",
+             "entree": {"poche_imposee": imposee, "poche_deduite": deduite},
+             "sortie": f"{choisie} ({motif})"}
+    return choisie, controles, hypotheses, etape
 
 
 # --- Ce que l'on demande au LLM ---------------------------------------------
@@ -219,14 +297,29 @@ def construire_systeme(univers: list[dict[str, str]]) -> str:
     return f"{CONSIGNES}\n\nUnivers d'actifs :\n{lignes}"
 
 
+CONSIGNES_POCHES = """Ce portefeuille est divisé en poches, chacune avec son objectif et son horizon.
+Une décision vise une seule poche ; sa taille est une part de cette poche.
+- poche : l'id de la poche visée, seulement si la demande la nomme ou la désigne clairement
+  (par son objectif, son horizon ou son usage) ; sinon null. Ne devine pas d'après les titres
+  demandés, et ne signale pas une poche absente dans ambiguites : Python s'en charge."""
+
+
 def construire_message(demande: str, profil: dict[str, Any], univers: list[dict[str, str]]) -> str:
-    """Portefeuille actuel (titres seulement) et demande de l'utilisateur."""
+    """Portefeuille actuel (titres seulement), ses poches s'il en a (#115), et demande de l'utilisateur."""
     noms = {actif["ticker"]: actif["name"] for actif in univers}
     lignes = "\n".join(
         f"- {ligne['ticker']} : {noms.get(ligne['ticker'], 'hors univers')}"
         for ligne in profil["portefeuille"]
     )
-    return f"Portefeuille actuel :\n{lignes}\n\nDemande de l'utilisateur :\n{demande}"
+    message = f"Portefeuille actuel :\n{lignes}\n\n"
+    if a_des_poches(profil):
+        poches = "\n".join(
+            f"- {poche['id']} : {poche['objectif']} (horizon : {formater_horizon(poche['horizon_ans'])} ; "
+            f"titres : {', '.join(ligne['ticker'] for ligne in poche['portefeuille'])})"
+            for poche in profil["poches"]
+        )
+        message += f"{CONSIGNES_POCHES}\n\nPoches :\n{poches}\n\n"
+    return f"{message}Demande de l'utilisateur :\n{demande}"
 
 
 def schema_extraction(univers: list[dict[str, str]], profil: dict[str, Any]) -> dict[str, Any]:
@@ -268,6 +361,8 @@ def schema_extraction(univers: list[dict[str, str]], profil: dict[str, Any]) -> 
         ),
         "ambiguites": {"type": "array", "items": {"type": "string"}},
     }
+    if a_des_poches(profil):  # #115 : seulement pour un profil à poches (sans poches, schéma inchangé)
+        proprietes["poche"] = ou_null({"type": "string", "enum": [poche["id"] for poche in profil["poches"]]})
     return {
         "type": "object",
         "additionalProperties": False,

@@ -19,7 +19,7 @@ def contrat():
     return copy.deepcopy(charger_exemple("contrat_robert.json"))
 
 
-@pytest.mark.parametrize("nom", ["contrat_robert.json", "contrat_amira.json"])
+@pytest.mark.parametrize("nom", ["contrat_robert.json", "contrat_amira.json", "contrat_sofia.json"])
 def test_exemples_valides(nom):
     assert valider_contrat(charger_exemple(nom)) == []
 

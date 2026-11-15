@@ -1,6 +1,6 @@
 """Point d'entrée de la Lambda du Tribunal (#13), derrière une Lambda Function URL.
 
-Deux routes, en POST, avec un corps JSON :
+Trois routes, en POST, avec un corps JSON :
 
 - ``/tribunal`` ``{"profil": "<id>", "demande": "<texte>"}`` : fait le procès
   (``juger_decision``) et renvoie le contrat JSON tel quel. Le contrat est archivé
@@ -10,6 +10,10 @@ Deux routes, en POST, avec un corps JSON :
   archive la décision avec ses pièces et le choix de l'utilisateur
   (``verdicts/<profil>/<id>.json``, relu par l'outil de jurisprudence, #56). Un nouveau
   verdict pour le même procès remplace l'ancien.
+- ``/question`` ``{"id": "<id>", "question": "<texte>"}`` : contre-interrogatoire (#55).
+  Relit le procès archivé, répond à la question (orchestrateur, Procureur et Avocat,
+  Greffier), réarchive le contrat complété au même endroit et renvoie l'échange et
+  les pièces ajoutées.
 
 Le pipeline est importé et les CSV sont lus au niveau du module, hors du
 handler : une Lambda déjà démarrée les garde en mémoire (caches de
@@ -35,6 +39,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from pipeline.agent_profil import ProfilInconnu
+from pipeline.contre_interrogatoire import QuestionInvalide, interroger, pieces_de_l_echange
 from pipeline.donnees import ErreurDonnees, seances_americaines
 from pipeline.jurisprudence import cle_verdict
 from pipeline.pacte import PacteInvalide
@@ -76,14 +81,16 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
     """Appelé par Lambda pour chaque requête de la Function URL (format d'événement 2.0)."""
     methode = event.get("requestContext", {}).get("http", {}).get("method", "")
     chemin = event.get("rawPath", "")
-    if chemin not in ("/tribunal", "/verdict"):
-        return _reponse(404, {"erreur": "Route inconnue : /tribunal ou /verdict"})
+    if chemin not in ("/tribunal", "/verdict", "/question"):
+        return _reponse(404, {"erreur": "Route inconnue : /tribunal, /verdict ou /question"})
     if methode != "POST":
         return _reponse(405, {"erreur": "Seule la méthode POST est acceptée"})
     try:
         corps = _lire_corps(event)
         if chemin == "/tribunal":
             return _tribunal(corps)
+        if chemin == "/question":
+            return _question(corps)
         return _verdict(corps)
     except RequeteInvalide as erreur:
         return _reponse(400, {"erreur": str(erreur)})
@@ -141,6 +148,42 @@ def _verdict(corps: dict[str, Any]) -> dict[str, Any]:
     cle = cle_verdict(contrat["persona"], identifiant)
     _ecrire(cle, archive)
     return _reponse(200, {"id": identifiant, "verdict": verdict, "archive": cle})
+
+
+def _question(corps: dict[str, Any]) -> dict[str, Any]:
+    identifiant, question = corps.get("id"), corps.get("question")
+    if not isinstance(identifiant, str) or not FORMAT_ID.fullmatch(identifiant):
+        raise RequeteInvalide(f"Champ « id » invalide : celui de l'en-tête {EN_TETE_ID} du procès")
+    if not isinstance(question, str) or not question.strip():
+        raise RequeteInvalide("Champ « question » manquant : votre question sur le procès")
+
+    try:
+        contrat = _lire(cle_trace(identifiant))
+    except ClientError as erreur:
+        if erreur.response.get("Error", {}).get("Code") in ("NoSuchKey", "404"):
+            return _reponse(404, {"erreur": f"Aucun procès archivé avec l'identifiant {identifiant}"})
+        raise
+
+    try:
+        complete = interroger(contrat, question)
+    except QuestionInvalide as erreur:
+        return _reponse(400, {"erreur": str(erreur)})
+    except ProfilInconnu as erreur:
+        return _reponse(404, {"erreur": str(erreur)})
+    except (PacteInvalide, ErreurDonnees) as erreur:
+        return _reponse(422, {"erreur": str(erreur)})
+    except Exception:  # noqa: BLE001 - le détail va dans CloudWatch, pas chez l'utilisateur
+        traceback.print_exc()
+        return _reponse(500, {"erreur": "Erreur interne : la question n'a pas pu être instruite"})
+
+    echange = complete["contre_interrogatoire"][-1]
+    try:
+        _ecrire(cle_trace(identifiant), complete)
+    except (ClientError, ErreurDonnees) as erreur:
+        # Les appels Bedrock sont déjà faits : on renvoie la réponse, sans l'avoir archivée.
+        print(f"Archivage de la question impossible : {erreur}")
+    return _reponse(200, {"id": identifiant, "echange": echange,
+                          "pieces": pieces_de_l_echange(complete, echange)})
 
 
 # --- S3 ------------------------------------------------------------------------

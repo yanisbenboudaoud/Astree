@@ -1,6 +1,6 @@
 # #169 — Intégration continue : tests Python, tests de l'interface et contrats à chaque push
 
-- **Issue** : #169 · **PR** : #M · **Statut** : terminée
+- **Issue** : #169 · **PR** : #174 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

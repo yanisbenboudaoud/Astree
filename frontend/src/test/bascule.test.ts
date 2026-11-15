@@ -2,7 +2,7 @@
  * Points de bascule (#61) sur l'écran Verdict : lus dans le contrat, reliés aux règles du Pacte.
  */
 import contratRobert from '../data/proces/2026-11-15-fcb6ce39f184.json';
-import contratAmira from '../data/proces/2026-11-15-f59548b2fdd9.json';
+import contratAmira from '../data/proces/2026-11-15-5ba5343b2165.json';
 import contratRobertVecu from '../data/proces/2026-11-15-3da0fd68f5e4.json';
 import contratMateo from '../data/proces/2026-11-15-c7c4bcc1736b.json';
 import type { ContratTribunal, PointDeBasculeContrat } from '../api/contrat';

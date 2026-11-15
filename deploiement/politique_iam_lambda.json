@@ -2,14 +2,13 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "BedrockSonnet55ParProfilInference",
+      "Sid": "BedrockSonnet55ParProfilInferenceGlobal",
       "Effect": "Allow",
       "Action": "bedrock:InvokeModel",
       "Resource": [
-        "arn:aws:bedrock:us-east-1:*:inference-profile/us.anthropic.claude-sonnet-5-5",
+        "arn:aws:bedrock:us-east-1:*:inference-profile/global.anthropic.claude-sonnet-5-5",
         "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-5-5",
-        "arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-sonnet-5-5",
-        "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-sonnet-5-5"
+        "arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-5-5"
       ]
     },
     {

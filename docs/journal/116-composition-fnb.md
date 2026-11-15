@@ -1,6 +1,6 @@
 # #116 — Composition des FNB : plafonds calculés par transparence
 
-- **Issue** : #116 · **PR** : #140 · **Statut** : terminée (Lambda à redéployer ; procès de démo d'Amira à refaire)
+- **Issue** : #116 · **PR** : #140, puis #147 (Lambda redéployée, procès de démo d'Amira refaits) · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
@@ -67,8 +67,27 @@ Autres tests :
 - **Pièce seulement quand elle compte** : si aucun plafond du Pacte ne porte sur une catégorie lue par transparence (Robert, Mateo : crypto seulement), il n'y a pas de pièce. Leurs procès ne changent pas.
 - **Les pourcentages des émetteurs ne sont pas renormalisés** : leurs sommes s'écartent au plus de 0,01 point de 100 %.
 
+**Sur AWS (après la fusion de #140)**
+- **Lambda redéployée** (`deploiement/deployer.py --sans-donnees`) depuis `main` : le zip contient `pipeline/composition.py`, `config/categories.json` et `donnees_externes/composition_fnb.json`. Aucun service, fichier S3 ni droit IAM de plus.
+  - Lancé sans `--origine` (20 h 46 UTC), il a retiré un moment le domaine CloudFront de #135 du CORS. La session de #135 l'a remis. Jusqu'à #136, il faut lancer `deployer.py --origine https://d15khh2djw55mh.cloudfront.net` (`deploiement/README.md`).
+- **Les 2 procès de démo d'Amira refaits** sur cette Lambda, avec la même demande (panier BTC-USD, ETH-USD, NVDA, QQQ à 25 %, tout le portefeuille). Ils sont copiés tels quels depuis `traces/2026-11-15/` du bucket : le contenu est identique à la réponse reçue, et chaque contrat passe `contrat.valider`.
+  - `index.json`, les procès-verbaux et les imports des tests de l'interface suivent.
+  - Les procès de Robert et de Mateo ne changent pas, puisque leurs Pactes ne plafonnent que la crypto : ils ne sont pas refaits.
+
+| Procès | Remplace | Taille max | Tech + crypto | Point de bascule tech + crypto | Chiffres vérifiés |
+|---|---|---|---|---|---|
+| `2026-11-15-5ba5343b2165` | `2026-11-15-f59548b2fdd9` | 28 % (inchangée) | 92,3 % (100 % avant) | 57 % ou plafond 92,3 % (50 % ou 100 % avant) | 22/22 |
+| `2026-11-15-30993c3a1ebf` (Pacte vécu) | `2026-11-15-1b59a098a64c` | 26 % (inchangée) | 92,3 % | 57 % ou plafond 92,3 % | 25/25 |
+
+Dans les deux procès :
+- la pièce `composition_fnb` est versée d'office, et le contrôle `pas_exclusivement_tech` la cite ;
+- le Procureur la cite lui-même : « Technologie et cryptoactifs pèsent 92,3 % du portefeuille, contre 51,5 % avant la décision » ;
+- aucun argument n'est rejeté ;
+- l'orchestrateur appelle aussi `mesurer_liquidite` (#117), fusionné depuis les procès précédents.
+
+`npm run verifier` (parcours des 3 profils, axe-core sur 23 écrans, débordement, console) passe sans problème.
+
 ## Limites et suite
-- **Redéployer la Lambda** pour que l'interface en direct calcule par transparence. **Refaire le procès de démo d'Amira** : sa taille maximale ne change pas (28 %, limitée par la crypto), mais le point de bascule tech + crypto passe de 50 % à 55 %. Il est différent dans le contrat enregistré.
 - L'exemple du questionnaire, qui exclut les énergies fossiles, est désormais en violation dès 0 %. C'est fidèle : son portefeuille contient XIU.TO, SPY, XBB.TO et ZST.TO, donc déjà de l'énergie.
 - La composition date de novembre 2026 et s'applique à toute la période simulée. Les dates diffèrent selon l'émetteur (ESGV : septembre 2026).
 - Les conditions d'utilisation de State Street interdisent la reproduction : hors du datathon, il faudrait une autorisation ou une source sous licence.

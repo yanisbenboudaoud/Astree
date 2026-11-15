@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import contratRobert from '../data/proces/2026-11-15-fcb6ce39f184.json';
 import contratMateo from '../data/proces/2026-11-15-c7c4bcc1736b.json';
-import contratAmira from '../data/proces/2026-11-15-f59548b2fdd9.json';
+import contratAmira from '../data/proces/2026-11-15-5ba5343b2165.json';
 import type { ContratTribunal } from '../api/contrat';
 import { adapterContrat } from '../api/adaptateur';
 import { bilanGreffier } from '../domaine/bilan';
@@ -18,7 +18,8 @@ describe('bilan du Greffier en langage clair', () => {
     expect(bilan.ton).toBe('violation');
     expect(bilan.verdict).toBe('1 règle de votre Pacte est enfreinte');
     // −29,0 % (comparaison du contrat), 188 291 $ sur 650 000 $ (pièce de simulation), limite de 12 %.
-    expect(bilan.explication).toMatch(/perdrait 29,0\s%.*188\s291\s\$ sur 650\s000\s\$.*au plus 12\s%/);
+    const baisse = bilan.controles.find((c) => c.regle === 'pire_baisse_max');
+    expect(baisse?.detail).toMatch(/perdrait 29,0\s%.*188\s291\s\$ sur 650\s000\s\$.*au plus 12\s%/);
   });
 
   it('Amira : plusieurs règles enfreintes, au pluriel', () => {
@@ -28,7 +29,7 @@ describe('bilan du Greffier en langage clair', () => {
 
   it('Mateo : la controverse documentée est dite sans nom technique', () => {
     const bilan = bilanDe(contratMateo);
-    expect(bilan.explication).toContain('Le dossier contient une source sur XOM');
+    expect(bilan.controles.find((c) => c.groupe === 'enfreint')?.detail).toContain('Le dossier contient une source sur XOM');
     expect(bilan.controles.map((c) => `${c.titre} ${c.detail}`).join(' ')).not.toMatch(/controverse_esg_importante|_/);
   });
 

@@ -40,7 +40,7 @@ aws login                                                   # une fois par sessi
 | Mémoire | 1024 Mo au moins | pandas et les CSV ; plus de mémoire donne aussi plus de processeur |
 | Concurrence réservée | 2 | Limite les appels Bedrock payants. Le compte laisse 110 exécutions non réservées : en réserver 2 est possible. Elle compte aussi le procès en arrière-plan et chaque relecture de `/progression` (#90) : avec deux procès en cours, un 3ᵉ `POST /tribunal` reçoit 429, et les relectures aussi tant qu'aucun ne finit (l'interface l'affiche et continue) |
 | Invocation asynchrone | `MaximumRetryAttempts` 0, `MaximumEventAgeInSeconds` 60 | Procès lancé par `/tribunal` (#90). Aucune relance : un procès raté ne se rejoue pas tout seul (nouveaux appels Bedrock). Un procès qui ne peut pas démarrer en 60 s est abandonné, au lieu de tourner quand l'interface a cessé d'attendre |
-| Variables d'environnement | `BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-5-5`, `SOURCE_DONNEES=s3`, `BUCKET_PROJET=alphaforge-<compte>` | Les CSV sont lus dans `donnees/` du bucket (#13). Ne pas définir `AWS_REGION` : Lambda la fournit elle-même (us-east-1) |
+| Variables d'environnement | `BEDROCK_MODEL_ID=global.anthropic.claude-sonnet-5-5`, `SOURCE_DONNEES=s3`, `BUCKET_PROJET=alphaforge-<compte>` | Les CSV sont lus dans `donnees/` du bucket (#13). Ne pas définir `AWS_REGION` : Lambda la fournit elle-même (us-east-1) |
 
 **Données en mémoire** : `pipeline/donnees.py` garde les CSV en mémoire après la première lecture (`lru_cache`). Le module d'entrée de la Lambda doit importer le pipeline **au niveau du module**, hors du handler, pour qu'une Lambda déjà démarrée ne relise pas les CSV.
 
@@ -193,7 +193,7 @@ Après le redéploiement de #13 (code de `main` avec les cas 2 et 3, CSV lus dan
 ## IAM
 
 Le rôle de la Lambda utilise [`politique_iam_lambda.json`](politique_iam_lambda.json), en remplaçant `NOM_DU_BUCKET` :
-- `bedrock:InvokeModel` sur le **profil d'inférence** `us.anthropic.claude-sonnet-5-5` **et** sur le modèle dans les **trois régions** vers lesquelles le profil répartit les appels : us-east-1, us-east-2 et us-west-2. Sans ces trois régions, certains appels échoueraient au hasard.
+- `bedrock:InvokeModel` sur le **profil d'inférence global** `global.anthropic.claude-sonnet-5-5`, sur le modèle dans us-east-1 **et** sur le modèle sans région (`arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-5-5`) : le profil global peut répartir les appels sur toutes les régions commerciales. Sans ce dernier ARN, certains appels échoueraient au hasard.
 - Les journaux CloudWatch, et la lecture et l'écriture dans le bucket du projet.
 - `s3:ListBucket` sur ce bucket seulement : sans ce droit, S3 répond « accès refusé » au lieu de « introuvable » pour un objet absent, et `/verdict` renverrait une erreur 500 au lieu de 404 pour un procès inconnu.
 - `lambda:InvokeFunction` sur la fonction `alphaforge-tribunal` **elle-même seulement** (#90) : `/tribunal` lance le procès en arrière-plan. La progression (`progression/*`) est couverte par le droit sur le bucket.
@@ -201,6 +201,6 @@ Le rôle de la Lambda utilise [`politique_iam_lambda.json`](politique_iam_lambda
 
 ## Bedrock
 
-- Région `us-east-1`, profil `us.anthropic.claude-sonnet-5-5`. Quota : 6 millions de jetons par minute, bien au-delà d'un procès.
+- Région `us-east-1`, profil global `global.anthropic.claude-sonnet-5-5` (15 novembre 2026 : la page « Utilisation responsable » recommande le profil `global.` quand il existe ; vérifié par un procès complet sur la Lambda, contrat valide). Avant : `us.anthropic.claude-sonnet-5-5`. Quota : 6 millions de jetons par minute, bien au-delà d'un procès.
 - Les relances adaptatives et le délai de lecture de 300 s sont déjà dans `pipeline/llm.py` (#7).
 - **Vérifié** : 5 procès complets d'affilée, soit 25 appels Converse, sans aucune relance de boto3 ni erreur de limitation.

@@ -1,6 +1,6 @@
 # #142 — Écran Verdict : quatre options au même niveau, jauge du seuil, ce que la signature archive
 
-- **Issue** : #142 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #142 · **PR** : #143 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

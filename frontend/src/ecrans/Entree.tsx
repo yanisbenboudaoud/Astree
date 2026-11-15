@@ -21,10 +21,11 @@ export function Entree() {
       <div className={styles.corps}>
         <div className={styles.titre}>
           <p className="t-etiquette c-500">Démonstration</p>
-          <h1 className="t-h1">Avec quel profil voulez-vous explorer Astrée ?</h1>
+          <h1 className="t-h1">Testez une décision d'investissement avant de la prendre.</h1>
           <p className={`t-corps c-700 ${styles.sousTitre}`}>
-            Chaque profil a son portefeuille, son Pacte et une décision à soumettre au Tribunal. Vous pourrez changer de
-            profil à tout moment depuis le menu en haut à droite.
+            Cherchez un titre et choisissez une taille : un Procureur et un Avocat en débattent face aux règles de votre
+            Pacte, et c'est vous qui rendez le verdict. Choisissez un profil pour commencer ; vous pourrez en changer à tout
+            moment depuis le menu en haut à droite.
           </p>
         </div>
 

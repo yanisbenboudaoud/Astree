@@ -87,7 +87,8 @@ function BlocTaille({ profil, decision, table, onTaille }: {
           </div>
         )}
         <div className={styles.piste} aria-hidden="true">
-          <div className={styles.pisteRemplie} style={{ width: position(decision.taille) }} />
+          {/* Retour visuel (#103) : la piste se remplit en rouge au-delà de la limite du Pacte. */}
+          <div className={`${styles.pisteRemplie} ${horsLimite ? styles.pisteHorsLimite : ''}`} style={{ width: position(decision.taille) }} />
         </div>
         <label htmlFor={idCurseur} className="visuellement-cache">Taille de la position en {decision.ticker}, de 0 à 50 %</label>
         <input
@@ -192,21 +193,22 @@ function BlocPanier({ decision, table, onLignes, onAjouter }: {
   );
 }
 
-function CarteEffet({ effet }: { effet: Effet }) {
+function LigneEffet({ effet }: { effet: Effet }) {
   const violation = effet.statut === 'Violation';
   return (
-    <li className={`${styles.carteEffet} ${violation ? styles.carteViolation : ''}`}>
-      <p className="t-petit-fort c-500">{effet.libelle}</p>
-      <p className={styles.valeursEffet}>
-        <span className="t-tableau c-500">{effet.avant}</span>
-        <span className="t-corps c-500" aria-label="devient">→</span>
-        <span className={`t-chiffre-moyen ${violation ? styles.horsLimite : ''}`}>{effet.apres}</span>
-      </p>
-      <p className={styles.limiteEffet}>
-        <span className="t-petit c-500">{effet.limite}</span>
-        {effet.statut && <Statut type={effet.statut} />}
-      </p>
-    </li>
+    <tr className={violation ? styles.ligneViolation : undefined}>
+      <th scope="row">
+        <span className="t-petit-fort">{effet.libelle}</span>
+        {effet.detail && <span className="t-petit c-500">{effet.detail}</span>}
+      </th>
+      <td className="t-tableau c-700">{effet.avant}</td>
+      <td>
+        {/* La clé change avec la valeur : le chiffre clignote quand le curseur le modifie (#103). */}
+        <span key={effet.apres} className={`t-tableau-fort ${styles.valeurApres} ${violation ? styles.horsLimite : ''}`}>{effet.apres}</span>
+      </td>
+      <td className="t-tableau c-700">{effet.limite ?? <span className="c-500" aria-label="aucune limite">—</span>}</td>
+      <td className={styles.celluleStatut}>{effet.statut && <Statut type={effet.statut} />}</td>
+    </tr>
   );
 }
 
@@ -220,9 +222,23 @@ function BlocEffets({ profil, entree, decision, libelleGraphique }: { profil: Pr
       titre="Effet sur votre Pacte"
       droite={<p className="t-petit c-500">Sur la période du {date(profil.debut)} au {date(profil.fin)}</p>}
     >
-      <ul className={styles.effets}>
-        {effets.map((e) => <CarteEffet key={e.libelle} effet={e} />)}
-      </ul>
+      <div className={styles.tableauEffets}>
+        <table>
+          <caption className="visuellement-cache">Indicateurs du portefeuille actuel et avec la décision, et limites de votre Pacte</caption>
+          <thead>
+            <tr>
+              <th scope="col" className="t-petit c-500">Indicateur</th>
+              <th scope="col" className="t-petit c-500">Actuel</th>
+              <th scope="col" className="t-petit-fort">{libelleGraphique}</th>
+              <th scope="col" className="t-petit c-500">Limite du Pacte</th>
+              <th scope="col"><span className="visuellement-cache">Statut</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {effets.map((e) => <LigneEffet key={e.libelle} effet={e} />)}
+          </tbody>
+        </table>
+      </div>
       <GraphiqueRecul
         actuel={actuel}
         decision={avec}
@@ -311,79 +327,90 @@ export function Decision({ profil }: { profil: Profil }) {
           </p>
         </div>
 
-        {decision.type === 'position' && tablePosition?.ticker === decision.ticker && (
-          <BlocTaille profil={profil} decision={decision} table={tablePositionMesuree ?? tablePosition} onTaille={(t) => definirDecision({ ...decision, taille: t })} />
-        )}
-        {decision.type === 'panier' && (
-          <BlocPanier
-            decision={decision}
-            table={tablePanierMesuree ?? null}
-            onLignes={(lignes) => {
-              definirDecision({ type: 'panier', lignes });
-              definirPanier(lignes.map((l) => l.ticker));
-            }}
-            onAjouter={() => {
-              definirPanier(decision.lignes.map((l) => l.ticker));
-              navigate(`/${profil.id}/portefeuille`, { state: { recherche: true } });
-            }}
-          />
-        )}
+        {/* Paysage (#103) : réglage, messages et actions à gauche ; l'effet sur le Pacte à droite, fixe au défilement. */}
+        <div className={entree ? styles.grille : `${styles.grille} ${styles.grilleSansApercu}`}>
+          <div className={styles.reglage}>
+            {decision.type === 'position' && tablePosition?.ticker === decision.ticker && (
+              <BlocTaille profil={profil} decision={decision} table={tablePositionMesuree ?? tablePosition} onTaille={(t) => definirDecision({ ...decision, taille: t })} />
+            )}
+            {decision.type === 'panier' && (
+              <BlocPanier
+                decision={decision}
+                table={tablePanierMesuree ?? null}
+                onLignes={(lignes) => {
+                  definirDecision({ type: 'panier', lignes });
+                  definirPanier(lignes.map((l) => l.ticker));
+                }}
+                onAjouter={() => {
+                  definirPanier(decision.lignes.map((l) => l.ticker));
+                  navigate(`/${profil.id}/portefeuille`, { state: { recherche: true } });
+                }}
+              />
+            )}
 
-        {erreurTable
-          ? <p className="t-corps c-700" role="alert">Simulation indisponible : {erreurTable}</p>
-          : chargement && <p className="t-corps c-500" role="status">Chargement de la simulation…</p>}
+            {erreurTable
+              ? <p className="t-corps c-700" role="alert">Simulation indisponible : {erreurTable}</p>
+              : chargement && <p className="t-corps c-500" role="status">Chargement de la simulation…</p>}
+          </div>
 
-        {entree && (
-          <BlocEffets
-            profil={profil}
-            entree={entree}
-            decision={decision}
-            libelleGraphique={decision.type === 'position' ? `Avec ${decision.taille} % de ${decision.ticker}` : 'Avec le panier'}
-          />
-        )}
+          {entree && (
+            <div className={styles.apercu}>
+              <BlocEffets
+                profil={profil}
+                entree={entree}
+                decision={decision}
+                libelleGraphique={decision.type === 'position' ? `Avec ${decision.taille} % de ${decision.ticker}` : 'Avec le panier'}
+              />
+            </div>
+          )}
 
-        {nonPrecalcule && tablePanier && (
-          <Message type="À vérifier" titre="Simulation précalculée indisponible pour ce panier">
-            Cette démonstration précalcule les paniers composés de {tablePanier.candidats.map(nomTitre).join(', ')}, par pas
-            de {tablePanier.pas} points. Le Tribunal en direct simulera ce panier avec les mêmes outils.
-          </Message>
-        )}
-        {decision.type === 'panier' && tablePanier === null && !panierInvalide && (
-          <Message type="À vérifier" titre="Aperçu non calculé pour ce panier">
-            L'aperçu avant / après n'est précalculé que pour les paniers de démonstration. Le Tribunal simulera ce panier
-            avec les mêmes outils Python.
-          </Message>
-        )}
+          <div className={styles.messages}>
+            {nonPrecalcule && tablePanier && (
+              <Message type="À vérifier" titre="Simulation précalculée indisponible pour ce panier">
+                Cette démonstration précalcule les paniers composés de {tablePanier.candidats.map(nomTitre).join(', ')}, par pas
+                de {tablePanier.pas} points. Le Tribunal en direct simulera ce panier avec les mêmes outils.
+              </Message>
+            )}
+            {decision.type === 'panier' && tablePanier === null && !panierInvalide && (
+              <Message type="À vérifier" titre="Aperçu non calculé pour ce panier">
+                L'aperçu avant / après n'est précalculé que pour les paniers de démonstration. Le Tribunal simulera ce panier
+                avec les mêmes outils Python.
+              </Message>
+            )}
 
-        {messages.map((m) => (
-          <Message
-            key={m.titre}
-            type={m.type}
-            titre={m.titre}
-            aide={m.aide}
-            correction={m.correction && decision.type === 'position'
-              ? { libelle: m.correction.libelle, onClick: () => definirDecision({ ...decision, taille: m.correction!.taille }) }
-              : undefined}
-          >
-            <p>{m.corps}</p>
-            {m.source && <p className="t-petit c-700">Source : {m.source}</p>}
-          </Message>
-        ))}
+            {messages.map((m) => (
+              <Message
+                key={m.titre}
+                type={m.type}
+                titre={m.titre}
+                aide={m.aide}
+                correction={m.correction && decision.type === 'position'
+                  ? { libelle: m.correction.libelle, onClick: () => definirDecision({ ...decision, taille: m.correction!.taille }) }
+                  : undefined}
+              >
+                <p>{m.corps}</p>
+                {m.source && <p className="t-petit c-700">Source : {m.source}</p>}
+              </Message>
+            ))}
+          </div>
 
-        <div className={styles.actions}>
-          <Bouton variante="tertiaire" fleche={false} vers={`/${profil.id}/portefeuille`}>Annuler</Bouton>
-          <Bouton
-            variante="primaire"
-            onClick={soumettre}
-            aria-disabled={panierInvalide || undefined}
-            aria-describedby={panierInvalide ? idErreur : undefined}
-          >
-            Soumettre au Tribunal
-          </Bouton>
+          <div className={styles.zoneActions}>
+            <div className={styles.actions}>
+              <Bouton variante="tertiaire" fleche={false} vers={`/${profil.id}/portefeuille`}>Annuler</Bouton>
+              <Bouton
+                variante="primaire"
+                onClick={soumettre}
+                aria-disabled={panierInvalide || undefined}
+                aria-describedby={panierInvalide ? idErreur : undefined}
+              >
+                Soumettre au Tribunal
+              </Bouton>
+            </div>
+            {panierInvalide && decision.lignes.length < 2 && (
+              <p id={idErreur} className="t-petit c-700">Un panier compte au moins deux titres.</p>
+            )}
+          </div>
         </div>
-        {panierInvalide && decision.lignes.length < 2 && (
-          <p id={idErreur} className="t-petit c-700">Un panier compte au moins deux titres.</p>
-        )}
       </div>
     </Gabarit>
   );

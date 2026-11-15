@@ -10,12 +10,19 @@
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
+  /* Retours visuels (#103) : survol, appui, flèche qui avance. Pas de transition sur les couleurs :
+     un état intermédiaire (désactivé → actif) aurait un contraste insuffisant pendant le fondu. */
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
 }
+.bouton svg { transition: transform var(--transition); }
+.bouton:active:not(:disabled):not([aria-disabled='true']) { transform: translateY(1px); }
 .grand { height: 44px; font-size: 15px; line-height: 22px; padding: 0 20px; }
 .compact { height: 36px; font-size: 13px; line-height: 18px; padding: 0 14px; }
 
 .primaire { background: var(--encre-900); color: var(--inverse-texte); }
-.primaire:hover { background: var(--encre-700); }
+.primaire:hover { background: var(--encre-700); box-shadow: var(--ombre-survol); }
+.primaire:hover svg:last-child,
+.inverse:hover svg:last-child { transform: translateX(3px); }
 
 .secondaire {
   background: var(--fond-carte);
@@ -30,6 +37,7 @@
   padding-left: 4px;
   padding-right: 4px;
 }
+.tertiaire:hover { background: var(--accent-bleu-teinte); }
 .tertiaire:hover span { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Bouton clair posé sur une carte encre (carte de recherche). */
@@ -46,5 +54,8 @@
   background: var(--fond-creux);
   color: var(--encre-500);
   border-color: var(--trait-moyen);
+  box-shadow: none;
   cursor: not-allowed;
 }
+.bouton[aria-disabled='true'] svg,
+.bouton:disabled svg { transform: none; }

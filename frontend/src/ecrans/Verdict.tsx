@@ -148,76 +148,84 @@ export function Verdict({ profil }: { profil: Profil }) {
           </p>
         </div>
 
-        {bascules.length > 0 && (
-          <section className={styles.bascule} aria-labelledby={idBascule}>
-            <h2 id={idBascule} className="t-etiquette c-500">Ce qui changerait la réponse</h2>
-            <ul>
-              {bascules.map((p) => (
-                <li key={p.regle} className={styles.point}>
-                  <span className="t-petit-fort">{p.paragraphe ? `§${p.paragraphe} · ` : ''}{p.libelle}</span>
-                  <span className="t-petit c-700">
-                    {p.message}
-                    {p.pieces.map((code) => (
-                      <span key={code}>
-                        {' '}
-                        <Link to={`/${profil.id}/tribunal?piece=${code}`} className={styles.lienPiece} aria-label={`Ouvrir la pièce ${code}`}>{code}</Link>
+        {/* Paysage (#103) : les choix à gauche ; ce qui changerait la réponse et l'export à droite, fixes au défilement. */}
+        <div className={styles.grille}>
+          <div className={styles.cote}>
+            {bascules.length > 0 && (
+              <section className={styles.bascule} aria-labelledby={idBascule}>
+                <h2 id={idBascule} className="t-etiquette c-500">Ce qui changerait la réponse</h2>
+                <ul>
+                  {bascules.map((p) => (
+                    <li key={p.regle} className={styles.point}>
+                      <span className="t-petit-fort">{p.paragraphe ? `§${p.paragraphe} · ` : ''}{p.libelle}</span>
+                      <span className="t-petit c-700">
+                        {p.message}
+                        {p.pieces.map((code) => (
+                          <span key={code}>
+                            {' '}
+                            <Link to={`/${profil.id}/tribunal?piece=${code}`} className={styles.lienPiece} aria-label={`Ouvrir la pièce ${code}`}>{code}</Link>
+                          </span>
+                        ))}
                       </span>
-                    ))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            <div className={styles.blocExport}>
+              <h2 className="t-etiquette c-500">Procès-verbal</h2>
+              <p className="t-petit c-700">Tout le dossier du procès (pièces, contrôles, arguments, trace), en page imprimable.</p>
+              <Bouton variante="secondaire" compact fleche={false} className={styles.lienExport} onClick={exporterProcesVerbal}>
+                Exporter le procès-verbal
+              </Bouton>
+              {erreurExport && (
+                <Message type="Violation" titre="Le procès-verbal n'a pas pu être produit" correction={{ libelle: 'Réessayer', onClick: exporterProcesVerbal }}>
+                  <p>{erreurExport}</p>
+                </Message>
+              )}
+            </div>
+          </div>
 
-        <fieldset className={styles.options}>
-          <legend className="visuellement-cache">Votre décision sur « {resultat.titre} »</legend>
-          <ul>
-            {options.map(carte)}
-            {verdict.option === 'pacte' && carte(OPTION_PACTE)}
-          </ul>
-        </fieldset>
+          <div className={styles.choix}>
+            <fieldset className={styles.options}>
+              <legend className="visuellement-cache">Votre décision sur « {resultat.titre} »</legend>
+              <ul>
+                {options.map(carte)}
+                {verdict.option === 'pacte' && carte(OPTION_PACTE)}
+              </ul>
+            </fieldset>
 
-        {verdict.option !== 'pacte' && (
-          <Bouton variante="tertiaire" compact fleche={false} className={styles.lienPacte} onClick={() => modifierVerdict({ option: 'pacte' })}>
-            Ou ajuster votre Pacte avant de décider
-          </Bouton>
-        )}
+            {verdict.option !== 'pacte' && (
+              <Bouton variante="tertiaire" compact fleche={false} className={styles.lienPacte} onClick={() => modifierVerdict({ option: 'pacte' })}>
+                Ou ajuster votre Pacte avant de décider
+              </Bouton>
+            )}
 
-        {erreur && (
-          <Message type="Violation" titre="Le verdict n'a pas pu être archivé" correction={{ libelle: 'Réessayer', onClick: signerVerdict }}>
-            <p>{erreur}</p>
-          </Message>
-        )}
+            {erreur && (
+              <Message type="Violation" titre="Le verdict n'a pas pu être archivé" correction={{ libelle: 'Réessayer', onClick: signerVerdict }}>
+                <p>{erreur}</p>
+              </Message>
+            )}
+          </div>
 
-        <p className={`t-petit c-700 ${styles.export}`}>
-          <Bouton variante="tertiaire" compact fleche={false} className={styles.lienExport} onClick={exporterProcesVerbal}>
-            Exporter le procès-verbal
-          </Bouton>{' '}
-          : tout le dossier du procès (pièces, contrôles, arguments, trace), en page imprimable.
-        </p>
-
-        {erreurExport && (
-          <Message type="Violation" titre="Le procès-verbal n'a pas pu être produit" correction={{ libelle: 'Réessayer', onClick: exporterProcesVerbal }}>
-            <p>{erreurExport}</p>
-          </Message>
-        )}
-
-        <div className={styles.actions}>
-          <Bouton variante="tertiaire" fleche={false} vers={`/${profil.id}/tribunal`}>Retour au Tribunal</Bouton>
-          <div className={styles.signature}>
-            <p className="t-petit c-700">Rien n'est exécuté : le verdict est archivé.</p>
-            <Bouton
-              variante="primaire"
-              onClick={signerVerdict}
-              aria-disabled={Boolean(raisonBlocage) || envoi || undefined}
-              aria-describedby={raisonBlocage ? idRaison : undefined}
-            >
-              {envoi ? 'Archivage…' : 'Signer le verdict'}
-            </Bouton>
+          <div className={styles.suite}>
+            <div className={styles.actions}>
+              <Bouton variante="tertiaire" fleche={false} vers={`/${profil.id}/tribunal`}>Retour au Tribunal</Bouton>
+              <div className={styles.signature}>
+                <p className="t-petit c-700">Rien n'est exécuté : le verdict est archivé.</p>
+                <Bouton
+                  variante="primaire"
+                  onClick={signerVerdict}
+                  aria-disabled={Boolean(raisonBlocage) || envoi || undefined}
+                  aria-describedby={raisonBlocage ? idRaison : undefined}
+                >
+                  {envoi ? 'Archivage…' : 'Signer le verdict'}
+                </Bouton>
+              </div>
+            </div>
+            {raisonBlocage && <p id={idRaison} className={`t-petit c-700 ${styles.raison}`}>{raisonBlocage}</p>}
           </div>
         </div>
-        {raisonBlocage && <p id={idRaison} className={`t-petit c-700 ${styles.raison}`}>{raisonBlocage}</p>}
       </div>
     </Gabarit>
   );

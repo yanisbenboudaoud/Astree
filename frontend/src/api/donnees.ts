@@ -72,7 +72,7 @@ export function profil(id: string): Profil | undefined {
 const CONFIG_PAR_DEFAUT: Required<Pick<ConfigProfilUI, 'recherche'>> = {
   recherche: {
     mode: 'position',
-    titre: 'Tester une décision',
+    titre: 'Quelle décision voulez-vous tester ?',
     aide: "Simulez un achat, puis soumettez-le au Tribunal. Rien n'est acheté.",
     placeholder: 'Nom ou symbole, ex. : Apple ou AAPL',
   },
@@ -80,7 +80,7 @@ const CONFIG_PAR_DEFAUT: Required<Pick<ConfigProfilUI, 'recherche'>> = {
 
 const RECHERCHE_PANIER_PAR_DEFAUT: ConfigRecherche = {
   mode: 'panier',
-  titre: 'Composer un panier',
+  titre: 'Quel panier voulez-vous tester ?',
   aide: "Ajoutez plusieurs titres : le Tribunal juge le panier en entier. Rien n'est acheté.",
   placeholder: 'Nom ou symbole, ex. : Apple ou AAPL',
 };

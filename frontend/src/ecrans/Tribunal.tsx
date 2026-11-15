@@ -11,7 +11,7 @@ import { MODE_DIRECT, ProcesNonEnregistre, jugerDecision, poserQuestion, questio
 import { adapterEchange } from '../api/adaptateur';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
-import { ChargementTribunal, type PropsChargement } from '../components/ChargementTribunal';
+import { ChargementTribunal, DossierInstruit, type PropsChargement } from '../components/ChargementTribunal';
 import { IconeStatut, PastillePiece, Provenance, Statut } from '../components/Etiquettes';
 import { LienRetour, Message } from '../components/Elements';
 import { Icone } from '../components/Icone';
@@ -346,8 +346,10 @@ export function Tribunal({ profil }: { profil: Profil }) {
     }
     return (
       <Gabarit nomProfil={profil.nom} idProfil={profil.id} etape="tribunal">
-        <div className={styles.corps}>
+        {/* Paysage (#103) : les phases à gauche, le dossier instruit à droite. */}
+        <div className={`${styles.corpsLarge} ${styles.attente}`}>
           <ChargementTribunal {...chargement} />
+          <DossierInstruit decision={libelleDecision(decision)} regles={profil.pacte.regles} etapes={chargement.etapes} />
         </div>
       </Gabarit>
     );

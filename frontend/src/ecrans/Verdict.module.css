@@ -1,13 +1,37 @@
 .corps {
-  max-width: calc(var(--conteneur-etroit) + 2 * var(--marge-page));
+  max-width: calc(var(--conteneur-large) + 2 * var(--marge-page));
   margin: 0 auto;
-  padding: 32px var(--marge-page) 96px;
+  padding: 24px var(--marge-page) 72px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
 }
 .titre { display: flex; flex-direction: column; gap: 8px; }
 .rappel { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Paysage (#103) : les choix à gauche ; ce qui changerait la réponse et l'export à droite. */
+.grille {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'choix cote'
+    'suite cote';
+  gap: 24px 48px;
+  align-items: start;
+}
+.choix { grid-area: choix; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.cote { grid-area: cote; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.suite { grid-area: suite; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.blocExport {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 20px;
+  border: 1px solid var(--trait-fin);
+  border-radius: 4px;
+  background: var(--fond-carte);
+}
 
 .bascule {
   display: flex;
@@ -27,8 +51,11 @@
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
   border-radius: 4px;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
-.selectionnee { border: 1.5px solid var(--encre-900); }
+/* Retour visuel (#103) : l'option survolée se détache ; l'option choisie garde son bord encre. */
+.option:hover { border-color: var(--encre-500); box-shadow: var(--ombre-survol); }
+.selectionnee, .selectionnee:hover { border: 1.5px solid var(--encre-900); }
 .option:has(input:focus-visible) { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
 .etiquetteOption { display: flex; gap: 14px; padding: 18px 20px; cursor: pointer; }
 .radio {
@@ -92,11 +119,18 @@
   padding-top: 20px;
   border-top: 1px solid var(--trait-fin);
 }
-.export { display: flex; align-items: center; flex-wrap: wrap; gap: 0 4px; margin: 0; }
-.lienExport { text-decoration: underline; text-underline-offset: 3px; }
+.lienExport { align-self: flex-start; }
 .signature { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.raison { text-align: right; margin-top: -20px; }
+.raison { text-align: right; }
 
+@media (max-width: 1023px) {
+  .grille {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: 'cote' 'choix' 'suite';
+  }
+  .cote { position: static; }
+}
 @media (max-width: 599px) {
   .engagement, .note { margin-left: 20px; }
   .raison { text-align: left; }

@@ -16,9 +16,44 @@ import { regleMesuree } from '../domaine/calibrage';
 import { useEtatProfil } from '../state/store';
 import styles from './Portefeuille.module.css';
 
-const TEINTES = ['var(--encre-900)', 'var(--encre-700)', 'var(--encre-500)', 'var(--encre-300)', 'var(--trait-moyen)', 'var(--trait-fin)'];
+const TEINTES = ['var(--encre-900)', 'var(--encre-700)', 'var(--encre-500)', 'var(--encre-300)', 'var(--encre-200)', 'var(--trait-fin)'];
 const TEINTES_COURTES = ['var(--encre-900)', 'var(--encre-500)', 'var(--encre-300)'];
 
+/** Titres proposés en un clic sous la recherche : ceux de la décision de démonstration du profil, puis des exemples variés. */
+const SUGGESTIONS_PAR_DEFAUT = ['TSLA', 'NVDA', 'XOM', 'BTC-USD'];
+const NOMBRE_SUGGESTIONS = 5;
+
+function suggestionsDe(profil: Profil): string[] {
+  const demo = profil.decisionDemo;
+  let tickers: string[] = [];
+  if (demo?.type === 'position') tickers = [demo.ticker];
+  else if (demo?.type === 'reallocation') tickers = demo.panier.map((l) => l.ticker);
+  return [...new Set([...tickers, ...SUGGESTIONS_PAR_DEFAUT])].slice(0, NOMBRE_SUGGESTIONS);
+}
+
+/** Les 3 étapes du parcours, à droite de la recherche : ce qui se passe après avoir choisi un titre. */
+function EtapesParcours() {
+  const etapes = [
+    { titre: 'Décision', texte: "Choisissez un titre et une taille : l'effet sur votre Pacte s'affiche aussitôt." },
+    { titre: 'Tribunal', texte: 'Un Procureur et un Avocat (IA) plaident à partir de pièces calculées ; le Greffier vérifie chaque chiffre.' },
+    { titre: 'Verdict', texte: "Vous décidez. Rien n'est acheté : le verdict est archivé." },
+  ];
+  return (
+    <ol className={styles.etapesParcours} aria-label="Comment Astrée juge une décision">
+      {etapes.map((e, i) => (
+        <li key={e.titre}>
+          <span className={styles.numeroEtape} aria-hidden="true">{i + 1}</span>
+          <span className={styles.texteEtape}>
+            <span className="t-petit-fort">{e.titre}</span>
+            <span className="t-petit">{e.texte}</span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Indicateurs compacts (#103) : libellé au-dessus, chiffre et contexte sur la même ligne. */
 function Indicateurs({ profil }: { profil: Profil }) {
   const seuil = seuilPireBaisse(profil);
   const annees = Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10);
@@ -27,25 +62,31 @@ function Indicateurs({ profil }: { profil: Profil }) {
     <dl className={styles.indicateurs}>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Rendement annualisé</dt>
-        <dd className="t-chiffre-moyen">{pourcent(profil.actuel.rendement, { signe: true })}</dd>
-        <dd className="t-petit c-500">par an sur {annees} ans</dd>
+        <dd className={styles.valeurIndicateur}>
+          <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.rendement, { signe: true })}</span>
+          <span className="t-petit c-500">par an sur {annees} ans</span>
+        </dd>
       </div>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Chute maximale</dt>
-        <dd className="t-chiffre-moyen">{pourcent(profil.actuel.chuteMax)}</dd>
-        {seuil !== undefined && utilisation !== null && (
-          <>
-            <dd className={styles.jaugeIndicateur}>
-              <Jauge valeur={utilisation} libelle={`Chute maximale : ${pourcent(utilisation, { decimales: 0 })} de la limite de votre Pacte`} />
-            </dd>
-            <dd className="t-petit c-500">{pourcent(utilisation, { decimales: 0 })} de votre limite de {seuilTexte(seuil)}</dd>
-          </>
-        )}
+        <dd className={styles.valeurIndicateur}>
+          <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.chuteMax)}</span>
+          {seuil !== undefined && utilisation !== null && (
+            <>
+              <span className={styles.jaugeIndicateur}>
+                <Jauge valeur={utilisation} libelle={`Chute maximale : ${pourcent(utilisation, { decimales: 0 })} de la limite de votre Pacte`} />
+              </span>
+              <span className="t-petit c-500">{pourcent(utilisation, { decimales: 0 })} de votre limite de {seuilTexte(seuil)}</span>
+            </>
+          )}
+        </dd>
       </div>
       <div className={styles.indicateur}>
         <dt className="t-petit-fort c-500">Volatilité</dt>
-        <dd className="t-chiffre-moyen">{pourcent(profil.actuel.volatilite)}</dd>
-        <dd className="t-petit c-500">annualisée</dd>
+        <dd className={styles.valeurIndicateur}>
+          <span className={styles.chiffreIndicateur}>{pourcent(profil.actuel.volatilite)}</span>
+          <span className="t-petit c-500">annualisée</span>
+        </dd>
       </div>
     </dl>
   );
@@ -250,6 +291,22 @@ export function Portefeuille({ profil }: { profil: Profil }) {
           </p>
         </div>
 
+        <Recherche
+          profil={profil}
+          mode={recherche.mode}
+          titre={recherche.titre}
+          aide={recherche.aide}
+          placeholder={recherche.placeholder}
+          onMode={setModeRecherche}
+          panier={etat.panier}
+          onInstruire={instruire}
+          onPanier={definirPanier}
+          onInstruirePanier={instruirePanier}
+          focusInitial={focusRecherche}
+          suggestions={suggestionsDe(profil)}
+          complement={<EtapesParcours />}
+        />
+
         <div className={styles.grille}>
           <div className={styles.principale}>
             <section className={`section ${styles.valeur}`} aria-labelledby="titre-valeur">
@@ -257,7 +314,7 @@ export function Portefeuille({ profil }: { profil: Profil }) {
                 <div className={styles.blocValeur}>
                   <h2 className="t-petit-fort c-500" id="titre-valeur">Valeur du portefeuille</h2>
                   <p className={styles.chiffre}>
-                    <span className="t-affiche">{dollars(profil.capital)}</span>
+                    <span className={styles.chiffreValeur}>{dollars(profil.capital)}</span>
                     <Provenance type="Fictif" />
                   </p>
                   <p className={styles.variation}>
@@ -285,20 +342,7 @@ export function Portefeuille({ profil }: { profil: Profil }) {
             <Positions profil={profil} />
           </div>
 
-          <aside className={styles.laterale} aria-label="Décision, Pacte et journal">
-            <Recherche
-              profil={profil}
-              mode={recherche.mode}
-              titre={recherche.titre}
-              aide={recherche.aide}
-              placeholder={recherche.placeholder}
-              onMode={setModeRecherche}
-              panier={etat.panier}
-              onInstruire={instruire}
-              onPanier={definirPanier}
-              onInstruirePanier={instruirePanier}
-              focusInitial={focusRecherche}
-            />
+          <aside className={styles.laterale} aria-label="Pacte et journal">
             <CartePacte profil={profil} />
             <Journal entrees={journal} />
           </aside>

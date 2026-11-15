@@ -59,14 +59,20 @@ export function entreePanier(table: TablePanier, lignes: { ticker: string; poids
 
 export interface Effet {
   libelle: string;
+  /** Précision sous le libellé (« par an sur 5 ans »). */
+  detail?: string;
   avant: string;
   apres: string;
-  limite: string;
+  /** Limite fixée par le Pacte ; absente si aucune règle ne porte sur cet indicateur. */
+  limite?: string;
   statut?: Statut;
   regle?: string;
 }
 
-/** Cartes « avant → après » de l'écran Décision : plafonds concernés, chute maximale, rendement. */
+/**
+ * Lignes « actuel → avec la décision » de l'écran Décision : plafonds concernés et chute maximale
+ * (règles du Pacte), puis rendement, volatilité et rendement de 2022 (#103), déjà dans les tables.
+ */
 export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decision: DecisionUI): Effet[] {
   const effets: Effet[] = [];
   const regles = profil.pacte.regles;
@@ -76,9 +82,10 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
     if (decision.type === 'position' && avant === 0 && apres === 0) continue;
     effets.push({
       libelle: libelleCategories(regle.categories ?? []),
+      detail: 'part du portefeuille',
       avant: part(avant),
       apres: part(apres),
-      limite: regle.max === 0 ? 'exclu par votre Pacte' : `maximum ${part(regle.max ?? 0)}`,
+      limite: regle.max === 0 ? 'exclu' : `max. ${part(regle.max ?? 0)}`,
       statut: statutUi(entree.statuts[regle.id]),
       regle: regle.id,
     });
@@ -86,17 +93,30 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
   const pireBaisse = regles.find((r) => r.type === 'pire_baisse_max');
   effets.push({
     libelle: 'Chute maximale',
+    detail: 'pire baisse depuis un sommet',
     avant: pourcent(profil.actuel.chuteMax),
     apres: pourcent(entree.chuteMax),
-    limite: pireBaisse ? `limite ${seuilTexte(pireBaisse.seuil ?? 0)}` : 'aucune limite dans votre Pacte',
+    limite: pireBaisse ? seuilTexte(pireBaisse.seuil ?? 0) : undefined,
     statut: pireBaisse ? statutUi(entree.statuts[pireBaisse.id]) : undefined,
     regle: pireBaisse?.id,
   });
   effets.push({
     libelle: 'Rendement annualisé',
+    detail: `par an sur ${Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10)} ans`,
     avant: pourcent(profil.actuel.rendement, { signe: true }),
     apres: pourcent(entree.rendement, { signe: true }),
-    limite: `par an sur ${Math.round((Date.parse(profil.fin) - Date.parse(profil.debut)) / 3.15576e10)} ans`,
+  });
+  effets.push({
+    libelle: 'Volatilité',
+    detail: 'annualisée',
+    avant: pourcent(profil.actuel.volatilite),
+    apres: pourcent(entree.volatilite),
+  });
+  effets.push({
+    libelle: 'Rendement en 2022',
+    detail: "rejeu de l'année de crise",
+    avant: pourcent(profil.actuel.rejeu2022, { signe: true }),
+    apres: pourcent(entree.rejeu2022, { signe: true }),
   });
   return effets;
 }

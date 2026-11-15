@@ -28,12 +28,13 @@
   width: 26px;
   height: 26px;
   border-radius: 13px;
-  border: 1.25px solid var(--trait-moyen);
+  /* Phase à venir : bord encre-500 (5,4:1), lisible sans se confondre avec une phase faite (#103). */
+  border: 1.5px solid var(--encre-500);
   background: var(--fond-carte);
   color: var(--encre-900);
 }
-.phaseFaite .pastille { border-color: var(--encre-900); }
-.phaseEnCours .pastille { border-color: var(--encre-900); }
+.phaseFaite .pastille { border-color: var(--encre-900); background: var(--encre-900); color: var(--inverse-texte); }
+.phaseEnCours .pastille { border: 2px solid var(--encre-900); }
 /* Phase en cours : pastille pulsée (immobile si l'utilisateur réduit les animations, base.css). */
 .phaseEnCours .pastille::after {
   content: '';
@@ -68,3 +69,36 @@
 }
 
 .avis { padding: 10px 14px; border-left: 4px solid var(--statut-verifier); background: var(--statut-verifier-teinte); }
+
+/* Dossier instruit, à droite de l'attente (#103). */
+.dossier {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 24px;
+  background: var(--fond-carte);
+  border: 1px solid var(--trait-fin);
+  border-radius: 4px;
+}
+.rubrique { display: flex; flex-direction: column; gap: 6px; }
+.reglesDossier { display: flex; flex-direction: column; gap: 6px; }
+.reglesDossier li { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: baseline; }
+.piecesDossier { display: flex; flex-direction: column; gap: 6px; }
+.pieceDossier { display: flex; align-items: center; gap: 10px; animation: apparition 0.25s ease-out; }
+.codePiece {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 2px 6px;
+  border: 1px solid var(--encre-900);
+  border-radius: 2px;
+  font-family: var(--police-mono);
+  font-size: 12px;
+  line-height: 16px;
+}
+@media (max-width: 1023px) {
+  .dossier { position: static; }
+}

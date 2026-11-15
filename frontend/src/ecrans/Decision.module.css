@@ -1,12 +1,34 @@
 .corps {
-  max-width: calc(var(--conteneur-etroit) + 2 * var(--marge-page));
+  max-width: calc(var(--conteneur-large) + 2 * var(--marge-page));
   margin: 0 auto;
-  padding: 32px var(--marge-page) 96px;
+  padding: 24px var(--marge-page) 72px;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 24px;
 }
 .titre { display: flex; flex-direction: column; gap: 8px; }
+
+/* Paysage (#103) : réglage, messages et actions à gauche ; aperçu à droite, fixe au défilement. */
+.grille {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    'reglage apercu'
+    'messages apercu'
+    'actions apercu';
+  gap: 24px 48px;
+  align-items: start;
+}
+.grilleSansApercu {
+  grid-template-columns: minmax(0, 776px);
+  grid-template-areas: 'reglage' 'messages' 'actions';
+}
+.reglage { grid-area: reglage; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.apercu { grid-area: apercu; position: sticky; top: 16px; min-width: 0; }
+.messages { grid-area: messages; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.messages:empty { display: none; }
+.zoneActions { grid-area: actions; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .fiche { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .horsLimite { color: var(--statut-violation); }
 
@@ -27,8 +49,10 @@
   font-weight: 600;
   font-size: 13px;
   line-height: 18px;
+  transition: border-color var(--transition), transform var(--transition);
 }
-.raccourci:hover { border-color: var(--encre-700); }
+.raccourci:hover { border-color: var(--encre-900); background: var(--fond-creux); }
+.raccourci:active { transform: translateY(1px); }
 .raccourci[aria-pressed='true'] { background: var(--encre-900); border-color: var(--encre-900); color: var(--inverse-texte); }
 .iconeConforme { color: var(--statut-conforme); }
 .raccourci[aria-pressed='true'] .iconeConforme { color: var(--inverse-texte); }
@@ -44,7 +68,8 @@
   pointer-events: none;
 }
 .piste { position: absolute; left: 0; right: 0; top: 32px; height: 4px; border-radius: 2px; background: var(--trait-moyen); }
-.pisteRemplie { height: 4px; border-radius: 2px; background: var(--encre-900); }
+.pisteRemplie { height: 4px; border-radius: 2px; background: var(--encre-900); transition: background-color var(--transition); }
+.pisteHorsLimite { background: var(--statut-violation); }
 .entreeCurseur {
   position: absolute;
   left: 0;
@@ -67,6 +92,8 @@
   border-radius: 11px;
   border: 2px solid var(--encre-900);
   background: var(--fond-carte);
+  cursor: grab;
+  transition: box-shadow var(--transition), transform var(--transition);
 }
 .entreeCurseur::-moz-range-thumb {
   width: 18px;
@@ -74,14 +101,27 @@
   border-radius: 11px;
   border: 2px solid var(--encre-900);
   background: var(--fond-carte);
+  cursor: grab;
+  transition: box-shadow var(--transition), transform var(--transition);
 }
+/* Retour visuel (#103) : halo au survol, poignée agrandie pendant le glissement. */
+.entreeCurseur:hover::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(26, 23, 18, 0.1); }
+.entreeCurseur:hover::-moz-range-thumb { box-shadow: 0 0 0 6px rgba(26, 23, 18, 0.1); }
+.entreeCurseur:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.15); box-shadow: 0 0 0 8px rgba(26, 23, 18, 0.14); }
+.entreeCurseur:active::-moz-range-thumb { cursor: grabbing; transform: scale(1.15); box-shadow: 0 0 0 8px rgba(26, 23, 18, 0.14); }
 .entreeCurseur:focus-visible { outline: none; }
 .entreeCurseur:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
 .entreeCurseur:focus-visible::-moz-range-thumb { outline: 2px solid var(--accent-bleu); outline-offset: 2px; }
 .zones { position: absolute; left: 0; right: 0; top: 50px; height: 6px; }
 .zones span { position: absolute; top: 0; height: 6px; min-width: 2px; }
 .zoneCompatible { background: var(--statut-conforme); }
-.zoneHors { background: var(--statut-violation-teinte); }
+/* Zone hors limite hachurée en rouge (#103) : la teinte seule était à 1,1:1 sur le papier. */
+.zoneHors,
+.carreHors {
+  background: repeating-linear-gradient(-45deg, var(--statut-violation) 0 2px, var(--statut-violation-teinte) 2px 5px);
+  outline: 1px solid var(--statut-violation);
+  outline-offset: -1px;
+}
 .graduations { position: absolute; left: 0; right: 0; top: 62px; }
 .graduations span {
   position: absolute;
@@ -98,7 +138,7 @@
 .legendeZones { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--encre-700); font-size: 13px; line-height: 18px; }
 .legendeZones li { display: inline-flex; align-items: center; gap: 6px; }
 .carreCompatible { width: 16px; height: 6px; background: var(--statut-conforme); }
-.carreHors { width: 16px; height: 6px; background: var(--statut-violation-teinte); outline: 1px solid var(--statut-violation); outline-offset: -1px; }
+.carreHors { width: 16px; height: 6px; }
 
 .lignesPanier { display: flex; flex-direction: column; }
 .lignePanier {
@@ -144,19 +184,31 @@
 .ajouterTitre { align-self: flex-start; }
 .totalFaux { display: inline-flex; align-items: center; gap: 6px; color: var(--statut-violation); font-weight: 600; }
 
-.effets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.carteEffet {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
+/* Tableau compact « actuel → avec la décision » (#103), à la place des grandes cartes. */
+.tableauEffets {
+  /* position: relative garde l'en-tête « Statut » (masqué, en position absolue) dans la zone qui défile. */
+  position: relative;
+  overflow-x: auto;
   background: var(--fond-carte);
   border: 1px solid var(--trait-fin);
   border-radius: 4px;
 }
-.carteViolation { border-color: var(--statut-violation); }
-.valeursEffet { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.limiteEffet { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.tableauEffets table { width: 100%; border-collapse: collapse; }
+.tableauEffets th,
+.tableauEffets td { padding: 8px 12px; text-align: right; vertical-align: middle; white-space: nowrap; }
+.tableauEffets th:first-child { text-align: left; white-space: normal; }
+.tableauEffets thead th { padding-top: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--trait-fin); }
+.tableauEffets tbody tr + tr { border-top: 1px solid var(--trait-fin); }
+.tableauEffets tbody th { display: flex; flex-direction: column; font-weight: 400; }
+.ligneViolation { background: var(--statut-violation-teinte); box-shadow: inset 3px 0 0 var(--statut-violation); }
+.ligneViolation th .c-500 { color: var(--encre-700); }
+.celluleStatut { width: 1%; }
+/* Le chiffre « avec la décision » clignote quand il change (clé React = valeur). */
+.valeurApres { display: inline-block; padding: 0 4px; border-radius: 2px; animation: changement 0.6s ease-out; }
+@keyframes changement {
+  from { background: var(--accent-bleu-teinte); }
+  to { background: transparent; }
+}
 .provenance { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .actions {
@@ -168,7 +220,19 @@
   border-top: 1px solid var(--trait-fin);
 }
 
+@media (max-width: 1023px) {
+  .grille,
+  .grilleSansApercu {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: 'reglage' 'apercu' 'messages' 'actions';
+  }
+  .grilleSansApercu { grid-template-areas: 'reglage' 'messages' 'actions'; }
+  .apercu { position: static; }
+}
 @media (max-width: 599px) {
-  .effets { grid-template-columns: 1fr; }
   .repereLimite span { font-size: 12px; }
+  .tableauEffets th,
+  .tableauEffets td { padding: 6px 8px; }
+  .tableauEffets thead th { white-space: normal; }
 }

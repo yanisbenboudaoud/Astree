@@ -1,7 +1,10 @@
 /**
  * Points de bascule (#61) sur l'écran Verdict : lus dans le contrat, reliés aux règles du Pacte.
  */
-import contratRobert from '../data/proces/2026-11-15-dfad1e96d34e.json';
+import contratRobert from '../data/proces/2026-11-15-648546b5401b.json';
+import contratAmira from '../data/proces/2026-11-15-46e0edfd53b7.json';
+import contratRobertVecu from '../data/proces/2026-11-15-9ef77e91e564.json';
+import contratMateo from '../data/proces/2026-11-14-51c84bd19c16.json';
 import type { ContratTribunal, PointDeBasculeContrat } from '../api/contrat';
 import { adapterContrat } from '../api/adaptateur';
 import { pointsDeBascule } from '../domaine/verdict';
@@ -24,6 +27,20 @@ describe('points de bascule', () => {
     const contrat = { ...(contratRobert as ContratTribunal) };
     delete contrat.points_de_bascule;
     expect(pointsDeBascule(adapter(contrat))).toEqual([]);
+  });
+
+  it('procès enregistrés : un point par règle calculable en violation, aucun pour une violation documentaire', () => {
+    const regles = (contrat: unknown) => pointsDeBascule(adapter(contrat as ContratTribunal)).map((p) => p.regle);
+    expect(regles(contratRobert)).toEqual(['pire_baisse_max']);
+    expect(regles(contratAmira)).toEqual(['pire_baisse_max', 'plafond_crypto', 'pas_exclusivement_tech']);
+    expect(regles(contratMateo)).toEqual([]);
+  });
+
+  it('Pacte vécu : le point de bascule suit le seuil mesuré', () => {
+    const [classique] = pointsDeBascule(adapter(contratRobert as ContratTribunal));
+    const [vecu] = pointsDeBascule(adapter(contratRobertVecu as ContratTribunal));
+    expect(classique.message).toBe("Conforme jusqu'à 9 % en TSLA, ou avec un seuil de −29,0 % au lieu de −12,0 %");
+    expect(vecu.message).toBe("Conforme jusqu'à 7 % en TSLA, ou avec un seuil de −29,0 % au lieu de −10,2 %");
   });
 
   it('un point par règle en violation, avec son paragraphe et son libellé du Pacte', () => {

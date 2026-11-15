@@ -209,7 +209,11 @@ export interface Profil {
   capital: number;
   debut: string;
   fin: string;
+  /** Inflation du Canada sur la période (#113) ; null sans données macro, absente des tables plus anciennes. */
+  inflation?: InflationPeriode | null;
   actuel: Indicateurs & {
+    /** Rendement annualisé après inflation (relation de Fisher, calculé par Python). */
+    rendementReel?: number | null;
     valeurChuteMax: number;
     valeurDepart: number;
     gain: number;
@@ -229,7 +233,17 @@ export interface SeancesSousLimite {
   au: string | null;
 }
 
+/** IPC du Canada, des mois de référence `moisDebut` à `moisFin` (dernier mois publié, supposé le `publieLe`). */
+export interface InflationPeriode {
+  annuelle: number;
+  moisDebut: string;
+  moisFin: string;
+  publieLe: string;
+}
+
 export interface EntreeSimulation extends Indicateurs {
+  /** Rendement annualisé après inflation avec la décision (#113). */
+  rendementReel?: number | null;
   seances: SeancesSousLimite | null;
   statuts: Record<string, StatutContrat>;
   parts: Record<string, number>;

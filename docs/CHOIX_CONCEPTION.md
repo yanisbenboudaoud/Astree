@@ -261,6 +261,19 @@ Phrase pour le one pager : « Chaque décision jugée par Astrée devient un pro
 
 ---
 
+## Choix 16 — Le pouvoir d'achat : rendement réel et date de publication de l'IPC
+
+**Décision.** Les pièces de `simuler_portefeuille` donnent, en plus du rendement en dollars, l'**inflation du Canada** sur la période et le **rendement réel** avant et après la décision : (1 + rendement) ÷ (1 + inflation) − 1 (#111). L'écran Décision l'affiche à côté du rendement en dollars (#113). Exemple : pour le profil de test prudent, +9,3 % par an en dollars, mais +5,5 % après une inflation de 3,5 % par an ; avec 30 % de TSLA, +8,1 %.
+
+**Pourquoi.**
+- L'atelier a insisté sur le **risque d'inflation** : un portefeuille prudent peut perdre bien plus en pouvoir d'achat qu'en dollars. En 2022, le portefeuille actuel du profil prudent fait −2,6 % en dollars, mais −8,4 % après inflation.
+- **Calculé par Python, pas par l'agent** : la soustraction naïve (+12,0 − 3,5 = 8,5 %) est fausse, et le Greffier la rejette comme nombre dérivé (`CLAUDE.md`, section 4 ter, règle 6).
+- **Aucune valeur avant sa publication** (énoncé, p. 14 ; `CLAUDE.md`, section 6) : le fichier date l'IPC au mois de référence, et Statistique Canada le publie vers le troisième mardi du mois suivant. Hypothèse prudente : l'IPC du mois M est connu le dernier jour du mois M + 1. Une mesure n'utilise que les mois publiés à sa date (l'extraction des données) : pour une période qui finit le 12 novembre 2026, l'inflation s'arrête à septembre 2026, même si le fichier contenait octobre. La période d'inflation est donc décalée de deux mois sur celle des prix, ce que dit le traitement de la pièce.
+
+**Alternatives écartées.** Utiliser le dernier mois du fichier, quel qu'il soit : juste aujourd'hui par hasard, faux dès qu'on ajoute une valeur non encore publiée. Interpoler les mois manquants : ce serait inventer une donnée.
+
+---
+
 ## Limites connues de cette conception
 
 - **Les seuils des Pactes sont des hypothèses** choisies par l'équipe, pas des recommandations réglementaires.

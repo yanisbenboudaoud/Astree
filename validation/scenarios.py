@@ -22,7 +22,10 @@ from pathlib import Path
 from typing import Any, Callable, Iterator
 from unittest import mock
 
+import pandas as pd
+
 from pipeline import categories as module_categories
+from pipeline import macro
 from pipeline.calibrage import RESTE, VEND, calibrer, episodes_de_baisse, prochaine_question
 from pipeline.chiffres import trier_arguments
 from pipeline.donnees import ErreurDonnees
@@ -579,6 +582,31 @@ def scenarios_macro() -> list[Resultat]:
                  f"{complete['ratio_sharpe_actuel']:.2f} → {complete['ratio_sharpe']:.2f}".replace(".", ","),
                  complete["ratio_sharpe"] < complete["ratio_sharpe_actuel"]),
     ]
+    reel_actuel = (1 + complete["rendement_annuel_actuel"]) / (1 + complete["inflation_annuelle"]) - 1
+    reel_apres = (1 + complete["rendement_annuel"]) / (1 + complete["inflation_annuelle"]) - 1
+    resultats.append(Resultat(
+        groupe, "Rendement réel annualisé de la période, avant et après la décision (#113)",
+        "(1 + rendement) ÷ (1 + inflation) − 1 pour les deux portefeuilles",
+        f"{pourcent(complete['rendement_annuel_actuel'])} → {pourcent(complete['rendement_annuel'])} en dollars ; "
+        f"{pourcent(complete['rendement_reel_annuel_actuel'])} → {pourcent(complete['rendement_reel_annuel'])} "
+        f"après une inflation de {pourcent(complete['inflation_annuelle'])}/an",
+        round(reel_actuel, 6) == complete["rendement_reel_annuel_actuel"]
+        and round(reel_apres, 6) == complete["rendement_reel_annuel"],
+    ))
+    # Un IPC d'octobre 2026 ajouté au fichier : publié fin novembre, après l'extraction (13 novembre).
+    series = macro._series()
+    ipc = series[macro.SERIE_INFLATION].copy()
+    ipc[pd.Timestamp("2026-10-01")] = 0.50
+    with mock.patch("pipeline.macro._series", return_value={**series, macro.SERIE_INFLATION: ipc.sort_index()}):
+        avec_octobre = piece_simulation("P2", portefeuille, decision)
+    resultats.append(Resultat(
+        groupe, "IPC présent dans le fichier mais pas encore publié (#113)",
+        "ignoré : la mesure s'arrête au dernier mois publié à l'extraction",
+        f"inflation {pourcent(avec_octobre['valeurs']['inflation_annuelle'])}/an, IPC jusqu'à "
+        f"{'2026-09' if 'à 2026-09' in avec_octobre['traitement'] else 'un mois non publié'}",
+        avec_octobre["valeurs"]["inflation_annuelle"] == complete["inflation_annuelle"]
+        and "à 2026-09" in avec_octobre["traitement"],
+    ))
     with mock.patch("pipeline.macro._series", side_effect=ErreurDonnees("macro_rates.csv absent")):
         sans = piece_simulation("P2", portefeuille, decision)
     resultats.append(Resultat(

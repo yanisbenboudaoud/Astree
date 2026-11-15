@@ -74,7 +74,8 @@ export interface Effet {
 
 /**
  * Lignes « actuel → avec la décision » de l'écran Décision : plafonds concernés et chute maximale
- * (règles du Pacte), puis rendement, volatilité et rendement de 2022 (#103), déjà dans les tables.
+ * (règles du Pacte), puis rendement, rendement après inflation (#113), volatilité et rendement de 2022
+ * (#103), déjà dans les tables.
  */
 export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decision: DecisionUI): Effet[] {
   const effets: Effet[] = [];
@@ -110,6 +111,18 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
     avant: pourcent(profil.actuel.rendement, { signe: true }),
     apres: pourcent(entree.rendement, { signe: true }),
   });
+  // Pouvoir d'achat (#113) : rendement après inflation, calculé par Python ; absent sans données macro.
+  const reelAvant = profil.actuel.rendementReel;
+  const reelApres = entree.rendementReel;
+  if (profil.inflation && typeof reelAvant === 'number' && typeof reelApres === 'number') {
+    effets.push({
+      libelle: 'Rendement après inflation',
+      indicateur: 'rendement_reel',
+      detail: `inflation de ${pourcent(profil.inflation.annuelle)}/an`,
+      avant: pourcent(reelAvant, { signe: true }),
+      apres: pourcent(reelApres, { signe: true }),
+    });
+  }
   effets.push({
     libelle: 'Volatilité annuelle',
     indicateur: 'volatilite',

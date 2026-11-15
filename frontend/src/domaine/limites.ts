@@ -13,7 +13,7 @@ import { date } from '../lib/format';
 export const PERIODE = { debut: '2021-11-12', fin: '2026-11-12' };
 
 export type Indicateur =
-  | 'valeur' | 'rendement' | 'volatilite' | 'pire_baisse' | 'rendement_2022'
+  | 'valeur' | 'rendement' | 'rendement_reel' | 'volatilite' | 'pire_baisse' | 'rendement_2022'
   | 'part_categories' | 'taille_max' | 'correlation' | 'recuperation' | 'seuil_pacte';
 
 /** Ce que mesure un indicateur, et sa limite, en une phrase chacun (bulle ⓘ). */
@@ -25,6 +25,10 @@ export const INDICATEURS: Record<Indicateur, { mesure: string; limite: string }>
   rendement: {
     mesure: 'Gain moyen par an, intérêts composés, entre le premier et le dernier jour de la période.',
     limite: 'Il dépend beaucoup des dates de début et de fin : une autre période donnerait un autre chiffre.',
+  },
+  rendement_reel: {
+    mesure: 'Gain moyen par an une fois retirée la hausse des prix au Canada (IPC) : ce que le portefeuille a gagné en pouvoir d’achat. (1 + rendement) ÷ (1 + inflation) − 1.',
+    limite: 'C’est l’inflation moyenne du Canada, pas celle de vos propres dépenses. L’indice d’un mois n’est publié que le mois suivant : la mesure s’arrête au dernier mois publié.',
   },
   volatilite: {
     mesure: 'Ampleur des variations quotidiennes, ramenée à l’année.',

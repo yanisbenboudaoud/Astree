@@ -32,13 +32,12 @@ from __future__ import annotations
 import copy
 from typing import Any, Callable
 
-from pipeline.agent_profil import chemin_profil
+from pipeline.agent_profil import charger_profil
 from pipeline.cadre_simulation import controle_cadre_simulation
 from pipeline.chiffres import controle_verifier_chiffres
 from pipeline.debat import debattre
 from pipeline.llm import converser_avec_outils
 from pipeline.orchestrateur import instruire_question
-from pipeline.pacte import charger_pacte
 from pipeline.tribunal import bornes_periode, prochain_numero, verifier_cote
 
 LONGUEUR_MAX_QUESTION = 500  # une question tient en une ou deux phrases
@@ -72,7 +71,7 @@ def interroger(
     if not contrat.get("decision"):
         raise QuestionInvalide("Ce procès n'a pas de décision : il n'y a rien à contre-interroger")
 
-    profil = charger_pacte(chemin_profil(contrat["persona"]))
+    profil = charger_profil(contrat["persona"])
     instruction = instruire_question(contrat["decision"], profil, question, contrat["pieces"],
                                      prochain_numero(contrat["pieces"]), converser=converser)
     pieces = [*contrat["pieces"], *instruction.pieces]

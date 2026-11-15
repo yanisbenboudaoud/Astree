@@ -56,6 +56,7 @@ CONFIGURATION = {
 ORIGINES_INTERFACE = ["http://localhost:5173"]
 STATEMENT_URL = "function-url-publique"
 STATEMENT_INVOCATION = "function-url-publique-invocation"
+ROUTES = "/tribunal, /verdict, /question, /verifier, /proces-verbal, /questionnaire, /profil"  # lambda_tribunal.ROUTES
 CONFIANCE_LAMBDA = {
     "Version": "2012-10-17",
     "Statement": [{"Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"},
@@ -203,7 +204,7 @@ def main(arguments: list[str] | None = None) -> int:
     session = boto3.Session(region_name=REGION)
     lam = session.client("lambda")
     if options.url_seulement:
-        print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST /tribunal et /verdict)")
+        print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST : {ROUTES})")
         return 0
     bucket = nom_bucket(session.client("sts").get_caller_identity()["Account"])
     s3, iam = session.client("s3"), session.client("iam")
@@ -215,7 +216,7 @@ def main(arguments: list[str] | None = None) -> int:
     zip_lambda = options.zip or construire()
     deployer_fonction(lam, zip_lambda.read_bytes(), role_arn, bucket)
     regler_concurrence(lam)
-    print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST /tribunal et /verdict)")
+    print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST : {ROUTES})")
     return 0
 
 

@@ -19,11 +19,13 @@ aws login                                                   # une fois par sessi
   5. Function URL.
 
   `--sans-donnees` évite de renvoyer les CSV.
-- [`lambda_tribunal.py`](lambda_tribunal.py) : le point d'entrée (handler `lambda_tribunal.handler`, à la racine du zip). Il expose quatre routes :
-  - `POST /tribunal` `{"profil", "demande"}`, plus `"calibrage": {"reponses": {…}}` facultatif (Pacte vécu, #68 ; des réponses invalides donnent un 400 sans appel Bedrock), renvoie le contrat, archivé dans `traces/<date>/<id>.json`, avec l'identifiant dans l'en-tête `x-proces-id` ;
+- [`lambda_tribunal.py`](lambda_tribunal.py) : le point d'entrée (handler `lambda_tribunal.handler`, à la racine du zip). Il expose sept routes (`/proces-verbal` : fiche 057) :
+  - `POST /tribunal` `{"profil", "demande"}` (`profil` : un profil de `personas/` ou un profil créé par `/profil`), plus `"calibrage": {"reponses": {…}}` facultatif (Pacte vécu, #68 ; des réponses invalides donnent un 400 sans appel Bedrock), renvoie le contrat, archivé dans `traces/<date>/<id>.json`, avec l'identifiant dans l'en-tête `x-proces-id` ;
   - `POST /verdict` `{"id", "verdict"}` archive le procès avec le choix de l'utilisateur dans `verdicts/<profil>/<id>.json` (relu par l'outil de jurisprudence, #56) ;
   - `POST /question` `{"id", "question"}` : contre-interrogatoire (#55). Relit `traces/<date>/<id>.json`, répond à la question, réarchive le contrat complété au même endroit et renvoie `{"id", "echange", "pieces"}` (l'échange et les pièces ajoutées). Appels Bedrock payants, comme `/tribunal`.
   - `POST /verifier` `{"id", "texte", "pieces"}` : « Trompez le Greffier » (#69). Relit `traces/<date>/<id>.json` et vérifie chaque nombre du texte contre les pièces citées (`detailler_argument`, outil 6). Renvoie `{"valide", "motif", "nombres", "compte"}`, chaque nombre trouvé (avec sa pièce) ou introuvable (avec son motif). **Aucun appel Bedrock** : gratuit, environ 50 ms une fois la Lambda démarrée. Garde-fous du point d'accès public : texte de 600 caractères au plus, 10 pièces au plus, 30 vérifications par minute et par adresse IP (en mémoire de chaque instance, réponse 429 au-delà).
+  - `POST /questionnaire` `{}` : les 16 questions du questionnaire investisseur (#84), avec les vrais chiffres des cartes de portefeuilles. **Aucun appel Bedrock.**
+  - `POST /profil` `{"reponses", "capital", "portefeuille", "nom", "modifications"}` (#87) : Python construit le profil à partir des réponses (`profil_depuis_reponses`), applique les seuils choisis par l'utilisateur (`modifications` : `{"pire_baisse_max": -0.15}`), le valide et le range dans `profils/<id>.json`. L'identifiant (`investisseur_<12 hex>`) est généré par la Lambda, jamais tiré du nom saisi, et l'écriture est conditionnelle (`IfNoneMatch`) : un profil créé n'écrase jamais rien. Réponse 201 `{"id", "profil", "bareme", "contradictions", "archive"}` ; 400 avec `details` si une réponse est refusée. **Aucun appel Bedrock.** Garde-fous : corps de 20 000 caractères, 31 lignes de portefeuille, nom de 40 caractères, 10 modifications, 10 profils par minute et par adresse IP (réponse 429 au-delà).
 
 ## Lambda
 
@@ -90,6 +92,7 @@ Lambda `alphaforge-tribunal`, appelée par sa Function URL avec `tester_function
 | CSV lus une seule fois | « Données chargées en 0.5 s » n'apparaît qu'au démarrage dans CloudWatch ; les appels suivants n'ont pas de temps d'initialisation |
 | Mémoire | 234 Mo utilisés au maximum sur 1024 Mo |
 | Archivage | Chaque procès est écrit dans `traces/<date>/<id>.json` du bucket ; l'identifiant revient dans l'en-tête `x-proces-id` |
+| Profils créés | `profils/<id>.json` du bucket (#87) ; relus par `/tribunal`, `/question` et la jurisprudence. Les droits S3 existants (`GetObject`, `PutObject` sur le bucket) suffisent |
 | Contrat | La réponse passe `python -m contrat.valider` |
 | Concurrence réservée | 2 |
 

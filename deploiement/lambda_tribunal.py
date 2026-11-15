@@ -1,14 +1,23 @@
 """Point d'entrée de la Lambda du Tribunal (#13), derrière une Lambda Function URL.
 
-Sept routes, en POST, avec un corps JSON :
+Huit routes, en POST, avec un corps JSON :
 
-- ``/tribunal`` ``{"profil": "<id>", "demande": "<texte>"}`` : fait le procès. ``profil`` est
-  un profil de démonstration (``personas/``) ou un profil créé par ``/profil``. Champ
-  facultatif ``"calibrage": {"reponses": {"<id de question>": "<réponse>"}}`` : les
-  réponses du Pacte vécu (#68), datées du jour par la Lambda.
-  (``juger_decision``) et renvoie le contrat JSON tel quel. Le contrat est archivé
-  dans S3 (``traces/<date>/<id>.json``) et son identifiant est renvoyé dans
-  l'en-tête ``X-Proces-Id`` : le format du contrat ne change pas.
+- ``/tribunal`` ``{"profil": "<id>", "demande": "<texte>"}`` : fait le procès
+  (``juger_decision``). ``profil`` est un profil de démonstration (``personas/``) ou un
+  profil créé par ``/profil``. Champ facultatif ``"calibrage": {"reponses": {"<id de
+  question>": "<réponse>"}}`` : les réponses du Pacte vécu (#68), datées du jour par la
+  Lambda. Le contrat est archivé dans S3 (``traces/<date>/<id>.json``) et son identifiant
+  est renvoyé dans l'en-tête ``X-Proces-Id`` : le format du contrat ne change pas.
+
+  - Avec ``"progression": true`` (#90, l'interface) : la demande est vérifiée sans
+    Bedrock, puis la Lambda **s'invoque elle-même en asynchrone** pour faire le procès
+    et répond tout de suite **202** ``{"id": "<id>"}``. Pendant le procès, chaque étape
+    réelle est publiée dans ``progression/<id>.json`` (``pipeline.progression``).
+  - Sans ce champ : ancien comportement, la réponse est le contrat (200), à la fin du
+    procès. Il sert aux scripts et à une interface pas encore à jour.
+- ``/progression`` ``{"id": "<id>"}`` (#90) : relit S3 et renvoie la progression du procès
+  en cours, ou ``{"id", "statut": "termine", "contrat": {...}}`` quand il est archivé.
+  Sans Bedrock ; débit limité par adresse IP.
 - ``/verdict`` ``{"id": "<id>", "verdict": "maintenu" | "modifie" | "pacte_ajuste"}`` :
   archive la décision avec ses pièces et le choix de l'utilisateur
   (``verdicts/<profil>/<id>.json``, relu par l'outil de jurisprudence, #56). Un nouveau
@@ -35,6 +44,11 @@ Sept routes, en POST, avec un corps JSON :
   un profil de démonstration. Sans Bedrock. Réponse 201 : ``{id, profil, bareme,
   contradictions}``. Débit limité par adresse IP, car le point d'accès est public.
 
+Le procès lancé en arrière-plan arrive par un événement interne
+``{"action": "juger_en_arriere_plan", "id": …}``, envoyé par la Lambda elle-même. Un
+événement de la Function URL ne peut pas lui ressembler : il porte toujours
+``requestContext``, et le corps de la requête reste dans ``body``.
+
 Le pipeline est importé et les CSV sont lus au niveau du module, hors du
 handler : une Lambda déjà démarrée les garde en mémoire (caches de
 ``pipeline/donnees.py``). Le journal CloudWatch le montre : la ligne
@@ -53,6 +67,7 @@ import time
 import traceback
 import uuid
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any
 
@@ -82,10 +97,15 @@ from pipeline.questionnaire import (
     questions,
     valider_reponses,
 )
-from pipeline.tribunal import bornes_periode, juger_decision
+from pipeline.progression import Progression
+from pipeline.tribunal import bornes_periode, juger_decision, verifier_avant_proces
 
 VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # CLAUDE.md, section 5
-ROUTES = ("/tribunal", "/verdict", "/question", "/verifier", "/proces-verbal", "/questionnaire", "/profil")
+ROUTES = ("/tribunal", "/progression", "/verdict", "/question", "/verifier", "/proces-verbal",
+          "/questionnaire", "/profil")
+ACTION_JUGER = "juger_en_arriere_plan"  # événement interne : procès lancé par /tribunal (#90)
+DEBIT_MAX_PROGRESSION = 90  # relectures par minute et par adresse IP (l'interface relit toutes les 1,5 s)
+_appels_progression: dict[str, deque] = {}
 LONGUEUR_MAX_DEMANDE = 2000  # une demande d'investissement tient en quelques phrases
 REPONSES_MAX_CALIBRAGE = 20  # le Pacte vécu pose une dizaine de questions au plus
 FORMAT_ID = re.compile(r"\d{4}-\d{2}-\d{2}-[0-9a-f]{12}")
@@ -126,6 +146,7 @@ except ErreurDonnees as erreur:  # chaque procès renverra la même erreur, lisi
     print(f"Données non chargées au démarrage : {erreur}")
 
 _s3 = None
+_lambda = None
 
 
 def _client_s3():
@@ -135,22 +156,36 @@ def _client_s3():
     return _s3
 
 
+def _client_lambda():
+    global _lambda
+    if _lambda is None:
+        _lambda = boto3.client("lambda")
+    return _lambda
+
+
 # --- Handler -------------------------------------------------------------------
 
 
 def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
-    """Appelé par Lambda pour chaque requête de la Function URL (format d'événement 2.0)."""
+    """Appelé par Lambda pour chaque requête de la Function URL (format d'événement 2.0).
+
+    Ou pour un procès lancé en arrière-plan par ``/tribunal`` (événement interne, #90).
+    """
+    if event.get("action") == ACTION_JUGER and "requestContext" not in event:
+        return juger_en_arriere_plan(event)
     methode = event.get("requestContext", {}).get("http", {}).get("method", "")
     chemin = event.get("rawPath", "")
     if chemin not in ROUTES:
         return _reponse(404, {"erreur": f"Route inconnue : {', '.join(ROUTES)}"})
     if methode != "POST":
         return _reponse(405, {"erreur": "Seule la méthode POST est acceptée"})
+    adresse = event.get("requestContext", {}).get("http", {}).get("sourceIp", "inconnue")
     try:
         corps = _lire_corps(event)
-        adresse = event.get("requestContext", {}).get("http", {}).get("sourceIp", "inconnue")
         if chemin == "/tribunal":
             return _tribunal(corps)
+        if chemin == "/progression":
+            return _progression(corps, adresse)
         if chemin == "/question":
             return _question(corps)
         if chemin == "/verifier":
@@ -178,6 +213,8 @@ def _tribunal(corps: dict[str, Any]) -> dict[str, Any]:
     if len(demande) > LONGUEUR_MAX_DEMANDE:
         raise RequeteInvalide(f"Demande trop longue : {LONGUEUR_MAX_DEMANDE} caractères au plus")
     calibrage = _lire_calibrage(corps.get("calibrage"))
+    if corps.get("progression") is True:
+        return _demarrer_proces(profil, demande, calibrage)
 
     try:
         contrat = juger_decision(profil, demande, calibrage=calibrage)
@@ -202,6 +239,124 @@ def _tribunal(corps: dict[str, Any]) -> dict[str, Any]:
         # Le procès a coûté des appels Bedrock : on le renvoie quand même, sans identifiant.
         print(f"Archivage du procès impossible : {erreur}")
     return _reponse(200, contrat, en_tetes)
+
+
+def _demarrer_proces(profil: str, demande: str, calibrage: dict[str, Any] | None) -> dict[str, Any]:
+    """``/tribunal`` avec progression (#90) : vérifie, publie l'état initial, lance le procès et répond 202."""
+    try:
+        verifier_avant_proces(profil, calibrage)  # sans Bedrock : une demande invalide est refusée tout de suite
+    except ErreurCalibrage as erreur:
+        return _reponse(400, {"erreur": str(erreur)})
+    except ProfilInconnu as erreur:
+        return _reponse(404, {"erreur": str(erreur)})
+    except PacteInvalide as erreur:
+        return _reponse(422, {"erreur": "Pacte du profil invalide", "details": erreur.erreurs})
+    except ErreurDonnees as erreur:
+        return _reponse(422, {"erreur": str(erreur)})
+    fonction = os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+    if not fonction:
+        return _reponse(500, {"erreur": "Procès en arrière-plan impossible hors de la Lambda"})
+
+    identifiant = nouvel_identifiant()
+    progression = Progression(identifiant, lambda document: _ecrire(cle_progression(identifiant), document))
+    progression.publier_etat_initial()  # /progression le trouve dès la réponse 202
+    evenement = {"action": ACTION_JUGER, "id": identifiant, "profil": profil, "demande": demande,
+                 "calibrage": calibrage}
+    try:
+        _client_lambda().invoke(FunctionName=fonction, InvocationType="Event",
+                                Payload=json.dumps(evenement, ensure_ascii=False).encode("utf-8"))
+    except ClientError as erreur:
+        print(f"Lancement du procès en arrière-plan impossible : {erreur}")
+        progression.echouer("Le procès n'a pas pu démarrer : réessayez dans un instant")
+        return _reponse(503, {"erreur": "Le Tribunal n'a pas pu démarrer le procès : réessayez dans un instant"})
+    return _reponse(202, {"id": identifiant, "statut": "en_cours"}, {EN_TETE_ID: identifiant})
+
+
+def juger_en_arriere_plan(evenement: dict[str, Any]) -> dict[str, Any]:
+    """Fait le procès lancé par ``/tribunal`` et publie sa progression réelle dans S3 (#90).
+
+    Le contrat est archivé **avant** que la progression passe à « termine » : quand
+    l'interface lit « termine », le contrat est déjà là. Toute erreur est écrite dans
+    la progression avec son motif, et la fonction se termine normalement : Lambda ne
+    relance donc jamais un procès raté (il coûterait de nouveaux appels Bedrock).
+    """
+    identifiant = evenement.get("id")
+    if not isinstance(identifiant, str) or not FORMAT_ID.fullmatch(identifiant):
+        print(f"Procès en arrière-plan ignoré : identifiant invalide {identifiant!r}")
+        return {"statut": "ignore"}
+    ecrivain = EcrivainProgression(cle_progression(identifiant))
+    progression = Progression(identifiant, ecrivain.publier)
+    try:
+        contrat = juger_decision(evenement.get("profil"), evenement.get("demande"),
+                                 calibrage=evenement.get("calibrage"), signaler=progression.signaler)
+        _ecrire(cle_trace(identifiant), contrat)
+        progression.terminer()
+    except Exception as erreur:  # noqa: BLE001 - le motif va dans la progression, le détail dans CloudWatch
+        progression.echouer(motif_erreur(erreur))
+    finally:
+        ecrivain.fermer()
+    return {"id": identifiant, "statut": progression.document["statut"]}
+
+
+def motif_erreur(erreur: Exception) -> str:
+    """Motif affiché par l'interface quand un procès en arrière-plan s'arrête."""
+    if isinstance(erreur, (ErreurCalibrage, ProfilInconnu, ErreurDonnees)):
+        return str(erreur)
+    if isinstance(erreur, PacteInvalide):
+        return "Pacte du profil invalide"
+    if isinstance(erreur, ClientError):
+        print(f"Archive S3 indisponible : {erreur}")
+        return "Archive S3 indisponible : le procès n'a pas pu être archivé"
+    traceback.print_exc()
+    return "Erreur interne : le procès n'a pas pu aller au bout (détail dans le journal CloudWatch)"
+
+
+class EcrivainProgression:
+    """Publie la progression dans S3 depuis un fil à part : le procès n'attend jamais S3.
+
+    Les versions partent dans l'ordre ; si plusieurs attendent (rafale d'étapes), seule
+    la plus récente est écrite. Une écriture ratée est journalisée, sans arrêter le procès.
+    """
+
+    def __init__(self, cle: str):
+        self.cle = cle
+        self._executeur = ThreadPoolExecutor(max_workers=1)
+        self._derniere = 0
+
+    def publier(self, document: dict[str, Any]) -> None:
+        self._derniere += 1  # appelé sous le verrou de Progression : versions numérotées dans l'ordre
+        self._executeur.submit(self._ecrire, self._derniere, document)
+
+    def _ecrire(self, version: int, document: dict[str, Any]) -> None:
+        if version < self._derniere:
+            return  # une version plus récente est déjà en attente
+        try:
+            _ecrire(self.cle, document)
+        except Exception as erreur:  # noqa: BLE001 - la progression est un affichage : le procès continue
+            print(f"Progression non publiée : {erreur}")
+
+    def fermer(self) -> None:
+        """Attend la dernière écriture (la Lambda est figée dès que le handler rend la main)."""
+        self._executeur.shutdown(wait=True)
+
+
+def _progression(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
+    """Progression d'un procès lancé par ``/tribunal`` (#90), ou son contrat s'il est archivé."""
+    if trop_d_appels(_appels_progression, DEBIT_MAX_PROGRESSION, adresse):
+        return _reponse(429, {"erreur": f"Trop de relectures : {DEBIT_MAX_PROGRESSION} par minute au plus"})
+    identifiant = corps.get("id")
+    if not isinstance(identifiant, str) or not FORMAT_ID.fullmatch(identifiant):
+        raise RequeteInvalide(f"Champ « id » invalide : celui de l'en-tête {EN_TETE_ID} du procès")
+    try:
+        document = _lire(cle_progression(identifiant))
+    except ClientError as erreur:
+        if _absent(erreur):
+            return _reponse(404, {"erreur": f"Aucun procès en cours avec l'identifiant {identifiant}"})
+        raise
+    if document.get("statut") == "termine":
+        contrat = _lire(cle_trace(identifiant))
+        return _reponse(200, {"id": identifiant, "statut": "termine", "contrat": contrat}, {EN_TETE_ID: identifiant})
+    return _reponse(200, document, {EN_TETE_ID: identifiant})
 
 
 def _lire_calibrage(brut: Any) -> dict[str, Any] | None:
@@ -399,6 +554,10 @@ def nouvel_identifiant(maintenant: datetime | None = None) -> str:
 
 def cle_trace(identifiant: str) -> str:
     return f"traces/{identifiant[:10]}/{identifiant}.json"
+
+
+def cle_progression(identifiant: str) -> str:
+    return f"progression/{identifiant}.json"
 
 
 def _bucket() -> str:

@@ -253,7 +253,7 @@ class FauxDebat:
     def __init__(self):
         self.corrections = []
 
-    def debattre(self, dossier):
+    def debattre(self, dossier, signaler_etape=None):
         simulation = next((p for p in dossier["pieces"] if "pire_baisse_actuelle" in p.get("valeurs", {})), None)
         if dossier["decision"]["type"] == "reallocation":  # arguments sans chiffre, toujours valides
             requisitoire = [argument("Votre Pacte limite la part des cryptoactifs.", "P1")]
@@ -264,6 +264,8 @@ class FauxDebat:
                           argument("Le portefeuille rapporterait 4 fois plus.", simulation["id"])]
         trace = [{"etape": role, "outil": "bedrock", "entree": [p["id"] for p in dossier["pieces"]],
                   "sortie": arguments} for role, arguments in [("procureur", requisitoire), ("avocat", plaidoirie)]]
+        for etape in reversed(trace) if signaler_etape else ():  # l'Avocat répond le premier, comme en vrai parfois
+            signaler_etape(etape)
         return DebatResultat(requisitoire, plaidoirie, trace)
 
     def corriger_argument(self, role, dossier, arg, motif):
@@ -359,8 +361,8 @@ def test_argument_qui_conseille_jamais_affiche_comme_valide(monkeypatch, faux_de
     monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
     debattre = faux_debat.debattre
 
-    def debat_avec_un_conseil(dossier):
-        resultat = debattre(dossier)
+    def debat_avec_un_conseil(dossier, signaler_etape=None):
+        resultat = debattre(dossier, signaler_etape)
         resultat.requisitoire.append(argument("Vous devriez vendre TSLA.", "P1"))
         return resultat
     monkeypatch.setattr(tribunal, "debattre", debat_avec_un_conseil)
@@ -432,7 +434,8 @@ def test_points_de_bascule_verses_d_office_avant_le_debat(monkeypatch, faux_deba
     monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
     vues = []
     monkeypatch.setattr(tribunal, "debattre",
-                        lambda dossier: vues.append([p["outil"] for p in dossier["pieces"]]) or faux_debat.debattre(dossier))
+                        lambda dossier, signaler_etape=None: vues.append([p["outil"] for p in dossier["pieces"]])
+                        or faux_debat.debattre(dossier, signaler_etape))
     contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla", converser=FauxModele())
 
     piece = next(p for p in contrat["pieces"] if p["outil"] == "points_de_bascule")
@@ -470,6 +473,64 @@ def test_juger_decision_sans_decision_ne_calcule_rien(monkeypatch):
     assert contrat["decision"] is None
     assert [p["id"] for p in contrat["pieces"]] == ["P1"]
     assert contrat["controles"] and all(c["statut"] == "a_verifier" for c in contrat["controles"])
+
+
+# --- Progression en direct (#90) --------------------------------------------------
+
+
+def test_orchestrateur_signale_chaque_appel_au_moment_ou_il_est_fait():
+    signalees, deja_signalees = [], []
+    modele = FauxModele([demande("indicateurs_actif", ticker="TSLA")],
+                        [demande("simuler_portefeuille", **SIMULATION_DECISION)])
+
+    def converser(*args):
+        deja_signalees.append(len(signalees))
+        return modele(*args)
+
+    resultat = instruire_dossier(DECISION, PROFIL, premier_numero=2, converser=converser,
+                                 signaler_etape=signalees.append)
+    assert signalees == resultat.trace  # une fois par appel, dans l'ordre
+    assert deja_signalees == [0, 1, 2]  # chaque appel est signalé avant le tour suivant du modèle
+
+
+RANG_DE_L_ETAPE = {"agent_profil": 0, "calibrage": 0, "orchestrateur": 1, "procureur": 2, "avocat": 2, "greffier": 3}
+
+
+def test_juger_decision_signale_les_phases_dans_l_ordre_sans_changer_le_contrat(monkeypatch):
+    monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
+
+    def juger(signaler=None):
+        return juger_decision("robert", "Je veux mettre 30 % en Tesla", signaler=signaler,
+                              converser=FauxModele([demande("indicateurs_actif", ticker="TSLA")]))
+
+    evenements = []
+    avec = juger(evenements.append)
+    assert avec == juger()  # le contrat est identique avec ou sans signaler
+
+    phases = [e["phase"] for e in evenements if e["type"] == "phase"]
+    assert phases == ["agent_profil", "orchestrateur", "debat", "greffier"]
+    etapes = [e["etape"] for e in evenements if e["type"] == "etape"]
+    # Chaque étape du contrat est signalée une seule fois (le Procureur et l'Avocat dans l'ordre de leur réponse).
+    assert sorted(map(json.dumps, etapes)) == sorted(map(json.dumps, avec["trace"]))
+    assert [e for e in etapes if e["etape"] == "orchestrateur"] == [
+        e for e in avec["trace"] if e["etape"] == "orchestrateur"]  # un signal par appel d'outil, dans l'ordre
+    # Chaque étape arrive pendant sa phase (une correction du Greffier, pendant la phase du Greffier).
+    phase_courante = None
+    for evenement in evenements:
+        if evenement["type"] == "phase":
+            phase_courante = phases.index(evenement["phase"])
+        elif evenement["type"] == "etape":
+            etape = evenement["etape"]
+            rang = 3 if etape["outil"] == "bedrock_correction" else RANG_DE_L_ETAPE[etape["etape"]]
+            assert rang == phase_courante, etape
+    # Après la première plaidoirie (ici l'Avocat, dans le faux débat), on dit qui plaide encore.
+    activites = [e["activite"] for e in evenements if e["type"] == "activite"]
+    assert "Le Procureur plaide encore (Bedrock)" in activites
+    # Le renvoi à l'Avocat est annoncé avant sa correction.
+    renvoi = next(i for i, e in enumerate(evenements) if e["type"] == "activite" and "renvoyé à l'Avocat" in e["activite"])
+    correction = next(i for i, e in enumerate(evenements)
+                      if e["type"] == "etape" and e["etape"]["outil"] == "bedrock_correction")
+    assert renvoi < correction
 
 
 # --- Vrais appels à Bedrock (payants) ----------------------------------------

@@ -1,15 +1,17 @@
 /**
- * Écran Tribunal (annexe D.6), précédé du chargement qui déroule la trace (D.5).
+ * Écran Tribunal (annexe D.6), précédé du chargement (D.5) qui montre la vraie progression du
+ * procès en direct, ou la relecture d'un procès enregistré (#90).
  * Bilan du Greffier, débat Procureur / Avocat, trace, pièces, contre-interrogatoire.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import type { Argument, DecisionUI, Piece, Profil, ResultatTribunal } from '../api/types';
-import { MODE_DIRECT, ProcesNonEnregistre, jugerDecision, poserQuestion, questionLibreDisponible, reveillerLambda } from '../api/tribunal';
+import type { Argument, DecisionUI, Piece, Profil, ProgressionTribunal, ResultatTribunal } from '../api/types';
+import { MODE_DIRECT, ProcesNonEnregistre, jugerDecision, poserQuestion, questionLibreDisponible, reprendreProces, reveillerLambda } from '../api/tribunal';
 import { adapterEchange } from '../api/adaptateur';
 import { Gabarit, useTitre } from '../components/Gabarit';
 import { Bouton } from '../components/Bouton';
+import { ChargementTribunal, type PropsChargement } from '../components/ChargementTribunal';
 import { IconeStatut, PastillePiece, Provenance, Statut } from '../components/Etiquettes';
 import { LienRetour, Message } from '../components/Elements';
 import { Icone } from '../components/Icone';
@@ -18,52 +20,20 @@ import { TrompezLeGreffier } from '../components/TrompezLeGreffier';
 import { date } from '../lib/format';
 import { libelleDecision } from '../domaine/decision';
 import { resultatCalibrage } from '../domaine/calibrage';
+import { phaseEnRelecture } from '../domaine/progression';
 import { donneesCalibrage } from '../api/donnees';
 import { questionsSuggerees, repondre, type QuestionSuggeree } from '../domaine/questions';
 import { useEtatProfil } from '../state/store';
 import { useTables } from '../state/useTables';
 import styles from './Tribunal.module.css';
 
-const DUREE_ETAPE_MS = 300;
-const PHASES = ['Agent Profil : lecture de la demande', 'Orchestrateur : choix des pièces', 'Procureur et Avocat : plaidoiries', 'Greffier : contrôle des chiffres et du Pacte'];
+/** Relecture d'un procès enregistré : rythme fixe, annoncé à l'écran (#90). */
+const DUREE_ETAPE_RELECTURE_MS = 500;
+/** Toutes les phases cochées restent visibles un instant avant le résultat. */
+const DUREE_FIN_MS = 800;
 
 function mouvementReduit(): boolean {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-}
-
-function Chargement({ resultat, etapesVisibles, debut }: { resultat?: ResultatTribunal; etapesVisibles: number; debut: number }) {
-  const [secondes, setSecondes] = useState(0);
-  useEffect(() => {
-    if (resultat) return undefined;
-    const minuterie = setInterval(() => setSecondes(Math.round((Date.now() - debut) / 1000)), 1000);
-    return () => clearInterval(minuterie);
-  }, [resultat, debut]);
-  return (
-    <section className={styles.chargement} aria-labelledby="titre-chargement" aria-busy={!resultat}>
-      <h1 className="t-h1" id="titre-chargement">Le Tribunal instruit le dossier</h1>
-      <p className="t-citation c-700">
-        {resultat ? 'Instruction terminée : voici les étapes tracées.' : `Les agents rassemblent les pièces et plaident. Un procès dure souvent 20 à 40 secondes${secondes ? ` (${secondes} s)` : ''}.`}
-      </p>
-      <ol className={styles.chronologie} aria-live="polite">
-        {resultat
-          ? resultat.trace.slice(0, etapesVisibles).map((e, i) => (
-            <li key={i} className={styles.etapeChrono}>
-              <span className={`${styles.pastilleChrono} ${e.etat === 'signalement' ? styles.pastilleSignalement : ''}`} aria-hidden="true">
-                <Icone nom={e.etat === 'signalement' ? 'alerte' : 'check'} taille={14} />
-              </span>
-              <span className="t-petit-fort">{e.role}</span>
-              <code className="t-trace c-700">{e.appel}</code>
-            </li>
-          ))
-          : PHASES.map((p) => (
-            <li key={p} className={`${styles.etapeChrono} ${styles.enCours}`}>
-              <span className={styles.pastilleChrono} aria-hidden="true" />
-              <span className="t-petit c-700">{p}</span>
-            </li>
-          ))}
-      </ol>
-    </section>
-  );
 }
 
 function CarteArgument({ argument, numero, surligne, onOuvrir }: { argument: Argument; numero: number; surligne: boolean; onOuvrir: (code: string, el: HTMLElement) => void }) {
@@ -185,20 +155,51 @@ export function Tribunal({ profil }: { profil: Profil }) {
     [donnees, reponsesCalibrage],
   );
 
-  const lancer = useCallback(() => {
-    if (!decision) return;
-    setAnimer(true);
-    setEtapesVisibles(0);
-    definirTribunal({ statut: 'chargement' });
-    jugerDecision(profil.id, decision, undefined, reponsesPacteVecu)
-      .then((r) => definirTribunal({ statut: 'pret', resultat: r }))
+  // Progression réelle du procès en direct (#90), relue sur la Lambda pendant l'attente.
+  const [progression, setProgression] = useState<ProgressionTribunal | null>(null);
+  const suivi = useRef<AbortController | null>(null);
+
+  /** Suit un procès (lancé ou repris) ; un suivi interrompu (écran quitté) ne touche plus à l'état. */
+  const suivre = useCallback((proces: (signal: AbortSignal) => Promise<ResultatTribunal>, accepte: () => boolean) => {
+    suivi.current?.abort();
+    const controleur = new AbortController();
+    suivi.current = controleur;
+    proces(controleur.signal)
+      .then((r) => {
+        if (controleur.signal.aborted) return;
+        if (MODE_DIRECT) setEtapesVisibles(r.trace.length); // déjà vues en direct : pas de relecture
+        definirTribunal({ statut: 'pret', resultat: r });
+      })
       .catch((e: unknown) => {
+        if (controleur.signal.aborted) {
+          // Écran quitté avant que la Lambda accepte le procès : on repartira de zéro en revenant.
+          if (!accepte()) definirTribunal({ statut: 'vide' });
+          return;
+        }
         if (e instanceof ProcesNonEnregistre) {
           definirTribunal({ statut: 'non_enregistre', decisionEnregistree: e.decisionEnregistree, erreur: e.raisonPacteVecu });
         }
         else definirTribunal({ statut: 'erreur', erreur: e instanceof Error ? e.message : String(e) });
       });
-  }, [decision, definirTribunal, profil.id, reponsesPacteVecu]);
+  }, [definirTribunal]);
+
+  const lancer = useCallback(() => {
+    if (!decision) return;
+    setAnimer(true);
+    setEtapesVisibles(0);
+    setProgression(null);
+    definirTribunal({ statut: 'chargement' });
+    let procesAccepte = false;
+    suivre((signal) => jugerDecision(profil.id, decision, {
+      signal,
+      calibrage: reponsesPacteVecu,
+      onProgression: setProgression,
+      onAccepte: (procesId) => {
+        procesAccepte = true;
+        definirTribunal({ statut: 'chargement', procesId });
+      },
+    }), () => procesAccepte);
+  }, [decision, definirTribunal, profil.id, reponsesPacteVecu, suivre]);
 
   // Un seul procès par décision : en mode direct, chaque appel coûte des appels Bedrock.
   // (Le mode strict de React exécute les effets deux fois en développement.)
@@ -211,6 +212,26 @@ export function Tribunal({ profil }: { profil: Profil }) {
     }
   }, [decision, tribunal.statut, lancer]);
 
+  // Retour sur l'écran (ou page rechargée) pendant un procès en direct : on reprend sa relecture,
+  // sans relancer de procès (il a continué sur la Lambda).
+  const procesEnCours = tribunal.statut === 'chargement' ? tribunal.procesId : undefined;
+  useEffect(() => {
+    if (!decision || !procesEnCours || suivi.current) return;
+    setAnimer(true);
+    suivre((signal) => reprendreProces(profil.id, decision, procesEnCours, { signal, onProgression: setProgression }), () => true);
+  }, [decision, procesEnCours, profil.id, suivre]);
+
+  // Quitter l'écran arrête la relecture de la progression. Le mode strict de React démonte puis
+  // remonte aussitôt l'écran en développement : on n'interrompt qu'un vrai départ.
+  const monte = useRef(false);
+  useEffect(() => {
+    monte.current = true;
+    return () => {
+      monte.current = false;
+      setTimeout(() => { if (!monte.current) suivi.current?.abort(); }, 0);
+    };
+  }, []);
+
   useEffect(() => {
     if (!animer || !resultat) return undefined;
     if (mouvementReduit()) {
@@ -219,10 +240,10 @@ export function Tribunal({ profil }: { profil: Profil }) {
       return undefined;
     }
     if (etapesVisibles >= resultat.trace.length) {
-      const fin = setTimeout(() => setAnimer(false), DUREE_ETAPE_MS * 2);
+      const fin = setTimeout(() => setAnimer(false), DUREE_FIN_MS);
       return () => clearTimeout(fin);
     }
-    const suivante = setTimeout(() => setEtapesVisibles((n) => n + 1), DUREE_ETAPE_MS);
+    const suivante = setTimeout(() => setEtapesVisibles((n) => n + 1), DUREE_ETAPE_RELECTURE_MS);
     return () => clearTimeout(suivante);
   }, [animer, resultat, etapesVisibles]);
 
@@ -305,10 +326,28 @@ export function Tribunal({ profil }: { profil: Profil }) {
   }
 
   if (!resultat || animer) {
+    let chargement: PropsChargement;
+    if (resultat && !MODE_DIRECT) {
+      // Démonstration : la trace enregistrée, relue étape par étape.
+      chargement = {
+        mode: 'relecture', debut, dureeEtapeMs: DUREE_ETAPE_RELECTURE_MS,
+        phase: phaseEnRelecture(resultat.trace, etapesVisibles),
+        etapes: resultat.trace.slice(0, etapesVisibles),
+        termine: etapesVisibles >= resultat.trace.length,
+      };
+    } else if (resultat) {
+      chargement = { mode: 'direct', debut, phase: null, etapes: resultat.trace, termine: true };
+    } else {
+      chargement = {
+        mode: MODE_DIRECT ? 'direct' : 'relecture', debut, dureeEtapeMs: DUREE_ETAPE_RELECTURE_MS,
+        phase: progression?.phase ?? null, etapes: progression?.etapes ?? [], termine: false,
+        activite: progression?.activite, avis: progression?.avis,
+      };
+    }
     return (
       <Gabarit nomProfil={profil.nom} idProfil={profil.id} etape="tribunal">
         <div className={styles.corps}>
-          <Chargement resultat={resultat} etapesVisibles={etapesVisibles} debut={debut} />
+          <ChargementTribunal {...chargement} />
         </div>
       </Gabarit>
     );

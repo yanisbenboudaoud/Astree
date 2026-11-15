@@ -7,6 +7,7 @@ Ni AWS ni Bedrock : le procès est remplacé par un faux, S3 par un dictionnaire
 import base64
 import io
 import json
+import time
 
 import boto3
 import pandas as pd
@@ -392,3 +393,165 @@ def test_proces_verbal_d_un_proces_inconnu_404(s3):
 
 def test_proces_verbal_identifiant_invalide_400(s3):
     assert lambda_tribunal.handler(evenement("/proces-verbal", {"id": "../traces/x"}))["statusCode"] == 400
+
+
+# --- Progression en direct (#90) -----------------------------------------------------
+
+
+class FauxLambda:
+    """Client Lambda réduit à invoke : garde les invocations asynchrones, ou échoue sur demande."""
+
+    def __init__(self, echec=False):
+        self.invocations = []
+        self.echec = echec
+
+    def invoke(self, FunctionName, InvocationType, Payload):
+        if self.echec:
+            raise ClientError({"Error": {"Code": "TooManyRequestsException"}}, "Invoke")
+        self.invocations.append({"fonction": FunctionName, "type": InvocationType, "evenement": json.loads(Payload)})
+        return {"StatusCode": 202}
+
+
+@pytest.fixture
+def lambda_client(monkeypatch):
+    faux = FauxLambda()
+    monkeypatch.setenv("AWS_LAMBDA_FUNCTION_NAME", "alphaforge-tribunal")
+    monkeypatch.setattr(lambda_tribunal, "_client_lambda", lambda: faux)
+    monkeypatch.setattr(lambda_tribunal, "_appels_progression", {})
+    return faux
+
+
+ETAPE_SIMULATION = {"etape": "orchestrateur", "outil": "simuler_portefeuille",
+                    "raison": "Pièce obligatoire ajoutée d'office", "entree": {"taille": 0.3}, "sortie": "P2"}
+
+
+def demarrer(corps=None):
+    """POST /tribunal avec progression : renvoie (statut, contenu, identifiant)."""
+    corps = corps or {"profil": "robert", "demande": "30 % en Tesla", "progression": True}
+    resultat = lambda_tribunal.handler(evenement("/tribunal", corps))
+    statut, contenu = reponse(resultat)
+    return statut, contenu, resultat["headers"].get("X-Proces-Id")
+
+
+def relire(identifiant, adresse="1.2.3.4"):
+    evt = evenement("/progression", {"id": identifiant})
+    evt["requestContext"]["http"]["sourceIp"] = adresse
+    return reponse(lambda_tribunal.handler(evt))
+
+
+def test_tribunal_avec_progression_repond_202_et_lance_le_proces_en_arriere_plan(s3, lambda_client, faux_proces):
+    statut, contenu, identifiant = demarrer()
+
+    assert statut == 202 and contenu == {"id": identifiant, "statut": "en_cours"}
+    assert faux_proces == []  # aucun appel Bedrock pendant la requête : le procès part en asynchrone
+    [invocation] = lambda_client.invocations
+    assert invocation["type"] == "Event" and invocation["fonction"] == "alphaforge-tribunal"
+    assert invocation["evenement"] == {"action": lambda_tribunal.ACTION_JUGER, "id": identifiant,
+                                       "profil": "robert", "demande": "30 % en Tesla", "calibrage": None}
+    # La progression existe dès la réponse : l'interface peut la relire tout de suite.
+    statut, document = relire(identifiant)
+    assert statut == 200 and document["statut"] == "en_cours" and document["etapes"] == []
+
+
+@pytest.mark.parametrize("corps, statut_attendu", [
+    ({"profil": "inconnu", "demande": "x", "progression": True}, 404),
+    ({"profil": "robert", "demande": "x", "progression": True,
+      "calibrage": {"reponses": {"capacite": "attendre"}}}, 400),  # Pacte vécu incomplet
+])
+def test_demande_invalide_refusee_avant_tout_lancement(corps, statut_attendu, s3, lambda_client):
+    statut, contenu, _ = demarrer(corps)
+    assert statut == statut_attendu and contenu["erreur"]
+    assert lambda_client.invocations == [] and s3.objets == {}
+
+
+def test_lancement_impossible_503_et_progression_en_erreur(s3, monkeypatch, lambda_client):
+    monkeypatch.setattr(lambda_tribunal, "_client_lambda", lambda: FauxLambda(echec=True))
+    statut, _, identifiant = demarrer()
+    assert statut == 503 and identifiant is None
+    [progression] = s3.objets.values()
+    assert progression["statut"] == "erreur" and "pas pu démarrer" in progression["erreur"]
+
+
+def test_proces_en_arriere_plan_publie_chaque_etape_pendant_le_proces(s3, lambda_client, monkeypatch):
+    _, _, identifiant = demarrer()
+    vu_pendant_le_proces = {}
+
+    def juger(profil, demande, calibrage=None, signaler=None):
+        signaler({"type": "phase", "phase": "agent_profil", "activite": "Lecture de la demande"})
+        signaler({"type": "phase", "phase": "orchestrateur", "activite": "Choix des outils"})
+        signaler({"type": "etape", "etape": ETAPE_SIMULATION})
+        for _ in range(200):  # la publication part d'un fil à part : on relit comme l'interface
+            statut, document = relire(identifiant, adresse="interface")
+            if document.get("etapes"):
+                break
+            time.sleep(0.01)
+        vu_pendant_le_proces.update(statut=statut, document=document)
+        return dict(CONTRAT)
+    monkeypatch.setattr(lambda_tribunal, "juger_decision", juger)
+
+    [invocation] = lambda_client.invocations
+    assert lambda_tribunal.handler(invocation["evenement"]) == {"id": identifiant, "statut": "termine"}
+
+    document = vu_pendant_le_proces["document"]
+    assert vu_pendant_le_proces["statut"] == 200 and document["statut"] == "en_cours"
+    assert document["phase"] == "orchestrateur" and document["etapes"] == [ETAPE_SIMULATION]
+    # Terminé : le contrat est archivé, puis renvoyé par /progression.
+    assert s3.objets[f"traces/{identifiant[:10]}/{identifiant}.json"] == CONTRAT
+    assert relire(identifiant) == (200, {"id": identifiant, "statut": "termine", "contrat": CONTRAT})
+
+
+def test_erreur_pendant_le_proces_ecrite_avec_son_motif(s3, lambda_client, monkeypatch):
+    _, _, identifiant = demarrer()
+
+    def juger(profil, demande, calibrage=None, signaler=None):
+        signaler({"type": "phase", "phase": "agent_profil", "activite": "Lecture de la demande"})
+        raise RuntimeError("Bedrock indisponible")
+    monkeypatch.setattr(lambda_tribunal, "juger_decision", juger)
+
+    [invocation] = lambda_client.invocations
+    resultat = lambda_tribunal.handler(invocation["evenement"])  # se termine normalement : aucune relance
+    assert resultat == {"id": identifiant, "statut": "erreur"}
+    statut, document = relire(identifiant)
+    assert statut == 200 and document["statut"] == "erreur" and "Erreur interne" in document["erreur"]
+    assert document["phase"] == "agent_profil"  # la phase où le procès s'est arrêté
+    assert not any(cle.startswith("traces/") for cle in s3.objets)
+
+
+def test_progression_d_un_proces_inconnu_404(s3, lambda_client):
+    statut, contenu = relire("2026-11-15-000000000000")
+    assert statut == 404 and "Aucun procès en cours" in contenu["erreur"]
+
+
+def test_progression_identifiant_invalide_400(s3, lambda_client):
+    assert relire("../traces/x")[0] == 400
+
+
+def test_progression_debit_limite_par_adresse(s3, lambda_client):
+    for _ in range(lambda_tribunal.DEBIT_MAX_PROGRESSION):
+        assert relire("2026-11-15-000000000000", adresse="9.9.9.9")[0] == 404
+    assert relire("2026-11-15-000000000000", adresse="9.9.9.9")[0] == 429
+    assert relire("2026-11-15-000000000000", adresse="8.8.8.8")[0] == 404
+
+
+def test_une_requete_publique_ne_peut_pas_lancer_un_proces_interne(s3, lambda_client, faux_proces):
+    """Le corps d'une requête de la Function URL reste dans « body » : il ne déclenche jamais l'action interne."""
+    evt = evenement("/tribunal", {"action": lambda_tribunal.ACTION_JUGER, "id": "2026-11-15-000000000000"})
+    statut, contenu = reponse(lambda_tribunal.handler(evt))
+    assert statut == 400 and "profil" in contenu["erreur"]
+    evt = {**evenement("/autre", {}), "action": lambda_tribunal.ACTION_JUGER, "id": "2026-11-15-000000000000"}
+    assert lambda_tribunal.handler(evt)["statusCode"] == 404  # requestContext présent : route normale
+    assert lambda_client.invocations == [] and faux_proces == []
+
+
+def test_ecrivain_garde_seulement_la_derniere_version_d_une_rafale(s3):
+    ecrivain = lambda_tribunal.EcrivainProgression("progression/x.json")
+    for n in range(50):
+        ecrivain.publier({"n": n})
+    ecrivain.fermer()
+    assert s3.objets["progression/x.json"] == {"n": 49}
+
+
+def test_sans_progression_le_tribunal_repond_toujours_le_contrat(s3, lambda_client, faux_proces):
+    """Ancien comportement gardé pour les scripts et une interface pas encore à jour."""
+    statut, contenu = reponse(lambda_tribunal.handler(evenement("/tribunal", {"profil": "robert", "demande": "x"})))
+    assert statut == 200 and contenu == CONTRAT and lambda_client.invocations == []

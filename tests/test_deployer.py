@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 RACINE = Path(__file__).resolve().parents[1]
@@ -62,6 +63,27 @@ def test_function_url_passe_en_none_avec_les_deux_permissions():
     assert actions["lambda:InvokeFunctionUrl"]["FunctionUrlAuthType"] == "NONE"
     assert actions["lambda:InvokeFunction"]["InvokedViaFunctionUrl"] is True
     assert all(p["Principal"] == "*" for p in lam.permissions)
+
+
+def test_politique_autorise_seulement_l_invocation_de_la_fonction_elle_meme():
+    """#90 : la Lambda s'invoque en asynchrone pour le procès ; rien d'autre côté Lambda."""
+    politique = json.loads(deployer.politique_pour_bucket("alphaforge-123"))
+    invocations = [s for s in politique["Statement"] if "lambda:InvokeFunction" in str(s["Action"])]
+    assert invocations == [{"Sid": "SInvoquerEnAsynchronePourLaProgression", "Effect": "Allow",
+                            "Action": "lambda:InvokeFunction",
+                            "Resource": f"arn:aws:lambda:us-east-1:*:function:{deployer.FONCTION}"}]
+
+
+def test_invocation_asynchrone_sans_relance():
+    """Un procès raté ne se rejoue jamais tout seul (nouveaux appels Bedrock)."""
+    appels = []
+
+    class Lambda:
+        def put_function_event_invoke_config(self, **reglages):
+            appels.append(reglages)
+
+    deployer.regler_invocation_asynchrone(Lambda())
+    assert appels == [{"FunctionName": deployer.FONCTION, "MaximumRetryAttempts": 0, "MaximumEventAgeInSeconds": 60}]
 
 
 def test_relancer_ne_double_pas_les_permissions():

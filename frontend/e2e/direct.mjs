@@ -1,7 +1,8 @@
 /**
  * Vérification du mode direct (#14) : de vrais procès sur la Lambda, depuis le navigateur.
  * Robert (« 30 % en TSLA ») et Amira (panier crypto et tech, le procès le plus long),
- * jusqu'au verdict signé et archivé dans S3 (POST /verdict).
+ * jusqu'au verdict signé et archivé dans S3 (POST /verdict). Pendant l'attente, la vraie
+ * progression (#90) : POST /tribunal en 202, relectures de /progression, phase qui avance.
  *
  * Coûte des appels Bedrock (quelques cents par procès) et ajoute deux verdicts à la
  * jurisprudence des profils (verdicts/<profil>/ du bucket).
@@ -51,15 +52,25 @@ async function axe(page, ecran) {
 async function attendreProces(page, profil, appels) {
   const debut = Date.now();
   if (await page.getByText(/procès enregistré/).count()) problemes.push(`${profil} : l'interface est en mode démonstration (VITE_USE_MOCKS)`);
-  await page.waitForSelector('text=Bilan du Greffier', { timeout: DELAI_PROCES_MS });
+  // Progression en direct (#90) : la phase en cours doit changer pendant l'attente.
+  const phasesVues = new Set();
+  while (!(await page.getByText('Bilan du Greffier').count())) {
+    if (Date.now() - debut > DELAI_PROCES_MS) throw new Error(`${profil} : pas de résultat après ${DELAI_PROCES_MS / 1000} s`);
+    const phase = await page.locator('li[aria-current="step"] .t-petit-fort').first().textContent({ timeout: 200 }).catch(() => null);
+    if (phase) phasesVues.add(phase);
+    await page.waitForTimeout(300);
+  }
   const duree = Math.round((Date.now() - debut) / 1000);
   const tribunal = appels.find((a) => a.route === '/tribunal');
+  const relectures = appels.filter((a) => a.route === '/progression');
   const audience = await page.locator('p.t-etiquette').first().textContent();
   const constat = await page.locator('section[aria-labelledby="titre-bilan"] p.t-corps').textContent();
-  if (!tribunal || tribunal.statut !== 200) problemes.push(`${profil} : POST /tribunal a répondu ${tribunal?.statut}`);
+  if (!tribunal || tribunal.statut !== 202) problemes.push(`${profil} : POST /tribunal a répondu ${tribunal?.statut} (202 attendu : procès en arrière-plan)`);
+  if (!relectures.length || relectures.some((a) => a.statut !== 200)) problemes.push(`${profil} : relectures de /progression ${relectures.map((a) => a.statut).join(',') || 'absentes'}`);
+  if (phasesVues.size < 2) problemes.push(`${profil} : phase en cours figée pendant l'attente (${[...phasesVues].join(', ') || 'aucune'})`);
   if (/n° —/.test(audience ?? '')) problemes.push(`${profil} : identifiant du procès illisible (CORS ExposeHeaders x-proces-id ?)`);
   if (/procès enregistré/.test(audience ?? '')) problemes.push(`${profil} : procès rejoué au lieu d'un vrai procès`);
-  return { duree, id: tribunal?.id, audience: audience?.trim(), constat: constat?.trim() };
+  return { duree, id: tribunal?.id, audience: audience?.trim(), constat: constat?.trim(), phases: [...phasesVues].join(' → ') };
 }
 
 async function signer(page, profil, appels, choix) {
@@ -140,7 +151,7 @@ try {
 }
 
 for (const b of bilan) {
-  console.log(`${b.profil} : procès ${b.id} en ${b.duree} s · ${b.audience} · ${b.constat} · POST /verdict ${b.verdict}`);
+  console.log(`${b.profil} : procès ${b.id} en ${b.duree} s${b.phases ? ` (phases vues : ${b.phases})` : ''} · ${b.audience} · ${b.constat} · POST /verdict ${b.verdict}`);
 }
 console.log(problemes.length ? `\n${problemes.length} problème(s) :\n- ${problemes.join('\n- ')}` : 'Mode direct vérifié : vrais procès, verdicts archivés, CORS, axe-core et console.');
 process.exit(problemes.length ? 1 : 0);

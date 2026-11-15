@@ -3,7 +3,9 @@
  * - Mode démonstration (VITE_USE_MOCKS=true, par défaut) : rejoue un procès réellement tenu
  *   par la Lambda et archivé dans S3 (copié dans src/data/proces/), s'il juge exactement la décision.
  * - Mode direct (VITE_USE_MOCKS=false) : appelle la Lambda du Tribunal (VITE_API_URL),
- *   `POST /tribunal` puis `POST /verdict` (deploiement/lambda_tribunal.py).
+ *   `POST /tribunal` puis `POST /verdict` (deploiement/lambda_tribunal.py). Le procès part en
+ *   arrière-plan (réponse 202) et sa progression réelle est relue toutes les 1,5 s sur
+ *   `POST /progression` jusqu'au contrat (#90).
  * - Dans les deux modes, « Trompez le Greffier » appelle `POST /verifier` (Python seul, sans
  *   Bedrock) sur le procès affiché, dès que VITE_API_URL est défini.
  * - En mode direct, une question libre appelle `POST /question` (contre-interrogatoire, #55).
@@ -11,11 +13,12 @@
  * pages précalculées de public/proces-verbaux/<id>.html en démonstration.
  */
 import indexProces from '../data/proces/index.json';
-import type { ContratTribunal, DecisionContrat, EchangeContrat, PieceContrat, VerdictContrat } from './contrat';
-import type { DecisionUI, ResultatTribunal, ResultatVerification } from './types';
-import { adapterContrat, numeroAudience } from './adaptateur';
+import type { ContratTribunal, DecisionContrat, EchangeContrat, PieceContrat, ProgressionContrat, VerdictContrat } from './contrat';
+import type { DecisionUI, ProgressionTribunal, ResultatTribunal, ResultatVerification } from './types';
+import { adapterContrat, etapeTrace, numeroAudience } from './adaptateur';
 import { profil as profilDe } from './donnees';
 import { correspondAuContrat, demandeDecision, libelleDecision } from '../domaine/decision';
+import { estPhase } from '../domaine/progression';
 
 export const MODE_DIRECT = import.meta.env.VITE_USE_MOCKS === 'false';
 const URL_API = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
@@ -91,19 +94,119 @@ async function lireErreur(reponse: Response): Promise<string> {
   return `Le Tribunal a répondu ${reponse.status}`;
 }
 
+export const INTERVALLE_SUIVI_MS = 1500;
+export const DELAI_MAX_SUIVI_MS = 120_000;
+/** Sans première phase après ce délai : Lambda à froid, ou deux procès déjà en cours. */
+const DELAI_DEMARRAGE_MS = 8000;
+
+export const AVIS_OCCUPE = 'Le Tribunal est occupé (deux procès au plus en même temps) : la progression reprendra dès qu’une place se libère.';
+export const AVIS_RESEAU = 'Connexion au Tribunal interrompue : nouvelle tentative…';
+export const AVIS_DEMARRAGE_LENT = 'Le démarrage prend plus de temps que d’habitude : Lambda à froid, ou deux procès déjà en cours.';
+
+function attente(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resoudre, rejeter) => {
+    if (signal?.aborted) {
+      rejeter(new DOMException('Suivi interrompu', 'AbortError'));
+      return;
+    }
+    const minuterie = setTimeout(resoudre, ms);
+    signal?.addEventListener('abort', () => {
+      clearTimeout(minuterie);
+      rejeter(new DOMException('Suivi interrompu', 'AbortError'));
+    }, { once: true });
+  });
+}
+
+/** Réponse de /progression → écran : les étapes passent par le même adaptateur que la trace du contrat. */
+export function progressionUi(corps: ProgressionContrat): ProgressionTribunal {
+  return {
+    phase: estPhase(corps.phase) ? corps.phase : null,
+    etapes: (corps.etapes ?? []).map(etapeTrace),
+    activite: corps.activite ?? undefined,
+  };
+}
+
+export interface OptionsSuivi {
+  signal?: AbortSignal;
+  /** Appelée à chaque relecture (et à chaque avis : Tribunal occupé, réseau). */
+  onProgression?: (progression: ProgressionTribunal) => void;
+  intervalleMs?: number;
+  delaiMaxMs?: number;
+  /** Remplacés dans les tests. */
+  requete?: typeof fetch;
+  attendre?: (ms: number, signal?: AbortSignal) => Promise<void>;
+  maintenant?: () => number;
+}
+
 /**
- * @param calibrage réponses du Pacte vécu (#68), quand il est terminé : en direct, la Lambda
- *   recalcule le seuil en Python ; en démonstration, seul le procès tenu avec ces mêmes
- *   réponses (celles du profil de test) peut être rejoué.
+ * Relit la progression d'un procès lancé en arrière-plan (`POST /progression`, #90) jusqu'à son
+ * contrat. S3 seulement, jamais Bedrock. S'arrête au contrat, sur une erreur du procès (son motif),
+ * après `delaiMaxMs`, ou quand `signal` est interrompu (l'utilisateur quitte l'écran).
+ * Un 429 (Tribunal occupé) ou une coupure réseau ne sont pas des erreurs : la relecture continue.
  */
-export async function jugerDecision(
-  idProfil: string,
-  decision: DecisionUI,
-  signal?: AbortSignal,
-  calibrage?: Record<string, string> | null,
-): Promise<ResultatTribunal> {
-  const profil = profilDe(idProfil);
-  const contexte = { nomProfil: profil?.nom ?? idProfil, titreDecision: libelleDecision(decision) };
+export async function suivreProces(urlApi: string, procesId: string, options: OptionsSuivi = {}): Promise<ContratTribunal> {
+  const {
+    signal, onProgression, intervalleMs = INTERVALLE_SUIVI_MS, delaiMaxMs = DELAI_MAX_SUIVI_MS,
+    requete = fetch, attendre = attente, maintenant = Date.now,
+  } = options;
+  const debut = maintenant();
+  let derniere: ProgressionTribunal = { phase: null, etapes: [] };
+  const publier = (progression: ProgressionTribunal) => {
+    derniere = progression;
+    onProgression?.(progression);
+  };
+
+  for (;;) {
+    let reponse: Response | null = null;
+    try {
+      reponse = await requete(`${urlApi}/progression`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: procesId }),
+        signal,
+      });
+    } catch (erreur) {
+      if (signal?.aborted) throw erreur;
+      publier({ ...derniere, avis: AVIS_RESEAU });
+    }
+    if (reponse?.status === 429) publier({ ...derniere, avis: AVIS_OCCUPE });
+    else if (reponse && !reponse.ok) throw new Error(await lireErreur(reponse));
+    else if (reponse) {
+      const corps = (await reponse.json()) as ProgressionContrat;
+      if (corps.statut === 'termine' && corps.contrat) return corps.contrat;
+      if (corps.statut === 'erreur') throw new Error(corps.erreur ?? 'Le procès s’est arrêté sans motif.');
+      const progression = progressionUi(corps);
+      const lent = progression.phase === null && maintenant() - debut >= DELAI_DEMARRAGE_MS;
+      publier(lent ? { ...progression, avis: AVIS_DEMARRAGE_LENT } : progression);
+    }
+    if (maintenant() - debut >= delaiMaxMs) {
+      throw new Error(`Le procès n’a pas abouti en ${Math.round(delaiMaxMs / 1000)} s : suivi arrêté. Réessayez dans un instant.`);
+    }
+    await attendre(intervalleMs, signal);
+  }
+}
+
+export interface OptionsJugement {
+  signal?: AbortSignal;
+  /**
+   * Réponses du Pacte vécu (#68), quand il est terminé : en direct, la Lambda recalcule le seuil
+   * en Python ; en démonstration, seul le procès tenu avec ces mêmes réponses (celles du profil
+   * de test) peut être rejoué.
+   */
+  calibrage?: Record<string, string> | null;
+  /** En direct, appelée à chaque relecture de la progression réelle (#90). */
+  onProgression?: (progression: ProgressionTribunal) => void;
+  /** En direct, appelée dès que la Lambda accepte le procès (202), avec son identifiant. */
+  onAccepte?: (procesId: string) => void;
+}
+
+function contexteAdaptation(idProfil: string, decision: DecisionUI) {
+  return { nomProfil: profilDe(idProfil)?.nom ?? idProfil, titreDecision: libelleDecision(decision) };
+}
+
+export async function jugerDecision(idProfil: string, decision: DecisionUI, options: OptionsJugement = {}): Promise<ResultatTribunal> {
+  const { signal, calibrage, onProgression, onAccepte } = options;
+  const contexte = contexteAdaptation(idProfil, decision);
 
   if (!MODE_DIRECT) {
     const enregistres = await procesEnregistres(idProfil, Boolean(calibrage));
@@ -130,13 +233,41 @@ export async function jugerDecision(
   const reponse = await fetch(`${URL_API}/tribunal`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ profil: idProfil, demande: demandeDecision(decision), ...(calibrage ? { calibrage: { reponses: calibrage } } : {}) }),
+    body: JSON.stringify({
+      profil: idProfil,
+      demande: demandeDecision(decision),
+      progression: true,
+      ...(calibrage ? { calibrage: { reponses: calibrage } } : {}),
+    }),
     signal,
   });
   if (!reponse.ok) throw new Error(await lireErreur(reponse));
-  const contrat = (await reponse.json()) as ContratTribunal;
-  const procesId = reponse.headers.get('x-proces-id') ?? undefined;
+  let procesId = reponse.headers.get('x-proces-id') ?? undefined;
+  let contrat: ContratTribunal;
+  if (reponse.status === 202) {
+    procesId = ((await reponse.json()) as { id: string }).id;
+    onAccepte?.(procesId);
+    onProgression?.({ phase: null, etapes: [], activite: 'Procès accepté : les agents démarrent' });
+    contrat = await suivreProces(URL_API, procesId, { signal, onProgression });
+  } else {
+    contrat = (await reponse.json()) as ContratTribunal; // Lambda d'avant #90 : le contrat arrive à la fin
+  }
   return adapterContrat(contrat, { ...contexte, audience: numeroAudience(procesId), procesId });
+}
+
+/**
+ * Reprend la relecture d'un procès en direct déjà accepté (#90) : l'utilisateur a quitté l'écran
+ * ou rechargé la page pendant le procès, qui a continué sur la Lambda. Aucun nouveau procès.
+ */
+export async function reprendreProces(
+  idProfil: string,
+  decision: DecisionUI,
+  procesId: string,
+  options: Pick<OptionsJugement, 'signal' | 'onProgression'> = {},
+): Promise<ResultatTribunal> {
+  if (!URL_API) throw new Error('Adresse du Tribunal absente : définissez VITE_API_URL (Function URL de la Lambda).');
+  const contrat = await suivreProces(URL_API, procesId, options);
+  return adapterContrat(contrat, { ...contexteAdaptation(idProfil, decision), audience: numeroAudience(procesId), procesId });
 }
 
 /** « Trompez le Greffier » possible : le procès a un identifiant S3 et l'adresse de la Lambda est connue. */

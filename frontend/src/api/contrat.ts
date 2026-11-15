@@ -69,6 +69,20 @@ export interface EtapeTraceContrat {
   sortie?: unknown;
 }
 
+/**
+ * Réponse de `POST /progression` (#90, pipeline/progression.py) : la progression d'un procès
+ * en cours, ou son contrat quand il est archivé (`statut: "termine"`).
+ */
+export interface ProgressionContrat {
+  id: string;
+  statut: 'en_cours' | 'termine' | 'erreur';
+  phase?: string | null;
+  activite?: string | null;
+  etapes?: EtapeTraceContrat[];
+  erreur?: string;
+  contrat?: ContratTribunal;
+}
+
 /** Ce qui rendrait conforme une règle calculable en violation (#61) : décision ramenée à `taille_max`, ou Pacte ajusté à `seuil_suffisant`. */
 export interface PointDeBasculeContrat {
   regle: string;

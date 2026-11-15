@@ -167,6 +167,7 @@ def instruire_dossier(
     premier_numero: int,
     outils: list[Outil] | None = None,
     converser: Callable[..., Any] = converser_avec_outils,
+    signaler_etape: Callable[[dict[str, Any]], None] | None = None,
 ) -> ResultatInstruction:
     """Laisse le modèle choisir les outils, exécute ses appels et numérote les pièces.
 
@@ -178,9 +179,12 @@ def instruire_dossier(
             précédentes, comme le Pacte, sont numérotées par l'appelant).
         outils: liste blanche (par défaut ``outils_du_profil(profil, decision)``).
         converser: fonction qui fait jouer un tour au modèle (remplacée dans les tests).
+        signaler_etape: appelée avec chaque étape de trace **au moment où l'appel est
+            fait** (progression du procès en direct, #90). None : rien n'est signalé.
     """
     outils = outils_du_profil(profil, decision) if outils is None else outils
-    instruction = _Instruction({outil.nom: outil for outil in outils}, premier_numero)
+    instruction = _Instruction({outil.nom: outil for outil in outils}, premier_numero,
+                               signaler_etape=signaler_etape)
     _jouer(instruction, CONSIGNES.format(budget=BUDGET_APPELS), construire_dossier(decision, profil),
            outils, converser)
     instruction.ajouter_simulation_obligatoire(decision)
@@ -315,10 +319,12 @@ def entree_simulation_obligatoire(decision: dict[str, Any]) -> dict[str, Any]:
 class _Instruction:
     """État d'une instruction en cours : pièces créées, trace et appels comptés."""
 
-    def __init__(self, outils: dict[str, Outil], premier_numero: int, budget: int = BUDGET_APPELS):
+    def __init__(self, outils: dict[str, Outil], premier_numero: int, budget: int = BUDGET_APPELS,
+                 signaler_etape: Callable[[dict[str, Any]], None] | None = None):
         self.outils = outils
         self.numero = premier_numero
         self.budget = budget
+        self.signaler_etape = signaler_etape
         self.resultat = ResultatInstruction()
         self.pieces_par_entree: dict[str, dict[str, Any]] = {}  # appel réussi → sa pièce
 
@@ -363,9 +369,10 @@ class _Instruction:
         return resultat_outil(demande, {"erreur": motif}, erreur=True)
 
     def _tracer(self, outil: str, raison: str, entree: dict[str, Any], sortie: str) -> None:
-        self.resultat.trace.append(
-            {"etape": "orchestrateur", "outil": outil, "raison": raison, "entree": entree, "sortie": sortie}
-        )
+        etape = {"etape": "orchestrateur", "outil": outil, "raison": raison, "entree": entree, "sortie": sortie}
+        self.resultat.trace.append(etape)
+        if self.signaler_etape is not None:
+            self.signaler_etape(etape)
 
 
 def _cle(nom: str, entree: dict[str, Any]) -> str:

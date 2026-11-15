@@ -29,6 +29,12 @@
       "Effect": "Allow",
       "Action": "s3:ListBucket",
       "Resource": "arn:aws:s3:::NOM_DU_BUCKET"
+    },
+    {
+      "Sid": "SInvoquerEnAsynchronePourLaProgression",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:us-east-1:*:function:alphaforge-tribunal"
     }
   ]
 }

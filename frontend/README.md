@@ -66,6 +66,7 @@ La couche `src/api/` isole les écrans du backend : les composants ne lisent que
   En démonstration, le même écran relit la trace du procès enregistré, une étape toutes les 0,5 s, et le dit (« Relecture d'un procès enregistré »).
   L'adresse s'obtient avec `aws lambda get-function-url-config --function-name alphaforge-tribunal --query FunctionUrl` (elle n'est pas dans le dépôt). Relancer `npm run dev` après avoir modifié `.env.local`.
   **Côté AWS, c'est fait (#14)** : Function URL en type `NONE`, CORS limité à `http://localhost:5173` et `ExposeHeaders: x-proces-id` (`deploiement/README.md`, « Point d'accès »). L'interface doit donc tourner sur ce port ; pour un autre domaine, `deploiement\deployer.py --url-seulement --origine <domaine>`.
+  **Site hébergé (#135)** : https://d15khh2djw55mh.cloudfront.net (S3 + CloudFront), construit et envoyé par `deploiement\deployer_interface.py`, qui lit l'adresse de la Lambda sur le compte. Mode direct par défaut, `--mode demo` pour les procès enregistrés (`deploiement/README.md`, « Interface hébergée »). `ASTREE_URL=https://d15khh2djw55mh.cloudfront.net npm run verifier` joue le parcours sur le site.
   **Vérifier** : `npm run verifier:direct` (avec `npm run dev` en mode direct) joue deux vrais procès par l'interface, Robert puis Amira, et signe leurs verdicts. Il vérifie aussi la progression (202, relectures de `/progression`, phase qui avance). Cela coûte quelques cents de Bedrock et ajoute deux verdicts à la jurisprudence.
 
 Le même adaptateur (`src/api/adaptateur.ts`) traduit le contrat dans les deux modes.

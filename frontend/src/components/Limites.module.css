@@ -1,0 +1,102 @@
+/* Bulle ⓘ d'un indicateur : sous le bouton, au-dessus du contenu. */
+.info { position: relative; display: inline-flex; vertical-align: middle; }
+.boutonInfo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--encre-500);
+}
+.boutonInfo:hover, .boutonInfo[aria-expanded='true'] { background: var(--fond-creux); color: var(--encre-900); }
+.bulle {
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon-moyen);
+  background: var(--fond-carte);
+  box-shadow: var(--ombre-flottante);
+  color: var(--encre-700);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: left;
+  animation: apparitionBulle 0.14s ease-out;
+}
+@keyframes apparitionBulle {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+.titreBulle { color: var(--encre-900); font-size: 15px; font-weight: 700; }
+.ligneBulle strong { color: var(--encre-900); font-weight: 600; }
+
+/* « Ce que ces chiffres ne disent pas » : une ligne repliée, la liste dessous. */
+.limites { display: flex; flex-direction: column; gap: 10px; }
+.boutonLimites {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon-pilule);
+  background: var(--fond-carte);
+  color: var(--encre-700);
+  font-size: 14px;
+  font-weight: 600;
+}
+.boutonLimites:hover, .boutonLimites[aria-expanded='true'] { border-color: var(--encre-300); color: var(--encre-900); }
+.nombre {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--rayon-pilule);
+  background: var(--statut-verifier-teinte);
+  color: var(--statut-verifier);
+  font-size: 12px;
+}
+.liste {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px 20px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--rayon-moyen);
+  background: var(--fond-sourdine);
+  list-style: none;
+}
+.liste[hidden] { display: none; }
+.limite { display: flex; flex-direction: column; gap: 2px; }
+
+/* Panneau : une carte pour une colonne latérale ; la liste passe en une colonne. */
+.panneau {
+  gap: 0;
+  border: 1px solid var(--trait-fin);
+  border-radius: var(--rayon);
+  background: var(--fond-sourdine);
+  overflow: hidden;
+}
+.panneau .boutonLimites {
+  align-self: stretch;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--encre-900);
+  font-size: 15px;
+}
+.panneau .titreLimites { flex: 1; text-align: left; }
+.panneau .liste { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 0 16px 16px; background: none; }
+.panneau .limite + .limite { padding-top: 12px; border-top: 1px solid var(--trait-fin); }

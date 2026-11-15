@@ -16,6 +16,7 @@ import { IconeStatut, PastillePiece, Provenance } from '../components/Etiquettes
 import { LienRetour, Message } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { TiroirPiece } from '../components/TiroirPiece';
+import { LimitesDonnees } from '../components/Limites';
 import { TrompezLeGreffier } from '../components/TrompezLeGreffier';
 import { date } from '../lib/format';
 import { libelleDecision } from '../domaine/decision';
@@ -113,12 +114,11 @@ function Tribune({ camp, args, surlignes, onOuvrir }: {
  * points (deux pastilles disent quel camp a parlé) ; la scène met le Procureur et l'Avocat
  * face à face de part et d'autre de la balance. Flèches ← → pour passer d'un point à l'autre.
  */
-function Debat({ procureur, avocat, surlignes, onOuvrir, limite }: {
+function Debat({ procureur, avocat, surlignes, onOuvrir }: {
   procureur: Argument[];
   avocat: Argument[];
   surlignes: Set<string>;
   onOuvrir: (code: string, el: HTMLElement) => void;
-  limite?: string;
 }) {
   const points = useMemo(() => regrouperDebat(procureur, avocat), [procureur, avocat]);
   const [rang, setRang] = useState(0);
@@ -218,12 +218,7 @@ function Debat({ procureur, avocat, surlignes, onOuvrir, limite }: {
         </div>
       </div>
 
-      {limite && (
-        <p className={styles.limite}>
-          <Icone nom="alerte" taille={16} />
-          <span className="t-petit">{limite}</span>
-        </p>
-      )}
+      <LimitesDonnees ecran="tribunal" titre="Ce que ce procès ne dit pas" />
     </section>
   );
 }
@@ -619,7 +614,7 @@ export function Tribunal({ profil }: { profil: Profil }) {
             </div>
           </section>
 
-          <Debat procureur={procureur} avocat={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} limite={resultat.limiteAvocat} />
+          <Debat procureur={procureur} avocat={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} />
 
           {(resultat.argumentsRejetes.length > 0 || resultat.corrections.length > 0) && (
             <section className={styles.rejetes} aria-labelledby="titre-rejetes">

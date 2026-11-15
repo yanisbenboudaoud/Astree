@@ -25,12 +25,13 @@ interface ProprietesGraphiqueRecul {
   creux: { date: string; valeur: number };
   seances?: SeancesSousLimite | null;
   libelleDecision: string;
+  /** Hauteur du tracé, en pixels (212 par défaut). */
+  hauteurTrace?: number;
 }
 
 const HAUT = 18;
-const HAUTEUR_TRACE = 212;
+const HAUTEUR_TRACE_DEFAUT = 212;
 const BAS_AXE = 28;
-const HAUTEUR = HAUT + HAUTEUR_TRACE + BAS_AXE;
 const GAUCHE = 44;
 const DROITE = 12;
 const LARGEUR_BULLE = 196;
@@ -61,7 +62,9 @@ function conclusion(creux: { date: string; valeur: number }, limite?: number, se
   return { ton: 'neutre', texte: `Pire baisse : ${pire}, pour une limite de ${seuil(limite)}.` };
 }
 
-export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libelleDecision }: ProprietesGraphiqueRecul) {
+export function GraphiqueRecul({ actuel, decision, limite, creux, seances, libelleDecision, hauteurTrace = HAUTEUR_TRACE_DEFAUT }: ProprietesGraphiqueRecul) {
+  const HAUTEUR_TRACE = hauteurTrace;
+  const HAUTEUR = HAUT + HAUTEUR_TRACE + BAS_AXE;
   const [ref, largeur] = useLargeur<HTMLDivElement>(776);
   const [actif, setActif] = useState<number | null>(null);
   const droite = largeur - DROITE;

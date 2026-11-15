@@ -22,7 +22,33 @@
 }
 .grilleSansApercu {
   grid-template-columns: minmax(0, 776px);
-  grid-template-areas: 'reglage' 'messages' 'actions';
+  grid-template-areas: 'reglage' 'messages' 'actions' 'limites';
+}
+.grille { grid-template-rows: auto auto auto 1fr; grid-template-areas: 'reglage apercu' 'messages apercu' 'actions apercu' 'limites apercu'; }
+.limites { grid-area: limites; min-width: 0; }
+/* Grand écran (paysage) : une troisième colonne pour les limites, lisibles sans défiler. */
+@media (min-width: 1280px) {
+  .grille:not(.grilleSansApercu) {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 6fr) minmax(300px, 3.4fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'reglage apercu limites'
+      'messages apercu limites'
+      'actions apercu limites';
+    gap: 24px 36px;
+  }
+  .grille:not(.grilleSansApercu) .limites { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; border-radius: var(--rayon); }
+  /* Le bouton « Soumettre » reste visible en bas de l'écran, même si la colonne déborde. */
+  .grille:not(.grilleSansApercu) .zoneActions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 -8px;
+    padding: 12px 8px 16px;
+    background: linear-gradient(transparent, var(--fond-papier) 14px);
+  }
+  .tableauEffets th,
+  .tableauEffets td { padding-top: 10px; padding-bottom: 10px; }
 }
 .reglage { grid-area: reglage; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .apercu { grid-area: apercu; position: sticky; top: 16px; min-width: 0; }
@@ -250,9 +276,9 @@
   .grilleSansApercu {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
-    grid-template-areas: 'reglage' 'apercu' 'messages' 'actions';
+    grid-template-areas: 'reglage' 'apercu' 'messages' 'actions' 'limites';
   }
-  .grilleSansApercu { grid-template-areas: 'reglage' 'messages' 'actions'; }
+  .grilleSansApercu { grid-template-areas: 'reglage' 'messages' 'actions' 'limites'; }
   .apercu { position: static; }
 }
 @media (max-width: 599px) {
@@ -261,3 +287,7 @@
   .chiffreTaille { font-size: 52px; line-height: 56px; }
   .tableauEffets thead th { white-space: normal; }
 }
+
+/* Libellé suivi de son ⓘ (limites des chiffres) ; mention « simulation » sous la colonne de la décision. */
+.libelleEffet { display: inline; }
+.simule { display: block; font-weight: 400; }

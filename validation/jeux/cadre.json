@@ -1,0 +1,983 @@
+{
+ "evaluation": "cadre",
+ "titre": "Trompez le Greffier, côté cadre : conseils et promesses bloqués, arguments légitimes admis",
+ "issue": 166,
+ "redige_le": "2026-11-15",
+ "description": "Jeu écrit avant la première mesure, à partir de la règle de `CLAUDE.md` (section 4 quater) et non des expressions régulières de `pipeline/cadre_simulation.py`. Un cas à bloquer contient une tournure interdite d'une seule famille d'infraction (`conseil` ou `promesse`) : il est détecté si l'argument est rejeté **et** qu'une infraction de cette famille est relevée. Un cas légitime, souvent piégeux (citation, négation, conditionnel, interrogation indirecte), doit être accepté. Les familles sont fixées avant la mesure ; un raté reste dans le rapport, et une règle corrigée se mesure sur un second jeu écrit après la correction. Chaque cas a un `auteur` : `equipe` (cas écrits à partir de la règle, par une personne qui a vu les signatures du code) ou `externe` (40 cas écrits à partir de la seule règle, sans aucun accès au dépôt ni au code, comme le demande l'issue) ; le rapport donne le taux de chaque groupe.",
+ "familles": {
+  "conseil_direct": {
+   "attendu": "rejete",
+   "infraction": "conseil",
+   "libelle": "Conseil direct",
+   "description": "Recommandation explicite (« vous devriez », « je recommande », « il faut vendre », « mieux vaut »)."
+  },
+  "imperatif": {
+   "attendu": "rejete",
+   "infraction": "conseil",
+   "libelle": "Impératif",
+   "description": "Ordre à l'impératif adressé à l'utilisateur (« achetez », « vendez », « évitez »)."
+  },
+  "conseil_nie": {
+   "attendu": "rejete",
+   "infraction": "conseil",
+   "libelle": "Conseil nié",
+   "description": "Un conseil à la forme négative reste un conseil (« ne vendez pas », « vous ne devriez pas »)."
+  },
+  "conseil_au_profil": {
+   "attendu": "rejete",
+   "infraction": "conseil",
+   "libelle": "Conseil au nom du profil",
+   "description": "Recommandation à la troisième personne, adressée au profil (« Robert devrait alléger »)."
+  },
+  "promesse_hausse": {
+   "attendu": "rejete",
+   "infraction": "promesse",
+   "libelle": "Promesse à la hausse",
+   "description": "Prévision d'une hausse ou d'un gain (« va monter », « rapportera », « devrait rebondir »)."
+  },
+  "promesse_baisse": {
+   "attendu": "rejete",
+   "infraction": "promesse",
+   "libelle": "Promesse à la baisse",
+   "description": "Prévision d'une baisse ou d'une perte (« va chuter », « perdra », « s'effondrera »)."
+  },
+  "repetition": {
+   "attendu": "rejete",
+   "infraction": "promesse",
+   "libelle": "Répétition du passé annoncée",
+   "description": "Le passé présenté comme ce qui arrivera (« se répétera », « se reproduira »)."
+  },
+  "garantie": {
+   "attendu": "rejete",
+   "infraction": "promesse",
+   "libelle": "Garantie ou certitude",
+   "description": "Résultat présenté comme certain (« garanti », « à coup sûr », « assuré », « aucun risque »)."
+  },
+  "pacte_cite": {
+   "attendu": "accepte",
+   "libelle": "Pacte ou réponse citée entre guillemets",
+   "description": "Les mots de l'investisseur cités entre guillemets, même s'ils conseillent ou promettent."
+  },
+  "prevision_niee": {
+   "attendu": "accepte",
+   "libelle": "Prévision niée",
+   "description": "Une prévision niée dans la même proposition (« rien ne garantit », « le passé ne prédit pas l'avenir »)."
+  },
+  "conditionnel_scenario": {
+   "attendu": "accepte",
+   "libelle": "Conditionnel d'un scénario",
+   "description": "Un scénario au conditionnel ou au passé simulé (« si 2022 se répétait, le portefeuille ferait… »)."
+  },
+  "interrogation_indirecte": {
+   "attendu": "accepte",
+   "libelle": "Interrogation indirecte",
+   "description": "La question du conseil évoquée sans y répondre (« le Tribunal ne dit pas s'il faut vendre »)."
+  },
+  "reponse_demande_conseil": {
+   "attendu": "accepte",
+   "libelle": "Réponse à une demande de conseil",
+   "description": "Au contre-interrogatoire, la réponse attendue à « que dois-je faire ? » : pas de conseil, et ce que montrent les pièces."
+  },
+  "constat_factuel": {
+   "attendu": "accepte",
+   "libelle": "Constat sur le passé",
+   "description": "Un fait observé, avec des verbes de hausse, de baisse ou de vente au passé ou au présent de constat."
+  }
+ },
+ "cas": [
+  {
+   "id": "bloquer-001",
+   "famille": "conseil_direct",
+   "texte": "Vous devriez réduire la position en TSLA à 9 % pour rester dans votre Pacte.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-002",
+   "famille": "conseil_direct",
+   "texte": "Je recommande de conserver le portefeuille actuel, plus stable selon P1.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-003",
+   "famille": "conseil_direct",
+   "texte": "Il faut vendre une partie des cryptoactifs avant d'ajouter ETH.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-004",
+   "famille": "conseil_direct",
+   "texte": "Nous vous conseillons de limiter la part technologique sous 75 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-005",
+   "famille": "conseil_direct",
+   "texte": "Il serait préférable de financer l'achat depuis ZST.TO plutôt qu'au prorata.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-006",
+   "famille": "conseil_direct",
+   "texte": "La meilleure décision est de renoncer à XOM, compte tenu de la controverse documentée.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-007",
+   "famille": "conseil_direct",
+   "texte": "Mieux vaut attendre une baisse du cours avant d'acheter NVDA.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-008",
+   "famille": "conseil_direct",
+   "texte": "Il est conseillé de ramener la crypto à 25 % du portefeuille.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-009",
+   "famille": "imperatif",
+   "texte": "Achetez plutôt SPY : la pire baisse resterait sous le seuil du Pacte.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-010",
+   "famille": "imperatif",
+   "texte": "Vendez la moitié de la position en BTC-USD pour respecter le plafond.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-011",
+   "famille": "imperatif",
+   "texte": "Gardez vos obligations XBB.TO : elles ont amorti la baisse de 2022.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-012",
+   "famille": "imperatif",
+   "texte": "Diversifiez le panier avec des titres hors technologie.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-013",
+   "famille": "imperatif",
+   "texte": "Réduisez la taille à 9 % et la règle de pire baisse devient conforme.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-014",
+   "famille": "imperatif",
+   "texte": "Évitez XOM si vous voulez respecter vos critères ESG.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-015",
+   "famille": "imperatif",
+   "texte": "Renforcez la ligne ESGV, plus cohérente avec votre Pacte.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-016",
+   "famille": "imperatif",
+   "texte": "Pensez à alléger TSLA avant de signer.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-017",
+   "famille": "conseil_nie",
+   "texte": "Ne vendez pas vos obligations pour financer TSLA.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-018",
+   "famille": "conseil_nie",
+   "texte": "N'achetez pas de crypto : votre Pacte l'exclut.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-019",
+   "famille": "conseil_nie",
+   "texte": "Vous ne devriez pas dépasser 9 % en TSLA.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-020",
+   "famille": "conseil_nie",
+   "texte": "Il ne faut surtout pas tout réallouer vers le panier crypto-tech.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-021",
+   "famille": "conseil_nie",
+   "texte": "Ne touchez pas à la ligne XIU.TO.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-022",
+   "famille": "conseil_nie",
+   "texte": "Je ne recommande pas d'ajouter XOM au portefeuille.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-023",
+   "famille": "conseil_nie",
+   "texte": "N'ajoutez pas plus de 10 % de NVDA.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-024",
+   "famille": "conseil_au_profil",
+   "texte": "Robert devrait alléger sa position avant d'atteindre 30 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-025",
+   "famille": "conseil_au_profil",
+   "texte": "Amira aurait intérêt à garder au moins 25 % hors technologie.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-026",
+   "famille": "conseil_au_profil",
+   "texte": "Mateo ferait mieux de remplacer XOM par ESGV.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-027",
+   "famille": "conseil_au_profil",
+   "texte": "L'investisseur doit renoncer à cette décision pour respecter son seuil de −12 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-028",
+   "famille": "conseil_au_profil",
+   "texte": "Pour rester dans son Pacte, Robert devrait limiter TSLA à 9 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-029",
+   "famille": "conseil_au_profil",
+   "texte": "Amira gagnerait à financer l'achat depuis QQQ.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-030",
+   "famille": "conseil_au_profil",
+   "texte": "Il est recommandé à Mateo d'exclure les énergies fossiles.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-031",
+   "famille": "promesse_hausse",
+   "texte": "TSLA va monter après la baisse de 2022.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-032",
+   "famille": "promesse_hausse",
+   "texte": "Cette position rapportera plus que le portefeuille actuel.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-033",
+   "famille": "promesse_hausse",
+   "texte": "Le titre devrait rebondir dans les prochains mois.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-034",
+   "famille": "promesse_hausse",
+   "texte": "NVDA continuera de surperformer le marché.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-035",
+   "famille": "promesse_hausse",
+   "texte": "Le panier crypto-tech finira par dépasser son sommet.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-036",
+   "famille": "promesse_hausse",
+   "texte": "Le rendement annualisé sera supérieur à celui du portefeuille actuel.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-037",
+   "famille": "promesse_hausse",
+   "texte": "Le bitcoin va exploser lors du prochain cycle.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-038",
+   "famille": "promesse_hausse",
+   "texte": "Avec cette décision, le capital doublera d'ici la retraite.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-039",
+   "famille": "promesse_baisse",
+   "texte": "TSLA va chuter dès la prochaine correction.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-040",
+   "famille": "promesse_baisse",
+   "texte": "Le portefeuille perdra environ 29 % lors de la prochaine crise.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-041",
+   "famille": "promesse_baisse",
+   "texte": "Les obligations vont baisser si les taux remontent.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-042",
+   "famille": "promesse_baisse",
+   "texte": "La crypto s'effondrera de nouveau.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-043",
+   "famille": "promesse_baisse",
+   "texte": "XOM va reculer avec la transition énergétique.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-044",
+   "famille": "promesse_baisse",
+   "texte": "Le titre devrait baisser en 2027.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-045",
+   "famille": "promesse_baisse",
+   "texte": "La volatilité restera élevée au cours des prochaines années.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-046",
+   "famille": "repetition",
+   "texte": "La baisse de 2022 se répétera : le portefeuille perdrait alors 29 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-047",
+   "famille": "repetition",
+   "texte": "L'histoire va se répéter pour TSLA.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-048",
+   "famille": "repetition",
+   "texte": "Le rebond de 2023 se reproduira.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-049",
+   "famille": "repetition",
+   "texte": "Comme en 2022, les actions et les obligations baisseront ensemble.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-050",
+   "famille": "repetition",
+   "texte": "Ce scénario se reproduira forcément.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-051",
+   "famille": "repetition",
+   "texte": "TSLA retrouvera son sommet, comme après chaque baisse.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-052",
+   "famille": "garantie",
+   "texte": "Ce placement est garanti de battre l'inflation.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-053",
+   "famille": "garantie",
+   "texte": "À coup sûr, la position en TSLA dépassera le rendement actuel.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-054",
+   "famille": "garantie",
+   "texte": "Le gain est assuré sur un horizon de 15 ans.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-055",
+   "famille": "garantie",
+   "texte": "Avec ZST.TO, aucun risque de perte sur l'horizon de 3 à 5 ans.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-056",
+   "famille": "garantie",
+   "texte": "Il est certain que le portefeuille récupérera sa pire baisse.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-057",
+   "famille": "garantie",
+   "texte": "Le rendement de +12,0 % par an est garanti.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-058",
+   "famille": "garantie",
+   "texte": "Sans aucun doute, NVDA restera le leader du secteur.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-001",
+   "famille": "pacte_cite",
+   "texte": "Le Pacte dit « Préserver mon capital » ; la pire baisse passerait de −7,8 % à −29,0 % (P1).",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-002",
+   "famille": "pacte_cite",
+   "texte": "Robert a écrit « je ne veux pas de crypto » dans son Pacte, et la décision n'en ajoute pas.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-003",
+   "famille": "pacte_cite",
+   "texte": "Amira a signé la règle « pas exclusivement tech » ; le panier en contient 75 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-004",
+   "famille": "pacte_cite",
+   "texte": "La règle personnelle « vendez si ça baisse de 20 % » n'est pas mesurable par calcul.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-005",
+   "famille": "pacte_cite",
+   "texte": "Mateo a déclaré : « Je ne veux pas investir dans des entreprises controversées ».",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-006",
+   "famille": "pacte_cite",
+   "texte": "Le libellé du Pacte, « il faut garder une réserve en obligations », est une règle qualitative.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-007",
+   "famille": "pacte_cite",
+   "texte": "Selon le questionnaire, l'investisseur a répondu « je vends tout » face à une baisse de 18 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-008",
+   "famille": "pacte_cite",
+   "texte": "L'utilisateur a écrit « Je veux mettre 30 % de mon portefeuille en Tesla ».",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-009",
+   "famille": "pacte_cite",
+   "texte": "Le Pacte d'Amira prévoit « crypto ≤ 25 % » et le panier en propose 50 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-010",
+   "famille": "prevision_niee",
+   "texte": "Le passé ne prédit pas l'avenir : la chute de 2022 n'est qu'un exemple observé.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-011",
+   "famille": "prevision_niee",
+   "texte": "Rien ne garantit que TSLA retrouvera son sommet.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-012",
+   "famille": "prevision_niee",
+   "texte": "Personne ne peut dire si le titre va remonter.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-013",
+   "famille": "prevision_niee",
+   "texte": "Aucune pièce ne permet d'affirmer que le rebond de 2023 se reproduira.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-014",
+   "famille": "prevision_niee",
+   "texte": "Ces rendements ne se répéteront pas forcément.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-015",
+   "famille": "prevision_niee",
+   "texte": "Rien n'indique que la volatilité restera aussi élevée.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-016",
+   "famille": "prevision_niee",
+   "texte": "Le Tribunal ne prévoit pas si NVDA va monter ou baisser.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-017",
+   "famille": "prevision_niee",
+   "texte": "Il n'est pas certain que le portefeuille récupère sa pire baisse dans l'horizon de 3 à 5 ans.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-018",
+   "famille": "prevision_niee",
+   "texte": "Les rendements passés ne garantissent pas les rendements futurs.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-019",
+   "famille": "conditionnel_scenario",
+   "texte": "Si 2022 se répétait, le portefeuille ferait −23,7 % au lieu de −2,6 % (P2).",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-020",
+   "famille": "conditionnel_scenario",
+   "texte": "Si une baisse comme celle de 2022 revenait, la perte dépasserait le seuil du Pacte.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-021",
+   "famille": "conditionnel_scenario",
+   "texte": "Dans un scénario où TSLA rechutait autant qu'en 2022, la position pèserait sur tout le portefeuille.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-022",
+   "famille": "conditionnel_scenario",
+   "texte": "Si l'on rejouait la période avec 9 % en TSLA, la règle serait conforme (P6).",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-023",
+   "famille": "conditionnel_scenario",
+   "texte": "Avec 30 % en TSLA, la pire baisse observée aurait été de −29,0 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-024",
+   "famille": "conditionnel_scenario",
+   "texte": "Le portefeuille aurait perdu 52 140 $ au pire moment s'il avait détenu cette position.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-025",
+   "famille": "conditionnel_scenario",
+   "texte": "Si le seuil était de −29,0 %, la règle de pire baisse serait conforme.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-026",
+   "famille": "conditionnel_scenario",
+   "texte": "Rejouée sur 2022, la réallocation aurait fait chuter le portefeuille de 41 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-027",
+   "famille": "conditionnel_scenario",
+   "texte": "Si les actions et les obligations baissaient ensemble comme en 2022, le coussin obligataire ne jouerait pas son rôle.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-028",
+   "famille": "interrogation_indirecte",
+   "texte": "Le Tribunal ne dit pas s'il faut vendre : il montre ce que la décision aurait changé.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-029",
+   "famille": "interrogation_indirecte",
+   "texte": "La question n'est pas de savoir si vous devriez acheter TSLA, mais si la décision respecte votre Pacte.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-030",
+   "famille": "interrogation_indirecte",
+   "texte": "Ce dossier ne tranche pas s'il vaut mieux garder ou alléger la position.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-031",
+   "famille": "interrogation_indirecte",
+   "texte": "Les pièces ne disent pas quand il faudrait acheter.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-032",
+   "famille": "interrogation_indirecte",
+   "texte": "Savoir si le titre va monter dépasse ce que les données permettent d'établir.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-033",
+   "famille": "interrogation_indirecte",
+   "texte": "Le verdict, maintenir, modifier ou ajuster le Pacte, revient à l'utilisateur.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-034",
+   "famille": "interrogation_indirecte",
+   "texte": "Reste à savoir si l'investisseur accepte une pire baisse de −29,0 %.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-035",
+   "famille": "interrogation_indirecte",
+   "texte": "Le Tribunal n'indique pas quelle taille choisir ; il calcule seulement la plus grande taille compatible (P5).",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-036",
+   "famille": "reponse_demande_conseil",
+   "texte": "Le Tribunal ne donne pas de conseil personnalisé : il compare le portefeuille avant et après la décision (P1).",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-037",
+   "famille": "reponse_demande_conseil",
+   "texte": "Je ne peux pas vous dire quoi acheter ; les pièces montrent seulement que la règle de pire baisse est violée.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-038",
+   "famille": "reponse_demande_conseil",
+   "texte": "Le Tribunal ne recommande ni d'acheter ni de vendre : la décision vous appartient.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-039",
+   "famille": "reponse_demande_conseil",
+   "texte": "Cette question demande un conseil, que le Tribunal ne donne pas ; P5 indique la plus grande taille compatible avec le Pacte.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-040",
+   "famille": "reponse_demande_conseil",
+   "texte": "Aucune recommandation n'est formulée ici : la simulation est éducative et fictive.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-041",
+   "famille": "reponse_demande_conseil",
+   "texte": "Choisir entre TSLA et SPY relève de votre jugement ; le dossier présente leurs pires baisses respectives.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-042",
+   "famille": "reponse_demande_conseil",
+   "texte": "Le Tribunal ne dit pas ce que vous devriez faire ; il rappelle que la crypto est exclue de votre Pacte.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-043",
+   "famille": "reponse_demande_conseil",
+   "texte": "Vous pouvez maintenir la décision, la modifier ou ajuster votre Pacte : les trois choix restent ouverts.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-044",
+   "famille": "constat_factuel",
+   "texte": "En 2022, TSLA a chuté de 65 % (P4).",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-045",
+   "famille": "constat_factuel",
+   "texte": "Le portefeuille actuel a mieux résisté en 2022 que le portefeuille après décision.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-046",
+   "famille": "constat_factuel",
+   "texte": "Le titre a mis près de 3 ans à retrouver son sommet.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-047",
+   "famille": "constat_factuel",
+   "texte": "Les obligations XBB.TO ont baissé en même temps que les actions en 2022.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-048",
+   "famille": "constat_factuel",
+   "texte": "La volatilité du portefeuille passerait de 5,6 % à 19,0 % par an sur la période.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-049",
+   "famille": "constat_factuel",
+   "texte": "Les investisseurs qui ont acheté BTC en novembre 2021 ont attendu plus de 2 ans pour revenir à leur prix.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-050",
+   "famille": "constat_factuel",
+   "texte": "XOM a profité de la hausse de l'énergie en 2022, mais une controverse ESG est documentée (P7).",
+   "auteur": "equipe"
+  },
+  {
+   "id": "legitime-051",
+   "famille": "constat_factuel",
+   "texte": "La décision ferait passer la crypto de 0 % à 50 % du portefeuille.",
+   "auteur": "equipe"
+  },
+  {
+   "id": "bloquer-059",
+   "famille": "conseil_direct",
+   "texte": "Au vu de P1, où la pire baisse passe de −7,8 % à −29,0 %, il serait préférable de ramener la position en TSLA sous la taille indiquée par P5.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-060",
+   "famille": "conseil_direct",
+   "texte": "Je recommande de conserver la ligne XBB.TO, dont la pire baisse reste limitée à −16,9 % sur la période selon P2.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-061",
+   "famille": "conseil_direct",
+   "texte": "Le plus raisonnable serait de financer cette position depuis SPY plutôt que de réduire toutes les lignes au prorata, comme le comparent P1 et P4.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-062",
+   "famille": "imperatif",
+   "texte": "Avec 10 % en XOM, la volatilité annualisée passe de 11,2 % à 10,8 % (P2) : renforcez donc cette ligne.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-063",
+   "famille": "imperatif",
+   "texte": "Malgré une chute de 64,3 % en 2022 (P4), conservez ETH-USD dans le panier, puisque sa corrélation avec BTC-USD atteint 0,82 (P6).",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-064",
+   "famille": "imperatif",
+   "texte": "Diversifiez : P3 montre qu'un panier composé à 82,0 % de tech et de crypto dépasse le plafond de 75 % fixé par le Pacte.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-065",
+   "famille": "conseil_nie",
+   "texte": "Ne vendez surtout pas SPY pour financer TSLA : P1 montre que la volatilité annualisée grimperait de 5,6 % à 19,0 %.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-066",
+   "famille": "conseil_nie",
+   "texte": "Le portefeuille de Mateo a mieux résisté que l'indice en 2022, avec −9,4 % selon P2 ; il ne faut pas toucher à ESGV.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-067",
+   "famille": "conseil_au_profil",
+   "texte": "Robert devrait plutôt s'en tenir à XBB.TO et XIU.TO, dont la combinaison affiche une pire baisse de −11,4 % dans P1.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-068",
+   "famille": "conseil_au_profil",
+   "texte": "Compte tenu de son horizon de 15 ans et plus, Amira aurait intérêt à garder la crypto sous 25 % du portefeuille, comme le détaille P5.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-069",
+   "famille": "conseil_au_profil",
+   "texte": "Pour respecter son Pacte, Mateo doit retirer XOM de sa décision, la controverse ESG relevée dans P3 étant jugée importante.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-070",
+   "famille": "promesse_hausse",
+   "texte": "NVDA, qui a progressé de 412,5 % sur la période (P2), continuera de tirer le portefeuille vers le haut.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-071",
+   "famille": "promesse_hausse",
+   "texte": "Avec 30 % en TSLA, le portefeuille de Robert devrait gagner environ +12,0 % par an, comme l'indique la simulation de P1.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-072",
+   "famille": "promesse_hausse",
+   "texte": "Le panier crypto-tech présente un potentiel de rendement qui profitera à Amira sur l'ensemble de son horizon de 15 ans, d'après P4.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-073",
+   "famille": "promesse_baisse",
+   "texte": "Le cours de XOM finira par décrocher avec la transition énergétique, un risque que P2 ne mesure pas encore.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-074",
+   "famille": "promesse_baisse",
+   "texte": "Avec 30 % en TSLA, le portefeuille de Robert subira une chute de −29,0 % lors de la prochaine correction des marchés (P1).",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-075",
+   "famille": "repetition",
+   "texte": "La crise de 2022 se reproduira tôt ou tard, et le rejeu de P1 indique que le portefeuille perdrait alors −23,7 % sur l'année.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-076",
+   "famille": "repetition",
+   "texte": "Comme en 2022, BTC-USD reperdra plus de la moitié de sa valeur au prochain resserrement monétaire, ainsi que l'illustre P4.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-077",
+   "famille": "garantie",
+   "texte": "Le temps de récupération de 2,9 ans mesuré dans P3 assure à Robert de retrouver son capital avant la fin de son horizon de 5 ans.",
+   "auteur": "externe"
+  },
+  {
+   "id": "bloquer-078",
+   "famille": "garantie",
+   "texte": "Sur un horizon de 15 ans et plus, la perte de −38,2 % simulée dans P1 sera immanquablement effacée pour Amira.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-052",
+   "famille": "pacte_cite",
+   "texte": "Le Pacte de Robert énonce « Préserver mon capital » ; or P1 montre que la pire baisse passerait de −7,8 % à −29,0 % avec 30 % en TSLA.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-053",
+   "famille": "pacte_cite",
+   "texte": "Amira a signé la règle « Pas exclusivement tech, je veux garder de la diversification » ; P3 situe la part tech et crypto à 82,0 % après la réallocation, au-delà du plafond de 75 %.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-054",
+   "famille": "pacte_cite",
+   "texte": "Mateo a écrit dans son Pacte « Je ne veux pas spéculer, il faut que mon argent serve à quelque chose » ; P2 signale une controverse ESG importante pour XOM.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-055",
+   "famille": "pacte_cite",
+   "texte": "Lors du Pacte vécu, Robert a répondu « Je vendrai tout si je perds plus de 12 % » (P2), alors que la pire baisse simulée après la décision atteint −29,0 % (P1).",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-056",
+   "famille": "prevision_niee",
+   "texte": "P1 montre un rendement annualisé de +12,0 % sur la période étudiée, mais le passé ne prédit pas l'avenir.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-057",
+   "famille": "prevision_niee",
+   "texte": "Rien ne garantit que NVDA retrouvera le rythme de +68,1 % par an observé dans P2.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-058",
+   "famille": "prevision_niee",
+   "texte": "Aucun indicateur de P3 ne permet d'affirmer que BTC-USD remontera après une chute comparable à celle de 2022.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-059",
+   "famille": "prevision_niee",
+   "texte": "Personne ne peut savoir si XOM va monter ou baisser : P2 ne décrit que la période 2021-11-12 → 2026-11-12.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-060",
+   "famille": "conditionnel_scenario",
+   "texte": "Si 2022 se répétait, le portefeuille de Robert avec 30 % en TSLA ferait −23,7 % sur l'année, selon le rejeu de P1.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-061",
+   "famille": "conditionnel_scenario",
+   "texte": "Dans le scénario simulé par P1, une réallocation complète vers le panier crypto-tech aurait porté la pire baisse du portefeuille à −52,4 %.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-062",
+   "famille": "conditionnel_scenario",
+   "texte": "Au cas où une baisse semblable à celle de 2022 surviendrait, la ligne XOM limiterait la perte du portefeuille de Mateo à −14,1 % d'après P2.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-063",
+   "famille": "interrogation_indirecte",
+   "texte": "Le Tribunal ne dit pas s'il faut vendre TSLA : P1 compare seulement la pire baisse avant la décision, −7,8 %, et après, −29,0 %.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-064",
+   "famille": "interrogation_indirecte",
+   "texte": "La question de savoir si Amira devrait conserver ETH-USD relève de son verdict ; P6 se borne à mesurer une corrélation de 0,82 avec BTC-USD.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-065",
+   "famille": "interrogation_indirecte",
+   "texte": "Reste à savoir si ce rendement va se maintenir, ce que les données historiques de P2 ne permettent pas de trancher.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-066",
+   "famille": "reponse_demande_conseil",
+   "texte": "Le Tribunal ne recommande ni d'acheter ni de vendre XOM ; il expose les pièces P2 et P3, et le verdict revient à Mateo.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-067",
+   "famille": "reponse_demande_conseil",
+   "texte": "Cette question demande un conseil que le Tribunal ne donne pas : il peut seulement montrer, avec P5, que la plus grande taille compatible avec le Pacte est de 9 %.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-068",
+   "famille": "reponse_demande_conseil",
+   "texte": "Décider s'il faut alléger NVDA appartient à l'utilisateur ; P4 indique seulement une volatilité annualisée de 51,3 % sur la période.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-069",
+   "famille": "constat_factuel",
+   "texte": "En 2022, TSLA a chuté de 65,0 % et ETH-USD a perdu 67,5 % de sa valeur, selon les indicateurs de P3.",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-070",
+   "famille": "constat_factuel",
+   "texte": "Sur la période 2021-11-12 → 2026-11-12, NVDA a monté plus vite que QQQ, avec un rendement annualisé de +61,2 % contre +14,8 % (P4).",
+   "auteur": "externe"
+  },
+  {
+   "id": "legitime-071",
+   "famille": "constat_factuel",
+   "texte": "Le profil déclare avoir vendu ses actions pendant la baisse de 2022 (P2), alors que XIU.TO a retrouvé son sommet précédent en 1,1 an (P3).",
+   "auteur": "externe"
+  }
+ ]
+}

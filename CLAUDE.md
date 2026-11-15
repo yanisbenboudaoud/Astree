@@ -114,7 +114,7 @@ L'orchestrateur est ce qui rend le système agentique : c'est un LLM qui **déci
 - **Budget** : 8 appels d'outils au maximum par procès (hypothèse à ajuster), puis passage au débat.
 - **Phases fixes** : Profil → Orchestrateur → Procureur et Avocat → Greffier → Verdict. L'orchestrateur choisit les outils, jamais l'ordre des phases ni le verdict. Le Greffier passe toujours en dernier.
 - **Raison visible, courte et sans chiffre** : une phrase par appel, affichée dans la trace. Ce n'est pas le raisonnement interne détaillé du modèle, que l'énoncé demande de ne pas exposer.
-- **Contre-interrogatoire** (question libre de l'utilisateur dans l'interface) : même boucle. La question va à l'orchestrateur, qui choisit les outils ; les nouvelles pièces vont au Procureur et à l'Avocat, puis au Greffier. Le format de réponse reste à ajouter au contrat, avec l'équipe interface.
+- **Contre-interrogatoire** (question libre de l'utilisateur dans l'interface, #55) : même boucle. La question va à l'orchestrateur, qui choisit les outils (budget de 4 appels, pas de pièce obligatoire) ; les nouvelles pièces vont au Procureur et à l'Avocat, puis au Greffier. Une demande de conseil reçoit une réponse qui le dit, sans conseil. Code : `pipeline/contre_interrogatoire.py` (`interroger`) ; route `POST /question` de la Lambda ; champ `contre_interrogatoire` du contrat (section 5).
 
 **Mise en œuvre recommandée** : une boucle de l'API Bedrock **Converse** avec `toolConfig` (*tool use*), codée dans la Lambda. Chaque outil Python est décrit à Bedrock par son nom, sa description et le schéma JSON de ses paramètres. Chaque demande d'outil du modèle (`toolUse`) est exécutée par Python, puis ajoutée à la trace. Le service managé Bedrock Agents est écarté : plus de configuration, une trace moins maîtrisée, et le même code ne tournerait pas en local.
 
@@ -238,6 +238,7 @@ Règles du contrat :
 - Dans `trace`, les appels de l'orchestrateur ont `etape: "orchestrateur"` et une `raison` courte, sans chiffre. Une pièce ajoutée d'office par Python a la raison « Pièce obligatoire ajoutée d'office ». Un appel refusé ou en erreur (outil non autorisé, raison invalide, titre hors univers, source manquante…) ne crée pas de pièce : sa `sortie` est « Erreur : <motif> ». La simulation obligatoire, elle, doit avoir produit une pièce.
 - Les valeurs des pièces et de `comparaison` sont brutes (au moins 4 décimales) ; seul `valeur_affichee` est arrondi.
 - `verdict` est rempli par l'interface quand l'utilisateur choisit : `maintenu`, `modifie` ou `pacte_ajuste`.
+- `contre_interrogatoire` (facultatif, #55) : une entrée par question posée après le procès, avec `question`, `pieces_ajoutees`, `requisitoire`, `plaidoirie`, `arguments_rejetes`, `controle_chiffres` (contrôle `verifier_chiffres` de la réponse) et `trace`. Les pièces créées pour répondre sont ajoutées au champ `pieces`, numérotées à la suite : une question suivante peut les citer.
 
 ## 6. Pièges des données de départ (dossier `alphaforge_starter/`)
 

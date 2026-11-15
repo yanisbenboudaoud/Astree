@@ -160,6 +160,66 @@ def test_verdict_invalide_400(corps, s3):
     assert lambda_tribunal.handler(evenement("/verdict", corps))["statusCode"] == 400
 
 
+# --- /question (contre-interrogatoire, #55) -------------------------------------------
+
+ECHANGE = {"question": "Et à 15 % ?", "pieces_ajoutees": ["P7"], "requisitoire": [], "plaidoirie": [],
+           "arguments_rejetes": [], "controle_chiffres": {"statut": "a_verifier", "regle": "verifier_chiffres",
+                                                          "message": "x"}, "trace": []}
+
+
+@pytest.fixture
+def faux_interroger(monkeypatch):
+    appels = []
+
+    def interroger(contrat, question):
+        appels.append((contrat, question))
+        if question == "vide":
+            raise lambda_tribunal.QuestionInvalide("Question vide : posez une question sur le procès")
+        return {**contrat, "pieces": [{"id": "P7", "titre": "Simulation à 15 %"}],
+                "contre_interrogatoire": [ECHANGE]}
+    monkeypatch.setattr(lambda_tribunal, "interroger", interroger)
+    return appels
+
+
+def test_question_repond_et_rearchive_le_proces(s3, faux_proces, faux_interroger):
+    identifiant = lambda_tribunal.handler(
+        evenement("/tribunal", {"profil": "robert", "demande": "x"}))["headers"]["X-Proces-Id"]
+
+    statut, contenu = reponse(lambda_tribunal.handler(
+        evenement("/question", {"id": identifiant, "question": "Et à 15 % ?"})))
+
+    assert statut == 200
+    assert contenu["echange"] == ECHANGE
+    assert contenu["pieces"] == [{"id": "P7", "titre": "Simulation à 15 %"}]
+    assert faux_interroger[0] == (CONTRAT, "Et à 15 % ?")  # le procès archivé, relu dans S3
+    archive = s3.objets[f"traces/{identifiant[:10]}/{identifiant}.json"]
+    assert archive["contre_interrogatoire"] == [ECHANGE]  # réarchivé au même endroit
+
+
+def test_question_pour_un_proces_inconnu_404(s3, faux_interroger):
+    statut, _ = reponse(lambda_tribunal.handler(
+        evenement("/question", {"id": "2026-11-14-000000000000", "question": "Et à 15 % ?"})))
+    assert statut == 404 and faux_interroger == []
+
+
+@pytest.mark.parametrize("corps", [
+    {"id": "../traces/autre", "question": "Et à 15 % ?"},   # identifiant hors format
+    {"id": "2026-11-14-000000000000", "question": "   "},  # question vide
+    {"id": "2026-11-14-000000000000"},                     # question absente
+])
+def test_question_invalide_400_sans_appel(corps, s3, faux_interroger):
+    assert lambda_tribunal.handler(evenement("/question", corps))["statusCode"] == 400
+    assert faux_interroger == []
+
+
+def test_question_refusee_par_le_pipeline_400(s3, faux_proces, faux_interroger):
+    identifiant = lambda_tribunal.handler(
+        evenement("/tribunal", {"profil": "robert", "demande": "x"}))["headers"]["X-Proces-Id"]
+    statut, contenu = reponse(lambda_tribunal.handler(
+        evenement("/question", {"id": identifiant, "question": "vide"})))
+    assert statut == 400 and "Question vide" in contenu["erreur"]
+
+
 # --- Lecture des CSV dans S3 (pipeline/donnees.py) ------------------------------------
 
 

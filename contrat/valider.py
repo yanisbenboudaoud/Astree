@@ -79,6 +79,33 @@ def erreurs_renvois(contrat):
         if abs(somme - 1) > TOLERANCE_SOMME_POIDS:
             erreurs.append(f"decision/panier : les poids totalisent {somme}, pas 1")
 
+    erreurs += erreurs_contre_interrogatoire(contrat, pieces_connues)
+    return erreurs
+
+
+def erreurs_contre_interrogatoire(contrat, pieces_connues):
+    """Renvois des échanges du contre-interrogatoire (#55), s'il y en a."""
+    erreurs = []
+    deja_ajoutees = set()
+    for n, echange in enumerate(contrat.get("contre_interrogatoire", [])):
+        chemin = f"contre_interrogatoire/{n}"
+        for id_piece in echange["pieces_ajoutees"]:
+            if id_piece not in pieces_connues:
+                erreurs.append(f"{chemin} : pièce ajoutée {id_piece} absente du champ pieces")
+            elif id_piece in deja_ajoutees:
+                erreurs.append(f"{chemin} : pièce {id_piece} déjà ajoutée par un échange précédent")
+            deja_ajoutees.add(id_piece)
+        for champ in ("requisitoire", "plaidoirie", "arguments_rejetes"):
+            for i, argument in enumerate(echange[champ]):
+                for id_piece in argument["pieces"]:
+                    if id_piece not in pieces_connues:
+                        erreurs.append(f"{chemin}/{champ}/{i} : pièce {id_piece} inexistante")
+        if echange["controle_chiffres"]["regle"] != "verifier_chiffres":
+            erreurs.append(f"{chemin} : controle_chiffres doit porter sur verifier_chiffres")
+        for i, etape in enumerate(echange["trace"]):
+            sortie = etape["sortie"]
+            if etape["etape"] == "orchestrateur" and sortie not in pieces_connues and not est_erreur_outil(sortie):
+                erreurs.append(f"{chemin}/trace/{i} : la sortie « {sortie} » n'est ni une pièce ni une erreur d'outil")
     return erreurs
 
 

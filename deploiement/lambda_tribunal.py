@@ -8,6 +8,9 @@ Huit routes, en POST, avec un corps JSON :
   question>": "<réponse>"}}`` : les réponses du Pacte vécu (#68), datées du jour par la
   Lambda. Le contrat est archivé dans S3 (``traces/<date>/<id>.json``) et son identifiant
   est renvoyé dans l'en-tête ``X-Proces-Id`` : le format du contrat ne change pas.
+  Champ facultatif ``"poche": "<id>"`` (#115) : pour un profil à poches, la poche où la
+  décision est jugée ; sans lui, l'Agent Profil la déduit de la demande. Obligatoire avec
+  ``calibrage`` pour un profil à poches. Poche inconnue : 400.
 
   - Avec ``"progression": true`` (#90, l'interface) : la demande est vérifiée sans
     Bedrock, puis la Lambda **s'invoque elle-même en asynchrone** pour faire le procès
@@ -42,6 +45,10 @@ Huit routes, en POST, avec un corps JSON :
   "nom": "<facultatif>", "modifications": {"<id de règle>": <valeur>}}`` (#87) : Python
   construit le profil à partir des réponses (``profil_depuis_reponses``), applique les seuils
   choisis par l'utilisateur, le valide et le range dans ``profils/<id>.json`` du bucket.
+  Champ facultatif ``"objectifs": [{"id", "objectif", "horizon", "part", "portefeuille"}]``
+  (#115, au moins deux) : une poche par objectif, avec sa propre pire baisse ; le
+  ``portefeuille`` global peut alors être omis, et une règle d'une poche se modifie par
+  la clé ``"<id de poche>/<id de règle>"``.
   L'identifiant est généré ici, jamais tiré du nom saisi : un profil créé n'écrase jamais
   un profil de démonstration. Sans Bedrock. Réponse 201 : ``{id, profil, bareme,
   contradictions, archive, vues}`` ; ``vues`` contient ce que les écrans Portefeuille et
@@ -89,6 +96,7 @@ from pipeline.contre_interrogatoire import QuestionInvalide, interroger, pieces_
 from pipeline.donnees import ErreurDonnees, seances_americaines
 from pipeline.jurisprudence import cle_verdict
 from pipeline.pacte import PacteInvalide
+from pipeline.poches import PocheInconnue
 from pipeline.proces_verbal import proces_verbal_html
 from pipeline.profils import (
     ProfilDejaExistant,
@@ -136,6 +144,7 @@ _appels_verifier: dict[str, deque] = {}
 # et au plus une ligne par titre de l'univers), débit borné par adresse IP.
 TAILLE_MAX_PROFIL = 20_000  # caractères du corps JSON
 LIGNES_MAX_PORTEFEUILLE = 31  # titres de assets_universe.csv
+OBJECTIFS_MAX = 5  # poches d'un profil créé (#115)
 LONGUEUR_MAX_NOM = 40
 MODIFICATIONS_MAX = 10
 NOM_PAR_DEFAUT = "Investisseur"
@@ -240,12 +249,15 @@ def _tribunal(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
     if len(demande) > LONGUEUR_MAX_DEMANDE:
         raise RequeteInvalide(f"Demande trop longue : {LONGUEUR_MAX_DEMANDE} caractères au plus")
     calibrage = _lire_calibrage(corps.get("calibrage"))
+    poche = corps.get("poche")
+    if poche is not None and (not isinstance(poche, str) or not FORMAT_ID_PROFIL.fullmatch(poche)):
+        raise RequeteInvalide("Champ « poche » invalide : l'id d'une poche du profil, ex. « retraite »")
     if corps.get("progression") is True:
-        return _demarrer_proces(profil, demande, calibrage)
+        return _demarrer_proces(profil, demande, calibrage, poche)
 
     try:
-        contrat = juger_decision(profil, demande, calibrage=calibrage)
-    except ErreurCalibrage as erreur:
+        contrat = juger_decision(profil, demande, calibrage=calibrage, poche=poche)
+    except (ErreurCalibrage, PocheInconnue) as erreur:
         return _reponse(400, {"erreur": str(erreur)})
     except ProfilInconnu as erreur:
         return _reponse(404, {"erreur": str(erreur)})
@@ -268,11 +280,12 @@ def _tribunal(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
     return _reponse(200, contrat, en_tetes)
 
 
-def _demarrer_proces(profil: str, demande: str, calibrage: dict[str, Any] | None) -> dict[str, Any]:
+def _demarrer_proces(profil: str, demande: str, calibrage: dict[str, Any] | None,
+                     poche: str | None = None) -> dict[str, Any]:
     """``/tribunal`` avec progression (#90) : vérifie, publie l'état initial, lance le procès et répond 202."""
     try:
-        verifier_avant_proces(profil, calibrage)  # sans Bedrock : une demande invalide est refusée tout de suite
-    except ErreurCalibrage as erreur:
+        verifier_avant_proces(profil, calibrage, poche)  # sans Bedrock : une demande invalide est refusée tout de suite
+    except (ErreurCalibrage, PocheInconnue) as erreur:
         return _reponse(400, {"erreur": str(erreur)})
     except ProfilInconnu as erreur:
         return _reponse(404, {"erreur": str(erreur)})
@@ -288,7 +301,7 @@ def _demarrer_proces(profil: str, demande: str, calibrage: dict[str, Any] | None
     progression = Progression(identifiant, lambda document: _ecrire(cle_progression(identifiant), document))
     progression.publier_etat_initial()  # /progression le trouve dès la réponse 202
     evenement = {"action": ACTION_JUGER, "id": identifiant, "profil": profil, "demande": demande,
-                 "calibrage": calibrage}
+                 "calibrage": calibrage, "poche": poche}
     try:
         _client_lambda().invoke(FunctionName=fonction, InvocationType="Event",
                                 Payload=json.dumps(evenement, ensure_ascii=False).encode("utf-8"))
@@ -315,7 +328,8 @@ def juger_en_arriere_plan(evenement: dict[str, Any]) -> dict[str, Any]:
     progression = Progression(identifiant, ecrivain.publier)
     try:
         contrat = juger_decision(evenement.get("profil"), evenement.get("demande"),
-                                 calibrage=evenement.get("calibrage"), signaler=progression.signaler)
+                                 calibrage=evenement.get("calibrage"), signaler=progression.signaler,
+                                 poche=evenement.get("poche"))
         _ecrire(cle_trace(identifiant), contrat)
         progression.terminer()
     except Exception as erreur:  # noqa: BLE001 - le motif va dans la progression, le détail dans CloudWatch
@@ -327,7 +341,7 @@ def juger_en_arriere_plan(evenement: dict[str, Any]) -> dict[str, Any]:
 
 def motif_erreur(erreur: Exception) -> str:
     """Motif affiché par l'interface quand un procès en arrière-plan s'arrête."""
-    if isinstance(erreur, (ErreurCalibrage, ProfilInconnu, ErreurDonnees)):
+    if isinstance(erreur, (ErreurCalibrage, ProfilInconnu, ErreurDonnees, PocheInconnue)):
         return str(erreur)
     if isinstance(erreur, PacteInvalide):
         return "Pacte du profil invalide"
@@ -406,9 +420,14 @@ def _profil(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
         raise RequeteInvalide(f"Corps trop long : {TAILLE_MAX_PROFIL} caractères au plus")
     reponses, capital, portefeuille = corps.get("reponses"), corps.get("capital"), corps.get("portefeuille")
     nom, modifications = corps.get("nom", NOM_PAR_DEFAUT), corps.get("modifications", {})
+    objectifs = corps.get("objectifs")
     if not isinstance(reponses, dict) or not reponses:
         raise RequeteInvalide("Champ « reponses » manquant : {\"<id de question>\": <réponse>}")
-    if not isinstance(portefeuille, list) or len(portefeuille) > LIGNES_MAX_PORTEFEUILLE:
+    if objectifs is not None and (not isinstance(objectifs, list) or len(objectifs) > OBJECTIFS_MAX):
+        raise RequeteInvalide(f"Champ « objectifs » invalide : une liste de {OBJECTIFS_MAX} objectifs au plus "
+                              "{objectif, horizon, part, portefeuille}")
+    if (portefeuille is not None or objectifs is None) and (
+            not isinstance(portefeuille, list) or len(portefeuille) > LIGNES_MAX_PORTEFEUILLE):
         raise RequeteInvalide(f"Champ « portefeuille » invalide : une liste de lignes {{ticker, poids}} "
                               f"({LIGNES_MAX_PORTEFEUILLE} au plus)")
     if not isinstance(nom, str) or not nom.strip() or len(nom) > LONGUEUR_MAX_NOM:
@@ -423,7 +442,7 @@ def _profil(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
     identifiant = nouvel_identifiant_profil()
     try:
         profil = profil_depuis_reponses(reponses, capital, portefeuille, date_reponses,
-                                        identifiant=identifiant, nom=nom.strip())
+                                        identifiant=identifiant, nom=nom.strip(), objectifs=objectifs)
         if modifications:
             profil = appliquer_modifications(profil, modifications, date_reponses)
         if not apercu:
@@ -434,7 +453,7 @@ def _profil(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
         return _reponse(409, {"erreur": str(erreur)})
     contenu = {
         "profil": profil,
-        "bareme": detail_bareme(reponses, date_reponses),
+        "bareme": detail_bareme(reponses, date_reponses, objectifs),
         "contradictions": contradictions(valider_reponses(reponses)),
     }
     if apercu:

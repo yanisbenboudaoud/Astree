@@ -38,6 +38,7 @@ from pipeline.chiffres import controle_verifier_chiffres
 from pipeline.debat import debattre
 from pipeline.llm import converser_avec_outils
 from pipeline.orchestrateur import instruire_question
+from pipeline.poches import profil_de_la_poche
 from pipeline.sources import sources_du_proces
 from pipeline.tribunal import bornes_periode, prochain_numero, verifier_cote
 
@@ -73,6 +74,8 @@ def interroger(
         raise QuestionInvalide("Ce procès n'a pas de décision : il n'y a rien à contre-interroger")
 
     profil = charger_profil(contrat["persona"])
+    if contrat["decision"].get("poche"):  # profil à poches (#115) : la question porte sur la poche jugée
+        profil = profil_de_la_poche(profil, contrat["decision"]["poche"])
     instruction = instruire_question(contrat["decision"], profil, question, contrat["pieces"],
                                      prochain_numero(contrat["pieces"]), converser=converser)
     pieces = [*contrat["pieces"], *instruction.pieces]

@@ -292,6 +292,8 @@ def construire_dossier(decision: dict[str, Any], profil: dict[str, Any]) -> str:
         },
         "portefeuille_actuel": profil["portefeuille"],
     }
+    if "poche" in profil:  # profil projeté sur une poche (#115) : le portefeuille et les règles sont ceux de la poche
+        dossier["pacte"]["poche"] = profil["poche"]
     return "Dossier à instruire :\n" + json.dumps(dossier, ensure_ascii=False, indent=2)
 
 

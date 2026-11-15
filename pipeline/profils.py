@@ -130,12 +130,13 @@ def appliquer_modifications(profil: dict[str, Any], modifications: dict[str, Any
         profil: profil produit par ``profil_depuis_reponses``.
         modifications: ``{"<id de règle>": <nouvelle valeur>}`` ; seuil négatif pour
             ``pire_baisse_max`` (−0.2 = −20 %), part entre 0 et 1 pour ``plafond``.
+            Règle propre à une poche (#115) : clé ``"<id de poche>/<id de règle>"``.
         date_signature: date du choix (AAAA-MM-JJ), citée dans la justification.
 
     Raises:
         ReponsesInvalides: règle inconnue, règle sans seuil à choisir, ou valeur hors bornes.
     """
-    regles = {regle["id"]: regle for regle in profil["pacte"]["regles"]}
+    regles = regles_modifiables(profil)
     erreurs = []
     for id_regle, valeur in modifications.items():
         regle = regles.get(id_regle)
@@ -153,11 +154,11 @@ def appliquer_modifications(profil: dict[str, Any], modifications: dict[str, Any
         raise ReponsesInvalides(erreurs)
 
     modifie = json.loads(json.dumps(profil))
-    for regle in modifie["pacte"]["regles"]:
-        if regle["id"] not in modifications:
+    for cle, regle in regles_modifiables(modifie).items():
+        if cle not in modifications:
             continue
         champ = CHAMP_MODIFIABLE[regle["type"]]
-        avant, apres = regle[champ], float(modifications[regle["id"]])
+        avant, apres = regle[champ], float(modifications[cle])
         if apres == avant:
             continue
         regle[champ] = apres
@@ -167,6 +168,17 @@ def appliquer_modifications(profil: dict[str, Any], modifications: dict[str, Any
             f"{_texte_valeur(regle['type'], avant)} proposé par le barème. Barème : {regle['justification']}"
         )
     return modifie
+
+
+def regles_modifiables(profil: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Règles du profil par clé de modification : ``<id>`` (règle commune) ou ``<poche>/<id>`` (règle d'une poche, #115).
+
+    Les valeurs sont les règles du profil lui-même (pas des copies) : les modifier modifie le profil.
+    """
+    regles = {regle["id"]: regle for regle in profil["pacte"]["regles"]}
+    for poche in profil.get("poches", []):
+        regles.update({f"{poche['id']}/{regle['id']}": regle for regle in poche["regles"]})
+    return regles
 
 
 def _texte_valeur(type_regle: str, valeur: float) -> str:

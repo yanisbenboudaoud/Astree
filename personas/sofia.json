@@ -1,0 +1,82 @@
+{
+  "id": "sofia",
+  "nom": "Sofia",
+  "age": 34,
+  "metier": "Infirmière",
+  "etiquette": "fictif",
+  "profil_risque": "modere",
+  "horizon_ans": [3, null],
+  "capital_fictif_cad": 100000,
+  "portefeuille": [
+    {"ticker": "ZST.TO", "poids": 0.21},
+    {"ticker": "XBB.TO", "poids": 0.165},
+    {"ticker": "XIU.TO", "poids": 0.24},
+    {"ticker": "SPY", "poids": 0.28},
+    {"ticker": "QQQ", "poids": 0.105}
+  ],
+  "decision_demo": {"type": "position", "ticker": "TSLA", "taille": 0.20, "financement": "proportionnel", "poche": "mise_de_fonds"},
+  "pacte": {
+    "date_signature": "2026-11-15",
+    "regles": [
+      {
+        "id": "plafond_crypto",
+        "type": "plafond",
+        "categories": ["crypto"],
+        "max": 0.0,
+        "libelle": "Crypto : exclue",
+        "justification": "Hypothèse de l'équipe pour ce profil de test : aucune spéculation, dans aucune poche. Règle commune, vérifiée dans chaque poche."
+      }
+    ]
+  },
+  "poches": [
+    {
+      "id": "mise_de_fonds",
+      "objectif": "Mise de fonds d'une maison",
+      "horizon_ans": [3, 3],
+      "part": 0.30,
+      "profil_risque": "faible",
+      "portefeuille": [
+        {"ticker": "ZST.TO", "poids": 0.70},
+        {"ticker": "XBB.TO", "poids": 0.20},
+        {"ticker": "XIU.TO", "poids": 0.10}
+      ],
+      "regles": [
+        {
+          "id": "pire_baisse_max",
+          "type": "pire_baisse_max",
+          "seuil": -0.08,
+          "libelle": "Pire baisse tolérée : −8 %",
+          "justification": "Hypothèse de l'équipe : l'argent sert dans 3 ans, il n'y a pas le temps de se remettre d'une forte baisse (atelier Banque Nationale : l'horizon s'applique à chaque objectif, pas au portefeuille global)."
+        },
+        {
+          "id": "disponible_a_la_date",
+          "type": "qualitative",
+          "libelle": "Avoir la mise de fonds disponible à la date prévue",
+          "justification": "Objectif déclaré de la poche : à juger par l'utilisateur."
+        }
+      ]
+    },
+    {
+      "id": "retraite",
+      "objectif": "Retraite",
+      "horizon_ans": [25, null],
+      "part": 0.70,
+      "profil_risque": "eleve",
+      "portefeuille": [
+        {"ticker": "XIU.TO", "poids": 0.30},
+        {"ticker": "SPY", "poids": 0.40},
+        {"ticker": "QQQ", "poids": 0.15},
+        {"ticker": "XBB.TO", "poids": 0.15}
+      ],
+      "regles": [
+        {
+          "id": "pire_baisse_max",
+          "type": "pire_baisse_max",
+          "seuil": -0.40,
+          "libelle": "Pire baisse tolérée : −40 %",
+          "justification": "Hypothèse de l'équipe : horizon de 25 ans et plus, le temps de traverser plusieurs baisses."
+        }
+      ]
+    }
+  ]
+}

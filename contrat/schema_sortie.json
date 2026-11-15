@@ -115,7 +115,8 @@
             "ticker": {"type": "string", "minLength": 1},
             "taille": {"$ref": "#/$defs/part"},
             "financement": {"type": "string", "pattern": "^(proportionnel|depuis_.+)$"},
-            "libelle": {"type": "string", "minLength": 1}
+            "libelle": {"type": "string", "minLength": 1},
+            "poche": {"$ref": "#/$defs/id_poche"}
           }
         },
         {
@@ -126,10 +127,17 @@
             "type": {"const": "reallocation"},
             "panier": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ligne_portefeuille"}},
             "part_reallouee": {"$ref": "#/$defs/part"},
-            "libelle": {"type": "string", "minLength": 1}
+            "libelle": {"type": "string", "minLength": 1},
+            "poche": {"$ref": "#/$defs/id_poche"}
           }
         }
       ]
+    },
+
+    "id_poche": {
+      "description": "Profil à poches (#115) : id de la poche où la décision est jugée ; la taille (ou la part réallouée) est une part de cette poche. Absent pour un profil sans poches. Égal à pacte.poche.id (vérifié par contrat/valider.py).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
     },
 
     "pacte": {
@@ -147,7 +155,24 @@
           "maxItems": 2
         },
         "date_signature": {"$ref": "#/$defs/date_iso"},
-        "regles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/regle"}}
+        "regles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/regle"}},
+        "poche": {
+          "description": "Profil à poches (#115) : la poche jugée. horizon_ans et regles du Pacte sont alors ceux de la poche (règles propres, puis règles communes non remplacées) ; part : part du portefeuille global. Absent pour un profil sans poches.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "objectif", "horizon_ans", "part"],
+          "properties": {
+            "id": {"$ref": "#/$defs/id_poche"},
+            "objectif": {"type": "string", "minLength": 1},
+            "horizon_ans": {
+              "type": "array",
+              "prefixItems": [{"type": "number", "minimum": 0}, {"type": ["number", "null"], "minimum": 0}],
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "part": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+          }
+        }
       }
     },
 

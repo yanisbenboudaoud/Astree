@@ -23,6 +23,14 @@ et un contrôle « à vérifier » le dit (``detail_bareme``). Seule exception, 
 question facultative « hors du Canada » (#112) : passée, elle ne crée ni règle
 ni contrôle.
 
+Plusieurs objectifs (#115) : avec ``objectifs`` (au moins deux, chacun avec son
+texte, son choix d'horizon, sa part et son portefeuille), le profil a des
+**poches**. Chaque poche reçoit sa propre règle de pire baisse : le même barème,
+avec l'horizon de la poche à la place de la réponse « horizon » (les autres
+facteurs de capacité, communs, peuvent rester plus contraignants). Les règles de
+préférences (crypto, concentration, exclusions, objectif, règle personnelle)
+restent communes à toutes les poches.
+
 Usage ::
 
     python -m pipeline.questionnaire --questions                 # questions prêtes à afficher
@@ -46,6 +54,7 @@ from typing import Any
 
 from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.pacte import CHEMIN_SCHEMA, DOSSIER_PERSONAS, erreurs_profil
+from pipeline.poches import portefeuille_global
 from pipeline.simulation import formater_pourcentage
 from pipeline.univers import charger_univers
 
@@ -53,6 +62,8 @@ CHEMIN_CONFIG = Path(__file__).resolve().parent.parent / "config" / "questionnai
 FORMAT_IDENTIFIANT = re.compile(r"[a-z][a-z0-9_]*")
 QUESTIONS_TOLERANCE = ("reaction", "vecu_2022")
 CHOIX_AUCUNE_EXCLUSION = "aucune"
+ID_REGLE_PIRE_BAISSE = "pire_baisse_max"  # la seule règle propre à chaque poche (#115)
+LONGUEUR_MAX_OBJECTIF = 80
 
 
 class ReponsesInvalides(ValueError):
@@ -360,16 +371,83 @@ def _erreurs_saisies(capital: Any, portefeuille: Any, identifiant: str, date_rep
     return erreurs
 
 
+def _erreurs_objectifs(objectifs: Any) -> list[str]:
+    """Objectifs (#115) : au moins deux, chacun avec un texte, un choix d'horizon, une part et un portefeuille."""
+    if not isinstance(objectifs, list) or len(objectifs) < 2 or not all(isinstance(o, dict) for o in objectifs):
+        return ["Objectifs : une liste d'au moins deux objectifs { objectif, horizon, part, portefeuille }"]
+    erreurs = []
+    horizons = [c["id"] for c in _questions_config()["horizon"]["choix"]]
+    connus = {t["ticker"] for t in charger_univers()}
+    for i, objectif in enumerate(objectifs, start=1):
+        lieu = f"Objectif {i}"
+        identifiant = objectif.get("id", f"poche_{i}")
+        if not isinstance(identifiant, str) or not FORMAT_IDENTIFIANT.fullmatch(identifiant):
+            erreurs.append(f"{lieu} : id invalide « {identifiant} » (minuscules, chiffres et « _ »)")
+        texte = objectif.get("objectif")
+        if not isinstance(texte, str) or not texte.strip() or len(texte) > LONGUEUR_MAX_OBJECTIF:
+            erreurs.append(f"{lieu} : texte de l'objectif manquant ({LONGUEUR_MAX_OBJECTIF} caractères au plus)")
+        if objectif.get("horizon") not in horizons:
+            erreurs.append(f"{lieu} : horizon « {objectif.get('horizon')} » inconnu ; choix : {', '.join(horizons)}")
+        part = objectif.get("part")
+        if isinstance(part, bool) or not isinstance(part, (int, float)) or not 0 < part <= 1:
+            erreurs.append(f"{lieu} : part invalide, entre 0 et 1 (0.3 = 30 % du portefeuille)")
+        lignes = objectif.get("portefeuille")
+        if not isinstance(lignes, list) or not lignes or not all(isinstance(ligne, dict) for ligne in lignes):
+            erreurs.append(f"{lieu} : portefeuille vide, une liste de lignes {{ ticker, poids }}")
+        else:
+            inconnus = sorted({str(ligne.get("ticker")) for ligne in lignes if ligne.get("ticker") not in connus})
+            if inconnus:
+                erreurs.append(f"{lieu} : titres hors de l'univers : {', '.join(inconnus)}")
+            if any(isinstance(ligne.get("poids"), bool) or not isinstance(ligne.get("poids"), (int, float))
+                   for ligne in lignes):
+                erreurs.append(f"{lieu} : chaque ligne du portefeuille a un poids décimal")
+    return erreurs
+
+
+def poche_depuis_objectif(objectif: dict[str, Any], reponses: dict[str, Any], date_reponses: str,
+                          rang: int) -> dict[str, Any]:
+    """Une poche du profil (#115) : le barème appliqué avec l'horizon de l'objectif.
+
+    La poche ne reçoit que la règle de pire baisse, qui dépend de l'horizon ; les autres
+    règles restent communes. ``reponse_horizon`` garde le choix d'horizon, pour que la pièce
+    du questionnaire d'un procès sur cette poche parte de son horizon.
+    """
+    analyse = analyser({**reponses, "horizon": objectif["horizon"]}, date_reponses)
+    choix_horizon = _choix(_questions_config()["horizon"], objectif["horizon"])["libelle"]
+    regles = []
+    for regle in analyse.regles:
+        if regle["id"] == ID_REGLE_PIRE_BAISSE:
+            regles.append({**regle, "justification": f"Poche « {objectif['objectif'].strip()} », horizon "
+                                                     f"« {choix_horizon} ». {regle['justification']}"})
+    return {
+        "id": objectif.get("id", f"poche_{rang}"),
+        "objectif": objectif["objectif"].strip(),
+        "horizon_ans": analyse.horizon_ans,
+        "part": objectif["part"],
+        "profil_risque": analyse.profil_risque,
+        "portefeuille": [{"ticker": ligne["ticker"], "poids": ligne["poids"]} for ligne in objectif["portefeuille"]],
+        "regles": regles,
+        "reponse_horizon": objectif["horizon"],
+    }
+
+
+def _horizon_des_poches(poches: list[dict[str, Any]]) -> list:
+    """Horizon global d'un profil à poches : du plus court minimum au plus long maximum (None = sans borne)."""
+    maximums = [poche["horizon_ans"][1] for poche in poches]
+    return [min(poche["horizon_ans"][0] for poche in poches), None if None in maximums else max(maximums)]
+
+
 def profil_depuis_reponses(
     reponses: dict[str, Any],
     capital: float,
-    portefeuille: list[dict[str, Any]],
+    portefeuille: list[dict[str, Any]] | None,
     date_reponses: str,
     *,
     identifiant: str = "investisseur",
     nom: str = "Investisseur",
     decision: dict[str, Any] | None = None,
     etiquette_reponses: str = "fait",
+    objectifs: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Fichier profil (format de ``personas/``) tiré des réponses ; valide pour ``pipeline.pacte``.
 
@@ -378,10 +456,21 @@ def profil_depuis_reponses(
     ``etiquette_reponses`` : ``fait`` pour les réponses d'une vraie personne, ``fictif``
     pour des réponses préenregistrées de démonstration.
 
+    ``objectifs`` (#115) : ``[{"id"?, "objectif", "horizon", "part", "portefeuille"}]``, au
+    moins deux. Le profil a alors une poche par objectif (``poche_depuis_objectif``) ; le
+    portefeuille global, s'il n'est pas donné (None), est la somme des poches pondérées.
+
     Raises:
         ReponsesInvalides: réponse inconnue, saisie invalide, aucune règle, ou profil refusé
             par ``erreurs_profil`` (chaque motif dans ``erreurs``).
     """
+    if objectifs is not None:
+        erreurs = _erreurs_objectifs(objectifs)
+        if erreurs:
+            raise ReponsesInvalides(erreurs)
+        if portefeuille is None:
+            portefeuille = portefeuille_global([{"part": o["part"], "portefeuille": o["portefeuille"]}
+                                                for o in objectifs])
     erreurs = _erreurs_saisies(capital, portefeuille, identifiant, date_reponses)
     if erreurs:
         raise ReponsesInvalides(erreurs)
@@ -389,19 +478,26 @@ def profil_depuis_reponses(
         raise ReponsesInvalides([f"Étiquette des réponses invalide : « {etiquette_reponses} » (fait ou fictif)"])
     propres = valider_reponses(reponses)
     analyse = analyser(propres, date_reponses)
-    if not analyse.regles:
+    regles, horizon, poches = analyse.regles, analyse.horizon_ans, None
+    if objectifs is not None:
+        poches = [poche_depuis_objectif(o, propres, date_reponses, rang) for rang, o in enumerate(objectifs, start=1)]
+        regles = [regle for regle in analyse.regles if regle["id"] != ID_REGLE_PIRE_BAISSE]
+        horizon = _horizon_des_poches(poches)
+    if not regles and not any(poche["regles"] for poche in poches or []):
         raise ReponsesInvalides(["Aucune règle : répondez au moins à une question de capacité ou de préférence"])
     profil = {
         "id": identifiant,
         "nom": nom,
         "etiquette": "fictif",  # outil éducatif : tout profil reste un scénario simulé (schéma)
         "profil_risque": analyse.profil_risque,
-        "horizon_ans": analyse.horizon_ans,
+        "horizon_ans": horizon,
         "capital_fictif_cad": capital,
         "portefeuille": [{"ticker": ligne["ticker"], "poids": ligne["poids"]} for ligne in portefeuille],
-        "pacte": {"date_signature": date_reponses, "regles": analyse.regles},
+        "pacte": {"date_signature": date_reponses, "regles": regles},
         "questionnaire": {"date": date_reponses, "etiquette": etiquette_reponses, "reponses": propres},
     }
+    if poches is not None:
+        profil["poches"] = poches
     if decision is not None:
         profil["decision_demo"] = decision
     erreurs = erreurs_profil(profil, nom_fichier=identifiant)
@@ -410,9 +506,30 @@ def profil_depuis_reponses(
     return profil
 
 
-def detail_bareme(reponses: dict[str, Any], date_reponses: str) -> dict[str, Any]:
-    """Quelle réponse a produit quelle règle, la capacité, le resserrement et les contrôles « à vérifier »."""
+def detail_bareme(reponses: dict[str, Any], date_reponses: str,
+                  objectifs: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """Quelle réponse a produit quelle règle, la capacité, le resserrement et les contrôles « à vérifier ».
+
+    Avec ``objectifs`` (#115, déjà validés par ``profil_depuis_reponses``) : ``poches`` donne, pour
+    chaque objectif, son horizon, sa capacité et son seuil retenu.
+    """
     analyse = analyser(valider_reponses(reponses), date_reponses)
+    detail = _detail_analyse(analyse, reponses, date_reponses)
+    if objectifs is not None:
+        propres = valider_reponses(reponses)
+        detail["poches"] = []
+        for rang, objectif in enumerate(objectifs, start=1):
+            analyse_poche = analyser({**propres, "horizon": objectif["horizon"]}, date_reponses)
+            detail["poches"].append({
+                "id": objectif.get("id", f"poche_{rang}"), "objectif": objectif["objectif"].strip(),
+                "horizon_ans": analyse_poche.horizon_ans, "part": objectif["part"],
+                "capacite": analyse_poche.capacite, "seuil_retenu": analyse_poche.seuil,
+                "profil_risque": analyse_poche.profil_risque,
+            })
+    return detail
+
+
+def _detail_analyse(analyse: Analyse, reponses: dict[str, Any], date_reponses: str) -> dict[str, Any]:
     return {
         "date": date_reponses,
         "etiquette_bareme": charger_config()["etiquette"],
@@ -580,7 +697,8 @@ def controles_questionnaire(
 
 def main(arguments: list[str] | None = None) -> int:
     lecteur = argparse.ArgumentParser(description="Questionnaire investisseur (#84) : réponses → fichier profil")
-    lecteur.add_argument("reponses", nargs="?", type=Path, help="fichier JSON : id, nom, date, capital_cad, portefeuille, reponses")
+    lecteur.add_argument("reponses", nargs="?", type=Path,
+                         help="fichier JSON : id, nom, date, capital_cad, portefeuille, reponses, objectifs (facultatif, #115)")
     lecteur.add_argument("--questions", action="store_true", help="afficher les questions prêtes à afficher (JSON)")
     lecteur.add_argument("--sortie", type=Path, help="fichier profil à écrire (défaut : personas/<id>.json)")
     lecteur.add_argument("--forcer", action="store_true", help="remplacer le fichier de sortie s'il existe")
@@ -598,7 +716,7 @@ def main(arguments: list[str] | None = None) -> int:
         profil = profil_depuis_reponses(
             saisie.get("reponses", {}), saisie.get("capital_cad"), saisie.get("portefeuille"), date_reponses,
             identifiant=saisie.get("id", "investisseur"), nom=saisie.get("nom", "Investisseur"),
-            decision=saisie.get("decision"),
+            decision=saisie.get("decision"), objectifs=saisie.get("objectifs"),
         )
     except ReponsesInvalides as erreur:
         print("Réponses refusées :", *erreur.erreurs, sep="\n- ", file=sys.stderr)
@@ -610,10 +728,15 @@ def main(arguments: list[str] | None = None) -> int:
         return 1
     sortie.write_text(json.dumps(profil, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    detail = detail_bareme(saisie.get("reponses", {}), date_reponses)
+    detail = detail_bareme(saisie.get("reponses", {}), date_reponses, saisie.get("objectifs"))
     print(f"Profil écrit : {sortie} (profil de risque : {profil['profil_risque']})")
-    for regle, explication in zip(profil["pacte"]["regles"], detail["regles"]):
-        print(f"- {regle['libelle']}  [{explication['etiquette']}]")
+    etiquettes = {explication["id"]: explication["etiquette"] for explication in detail["regles"]}
+    for regle in profil["pacte"]["regles"]:
+        print(f"- {regle['libelle']}  [{etiquettes.get(regle['id'], 'hypothese')}]")
+    for poche in profil.get("poches", []):  # #115
+        print(f"Poche « {poche['objectif']} » ({poche['part'] * 100:.0f} %) :")
+        for regle in poche["regles"]:
+            print(f"  - {regle['libelle']}  [{etiquettes.get(regle['id'], 'hypothese')}]")
     for controle in detail["controles"]:
         print(f"  à vérifier : {controle['message']}")
     return 0

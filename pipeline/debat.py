@@ -262,6 +262,15 @@ CONSIGNE_QUESTION = (
 )
 
 
+CONSIGNE_POCHE = (
+    "Poche : le portefeuille de l'utilisateur est divisé en poches, chacune avec son objectif et son "
+    "horizon. Cette décision est jugée dans la poche indiquée par « poche » dans le Pacte : la taille est "
+    "une part de cette poche, et l'horizon, les règles et toutes les pièces calculées portent sur cette "
+    "poche, pas sur le portefeuille global. Ne présente jamais un chiffre de la poche comme un chiffre "
+    "du portefeuille global."
+)
+
+
 def construire_message(dossier: dict[str, Any]) -> str:
     """Le dossier tel que le lisent les agents : décision, Pacte, période et pièces.
 
@@ -274,6 +283,10 @@ def construire_message(dossier: dict[str, Any]) -> str:
     message = (
         f"Décision de l'utilisateur :\n{json.dumps(dossier['decision'], ensure_ascii=False)}\n\n"
         f"Pacte de l'utilisateur :\n{json.dumps(dossier['pacte'], ensure_ascii=False)}\n\n"
+    )
+    if "poche" in dossier["pacte"]:  # profil à poches (#115) ; sans poche, le message est inchangé
+        message += f"{CONSIGNE_POCHE}\n\n"
+    message += (
         f"Période d'analyse : du {debut} au {fin}\n\n"
         f"Pièces :\n{json.dumps(pieces, ensure_ascii=False, indent=1)}"
     )

@@ -26,6 +26,12 @@ seulement » (``verifier_cadre_simulation`` : aucun conseil, aucune promesse,
 #60). Un argument refusé est renvoyé **une fois** à son agent
 (``corriger_argument``), puis rangé dans ``arguments_rejetes`` s'il échoue encore.
 
+Poches (#115) : pour un profil dont le portefeuille a plusieurs horizons, l'Agent
+Profil choisit la poche jugée et projette le profil sur elle
+(``pipeline.poches.profil_de_la_poche``). Tout le reste du procès lit ce profil
+projeté : simulation, taille maximale et règles portent sur la poche. Sans poches,
+le contrat est exactement le même qu'avant.
+
 Progression en direct (#90) : avec ``signaler``, chaque étape réelle est publiée au
 moment où elle a lieu (début de chaque phase, chaque appel d'outil de l'orchestrateur,
 retour du Procureur et de l'Avocat, chaque renvoi du Greffier ; format dans
@@ -39,7 +45,7 @@ from typing import Any, Callable
 
 from pipeline.agent_profil import charger_profil, lancer_agent_profil
 from pipeline.cadre_simulation import controle_cadre_simulation
-from pipeline.calibrage import ResultatCalibrage, calibrer
+from pipeline.calibrage import ErreurCalibrage, ResultatCalibrage, calibrer
 from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
 from pipeline.composition import NOM_OUTIL as OUTIL_COMPOSITION
 from pipeline.composition import piece_composition
@@ -55,6 +61,7 @@ from pipeline.orchestrateur import RAISON_D_OFFICE, instruire_dossier
 from pipeline.pacte import pacte_pour_contrat, piece_pacte
 from pipeline.points_de_bascule import NOM_OUTIL as OUTIL_POINTS_DE_BASCULE
 from pipeline.points_de_bascule import piece_points_de_bascule, pour_contrat
+from pipeline.poches import a_des_poches, profil_de_la_poche
 from pipeline.progression import Signaler, ne_rien_signaler
 from pipeline.questionnaire import NOM_OUTIL_PIECE as OUTIL_QUESTIONNAIRE
 from pipeline.questionnaire import controles_questionnaire, piece_questionnaire
@@ -73,6 +80,8 @@ AVERTISSEMENT = (
 )
 HYPOTHESES_PROCES = ["Seuils du Pacte choisis par l'équipe", "Portefeuille et capital fictifs"]
 LIMITE_PACTE_VECU = "Une réponse à un jour de marché passé ne garantit pas le comportement futur"
+LIMITE_POCHE = ("Seule la poche concernée est simulée : l'effet de la décision sur les autres poches et "
+                "sur le portefeuille global n'est pas jugé")
 LIMITES = [
     "Les rendements passés ne garantissent pas les rendements futurs",
     "Biais du survivant dans l'univers d'actifs",
@@ -93,11 +102,16 @@ DESTINATAIRES = {"procureur": "au Procureur", "avocat": "à l'Avocat"}
 def verifier_avant_proces(
     identifiant_profil: str,
     calibrage: dict[str, Any] | None = None,
+    poche: str | None = None,
 ) -> ResultatCalibrage | None:
-    """Contrôles sans Bedrock avant un procès : profil connu et valide, réponses du Pacte vécu complètes.
+    """Contrôles sans Bedrock avant un procès : profil connu et valide, poche existante, réponses du Pacte vécu complètes.
 
     La Lambda s'en sert pour refuser tout de suite une demande invalide, avant de lancer
     le procès en arrière-plan (#90).
+
+    Profil à poches (#115) : le Pacte vécu calibre la règle de pire baisse **d'une poche**
+    (ses questions viennent du portefeuille de la poche). La poche doit donc être donnée
+    avec les réponses : le modèle ne la déduit qu'après, et les réponses sont vérifiées avant.
 
     Returns:
         Le calibrage du Pacte vécu (#68), ou None sans réponses.
@@ -105,11 +119,17 @@ def verifier_avant_proces(
     Raises:
         ProfilInconnu, PacteInvalide: profil introuvable ou invalide (``personas/`` ou profil créé, #87).
         ErreurDonnees: profil créé illisible.
-        ErreurCalibrage: réponses du Pacte vécu incomplètes ou invalides.
+        PocheInconnue: ``poche`` donnée, mais absente du profil.
+        ErreurCalibrage: réponses du Pacte vécu incomplètes ou invalides, ou sans poche pour un profil à poches.
     """
     profil = charger_profil(identifiant_profil)
+    if poche is not None:
+        profil = profil_de_la_poche(profil, poche)
     if calibrage is None:
         return None
+    if a_des_poches(profil):
+        raise ErreurCalibrage("Portefeuille divisé en poches : précisez la poche (champ « poche ») "
+                              "dont le Pacte vécu mesure la pire baisse")
     return calibrer(profil, calibrage["reponses"], calibrage["date"], ID_PIECE_CALIBRAGE,
                     calibrage.get("etiquette", "fait"))
 
@@ -120,6 +140,7 @@ def juger_decision(
     converser: Callable[..., Any] = converser_avec_outils,
     calibrage: dict[str, Any] | None = None,
     signaler: Signaler | None = None,
+    poche: str | None = None,
 ) -> dict[str, Any]:
     """Fait le procès d'une demande pour n'importe quel profil de ``personas/``.
 
@@ -132,6 +153,9 @@ def juger_decision(
         signaler: appelée à chaque étape réelle du procès (``pipeline.progression``),
             éventuellement depuis le fil d'exécution du Procureur ou de l'Avocat. None :
             rien n'est signalé.
+        poche: profil à poches (#115) : id de la poche choisie par l'utilisateur. None :
+            l'Agent Profil la déduit de la demande (sinon, la plus prudente, à vérifier).
+            Tout le procès porte ensuite sur cette poche.
 
     Returns:
         Le contrat complet (position ou réallocation). Si
@@ -139,7 +163,7 @@ def juger_decision(
         ``None``, aucune pièce n'est calculée et ``controles`` dit quoi préciser.
 
     Raises:
-        ProfilInconnu, PacteInvalide: voir ``lancer_agent_profil``.
+        ProfilInconnu, PacteInvalide, PocheInconnue: voir ``lancer_agent_profil``.
         ErreurCalibrage: réponses du Pacte vécu incomplètes ou invalides.
     """
     signaler = signaler or ne_rien_signaler
@@ -152,9 +176,9 @@ def juger_decision(
 
     vecu = None
     if calibrage is not None:  # vérifié avant l'Agent Profil : une erreur ne coûte aucun appel Bedrock
-        vecu = verifier_avant_proces(identifiant_profil, calibrage)
+        vecu = verifier_avant_proces(identifiant_profil, calibrage, poche)
     commencer("agent_profil")
-    profil = lancer_agent_profil(demande, identifiant_profil, ID_PIECE_PACTE)
+    profil = lancer_agent_profil(demande, identifiant_profil, ID_PIECE_PACTE, poche)
     pieces_initiales = [profil.piece_pacte]
     if vecu is not None:
         profil.profil = vecu.profil
@@ -253,6 +277,8 @@ def juger_decision(
         contrat["hypotheses"].append(HYPOTHESE_FRAIS)
     if vecu is not None:
         contrat["limites"].append(LIMITE_PACTE_VECU)
+    if "poche" in profil.profil:
+        contrat["limites"].append(LIMITE_POCHE)
     contrat["sources"] = sources_du_proces(contrat)
     return contrat
 

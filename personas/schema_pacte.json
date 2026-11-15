@@ -22,22 +22,22 @@
       "const": "fictif"
     },
     "profil_risque": {"type": "string", "minLength": 1},
-    "horizon_ans": {
-      "description": "[minimum, maximum] ; maximum null = sans borne (ex. : « 15 ans et plus »).",
-      "type": "array",
-      "prefixItems": [{"type": "number", "minimum": 0}, {"type": ["number", "null"], "minimum": 0}],
-      "minItems": 2,
-      "maxItems": 2
-    },
+    "horizon_ans": {"$ref": "#/$defs/horizon"},
     "capital_fictif_cad": {"type": "number", "exclusiveMinimum": 0},
     "portefeuille": {
-      "description": "Portefeuille de départ. Les poids doivent totaliser 1 (vérifié en Python).",
+      "description": "Portefeuille de départ (global). Les poids doivent totaliser 1 (vérifié en Python). Avec des poches, il doit être la somme des portefeuilles des poches pondérés par leur part (vérifié en Python).",
       "type": "array",
       "minItems": 1,
       "items": {"$ref": "#/$defs/ligne_portefeuille"}
     },
     "decision_demo": {"description": "Facultatif : décision de démonstration des profils de test. Un profil créé par le questionnaire (#84) n'en a pas.", "$ref": "#/$defs/decision"},
     "pacte": {"$ref": "#/$defs/pacte"},
+    "poches": {
+      "description": "Facultatif (#115) : plusieurs horizons dans un même portefeuille. Chaque poche a son objectif, son horizon, sa part du portefeuille, son portefeuille et ses propres règles. Une décision est jugée dans une seule poche : règles communes du Pacte (pacte.regles) plus règles de la poche (une règle de la poche remplace la règle commune de même id), simulation sur le portefeuille de la poche. Sans poches : une seule poche, comme avant. Parts qui totalisent 1, id uniques, portefeuille global cohérent : vérifiés en Python.",
+      "type": "array",
+      "minItems": 2,
+      "items": {"$ref": "#/$defs/poche"}
+    },
     "calibrage_demo": {"$ref": "#/$defs/calibrage_demo"},
     "questionnaire": {"$ref": "#/$defs/questionnaire"}
   },
@@ -51,6 +51,30 @@
     "date_iso": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
     "part": {"type": "number", "minimum": 0, "maximum": 1},
     "texte": {"type": "string", "minLength": 1},
+    "horizon": {
+      "description": "[minimum, maximum] ; maximum null = sans borne (ex. : « 15 ans et plus »).",
+      "type": "array",
+      "prefixItems": [{"type": "number", "minimum": 0}, {"type": ["number", "null"], "minimum": 0}],
+      "minItems": 2,
+      "maxItems": 2
+    },
+
+    "poche": {
+      "description": "Une partie du portefeuille avec son propre objectif et son propre horizon (#115). « part » : part du portefeuille global ; « portefeuille » : poids à l'intérieur de la poche (totalisent 1). « regles » s'ajoutent aux règles communes du Pacte ; une règle de même id remplace la règle commune. « reponse_horizon » : profil tiré du questionnaire (#84), le choix de la question « horizon » pour cette poche.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "objectif", "horizon_ans", "part", "portefeuille", "regles"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifiant"},
+        "objectif": {"$ref": "#/$defs/texte"},
+        "horizon_ans": {"$ref": "#/$defs/horizon"},
+        "part": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "profil_risque": {"type": "string", "minLength": 1},
+        "portefeuille": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ligne_portefeuille"}},
+        "regles": {"type": "array", "items": {"$ref": "#/$defs/regle"}},
+        "reponse_horizon": {"type": "string", "minLength": 1}
+      }
+    },
 
     "questionnaire": {
       "description": "Réponses au questionnaire (#84) dont le Pacte est tiré. Pendant un procès, elles deviennent une pièce declaree, et leurs contradictions des contrôles coherence_questionnaire (#85). Les réponses sont vérifiées par pipeline.questionnaire.valider_reponses.",
@@ -123,7 +147,8 @@
         "type": {"const": "position"},
         "ticker": {"type": "string", "minLength": 1},
         "taille": {"$ref": "#/$defs/part"},
-        "financement": {"type": "string", "pattern": "^(proportionnel|depuis_.+)$"}
+        "financement": {"type": "string", "pattern": "^(proportionnel|depuis_.+)$"},
+        "poche": {"description": "Profil à poches (#115) : id de la poche jugée ; la taille est une part de cette poche.", "$ref": "#/$defs/identifiant"}
       }
     },
     "decision_reallocation": {
@@ -138,7 +163,8 @@
           "minItems": 1,
           "items": {"$ref": "#/$defs/ligne_portefeuille"}
         },
-        "part_reallouee": {"$ref": "#/$defs/part"}
+        "part_reallouee": {"$ref": "#/$defs/part"},
+        "poche": {"description": "Profil à poches (#115) : id de la poche jugée ; la part réallouée est une part de cette poche.", "$ref": "#/$defs/identifiant"}
       }
     },
 
@@ -148,7 +174,7 @@
       "required": ["date_signature", "regles"],
       "properties": {
         "date_signature": {"$ref": "#/$defs/date_iso"},
-        "regles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/regle"}}
+        "regles": {"description": "Règles communes. Au moins une règle sans poches ; avec des poches, chaque poche doit avoir au moins une règle, commune ou propre (vérifié en Python).", "type": "array", "items": {"$ref": "#/$defs/regle"}}
       }
     },
 

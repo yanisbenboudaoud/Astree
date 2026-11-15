@@ -84,6 +84,9 @@ def erreurs_renvois(contrat):
         erreurs += erreurs_points_de_bascule(contrat)
 
     decision = contrat["decision"]
+    poche_decision, poche_pacte = decision.get("poche"), contrat["pacte"].get("poche", {}).get("id")
+    if poche_decision != poche_pacte:  # profil à poches (#115) : la décision est jugée dans la poche du Pacte
+        erreurs.append(f"decision/poche : « {poche_decision} » au lieu de la poche du Pacte « {poche_pacte} »")
     if decision["type"] == "reallocation":
         somme = sum(ligne["poids"] for ligne in decision["panier"])
         if abs(somme - 1) > TOLERANCE_SOMME_POIDS:

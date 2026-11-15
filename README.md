@@ -39,7 +39,7 @@ aws login                               # région us-east-1 ; ne crée aucune cl
 Valider un contrat JSON (`-X utf8` est nécessaire sous Windows pour afficher ✓ et ✗) :
 
 ```powershell
-.venv\Scripts\python -X utf8 -m contrat.valider docs\exemples\contrat_robert.json docs\exemples\contrat_amira.json
+.venv\Scripts\python -X utf8 -m contrat.valider docs\exemples\contrat_robert.json docs\exemples\contrat_amira.json docs\exemples\contrat_sofia.json
 ```
 
 ### Configuration (`.env`)
@@ -92,11 +92,12 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `pipeline/univers.py` | `charger_univers` : vue de `donnees.charger_univers` en liste de dictionnaires (pour les prompts) ; respecte `SOURCE_DONNEES` | [008](docs/journal/008-agent-profil.md), [013](docs/journal/013-deploiement-aws.md) |
 | `contrat/schema_sortie.json` | Schéma JSON de la sortie du pipeline | [002](docs/journal/002-contrat-json.md), [111](docs/journal/111-diversite-des-sources.md) |
 | `contrat/valider.py` | Schéma + renvois entre champs : `valider_contrat`, ou `python -m contrat.valider` | [002](docs/journal/002-contrat-json.md), [065](docs/journal/065-valider-erreurs-outil.md), [111](docs/journal/111-diversite-des-sources.md) |
-| `pipeline/pacte.py` | Chargement et validation d'un fichier profil : `charger_pacte`, `pacte_pour_contrat`, `piece_pacte` | [003](docs/journal/003-pacte-generique.md) |
+| `pipeline/pacte.py` | Chargement et validation d'un fichier profil : `charger_pacte`, `pacte_pour_contrat`, `piece_pacte` | [003](docs/journal/003-pacte-generique.md), [115](docs/journal/115-poches-horizons.md) |
+| `pipeline/poches.py` | Plusieurs horizons dans un même portefeuille : `profil_de_la_poche` (le profil réduit à la poche jugée, même forme qu'un profil sans poches), `poche_la_plus_prudente`, `regles_de_la_poche` (règles propres, puis communes), `portefeuille_global` | [115](docs/journal/115-poches-horizons.md) |
 | `pipeline/categories.py` | Catégories d'un titre : `categories_du_titre` (titre hors univers signalé, jamais deviné), selon la classe d'actifs, le secteur ou le marché de cotation, avec ajouts et retraits ; `nom_categories` (libellés) | [003](docs/journal/003-pacte-generique.md), [112](docs/journal/112-geographie-et-devise.md), [116](docs/journal/116-composition-fnb.md) |
 | `pipeline/composition.py` | Plafonds par transparence : `part_des_categories` (un FNB compte pour sa part réelle de chaque catégorie, sinon classement direct signalé), `part_dans_le_fonds`, `piece_composition` (pièce versée d'office : parts avant / après et composition utilisée), `erreurs_compositions` | [116](docs/journal/116-composition-fnb.md) |
 | `donnees_externes/composition_fnb.json` | Composition des 9 FNB de l'univers, relevée sur les pages des émetteurs : secteurs (GICS, ICB ou secteurs obligataires), poids d'Alphabet et d'Amazon, pays quand ils sont publiés ; source, date, conditions d'utilisation | [116](docs/journal/116-composition-fnb.md) |
-| `personas/*.json` | Profils de test et leur Pacte, au format générique ; un profil peut aussi être écrit par le questionnaire | [003](docs/journal/003-pacte-generique.md), [084](docs/journal/084-questionnaire-investisseur.md) |
+| `personas/*.json` | Profils de test et leur Pacte, au format générique ; un profil peut aussi être écrit par le questionnaire. `sofia.json` : profil à deux poches (mise de fonds dans 3 ans, retraite) | [003](docs/journal/003-pacte-generique.md), [084](docs/journal/084-questionnaire-investisseur.md), [115](docs/journal/115-poches-horizons.md) |
 | `personas/schema_pacte.json` | Schéma JSON d'un fichier profil, un sous-schéma par type de règle | [003](docs/journal/003-pacte-generique.md) |
 | `config/categories.json` | Catégories des règles `plafond`, communes à tous les profils : `tech`, `crypto`, `energie_fossile`, et géographiques `canada`, `etats_unis`, `hors_canada` ; bloc `transparence` (comment lire la composition d'un FNB) | [003](docs/journal/003-pacte-generique.md), [084](docs/journal/084-questionnaire-investisseur.md), [112](docs/journal/112-geographie-et-devise.md), [116](docs/journal/116-composition-fnb.md) |
 | `validation/` | Scénarios de validation et de sensibilité : même décision pour plusieurs profils, seuils, hypothèses, période, robustesse du Greffier, garde-fous, profil inventé, pouvoir d'achat et taux ; graphique de sensibilité. `python -m validation` | [015](docs/journal/015-scenarios-validation.md), [059](docs/journal/059-scenarios-panier-graphique.md), [111](docs/journal/111-diversite-des-sources.md) |
@@ -106,7 +107,7 @@ Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws 
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](docs/journal/000-fondations.md) |
 | `docs/validation/resultats_scenarios.md` | Tableau des résultats des scénarios (généré par `python -m validation`) | [015](docs/journal/015-scenarios-validation.md) |
 | `docs/validation/sensibilite_seuil.svg` | Graphique : taille maximale compatible selon le seuil de pire baisse (généré par `python -m validation`) | [059](docs/journal/059-scenarios-panier-graphique.md) |
-| `docs/exemples/` | Faux contrats valides (cas 1 et 2), utilisés par l'équipe interface ; `reponses_questionnaire.json`, exemple de réponses au questionnaire | [002](docs/journal/002-contrat-json.md), [084](docs/journal/084-questionnaire-investisseur.md) |
+| `docs/exemples/` | Faux contrats valides (cas 1 et 2), utilisés par l'équipe interface ; `contrat_sofia.json`, vrai procès d'un profil à poches ; `reponses_questionnaire.json`, exemple de réponses au questionnaire | [002](docs/journal/002-contrat-json.md), [084](docs/journal/084-questionnaire-investisseur.md), [115](docs/journal/115-poches-horizons.md) |
 | `docs/maquette/` | Maquette Figma V2 « Astrée » et sa spec d'implémentation (`spec_interface_astree.md`) ; ancienne maquette et prototype des 4 écrans | [000](docs/journal/000-fondations.md), [014](docs/journal/014-interface-astree.md) |
 | `docs/journal/` | Journal de construction : une fiche par issue, et son modèle ; `captures/<issue>/`, captures d'écran avant / après citées par une fiche | [018](docs/journal/018-livrables-documentation.md), [103](docs/journal/103-interface-paysage.md) |
 | `.env.example` | Variables à copier dans `.env` | [007](docs/journal/007-client-llm-bedrock.md) |

@@ -20,7 +20,10 @@ Ce qui n'est pas visé :
   (« ne vendez pas ») ;
 - le conditionnel d'un scénario (« si 2022 se répétait, le portefeuille ferait… »), le
   passé (« TSLA a rapporté ») et la possibilité (« il peut s'exposer au titre ») ;
-- le présent de l'indicatif après « vous » (« si vous vendez… ») : ce n'est pas un impératif.
+- le présent de l'indicatif après « vous » (« si vous vendez… ») : ce n'est pas un impératif ;
+- une interrogation indirecte ou une hypothèse (« le Tribunal ne dit pas s'il faut vendre »,
+  « savoir si TSLA va remonter ») : c'est la réponse attendue à une demande de conseil au
+  contre-interrogatoire (#55).
 
 Un argument fautif suit la boucle de ``pipeline.chiffres.trier_arguments`` : il est renvoyé
 une fois à son agent avec le motif, puis rangé dans ``arguments_rejetes``.
@@ -47,6 +50,14 @@ RE_CITATION = re.compile(r"«[^»]*»|“[^”]*”|\"[^\"]*\"")
 # une ponctuation ou à une conjonction (« Ce n'est pas garanti, mais TSLA va monter »).
 NEGATIONS = {"ne", "n", "rien", "aucun", "aucune", "jamais", "nul", "nulle", "non", "sans", "ni", "guère"}
 RE_FIN_PROPOSITION = re.compile(r"[.;:!?,()\[\]—–]|\b(?:et|mais|car|donc|or)\b", re.IGNORECASE)
+
+# Interrogation indirecte ou hypothèse, dans la même proposition : ni conseil ni promesse.
+# « Le Tribunal ne dit pas s'il faut vendre », « savoir si TSLA va remonter » : c'est la
+# réponse attendue à une demande de conseil au contre-interrogatoire (#55).
+RE_INTERROGATION_INDIRECTE = re.compile(
+    rf"\bsi\b|\bs{APOSTROPHE}ils?\b|\bquand\b|\blorsqu(?:e\b|{APOSTROPHE})|\bce\s+qu(?:e\b|{APOSTROPHE})",
+    re.IGNORECASE,
+)
 
 # --- 1. Conseil ---------------------------------------------------------------------
 
@@ -213,18 +224,15 @@ class VerificationCadre:
 def detecter_infractions(texte: str) -> list[Infraction]:
     """Conseils et promesses d'un texte, dans l'ordre où ils apparaissent (citations exclues)."""
     masque = RE_CITATION.sub(lambda m: " " * len(m.group()), texte)
-    trouvees: list[Infraction] = []
-    for regex in RE_CONSEILS:
-        trouvees += [_infraction("conseil", texte, m) for m in regex.finditer(masque)]
-    trouvees += [
-        _infraction("conseil", texte, m) for m in RE_IMPERATIF.finditer(masque)
-        if not RE_SUJET_VOUS.search(masque[:m.start()])
+    conseils = [m for regex in RE_CONSEILS for m in regex.finditer(masque)]
+    conseils += [m for m in RE_IMPERATIF.finditer(masque) if not RE_SUJET_VOUS.search(masque[:m.start()])]
+    promesses = [m for regex in RE_PROMESSES for m in regex.finditer(masque) if not est_niee(masque, m.start())]
+    trouvees = [
+        _infraction(famille, texte, m)
+        for famille, matches in (("conseil", conseils), ("promesse", promesses))
+        for m in matches
+        if not est_interrogation_indirecte(masque, m.start())
     ]
-    for regex in RE_PROMESSES:
-        trouvees += [
-            _infraction("promesse", texte, m) for m in regex.finditer(masque)
-            if not est_niee(masque, m.start())
-        ]
     return _sans_chevauchement(trouvees)
 
 
@@ -233,9 +241,27 @@ def est_niee(texte: str, position: int) -> bool:
 
     « rien ne garantit », « ne va pas forcément monter », « n'est pas garanti », « sans garantie ».
     """
-    proposition = RE_FIN_PROPOSITION.split(texte[:position])[-1]
-    mots = re.findall(r"[\w'’]+", proposition)
+    mots = re.findall(r"[\w'’]+", _proposition(texte, position))
     return any(morceau.lower() in NEGATIONS for mot in mots for morceau in re.split(APOSTROPHE, mot))
+
+
+def est_interrogation_indirecte(texte: str, position: int) -> bool:
+    """La position est-elle dans une interrogation indirecte ou une hypothèse ?
+
+    « le Tribunal ne dit pas s'il faut vendre », « savoir si TSLA va remonter »,
+    « les pièces ne disent pas quand il faut vendre ».
+    """
+    avant = _proposition(texte, position)
+    if RE_INTERROGATION_INDIRECTE.search(avant):
+        return True
+    # « s'il faut vendre » : la tournure commence à « il », juste après « s' »
+    # (mais « s'effondreront » reste une promesse).
+    return bool(re.search(rf"\bs{APOSTROPHE}$", avant) and re.match(r"ils?\b", texte[position:], re.IGNORECASE))
+
+
+def _proposition(texte: str, position: int) -> str:
+    """Le début de la proposition qui contient la position (depuis la dernière ponctuation ou conjonction)."""
+    return RE_FIN_PROPOSITION.split(texte[:position])[-1]
 
 
 def _infraction(famille: str, texte: str, m: re.Match) -> Infraction:

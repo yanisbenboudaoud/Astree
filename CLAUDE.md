@@ -161,11 +161,11 @@ Ce vérificateur porte la promesse du pitch : « aucun chiffre inventé ne passe
 
 ## 4 quater. Cadre « simulation seulement » : `cadre_simulation` (Greffier)
 
-Le case demande à la gouvernance de vérifier le cadre du défi (p. 9) et interdit de se présenter comme du conseil financier personnalisé (p. 17). Le Greffier vérifie donc aussi, en Python sans LLM (`pipeline/cadre_simulation.py`), qu'aucun argument (Procureur, Avocat) ne contient :
+Le case demande à la gouvernance de vérifier le cadre du défi (p. 9) et interdit de se présenter comme du conseil financier personnalisé (p. 17). Le Greffier vérifie donc aussi, en Python sans LLM (`pipeline/cadre_simulation.py`), qu'aucun argument (Procureur, Avocat, réponse au contre-interrogatoire) ne contient :
 1. **un conseil** : recommandation ou ordre (« vous devriez », « je recommande », « il faut vendre », « Robert devrait alléger », impératif comme « achetez » ou « ne vendez pas ») ;
 2. **une promesse ou une prévision** sur l'avenir, à la hausse comme à la baisse (« va monter », « rapportera », « devrait rebondir », « se répétera », « garanti », « à coup sûr »).
 
-Ne sont pas visés : les citations entre guillemets (le Pacte cité : « Préserver mon capital »), une prévision **niée** dans la même proposition (« le passé ne prédit pas l'avenir », « rien ne garantit ») et le conditionnel d'un scénario (« si 2022 se répétait, le portefeuille ferait… »). Un conseil nié reste un conseil. Même boucle que la règle 8 de la section 4 ter, dans la même relance : renvoyé une fois avec le motif, puis `arguments_rejetes`. Compte rendu : le contrôle `cadre_simulation` (« Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés »).
+Ne sont pas visés : les citations entre guillemets (le Pacte cité : « Préserver mon capital »), une prévision **niée** dans la même proposition (« le passé ne prédit pas l'avenir », « rien ne garantit ») le conditionnel d'un scénario (« si 2022 se répétait, le portefeuille ferait… ») et une interrogation indirecte (« le Tribunal ne dit pas s'il faut vendre », la réponse attendue à une demande de conseil au contre-interrogatoire). Un conseil nié reste un conseil. Même boucle que la règle 8 de la section 4 ter, dans la même relance : renvoyé une fois avec le motif, puis `arguments_rejetes`. Compte rendu : le contrôle `cadre_simulation` (« Aucun conseil personnalisé ni promesse sur l'avenir : 7 arguments vérifiés ») ; au contre-interrogatoire, une étape `verifier_cadre_simulation` de la trace de l'échange.
 
 ## 5. Contrat JSON entre le pipeline et l'interface
 

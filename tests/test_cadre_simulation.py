@@ -145,6 +145,29 @@ def test_pas_une_promesse(texte):
     assert familles(texte) == []
 
 
+@pytest.mark.parametrize("texte", [
+    # Réponses attendues à une demande de conseil au contre-interrogatoire (#55).
+    "Le Tribunal ne vous dit pas s'il faut vendre TSLA : c'est à vous de trancher.",
+    "Ce n'est pas au Tribunal de décider si vous devriez vendre.",
+    "Le Tribunal ne dit pas si Robert devrait alléger sa position.",
+    "Il ne m'appartient pas de dire s'il vaut mieux vendre ou conserver.",
+    "Les pièces ne disent pas quand il faut vendre ni ce qu'il faut acheter.",
+    "La question de savoir si TSLA va remonter reste ouverte.",
+])
+def test_interrogation_indirecte_acceptee(texte):
+    assert familles(texte) == []
+
+
+@pytest.mark.parametrize("texte, attendu", [
+    ("Je pense qu'il faut vendre.", [("conseil", "il faut vendre")]),
+    ("Si vous voulez préserver votre capital, vendez TSLA.", [("conseil", "vendez")]),  # autre proposition
+    ("Les cryptoactifs s'effondreront.", [("promesse", "effondreront")]),               # « s' » n'est pas « si »
+    ("TSLA va remonter, même si rien n'est sûr.", [("promesse", "va remonter")]),
+])
+def test_hors_interrogation_indirecte_toujours_detecte(texte, attendu):
+    assert familles(texte) == attendu
+
+
 def test_conseil_et_promesse_dans_le_meme_motif():
     verification = verifier_cadre_simulation(argument("Achetez TSLA : le titre va monter."))
     assert [i.famille for i in verification.infractions] == ["conseil", "promesse"]

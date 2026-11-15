@@ -12,7 +12,9 @@ l'interface affiche exactement les chiffres que le Tribunal citerait. Le script
 - ``univers.json`` : les 31 titres, libellés français, indicateurs en CAD, documents ESG ;
 - ``profils/<id>.json`` : portefeuille actuel, indicateurs, courbe de valeur, Pacte ;
 - ``decisions/<id>/<ticker>.json`` : une position de 0 à 50 %, par pas de 1 point ;
-- ``paniers/<id>.json`` : chaque composition du panier de démonstration, par pas de 5 points.
+- ``paniers/<id>.json`` : chaque composition du panier de démonstration, par pas de 5 points ;
+- ``calibrage/<id>.json`` : le Pacte vécu (#68), un vrai jour de marché par niveau de baisse,
+  les questions complémentaires et les réponses préenregistrées du profil de test.
 
 Rien n'est estimé dans le navigateur : le curseur et le panier lisent ces tables.
 """
@@ -47,7 +49,17 @@ from pipeline.indicateurs import (  # noqa: E402
     calculer_temps_recuperation,
     calculer_volatilite_annuelle,
 )
+from pipeline.calibrage import (  # noqa: E402
+    LIMITES as LIMITES_CALIBRAGE,
+    calibrer,
+    episodes_de_baisse,
+    question_baisse,
+    question_crypto,
+    questions_valeurs,
+    reponses_demo,
+)
 from pipeline.pacte import charger_pacte  # noqa: E402
+from pipeline.simulation import source_des_prix  # noqa: E402
 from pipeline.simulation import poids_apres_decision, valeurs_avant_apres  # noqa: E402
 
 DONNEES_FRONT = RACINE / "frontend" / "src" / "data"
@@ -343,6 +355,48 @@ def table_panier(profil: dict[str, Any], candidats: list[str], semaines: np.ndar
 # --- Écriture -----------------------------------------------------------------------
 
 
+# --- Pacte vécu (#68) ---------------------------------------------------------------
+
+
+def historique_episode(historique: pd.Series, date_sommet: str, capital: float) -> list[list[Any]]:
+    """Valeur en dollars (capital au sommet) une séance sur cinq, jusqu'au jour de l'épisode inclus."""
+    echelle = capital / float(historique[date_sommet])
+    rangs = sorted(set(range(0, len(historique), 5)) | {historique.index.get_loc(pd.Timestamp(date_sommet)),
+                                                        len(historique) - 1})
+    return [[historique.index[i].date().isoformat(), round(float(historique.iloc[i] * echelle))] for i in rangs]
+
+
+def construire_calibrage(profil: dict[str, Any]) -> dict[str, Any]:
+    """Tout ce que l'écran « Revivez 4 jours » montre, calculé par pipeline.calibrage.
+
+    Le navigateur ne rejoue que la dichotomie : le seuil qu'il affiche est la baisse
+    réelle d'un de ces jours, et le Tribunal le recalcule en Python à partir des réponses.
+    """
+    capital = profil["capital_fictif_cad"]
+    episodes = episodes_de_baisse(profil["portefeuille"])
+    demo = None
+    if profil.get("calibrage_demo"):
+        reponses, date = reponses_demo(profil)
+        demo = {"date": date, "reponses": reponses,
+                "seuil": calibrer(profil, reponses, date, "P2", etiquette="fictif").seuil}
+    return {
+        "profil": profil["id"],
+        "capital": capital,
+        "horizonAns": profil["horizon_ans"],
+        "episodes": [{
+            **question_baisse(episode, capital),
+            "niveau": episode.niveau,
+            "anneesRetour": episode.annees_retour,
+            "historique": historique_episode(episode.historique, episode.date_sommet, capital),
+        } for episode in episodes],
+        "crypto": question_crypto(profil["portefeuille"], capital),
+        "valeurs": questions_valeurs(profil["pacte"]["regles"]),
+        "demo": demo,
+        "source": source_des_prix(),
+        "limites": LIMITES_CALIBRAGE,
+    }
+
+
 def ecrire(chemin: Path, contenu: Any, compact: bool = False) -> None:
     chemin.parent.mkdir(parents=True, exist_ok=True)
     options = {"separators": (",", ":")} if compact else {"indent": 1}
@@ -381,6 +435,7 @@ def main(arguments: list[str]) -> int:
 
     for profil in profils:
         ecrire(SORTIE / "profils" / f"{profil['id']}.json", construire_profil(profil, par_ticker, semaines))
+        ecrire(SORTIE / "calibrage" / f"{profil['id']}.json", construire_calibrage(profil), compact=True)
         mode = profils_ui.get(profil["id"], {}).get("recherche", {}).get("mode")
         if mode is None:
             mode = "panier" if (profil.get("decision_demo") or {}).get("type") == "reallocation" else "position"

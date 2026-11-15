@@ -20,11 +20,30 @@ const URL_API = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 const contratsEnregistres = import.meta.glob<ContratTribunal>('../data/proces/*.json', { import: 'default' });
 
 export class ProcesNonEnregistre extends Error {
-  constructor(public readonly decisionEnregistree: DecisionUI | null) {
+  constructor(public readonly decisionEnregistree: DecisionUI | null, public readonly raisonPacteVecu?: string) {
     super('Aucun procès enregistré pour cette décision');
     this.name = 'ProcesNonEnregistre';
   }
 }
+
+interface EntreeIndex {
+  procesId: string;
+  profil: string;
+  note?: string;
+  /** Procès tenu avec les réponses préenregistrées du Pacte vécu (#68). */
+  calibrage?: boolean;
+}
+
+/** Réponses du Pacte vécu enregistrées dans la trace d'un procès (étape « calibrage »). */
+export function reponsesDuContrat(contrat: ContratTribunal): Record<string, string> | null {
+  const etape = contrat.trace.find((e) => e.etape === 'calibrage');
+  const entree = etape?.entree as { questions?: string[]; reponses?: string[] } | undefined;
+  if (!entree?.questions || !entree.reponses) return null;
+  return Object.fromEntries(entree.questions.map((q, i) => [q, entree.reponses![i]]));
+}
+
+const memesReponses = (a: Record<string, string>, b: Record<string, string>) =>
+  JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 
 export function decisionDepuisContrat(decision: DecisionContrat): DecisionUI {
   if (decision.type === 'position') return { type: 'position', ticker: decision.ticker, taille: Math.round(decision.taille * 100) };
@@ -36,9 +55,12 @@ interface ProcesEnregistre {
   procesId: string;
 }
 
-/** Procès enregistrés d'un profil, dans l'ordre de l'index (le premier est la décision de démonstration). */
-async function procesEnregistres(idProfil: string): Promise<ProcesEnregistre[]> {
-  const entrees = indexProces.proces.filter((p) => p.profil === idProfil);
+/**
+ * Procès enregistrés d'un profil, dans l'ordre de l'index (le premier est la décision de démonstration).
+ * Avec le Pacte vécu (#68), seuls ceux tenus avec ses réponses ; sans lui, seuls les autres.
+ */
+async function procesEnregistres(idProfil: string, avecCalibrage = false): Promise<ProcesEnregistre[]> {
+  const entrees = (indexProces.proces as EntreeIndex[]).filter((p) => p.profil === idProfil && Boolean(p.calibrage) === avecCalibrage);
   const charges = await Promise.all(entrees.map(async (entree) => {
     const chargeur = contratsEnregistres[`../data/proces/${entree.procesId}.json`];
     return chargeur ? { contrat: await chargeur(), procesId: entree.procesId } : null;
@@ -62,12 +84,36 @@ async function lireErreur(reponse: Response): Promise<string> {
   return `Le Tribunal a répondu ${reponse.status}`;
 }
 
-export async function jugerDecision(idProfil: string, decision: DecisionUI, signal?: AbortSignal): Promise<ResultatTribunal> {
+/**
+ * @param calibrage réponses du Pacte vécu (#68), quand il est terminé : en direct, la Lambda
+ *   recalcule le seuil en Python ; en démonstration, seul le procès tenu avec ces mêmes
+ *   réponses (celles du profil de test) peut être rejoué.
+ */
+export async function jugerDecision(
+  idProfil: string,
+  decision: DecisionUI,
+  signal?: AbortSignal,
+  calibrage?: Record<string, string> | null,
+): Promise<ResultatTribunal> {
   const profil = profilDe(idProfil);
   const contexte = { nomProfil: profil?.nom ?? idProfil, titreDecision: libelleDecision(decision) };
 
   if (!MODE_DIRECT) {
-    const enregistres = await procesEnregistres(idProfil);
+    const enregistres = await procesEnregistres(idProfil, Boolean(calibrage));
+    if (calibrage) {
+      // Seul un procès tenu avec exactement ces réponses peut être rejoué : aucun procès n'est inventé.
+      const memes = enregistres.filter((p) => {
+        const reponses = reponsesDuContrat(p.contrat);
+        return reponses !== null && memesReponses(calibrage, reponses);
+      });
+      if (!memes.length) {
+        throw new ProcesNonEnregistre(
+          null,
+          'Le procès enregistré avec le Pacte vécu utilise les réponses de démonstration du profil. Avec vos propres réponses, il faut le Tribunal en direct.',
+        );
+      }
+      enregistres.splice(0, enregistres.length, ...memes);
+    }
     const juge = enregistres.find((p) => correspondAuContrat(decision, p.contrat.decision));
     if (!juge) throw new ProcesNonEnregistre(enregistres[0] ? decisionDepuisContrat(enregistres[0].contrat.decision) : null);
     return adapterContrat(juge.contrat, { ...contexte, audience: numeroAudience(juge.procesId), procesId: juge.procesId });
@@ -77,7 +123,7 @@ export async function jugerDecision(idProfil: string, decision: DecisionUI, sign
   const reponse = await fetch(`${URL_API}/tribunal`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ profil: idProfil, demande: demandeDecision(decision) }),
+    body: JSON.stringify({ profil: idProfil, demande: demandeDecision(decision), ...(calibrage ? { calibrage: { reponses: calibrage } } : {}) }),
     signal,
   });
   if (!reponse.ok) throw new Error(await lireErreur(reponse));

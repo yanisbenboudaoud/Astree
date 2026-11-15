@@ -169,6 +169,7 @@ Les outils sont les seules sources de chiffres. Aucun n'utilise de LLM.
 | 5 | `verifier_pacte` | Le Pacte est-il respecté ? (réservé au Greffier) | `pipeline/greffier.py` |
 | 6 | `verifier_chiffres` | Chaque chiffre cité existe-t-il dans une pièce citée ? (réservé au Greffier) | `pipeline/chiffres.py` |
 | 7 | `consulter_jurisprudence` | Les verdicts passés du même profil | `pipeline/jurisprudence.py` |
+| — | `calibrer_pacte` | Le **Pacte vécu** : mesure la pire baisse tolérée sur les réponses de l'utilisateur à de vrais jours de marché (appelé avant le procès, pas par l'Orchestrateur) | `pipeline/calibrage.py` |
 
 ## 2.5 Le Pacte : des règles que la machine peut vérifier
 
@@ -183,9 +184,11 @@ Chaque règle d'un Pacte a un **type**. Le Greffier sait vérifier chaque type :
 
 Les catégories (`tech`, `crypto`) sont définies une seule fois pour tous les profils, dans `config/categories.json`.
 
+**Le Pacte vécu.** D'où vient « −12 % » ? Au départ, c'est une hypothèse de l'équipe. Le Pacte vécu la remplace par une mesure : l'utilisateur revit 3 ou 4 vrais jours de baisse (« le 13 juin 2022, votre capital de 650 000 $ vaudrait 583 948 $ »), sans voir la suite, et répond « je reste » ou « je vends ». Le seuil devient la baisse réelle du dernier jour où il est resté, et ses réponses deviennent une pièce que le Procureur peut citer : « vous aviez répondu « je vends » à −16,0 % ».
+
 ## 2.6 L'interface « Astrée »
 
-Le site web suit l'utilisateur en 5 écrans :
+Le site web suit l'utilisateur en 5 écrans, plus un écran facultatif, **« Revivez 4 jours »** (le Pacte vécu), ouvert depuis la carte du Pacte :
 
 1. **Entrée** : choisir un profil.
 2. **Portefeuille** : ses positions, ses chiffres clés et son Pacte.
@@ -498,6 +501,7 @@ Deux règles d'équipe : aucune mention de l'assistant de code dans les commits 
 - Les 3 cas généraux (décision incohérente, diversification, critères ESG), démontrés avec les 3 profils.
 - Les 7 outils, le Greffier (Pacte et chiffres), l'Orchestrateur, le Procureur et l'Avocat.
 - La jurisprudence (#56) : la mémoire des verdicts.
+- Le Pacte vécu (#68) : la pire baisse tolérée mesurée sur de vrais jours de marché.
 - Le déploiement AWS : Lambda, Bedrock, S3, Function URL, vérifiés avec de vrais procès.
 - L'interface Astrée : en mode démonstration avec 3 procès réels enregistrés, ou en direct sur la Lambda (#14).
 
@@ -508,8 +512,7 @@ Deux règles d'équipe : aucune mention de l'assistant de code dans les commits 
 | #18 | Livrables : README final, documentation technique, vidéo, one pager |
 | #55 | Contre-interrogatoire : poser une question libre au Tribunal |
 | #57 | Export du procès-verbal (dossier de convenance) |
-| #58 | Démo : montrer le Greffier qui rejette un chiffre inventé |
-| #59, #61, #68, #69 | Améliorations proposées (scénarios, points de bascule, « Pacte vécu », « Trompez le Greffier ») |
+| #61 | « Qu'est-ce qui changerait la réponse ? » : points de bascule par règle |
 
 La liste à jour est toujours sur GitHub, onglet *Issues*.
 

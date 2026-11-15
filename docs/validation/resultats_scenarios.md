@@ -4,7 +4,7 @@ Fichier généré par `python -m validation` (issue #15) : ne pas le modifier à
 Partie calculée du procès (Pacte, simulation, Greffier, taille maximale) sur les données du dépôt,
 sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèle et les vrais outils.
 
-**Bilan : 40 réussis, 0 en échec, 0 en attente.**
+**Bilan : 46 réussis, 0 en échec, 0 en attente.**
 
 ## 1. Même décision, profils différents
 
@@ -80,6 +80,17 @@ sans appel à Bedrock ; garde-fous de l'orchestrateur joués avec un faux modèl
 | Scénario | Attendu | Obtenu | |
 |---|---|---|---|
 | 25 % NVDA financés depuis SPY | un contrôle par règle ; plafond tech (20 %) en violation | violations : pire_baisse_max, plafond_tech ; pire baisse −27,9 % ; taille max 19,0 % ; pire_baisse_max : violation, plafond_tech : violation, sans_crypto : conforme, local : a_verifier | ✅ |
+
+## 9. Pacte vécu (profil prudent, 30 % TSLA)
+
+| Scénario | Attendu | Obtenu | |
+|---|---|---|---|
+| Reste jusqu'à 0,0 % | seuil du Pacte conservé | seuil −12,0 % | ✅ |
+| Reste jusqu'à −8,0 % | seuil ≥ −8,0 % ; violation | seuil −5,4 % en 3 questions ; violation | ✅ |
+| Reste jusqu'à −12,0 % | seuil ≥ −12,0 % ; violation | seuil −10,2 % en 3 questions ; violation | ✅ |
+| Reste jusqu'à −20,0 % | seuil ≥ −20,0 % ; violation | seuil −16,0 % en 4 questions ; violation | ✅ |
+| Reste jusqu'à −32,0 % | seuil ≥ −32,0 % ; conforme | seuil −31,4 % en 4 questions ; conforme | ✅ |
+| Reste jusqu'à −60,0 % | seuil ≥ −60,0 % ; conforme | seuil −50,5 % en 4 questions ; conforme | ✅ |
 
 ## Graphique : taille maximale compatible selon le seuil
 

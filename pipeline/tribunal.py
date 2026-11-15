@@ -6,6 +6,10 @@ Avocat → Greffier → Verdict.
 Toutes les phases sont branchées : le contrat est complet, pour une décision de
 type « position » comme pour une « reallocation » vers un panier (#16).
 
+Pacte vécu (#68) : si l'utilisateur a répondu aux jours de marché revécus,
+``calibrage`` est vérifié **avant** tout appel Bedrock ; la règle de pire baisse
+prend le seuil mesuré, et ses réponses deviennent la pièce P2 (``declaree``).
+
 ``taille_max_compatible`` (#21) est toujours calculé par Python, que
 l'orchestrateur ait demandé l'outil ou non : le curseur de l'écran Décision
 en a besoin dans tous les cas.
@@ -22,8 +26,9 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from pipeline.agent_profil import lancer_agent_profil
+from pipeline.agent_profil import chemin_profil, lancer_agent_profil
 from pipeline.cadre_simulation import controle_cadre_simulation
+from pipeline.calibrage import calibrer
 from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
 from pipeline.debat import corriger_argument, debattre
 from pipeline.greffier import controle_biais_survivant, controle_performance_passee, verifier_pacte
@@ -31,15 +36,18 @@ from pipeline.donnees import HYPOTHESES_DONNEES, date_extraction, seances_americ
 from pipeline.indicateurs import DECIMALES_VALEURS
 from pipeline.llm import converser_avec_outils
 from pipeline.orchestrateur import instruire_dossier
+from pipeline.pacte import charger_pacte, pacte_pour_contrat, piece_pacte
 from pipeline.taille_max import rechercher_taille_max
 from pipeline.simulation import poids_apres_decision, simuler_portefeuille
 
 ID_PIECE_PACTE = "P1"  # le Pacte est la première pièce ; l'orchestrateur numérote la suite
+ID_PIECE_CALIBRAGE = "P2"  # réponses du Pacte vécu, quand il y en a (#68)
 
 AVERTISSEMENT = (
     "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé."
 )
 HYPOTHESES_PROCES = ["Seuils du Pacte choisis par l'équipe", "Portefeuille et capital fictifs"]
+LIMITE_PACTE_VECU = "Une réponse à un jour de marché passé ne garantit pas le comportement futur"
 LIMITES = [
     "Les rendements passés ne garantissent pas les rendements futurs",
     "Biais du survivant dans l'univers d'actifs",
@@ -51,6 +59,7 @@ def juger_decision(
     identifiant_profil: str,
     demande: str,
     converser: Callable[..., Any] = converser_avec_outils,
+    calibrage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Fait le procès d'une demande pour n'importe quel profil de ``personas/``.
 
@@ -58,6 +67,8 @@ def juger_decision(
         identifiant_profil: ``id`` du profil (nom du fichier ``personas/<id>.json``).
         demande: texte de l'utilisateur (ex. : « Je veux mettre 30 % en Tesla »).
         converser: tour de modèle de l'orchestrateur (remplacé dans les tests).
+        calibrage: réponses du Pacte vécu, ou None : ``{"reponses": {id: réponse},
+            "date": "AAAA-MM-JJ", "etiquette": "fait" | "fictif"}``.
 
     Returns:
         Le contrat complet (position ou réallocation). Si
@@ -66,14 +77,26 @@ def juger_decision(
 
     Raises:
         ProfilInconnu, PacteInvalide: voir ``lancer_agent_profil``.
+        ErreurCalibrage: réponses du Pacte vécu incomplètes ou invalides.
     """
+    vecu = None
+    if calibrage is not None:  # vérifié avant l'Agent Profil : une erreur ne coûte aucun appel Bedrock
+        vecu = calibrer(charger_pacte(chemin_profil(identifiant_profil)), calibrage["reponses"],
+                        calibrage["date"], ID_PIECE_CALIBRAGE, calibrage.get("etiquette", "fait"))
     profil = lancer_agent_profil(demande, identifiant_profil, ID_PIECE_PACTE)
+    pieces_initiales = [profil.piece_pacte]
+    if vecu is not None:
+        profil.profil = vecu.profil
+        profil.pacte = pacte_pour_contrat(vecu.profil)
+        profil.piece_pacte = piece_pacte(vecu.profil, ID_PIECE_PACTE)
+        pieces_initiales = [profil.piece_pacte, vecu.piece]
+        profil.trace = [profil.trace[0], vecu.trace, *profil.trace[1:]]
     contrat = {
         "persona": identifiant_profil,
         "demande": demande,
         "decision": profil.decision,
         "pacte": profil.pacte,
-        "pieces": [profil.piece_pacte],
+        "pieces": pieces_initiales,
         "controles": list(profil.controles),
         "verdict": None,
         "hypotheses": [],
@@ -85,7 +108,8 @@ def juger_decision(
     if profil.decision is None:
         return contrat
 
-    instruction = instruire_dossier(profil.decision, profil.profil, premier_numero=2, converser=converser)
+    instruction = instruire_dossier(profil.decision, profil.profil, premier_numero=len(pieces_initiales) + 1,
+                                    converser=converser)
     contrat["comparaison"] = comparaison(profil.profil["portefeuille"], profil.decision)
     contrat["taille_max_compatible"] = rechercher_taille_max(
         profil.profil["portefeuille"], profil.decision, profil.profil["pacte"]["regles"]
@@ -123,8 +147,19 @@ def juger_decision(
     performance = controle_performance_passee(requisitoire.valides + plaidoirie.valides)
     contrat["controles"] += [*controles_pacte, controle_chiffres, controle_cadre,
                              *([performance] if performance else []), controle_biais_survivant()]
-    contrat["hypotheses"] = [periode_analyse(), *HYPOTHESES_DONNEES, *profil.hypotheses, *HYPOTHESES_PROCES]
+    contrat["hypotheses"] = [periode_analyse(), *HYPOTHESES_DONNEES, *profil.hypotheses,
+                             *hypotheses_proces(vecu.seuil if vecu else None)]
+    if vecu is not None:
+        contrat["limites"].append(LIMITE_PACTE_VECU)
     return contrat
+
+
+def hypotheses_proces(seuil_mesure: float | None) -> list[str]:
+    """Les seuils sont des hypothèses de l'équipe, sauf la pire baisse si le Pacte vécu l'a mesurée."""
+    if seuil_mesure is None:
+        return list(HYPOTHESES_PROCES)
+    return [f"Seuil de pire baisse mesuré sur les réponses de l'utilisateur ({ID_PIECE_CALIBRAGE}) ; "
+            "autres seuils choisis par l'équipe", *HYPOTHESES_PROCES[1:]]
 
 
 def verifier_cote(arguments, cote, role, dossier, trace):

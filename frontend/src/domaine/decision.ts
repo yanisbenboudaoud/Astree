@@ -5,7 +5,7 @@
 import type { DecisionContrat } from '../api/contrat';
 import type { DecisionUI, EntreeSimulation, Profil, Statut, TablePanier, TablePosition } from '../api/types';
 import { nomTitre, titre as titreDe } from '../api/donnees';
-import { date, part, pourcent } from '../lib/format';
+import { date, part, pourcent, seuil as seuilTexte } from '../lib/format';
 import { estCalculable, libelleCategories, paragraphe, statutUi } from './pacte';
 
 export function totalPanier(decision: DecisionUI): number {
@@ -88,7 +88,7 @@ export function effetsSurLePacte(profil: Profil, entree: EntreeSimulation, decis
     libelle: 'Chute maximale',
     avant: pourcent(profil.actuel.chuteMax),
     apres: pourcent(entree.chuteMax),
-    limite: pireBaisse ? `limite ${pourcent(pireBaisse.seuil ?? 0, { decimales: 0 })}` : 'aucune limite dans votre Pacte',
+    limite: pireBaisse ? `limite ${seuilTexte(pireBaisse.seuil ?? 0)}` : 'aucune limite dans votre Pacte',
     statut: pireBaisse ? statutUi(entree.statuts[pireBaisse.id]) : undefined,
     regle: pireBaisse?.id,
   });
@@ -132,7 +132,7 @@ export function messagesDecision(
         : `${sujet} enfreint ${enfreintes.length} règles de votre Pacte`;
       const morceaux = enfreintes.map((r) => {
         if (r.type === 'pire_baisse_max') {
-          const seuil = pourcent(r.seuil ?? 0, { decimales: 0 });
+          const seuil = seuilTexte(r.seuil ?? 0);
           if (position && maxConforme !== null && enfreintes.length === 1) {
             return `Au-delà de ${maxConforme} %, la pire chute observée dépasse votre limite de ${seuil}.`;
           }

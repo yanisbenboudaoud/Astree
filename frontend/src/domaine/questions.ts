@@ -6,7 +6,7 @@
  */
 import type { PieceContrat } from '../api/contrat';
 import type { DecisionUI, Piece, Profil, Provenance, ResultatTribunal, TablePosition } from '../api/types';
-import { correlation, part, pourcent } from '../lib/format';
+import { correlation, part, pourcent, seuil as seuilTexte } from '../lib/format';
 import { libelleCategories, paragraphe, seuilPireBaisse } from './pacte';
 import { entreePosition } from './decision';
 
@@ -94,8 +94,8 @@ export function repondre(question: QuestionSuggeree, contexte: ContexteQuestions
     let texte = `À ${x} %, la chute maximale observée serait de ${pourcent(entree.chuteMax)} et 2022 aurait donné ${pourcent(entree.rejeu2022, { signe: true })}.`;
     if (seuil !== undefined && regle) {
       texte += entree.statuts[regle.id] === 'violation'
-        ? ` C'est au-delà de votre seuil de ${pourcent(seuil, { decimales: 0 })} (Pacte §${paragraphe(profil.pacte.regles, regle.id)}).`
-        : ` C'est dans la limite de ${pourcent(seuil, { decimales: 0 })} de votre Pacte ; le rendement annualisé aurait été de ${pourcent(entree.rendement, { signe: true })}.`;
+        ? ` C'est au-delà de votre seuil de ${seuilTexte(seuil)} (Pacte §${paragraphe(profil.pacte.regles, regle.id)}).`
+        : ` C'est dans la limite de ${seuilTexte(seuil)} de votre Pacte ; le rendement annualisé aurait été de ${pourcent(entree.rendement, { signe: true })}.`;
     }
     return {
       ...base,

@@ -12,12 +12,13 @@ import { Provenance, Statut } from '../components/Etiquettes';
 import { LienRetour, Message, Monogramme, Section } from '../components/Elements';
 import { Icone } from '../components/Icone';
 import { GraphiqueRecul } from '../components/graphiques/GraphiqueRecul';
-import { date, dollars, pourcent } from '../lib/format';
+import { date, dollars, seuil as seuilTexte } from '../lib/format';
 import { serieRecul } from '../lib/series';
 import {
   effetsSurLePacte, entreePanier, entreePosition, ficheTitre, messagesDecision, totalPanier, type Effet,
 } from '../domaine/decision';
 import { seuilPireBaisse } from '../domaine/pacte';
+import { tablePanierCalibree, tablePositionCalibree } from '../domaine/calibrage';
 import { useEtatProfil } from '../state/store';
 import styles from './Decision.module.css';
 
@@ -124,7 +125,7 @@ function BlocTaille({ profil, decision, table, onTaille }: {
         {(max === null || max < 50) && (
           <li>
             <span className={styles.carreHors} aria-hidden="true" />
-            {seuil !== undefined ? `Au-delà, la chute observée dépasse ${pourcent(seuil, { decimales: 0 })} ou une autre règle mesurable` : 'Au-delà, une règle mesurable du Pacte est enfreinte'}
+            {seuil !== undefined ? `Au-delà, la chute observée dépasse ${seuilTexte(seuil)} ou une autre règle mesurable` : 'Au-delà, une règle mesurable du Pacte est enfreinte'}
           </li>
         )}
       </ul>
@@ -268,16 +269,19 @@ export function Decision({ profil }: { profil: Profil }) {
     if (decision?.type === 'panier') chargerTablePanier(profil.id).then((t) => actif && setTablePanier(t));
     return () => { actif = false; };
   }, [profil.id, decision?.type]);
+  // Pacte vécu (#68) : statuts et taille maximale recalculés avec le seuil mesuré.
+  const tablePositionMesuree = useMemo(() => tablePosition && tablePositionCalibree(tablePosition, profil), [tablePosition, profil]);
+  const tablePanierMesuree = useMemo(() => tablePanier && tablePanierCalibree(tablePanier, profil), [tablePanier, profil]);
 
   if (!decision) return <Navigate to={`/${profil.id}/portefeuille`} replace />;
 
   let entree: EntreeSimulation | null = null;
   let maxConforme: number | null = null;
-  if (decision.type === 'position' && tablePosition?.ticker === decision.ticker) {
-    entree = entreePosition(tablePosition, decision.taille);
-    maxConforme = tablePosition.maxConforme;
+  if (decision.type === 'position' && tablePositionMesuree?.ticker === decision.ticker) {
+    entree = entreePosition(tablePositionMesuree, decision.taille);
+    maxConforme = tablePositionMesuree.maxConforme;
   }
-  if (decision.type === 'panier' && tablePanier) entree = entreePanier(tablePanier, decision.lignes);
+  if (decision.type === 'panier' && tablePanierMesuree) entree = entreePanier(tablePanierMesuree, decision.lignes);
   const total = totalPanier(decision);
   const panierInvalide = decision.type === 'panier' && (total !== 100 || decision.lignes.length < 2);
   const messages = messagesDecision(profil, entree, decision, maxConforme);
@@ -311,12 +315,12 @@ export function Decision({ profil }: { profil: Profil }) {
         </div>
 
         {decision.type === 'position' && tablePosition?.ticker === decision.ticker && (
-          <BlocTaille profil={profil} decision={decision} table={tablePosition} onTaille={(t) => definirDecision({ ...decision, taille: t })} />
+          <BlocTaille profil={profil} decision={decision} table={tablePositionMesuree ?? tablePosition} onTaille={(t) => definirDecision({ ...decision, taille: t })} />
         )}
         {decision.type === 'panier' && (
           <BlocPanier
             decision={decision}
-            table={tablePanier ?? null}
+            table={tablePanierMesuree ?? null}
             onLignes={(lignes) => {
               definirDecision({ type: 'panier', lignes });
               definirPanier(lignes.map((l) => l.ticker));

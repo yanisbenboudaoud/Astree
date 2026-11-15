@@ -34,6 +34,7 @@ npm run dev          # http://localhost:5173
 | Indicateurs, courbe de valeur, recul | `alphaforge_starter/` (prix `adj_close`, USD/CAD) | le même script, avec les fonctions du pipeline (`pipeline.simulation`, `pipeline.indicateurs`, `pipeline.greffier`) |
 | Curseur de taille (0 à 50 %, pas de 1 point) | idem | `src/data/generated/decisions/<profil>/<ticker>.json` : une table par titre de l'univers |
 | Panier (pas de 5 points) | idem | `src/data/generated/paniers/<profil>.json` : chaque composition du panier de démonstration |
+| Pacte vécu (#68) : jours de baisse, questions, réponses de démonstration | idem, avec `pipeline.calibrage` | `src/data/generated/calibrage/<profil>.json` |
 | Arguments, contrôles, pièces, trace | le Tribunal (Bedrock + Python) | procès enregistrés dans `src/data/proces/`, ou Lambda en direct |
 | Libellés français, textes de démonstration | écrits à la main | `src/data/libelles.json`, `src/data/profils_ui.json` |
 
@@ -63,6 +64,13 @@ La couche `src/api/` isole les écrans du backend : les composants ne lisent que
   **Vérifier** : `npm run verifier:direct` (avec `npm run dev` en mode direct) joue deux vrais procès par l'interface, Robert puis Amira, et signe leurs verdicts. Cela coûte quelques cents de Bedrock et ajoute deux verdicts à la jurisprudence.
 
 Le même adaptateur (`src/api/adaptateur.ts`) traduit le contrat dans les deux modes.
+
+## Pacte vécu (#68)
+
+Écran `/:profil/pacte-vecu` (« Revivez 4 jours », lien depuis la carte « Votre Pacte ») : de vrais jours de baisse, en dollars, la courbe arrêtée au jour J. L'utilisateur répond « je reste » ou « je vends » ; `src/domaine/calibrage.ts` rejoue la dichotomie de `pipeline/calibrage.py` (un test vérifie qu'il trouve le même seuil que Python). Une fois terminé, tous les écrans reçoivent le profil au seuil mesuré (`App.tsx`), et les tables de décision sont rejugées avec ce seuil (même comparaison que le Greffier ; les séances sous la limite, comptées avec l'ancien seuil, ne sont plus affichées).
+
+- **Mode direct** : les réponses partent avec `POST /tribunal` (`calibrage.reponses`) ; la Lambda recalcule tout en Python.
+- **Mode démonstration** : seul un procès enregistré avec exactement les mêmes réponses (`"calibrage": true` dans `index.json`) peut être rejoué ; sinon, l'écran le dit. Le bouton « Utiliser les réponses de démonstration » applique celles du profil (étiquette Fictif). Pour enregistrer un tel procès sur la Lambda : `deploiement/tester_function_url.py <profil> "<demande>" --calibrage-demo --sortie …`, puis copier le contrat sous son identifiant dans `src/data/proces/`.
 
 ## Organisation
 

@@ -239,8 +239,17 @@ def piece_pacte(profil: dict, id_piece: str) -> dict:
         "valeur_affichee": f"Signé le {_date_francaise(profil['pacte']['date_signature'])}",
         "source": f"personas/{profil['id']}.json (persona fictif)",
         "traitement": "Règles typées lues par l'agent Profil (format générique du Pacte)",
-        "limites": "Les seuils sont des hypothèses de l'équipe",
+        "limites": _limites_seuils(profil),
     }
+
+
+def _limites_seuils(profil: dict) -> str:
+    """Les seuils sont des hypothèses, sauf ceux mesurés par le Pacte vécu (#68), qui citent leur pièce."""
+    mesures = [r for r in profil["pacte"]["regles"] if r.get("piece")]
+    if not mesures:
+        return "Les seuils sont des hypothèses de l'équipe"
+    pieces = ", ".join(sorted({r["piece"] for r in mesures}))
+    return f"Seuil de pire baisse mesuré sur les réponses de l'utilisateur ({pieces}) ; les autres seuils sont des hypothèses de l'équipe"
 
 
 def _de(nom: str) -> str:

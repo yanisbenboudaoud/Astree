@@ -55,5 +55,12 @@
     "ticker": "XOM",
     "taille": 0.1,
     "financement": "proportionnel"
+  },
+  "calibrage_demo": {
+    "date": "2026-11-15",
+    "reste_jusqu_a": -0.2,
+    "capacite": "attendre",
+    "valeurs": "garder",
+    "justification": "Réponses fictives : limite fixée au seuil déclaré du Pacte (−20 %) ; il garde son exclusion ESG même si elle coûte du rendement."
   }
 }

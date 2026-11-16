@@ -126,6 +126,19 @@ Un procès enregistré se relit pièce par pièce, et chaque chiffre se recalcul
 
 **Déployer sur AWS** : `deploiement/deployer.py` crée ou met à jour toute l'infrastructure (S3, IAM, Lambda, Function URL, Guardrail), de façon idempotente ; `deploiement/tester_function_url.py` lance un procès sur la Lambda déployée ; `deploiement/deployer_interface.py` héberge l'interface (S3 + CloudFront). Paramètres vérifiés (runtime, couche pandas, délai, mémoire, CORS, coûts, IAM) : [`deploiement/README.md`](deploiement/README.md). Schéma : [`docs/architecture.md`](docs/architecture.md).
 
+## Documentation
+
+| Pour… | Lire |
+|---|---|
+| **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
+| Les règles du projet, son architecture et le contrat JSON (la référence) | [`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md) |
+| Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
+| La **documentation technique** (agents, garde-fous, méthode, explicabilité, validations, AWS) | [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md) |
+| Le projet **en une page** | [`docs/ONE_PAGER.md`](docs/ONE_PAGER.md) |
+| Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
+| Trouver le rôle de **chaque fichier** | [`docs/CARTE_DU_DEPOT.md`](docs/CARTE_DU_DEPOT.md) |
+| Voir la maquette de l'interface | [`docs/maquette/`](docs/maquette/) |
+
 ## Preuves
 
 Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit. Taux en k/N, avec l'intervalle de confiance de Wilson à 95 % quand le rapport le donne : la borne basse dit ce que l'échantillon permet d'affirmer. Les ratés et les limites ne sont pas cachés : ils sont dans chaque rapport. Commandes pour régénérer chaque rapport et limites de chaque mesure : [`docs/validation/README.md`](docs/validation/README.md).
@@ -139,19 +152,6 @@ Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit.
 | **L'interface montre les mêmes chiffres que ces rapports** (#172) | Le bilan du Greffier affiche, sous `verifier_chiffres` et `cadre_simulation`, les taux du bulletin : **66/66** et **80/80**, **47/78** et **71/71** ; le tiroir de la pièce de simulation affiche **27/27** et **7/7** pour les données. Deux tests garantissent que ce sont les chiffres des rapports : `tests/test_bulletin.py` recalcule le bulletin et cherche chacun de ses k/N dans le rapport, `frontend/src/test/bulletin.test.tsx` vérifie que la phrase affichée reprend exactement le fichier. La mesure de l'orchestrateur n'est pas encore au bulletin. | [`bulletin.json`](frontend/src/data/bulletin.json), écrit par les commandes d'évaluation |
 | **AWS a réellement servi** (#191) | Exporté par l'API avant la suppression du compte (2026-11-16) : Claude Sonnet 5.5 sur Bedrock appelé **1 725 fois** (environ **10,3 millions** de jetons lus, 0 erreur client) ; Lambda appelée **1 573 fois**, 0 erreur ; 218 procès, 15 verdicts et 5 profils dans S3 ; coût réel du compte **17,29 $** pour un budget de 100 $. | [`docs/preuves/aws/`](docs/preuves/aws/README.md) |
 | **La suite de tests passe** (#169) | Badge en tête de ce README, à chaque push. Dernier passage sur `main` (commit `e8f0a34`, 2026-11-15) : **1033** tests Python réussis (24 tests Bedrock exclus, payants), **144/144** tests de l'interface, **10/10** contrats JSON valides. | [Run du 2026-11-15](https://github.com/yanisbenboudaoud/Datathon2026/actions/runs/43770396725) |
-
-## Documentation
-
-| Pour… | Lire |
-|---|---|
-| **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
-| Les règles du projet, son architecture et le contrat JSON (la référence) | [`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md) |
-| Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
-| La **documentation technique** (agents, garde-fous, méthode, explicabilité, validations, AWS) | [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md) |
-| Le projet **en une page** | [`docs/ONE_PAGER.md`](docs/ONE_PAGER.md) |
-| Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
-| Trouver le rôle de **chaque fichier** | [`docs/CARTE_DU_DEPOT.md`](docs/CARTE_DU_DEPOT.md) |
-| Voir la maquette de l'interface | [`docs/maquette/`](docs/maquette/) |
 
 ## Organisation du dépôt
 

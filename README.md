@@ -8,13 +8,12 @@ Projet AlphaForge AI, Datathon PolyFinances 2026.
 
 > Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
 
-![Le procès de « 30 % en TSLA » pour un investisseur prudent](docs/preuves/ecrans/05-robert-tribunal.png)
-
 ## Essayer
 
-**<https://yanisbenboudaoud.github.io/Astree/>** : choisir un profil, puis soumettre sa décision au Tribunal.
-
-Ce site rejoue des procès réellement tenus sur Amazon Bedrock, sans appeler AWS. La version complète sur AWS (procès en direct, n'importe quelle décision) est coupée le 16 novembre 2026, à la fermeture des comptes AWS du Datathon. Ce qu'elle faisait de plus, et les preuves qu'elle a tourné : [`docs/INSTALLATION.md`](docs/INSTALLATION.md#les-deux-sites) et [`docs/preuves/`](docs/preuves/aws/README.md).
+| Site | Ce qu'il fait | Disponible |
+|---|---|---|
+| **Démonstration** : <https://yanisbenboudaoud.github.io/Astree/> | Rejoue des procès réellement tenus sur Amazon Bedrock, sans appeler AWS. Seulement les décisions enregistrées | Toujours |
+| **Version AWS** : <https://d15khh2djw55mh.cloudfront.net> | Vrais procès en direct sur Bedrock : n'importe quelle décision, questions libres, Pacte construit avec vos réponses | Jusqu'au 16 novembre 2026 (fermeture des comptes AWS du Datathon) |
 
 ## Comment ça marche
 

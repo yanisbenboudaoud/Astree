@@ -38,7 +38,7 @@ Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit.
 
 ## Démarrage
 
-**Essayer sans rien installer** : l'interface est hébergée sur AWS (S3 + CloudFront, #135) à l'adresse **https://d15khh2djw55mh.cloudfront.net**. Pour l'instant, elle rejoue des procès réellement tenus par les agents (mode démonstration) ; le mode direct suivra (#141). Pour la mettre à jour : `deploiement\deployer_interface.py` ([`deploiement/README.md`](deploiement/README.md), « Interface hébergée »).
+**Essayer sans rien installer** : l'interface est hébergée sur AWS (S3 + CloudFront, #135) à l'adresse **https://d15khh2djw55mh.cloudfront.net**. Elle tient de **vrais procès en direct** (Lambda + Bedrock, #141), de 20 à 50 s chacun ; `?mode=demo` dans l'adresse, ou l'interrupteur en haut à droite, rejoue des procès réellement tenus par les agents, instantanés et sans appel à la Lambda (#137). Pour la mettre à jour : `deploiement\deployer_interface.py` ([`deploiement/README.md`](deploiement/README.md), « Interface hébergée »).
 
 Prérequis : **Python 3.14**, la version du runtime Lambda (`python3.14`, #22). Commandes pour PowerShell, sous Windows. Après une mise à jour de `requirements-dev.txt`, relancer la commande `pip install` ci-dessous.
 

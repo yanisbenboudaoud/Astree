@@ -4,7 +4,12 @@
 
 Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % de mon portefeuille en Tesla »). Des agents Amazon Bedrock en font le **procès** à partir de pièces calculées en Python : un Procureur argumente contre, un Avocat pour, un Greffier vérifie le Pacte de l'investisseur et chaque chiffre cité. L'utilisateur rend le verdict.
 
-**🔗 Essayer le site : <https://yanisbenboudaoud.github.io/Datathon2026/>** (GitHub Pages, mode démonstration). Il rejoue des procès réellement tenus par les agents sur AWS (Bedrock), enregistrés dans le dépôt avec leurs pièces, leurs arguments, les contrôles du Greffier, les sources, les hypothèses, les limites et la trace. Il n'appelle pas AWS : il reste en ligne après la fermeture de notre compte AWS.
+### 🔗 Essayer l'outil en ligne
+
+| Lien | Ce qu'il fait | Disponible |
+|---|---|---|
+| **Version AWS (complète)** : <https://d15khh2djw55mh.cloudfront.net> | La solution en direct : S3 + CloudFront pour l'interface, Lambda + Bedrock pour les agents. Juge **n'importe quelle décision**, répond aux questions libres (contre-interrogatoire), construit un Pacte avec vos propres réponses, affiche la progression du procès en direct. | Pendant l'évaluation. Coupée après le jury pour éviter des coûts. |
+| **Version démonstration (durable)** : <https://yanisbenboudaoud.github.io/Datathon2026/> | La même interface sur GitHub Pages, **sans appel à AWS**. Elle rejoue des procès réellement tenus par les agents sur Bedrock, enregistrés dans le dépôt avec leurs pièces, arguments, contrôles du Greffier, sources, limites et trace. Ne peut pas juger une décision non enregistrée. | Toujours, même après la fermeture du compte AWS. |
 
 > Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
 

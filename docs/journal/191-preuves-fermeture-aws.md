@@ -1,6 +1,6 @@
 # #191 — Preuves avant la fermeture du compte AWS
 
-- **Issue** : #191 · **PR** : #192 (captures d'écran), #PRNUM (captures refaites après #193 et #195) · **Statut** : en cours (procès sauvegardés et preuves AWS dans une seconde PR)
+- **Issue** : #191 · **PR** : #192 (captures d'écran), #197 (captures refaites après #193 et #195) · **Statut** : en cours (procès sauvegardés et preuves AWS dans une seconde PR)
 - **Dernière mise à jour** : 2026-11-16
 
 Message du jury : « On ne pourra pas tester : tout sera supprimé. Assurez-vous donc de prendre vidéos, captures d'écran, toutes preuves et tout ce qui est nécessaire pour démontrer votre solution. » Ce qui ne vit que sur AWS ou dans le navigateur est donc capturé et versé au dépôt.
@@ -32,7 +32,7 @@ Ouvrir [`docs/preuves/ecrans/README.md`](../preuves/ecrans/README.md) : chaque c
 ## Choix faits en cours de route
 - **Mode démonstration** : les captures ne dépendent pas d'AWS et se refont à l'identique ; ce sont des procès réellement tenus par Bedrock, rejoués.
 - **Captures refaites sur le `main` le plus récent** (après #188 et #190), pour montrer l'interface telle qu'elle sera remise.
-- **Refaites de nouveau le 2026-11-16 (PR #PRNUM)**, sur `main` après #193 (mode choisi à l'utilisation, #137) et #195 : les 18 écrans passent, aucun en échec. Le script tourne sans `VITE_API_URL`, donc sans interrupteur de mode : les captures montrent l'interface comme la démonstration durable (GitHub Pages). Depuis #137, `preuves.mjs` fixe aussi le mode « procès enregistrés » dans le navigateur : lancé contre le site hébergé, en direct par défaut depuis #141, il ne déclenche aucun procès payant.
+- **Refaites de nouveau le 2026-11-16 (PR #197)**, sur `main` après #193 (mode choisi à l'utilisation, #137) et #195 : les 18 écrans passent, aucun en échec. Le script tourne sans `VITE_API_URL`, donc sans interrupteur de mode : les captures montrent l'interface comme la démonstration durable (GitHub Pages). Depuis #137, `preuves.mjs` fixe aussi le mode « procès enregistrés » dans le navigateur : lancé contre le site hébergé, en direct par défaut depuis #141, il ne déclenche aucun procès payant.
 
 ## Limites et suite
 - Seconde PR : sauvegarde des procès tenus dans S3 (`validation/proces_tenus.tar.gz`) et preuves AWS exportées par l'API (`docs/preuves/aws/`), puis README et documentation technique.

@@ -1,0 +1,18 @@
+{
+ "RoleName": "alphaforge-lambda",
+ "Arn": "arn:aws:iam::908027376963:role/alphaforge-lambda",
+ "CreateDate": "2026-11-14 23:37:29+00:00",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "lambda.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole"
+   }
+  ]
+ },
+ "Description": "Lambda du Tribunal AlphaForge (#13)"
+}

@@ -1,0 +1,24 @@
+{
+ "FunctionUrl": "https://7wvmv737nmyye2elcz26ml64gy0ynyqu.lambda-url.us-east-1.on.aws/",
+ "FunctionArn": "arn:aws:lambda:us-east-1:908027376963:function:alphaforge-tribunal",
+ "AuthType": "NONE",
+ "Cors": {
+  "AllowHeaders": [
+   "content-type"
+  ],
+  "AllowMethods": [
+   "POST"
+  ],
+  "AllowOrigins": [
+   "http://localhost:5173",
+   "https://d15khh2djw55mh.cloudfront.net"
+  ],
+  "ExposeHeaders": [
+   "x-proces-id"
+  ],
+  "MaxAge": 300
+ },
+ "CreationTime": "2026-11-14T23:37:48.168157494Z",
+ "LastModifiedTime": "2026-11-16T01:35:24.477437802Z",
+ "InvokeMode": "BUFFERED"
+}

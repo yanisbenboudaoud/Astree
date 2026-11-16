@@ -153,7 +153,7 @@ def _ranger_au_bulletin(nom: str, jeu: dict[str, Any], resultats: list[ResultatC
 
 def main(arguments: list[str]) -> int:
     if not arguments:
-        print("Usage : python -m validation.evaluation <jeu>   (ex. : chiffres, cadre, orchestrateur [--local])")
+        print("Usage : python -m validation.evaluation <jeu>   (ex. : chiffres, cadre, orchestrateur [--archive | --local])")
         return 2
     nom, options = arguments[0], arguments[1:]
     sans_jeu = _evaluations_sans_jeu()

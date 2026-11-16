@@ -1,0 +1,10 @@
+{
+ "LastModified": "2026-11-15 20:35:24.086000-05:00",
+ "FunctionArn": "arn:aws:lambda:us-east-1:908027376963:function:alphaforge-tribunal:$LATEST",
+ "MaximumRetryAttempts": 0,
+ "MaximumEventAgeInSeconds": 60,
+ "DestinationConfig": {
+  "OnSuccess": {},
+  "OnFailure": {}
+ }
+}

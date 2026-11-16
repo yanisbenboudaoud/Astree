@@ -1,16 +1,16 @@
 # Évaluation : l'orchestrateur et le débat mesurés sur les procès tenus
 
-> Généré par `python -m validation.evaluation orchestrateur` (issue #167). **Lu le 2026-11-15** : 201 procès distincts, tenus du 2026-11-14 au 2026-11-15, lus dans `s3://alphaforge-908027376963/traces/` (201 procès) et `frontend/src/data/proces/` (7 procès, dont 0 absents de S3). Aucun appel à Bedrock : les traces sont relues telles qu'archivées. Le rapport change quand de nouveaux procès sont archivés.
+> Généré par `python -m validation.evaluation orchestrateur --archive` (issue #167). **Lu le 2026-11-16** : 218 procès distincts, tenus du 2026-11-14 au 2026-11-16, lus dans `validation/proces_tenus.tar.gz`, copie de `s3://alphaforge-908027376963/traces/` (218 procès) et `frontend/src/data/proces/` (15 procès, dont 0 absents de S3). Aucun appel à Bedrock : les traces sont relues telles qu'archivées. Le rapport change quand de nouveaux procès sont archivés.
 
 **Limite** : ces procès ne sont pas un échantillon planifié. Ce sont les procès lancés pendant le développement et les démonstrations, dominés par quelques décisions répétées (voir le tableau profil × décision). Les taux décrivent ces procès, pas le comportement du modèle sur toutes les décisions possibles. Le plan de procès, plus bas, est un petit échantillon planifié : la même décision jugée pour chaque profil.
 
 ## En bref
 
-- **Budget de 8 appels respecté** : 201/201 (100,0 % ; IC 95 % : 98,1 % à 100,0 %) ; refus pour budget dépassé : 0. Appels demandés par procès : min. 4, médiane 6, max. 8.
-- **Simulation obligatoire demandée par le modèle lui-même** : 201/201 (100,0 % ; IC 95 % : 98,1 % à 100,0 %) ; oubliée puis ajoutée d'office par Python : 0/201.
-- **Appels refusés** : 61 sur 1160 appels demandés (détail plus bas).
-- **Procureur** : 785 arguments proposés ; renvoyés par le Greffier : 113/785 (14,4 % ; IC 95 % : 12,1 % à 17,0 %) ; corrigés après renvoi : 108/113 (95,6 % ; IC 95 % : 90,1 % à 98,1 %) ; rejetés : 5.
-- **Avocat** : 757 arguments proposés ; renvoyés par le Greffier : 33/757 (4,4 % ; IC 95 % : 3,1 % à 6,1 %) ; corrigés après renvoi : 32/33 (97,0 % ; IC 95 % : 84,7 % à 99,5 %) ; rejetés : 1.
+- **Budget de 8 appels respecté** : 218/218 (100,0 % ; IC 95 % : 98,3 % à 100,0 %) ; refus pour budget dépassé : 0. Appels demandés par procès : min. 4, médiane 6, max. 8.
+- **Simulation obligatoire demandée par le modèle lui-même** : 218/218 (100,0 % ; IC 95 % : 98,3 % à 100,0 %) ; oubliée puis ajoutée d'office par Python : 0/218.
+- **Appels refusés** : 65 sur 1269 appels demandés (détail plus bas).
+- **Procureur** : 851 arguments proposés ; renvoyés par le Greffier : 117/851 (13,7 % ; IC 95 % : 11,6 % à 16,2 %) ; corrigés après renvoi : 112/117 (95,7 % ; IC 95 % : 90,4 % à 98,2 %) ; rejetés : 5.
+- **Avocat** : 821 arguments proposés ; renvoyés par le Greffier : 35/821 (4,3 % ; IC 95 % : 3,1 % à 5,9 %) ; corrigés après renvoi : 34/35 (97,1 % ; IC 95 % : 85,5 % à 99,5 %) ; rejetés : 1.
 
 ## Les outils changent avec le Pacte et la décision
 
@@ -20,9 +20,9 @@ Part des procès où le modèle a obtenu au moins une pièce de chaque outil (ap
 
 | Profil | Procès | `simuler_portefeuille` | `indicateurs_actif` | `calculer_correlations` | `taille_max_compatible` | `consulter_jurisprudence` | `rechercher_documents` | `mesurer_liquidite` |
 |---|---|---|---|---|---|---|---|---|
-| robert | 126 | 126/126 (100,0 %) | 126/126 (100,0 %) | 49/126 (38,9 %) | 123/126 (97,6 %) | 117/126 (92,9 %) | — | 22/126 (17,5 %) |
-| mateo | 43 | 43/43 (100,0 %) | 42/43 (97,7 %) | 22/43 (51,2 %) | 28/43 (65,1 %) | 37/43 (86,0 %) | 17/43 (39,5 %) | 5/43 (11,6 %) |
-| amira | 30 | 30/30 (100,0 %) | 8/30 (26,7 %) | 30/30 (100,0 %) | 28/30 (93,3 %) | 27/30 (90,0 %) | — | 4/30 (13,3 %) |
+| robert | 138 | 138/138 (100,0 %) | 138/138 (100,0 %) | 53/138 (38,4 %) | 135/138 (97,8 %) | 129/138 (93,5 %) | — | 32/138 (23,2 %) |
+| mateo | 45 | 45/45 (100,0 %) | 44/45 (97,8 %) | 23/45 (51,1 %) | 29/45 (64,4 %) | 39/45 (86,7 %) | 19/45 (42,2 %) | 5/45 (11,1 %) |
+| amira | 33 | 33/33 (100,0 %) | 8/33 (24,2 %) | 33/33 (100,0 %) | 31/33 (93,9 %) | 30/33 (90,9 %) | — | 7/33 (21,2 %) |
 | questionnaire | 2 | 2/2 (100,0 %) | 2/2 (100,0 %) | 1/2 (50,0 %) | 2/2 (100,0 %) | 2/2 (100,0 %) | — | — |
 
 Demandés pour certains profils seulement : `rechercher_documents` (mateo) ; `mesurer_liquidite` (amira, mateo, robert).
@@ -31,9 +31,9 @@ Demandés pour certains profils seulement : `rechercher_documents` (mateo) ; `me
 
 | Profil · décision | Procès | `simuler_portefeuille` | `indicateurs_actif` | `calculer_correlations` | `taille_max_compatible` | `consulter_jurisprudence` | `rechercher_documents` | `mesurer_liquidite` |
 |---|---|---|---|---|---|---|---|---|
-| robert · position TSLA | 113 | 113/113 (100,0 %) | 113/113 (100,0 %) | 40/113 (35,4 %) | 113/113 (100,0 %) | 110/113 (97,3 %) | — | 18/113 (15,9 %) |
-| amira · réallocation BTC-USD, ETH-USD, NVDA, QQQ | 21 | 21/21 (100,0 %) | — | 21/21 (100,0 %) | 21/21 (100,0 %) | 21/21 (100,0 %) | — | 4/21 (19,0 %) |
-| mateo · position XOM | 17 | 17/17 (100,0 %) | 17/17 (100,0 %) | — | 6/17 (35,3 %) | 16/17 (94,1 %) | 17/17 (100,0 %) | — |
+| robert · position TSLA | 124 | 124/124 (100,0 %) | 124/124 (100,0 %) | 43/124 (34,7 %) | 124/124 (100,0 %) | 121/124 (97,6 %) | — | 28/124 (22,6 %) |
+| amira · réallocation BTC-USD, ETH-USD, NVDA, QQQ | 24 | 24/24 (100,0 %) | — | 24/24 (100,0 %) | 24/24 (100,0 %) | 24/24 (100,0 %) | — | 7/24 (29,2 %) |
+| mateo · position XOM | 19 | 19/19 (100,0 %) | 19/19 (100,0 %) | 1/19 (5,3 %) | 7/19 (36,8 %) | 18/19 (94,7 %) | 19/19 (100,0 %) | — |
 | mateo · position NVDA | 10 | 10/10 (100,0 %) | 10/10 (100,0 %) | 10/10 (100,0 %) | 9/10 (90,0 %) | 8/10 (80,0 %) | — | — |
 | mateo · position TSLA | 8 | 8/8 (100,0 %) | 8/8 (100,0 %) | 4/8 (50,0 %) | 8/8 (100,0 %) | 8/8 (100,0 %) | — | 2/8 (25,0 %) |
 | robert · position NVDA | 4 | 4/4 (100,0 %) | 4/4 (100,0 %) | 2/4 (50,0 %) | 4/4 (100,0 %) | 4/4 (100,0 %) | — | — |
@@ -54,6 +54,7 @@ Demandés pour certains profils seulement : `rechercher_documents` (mateo) ; `me
 | questionnaire · position NVDA | 1 | 1/1 (100,0 %) | 1/1 (100,0 %) | 1/1 (100,0 %) | 1/1 (100,0 %) | 1/1 (100,0 %) | — | — |
 | questionnaire · position TSLA | 1 | 1/1 (100,0 %) | 1/1 (100,0 %) | — | 1/1 (100,0 %) | 1/1 (100,0 %) | — | — |
 | robert · position AMZN | 1 | 1/1 (100,0 %) | 1/1 (100,0 %) | — | 1/1 (100,0 %) | 1/1 (100,0 %) | — | — |
+| robert · position BTC-USD | 1 | 1/1 (100,0 %) | 1/1 (100,0 %) | 1/1 (100,0 %) | 1/1 (100,0 %) | 1/1 (100,0 %) | — | — |
 | robert · position ESGV | 1 | 1/1 (100,0 %) | 1/1 (100,0 %) | 1/1 (100,0 %) | — | — | — | — |
 | robert · position ZST.TO | 1 | 1/1 (100,0 %) | 1/1 (100,0 %) | — | — | — | — | 1/1 (100,0 %) |
 
@@ -81,17 +82,18 @@ Demandés pour certains profils seulement : `rechercher_documents` (mateo) ; `me
 
 ## Garde-fous de l'orchestrateur
 
-- Appels exécutés : 1099 ; refusés : 61.
-- Pièces ajoutées d'office par Python : `composition_fnb` 10, `points_de_bascule` 149. `points_de_bascule` est ajoutée dès qu'une règle calculable est en violation (#61), `composition_fnb` quand un plafond porte sur une catégorie lue par transparence (#116).
-- Procès avec Pacte vécu (étape `calibrage`) : 25/201.
-- Contre-interrogatoire : 6 questions ; budget de 4 appels respecté : 6/6.
+- Appels exécutés : 1204 ; refusés : 65.
+- Pièces ajoutées d'office par Python : `composition_fnb` 13, `points_de_bascule` 164. `points_de_bascule` est ajoutée dès qu'une règle calculable est en violation (#61), `composition_fnb` quand un plafond porte sur une catégorie lue par transparence (#116).
+- Procès avec Pacte vécu (étape `calibrage`) : 28/218.
+- Contre-interrogatoire : 8 questions ; budget de 4 appels respecté : 8/8.
 
 ### Appels refusés, par motif
 
 | Motif | Appels |
 |---|---|
-| Aucun document sur <titre> pour le critère « controverse_esg_importante » : source manquante, le critère reste à vérifier | 59 |
+| Aucun document sur <titre> pour le critère « controverse_esg_importante » : source manquante, le critère reste à vérifier | 62 |
 | La raison doit faire au plus 160 caractères | 2 |
+| Aucun document sur <titre> pour le critère « methodologie_fonds_esg » : source manquante, le critère reste à vérifier | 1 |
 
 ## Le débat
 
@@ -99,12 +101,12 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 
 | Côté | Proposés | Renvoyés | Corrigés après renvoi | Rejetés | Affichés | Motifs des renvois |
 |---|---|---|---|---|---|---|
-| Procureur | 785 | 113/785 (14,4 % ; IC 95 % : 12,1 % à 17,0 %) | 108/113 (95,6 % ; IC 95 % : 90,1 % à 98,1 %) | 5 | 780 | chiffres 113 |
-| Avocat | 757 | 33/757 (4,4 % ; IC 95 % : 3,1 % à 6,1 %) | 32/33 (97,0 % ; IC 95 % : 84,7 % à 99,5 %) | 1 | 756 | chiffres 33 |
+| Procureur | 851 | 117/851 (13,7 % ; IC 95 % : 11,6 % à 16,2 %) | 112/117 (95,7 % ; IC 95 % : 90,4 % à 98,2 %) | 5 | 854 | chiffres 117 |
+| Avocat | 821 | 35/821 (4,3 % ; IC 95 % : 3,1 % à 5,9 %) | 34/35 (97,1 % ; IC 95 % : 85,5 % à 99,5 %) | 1 | 828 | chiffres 35 |
 
 ## Appels Bedrock et durée
 
-- Appels Bedrock visibles dans la trace (Agent Profil, Procureur, Avocat et leurs relances) : min. 3, médiane 4, max. 7 par procès, 749 en tout.
+- Appels Bedrock visibles dans la trace (Agent Profil, Procureur, Avocat et leurs relances) : min. 3, médiane 4, max. 7 par procès, 822 en tout.
 - Non mesurables ici : les tours de conversation de l'orchestrateur (la trace garde les appels d'outils, pas les tours Bedrock, et un tour peut demander plusieurs outils) et les jetons consommés. La trace archivée ne contient ni horodatage ni compteur de jetons : la durée n'est mesurée que pour les procès du plan, côté client.
 
 ## Méthode
@@ -126,6 +128,7 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-04ad0146615f` (S3) : amira, 30 % en TSLA
 - `2026-11-15-0678e8c05ecf` (S3) : robert, 30 % en TSLA
 - `2026-11-15-084a901cdff8` (S3) : robert, 30 % en TSLA
+- `2026-11-15-086e627bf4bd` (S3) : robert, 30 % en TSLA
 - `2026-11-15-09b2fa5995f4` (S3) : robert, 30 % en TSLA
 - `2026-11-15-0afe216146e2` (S3) : robert, 30 % en TSLA
 - `2026-11-15-0b3c6bb6c893` (S3) : robert, 12 % en TSLA
@@ -150,6 +153,7 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-29219c7251d9` (S3) : robert, 30 % en TSLA
 - `2026-11-15-293e756c8c74` (S3) : amira, 10 % en XOM
 - `2026-11-15-2a7b5ce951aa` (S3) : amira, 100 % réalloué vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %
+- `2026-11-15-2b1775e64696` (S3) : robert, 10 % en BTC-USD
 - `2026-11-15-2b79c4d7de2b` (S3) : mateo, 27 % en TSLA
 - `2026-11-15-2f397d8ab470` (S3) : robert, 30 % en TSLA
 - `2026-11-15-2f9e4a550bcc` (S3) : mateo, 3 % en NVDA
@@ -185,7 +189,7 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-4d25fab26751` (S3) : robert, 25 % en TSLA
 - `2026-11-15-4de42aa92551` (S3) : robert, 30 % en TSLA
 - `2026-11-15-4f3a7e924c33` (S3) : robert, 30 % en TSLA
-- `2026-11-15-537f2b8e2d49` (S3) : amira, 100 % réalloué vers QQQ 50 % et NVDA 50 %
+- `2026-11-15-537f2b8e2d49` (S3, interface) : amira, 100 % réalloué vers QQQ 50 % et NVDA 50 %
 - `2026-11-15-55016d988f16` (S3) : robert, 12 % en TSLA
 - `2026-11-15-582fdb9011be` (S3) : robert, 30 % en TSLA
 - `2026-11-15-58fbcefc6629` (S3) : robert, 30 % en TSLA
@@ -197,6 +201,7 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-5e63d614ecf4` (S3) : robert, 30 % en TSLA
 - `2026-11-15-604e7f53e9ca` (S3) : robert, 30 % en TSLA
 - `2026-11-15-6084a70f6dee` (S3) : robert, 12 % en TSLA
+- `2026-11-15-62c7cce7e38b` (S3) : robert, 30 % en TSLA
 - `2026-11-15-62d58dbc4649` (S3) : mateo, 10 % en AAPL
 - `2026-11-15-648546b5401b` (S3) : robert, 30 % en TSLA
 - `2026-11-15-651ad5c7f489` (S3) : mateo, 10 % en XOM
@@ -205,6 +210,7 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-6a1ec1fd4960` (S3) : robert, 30 % en TSLA
 - `2026-11-15-6a3e7e0d18e0` (S3) : robert, 30 % en TSLA
 - `2026-11-15-6aa9abc6fb95` (S3) : robert, 30 % en TSLA
+- `2026-11-15-6cbe9f2a8b37` (S3) : robert, 12 % en TSLA
 - `2026-11-15-6d8845d00f9f` (S3) : mateo, 10 % en XOM
 - `2026-11-15-6e41db2c6933` (S3) : robert, 12 % en TSLA
 - `2026-11-15-6e4909122c29` (S3) : robert, 30 % en TSLA
@@ -223,6 +229,7 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-7fa3d460d3d9` (S3) : robert, 30 % en TSLA
 - `2026-11-15-8171e1a8331f` (S3) : robert, 12 % en TSLA
 - `2026-11-15-838edc06636a` (S3) : mateo, 10 % en NVDA
+- `2026-11-15-8515ba8de493` (S3) : robert, 30 % en TSLA
 - `2026-11-15-8675e97ab622` (S3) : amira, 100 % réalloué vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %
 - `2026-11-15-8aee71b708b0` (S3) : robert, 12 % en TSLA
 - `2026-11-15-8b17e77d1389` (S3) : robert, 30 % en TSLA
@@ -252,6 +259,8 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-ac60cbdafbad` (S3) : amira, 10 % en XOM
 - `2026-11-15-ac6781b7cec8` (S3) : robert, 12 % en TSLA
 - `2026-11-15-ad682d0b7caf` (S3) : mateo, 29 % en NVDA
+- `2026-11-15-ae15683a63ec` (S3) : robert, 30 % en TSLA
+- `2026-11-15-afc03f45c6c1` (S3) : robert, 30 % en TSLA
 - `2026-11-15-b04a4cbd233e` (S3, interface) : mateo, 10 % en XOM
 - `2026-11-15-b195b3e20530` (S3) : robert, 12 % en TSLA
 - `2026-11-15-b1ab8fd948b8` (S3) : robert, 10 % en XOM
@@ -298,10 +307,12 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-e1cc019aed05` (S3) : robert, 12 % en TSLA
 - `2026-11-15-e3800bd7a4b4` (S3) : amira, 30 % en TSLA
 - `2026-11-15-e58fb632f023` (S3) : mateo, 10 % en XOM
-- `2026-11-15-e79cef530bc9` (S3) : robert, 30 % en TSLA
+- `2026-11-15-e79cef530bc9` (S3, interface) : robert, 30 % en TSLA
 - `2026-11-15-eb26d0c1aab8` (S3) : mateo, 100 % réalloué vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %
+- `2026-11-15-ebbfea19b096` (S3) : robert, 12 % en TSLA
 - `2026-11-15-ed26356d7b57` (S3) : robert, 100 % réalloué vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %
 - `2026-11-15-f26705c0c2f7` (S3) : robert, 15 % en ESGV
+- `2026-11-15-f3561b9d0484` (S3) : robert, 30 % en TSLA
 - `2026-11-15-f398c08b7b51` (S3) : robert, 30 % en TSLA
 - `2026-11-15-f3fa97cb1d25` (S3) : robert, 30 % en TSLA
 - `2026-11-15-f59548b2fdd9` (S3) : amira, 100 % réalloué vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %
@@ -317,5 +328,13 @@ Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE
 - `2026-11-15-fe7e9832703a` (S3) : robert, 30 % en TSLA
 - `2026-11-15-ff29917fdfd4` (S3) : robert, 30 % en TSLA
 - `2026-11-15-ff6ca217d1de` (S3) : robert, 30 % en TSLA
+- `2026-11-16-2e2faa67372b` (S3, interface) : robert, 30 % en TSLA
+- `2026-11-16-2f205d08775f` (S3, interface) : mateo, 10 % en XOM
+- `2026-11-16-4c1f1ca81fd9` (S3, interface) : amira, 100 % réalloué vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %
+- `2026-11-16-6563f5a1e2be` (S3, interface) : amira, 100 % réalloué vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %
+- `2026-11-16-9b710b346da7` (S3) : robert, 30 % en TSLA
+- `2026-11-16-a1a71679be7a` (S3, interface) : mateo, 10 % en XOM
+- `2026-11-16-bfd65308abc2` (S3) : amira, 100 % réalloué vers BTC-USD 25 %, ETH-USD 25 %, NVDA 25 % et QQQ 25 %
+- `2026-11-16-dc4199dcaa79` (S3, interface) : robert, 30 % en TSLA
 
 </details>

@@ -56,6 +56,7 @@ Ouvrir [`docs/preuves/ecrans/README.md`](../preuves/ecrans/README.md) et [`docs/
 ## Choix faits en cours de route
 - **Mode démonstration** : les captures ne dépendent pas d'AWS et se refont à l'identique ; ce sont des procès réellement tenus par Bedrock, rejoués.
 - **Captures refaites sur le `main` le plus récent** (après #188 et #190), pour montrer l'interface telle qu'elle sera remise.
+- **Refaites de nouveau le 2026-11-16 (PR #197)**, sur `main` après #193 (mode choisi à l'utilisation, #137) et #195 : les 18 écrans passent, aucun en échec. Le script tourne sans `VITE_API_URL`, donc sans interrupteur de mode : les captures montrent l'interface comme la démonstration durable (GitHub Pages). Depuis #137, `preuves.mjs` fixe aussi le mode « procès enregistrés » dans le navigateur : lancé contre le site hébergé, en direct par défaut depuis #141, il ne déclenche aucun procès payant.
 
 - **Les clés AWS ne passent jamais par l'outil d'IA** : les deux commandes ont été lancées par un membre de l'équipe dans son propre terminal.
 - **Journaux CloudWatch** : la première exportation cherchait les lignes qui citent l'identifiant du dernier procès et n'en a trouvé aucune ; le fichier vide a été retiré et le script se rabat désormais sur les dernières lignes du flux le plus récent.

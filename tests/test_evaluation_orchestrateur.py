@@ -177,10 +177,10 @@ def test_union_des_sources_sans_doublon():
 
 def test_rapport_sur_les_proces_de_l_interface():
     locaux = lire_proces_locaux()
-    assert len(locaux) == 12
+    assert len(locaux) == 15
     lecture = rassembler({}, locaux, "2026-11-15", None)
     texte = rapport(lecture, mesurer(lecture.contrats.values()))
-    assert "**Lu le 2026-11-15** : 12 procès distincts" in texte
+    assert "**Lu le 2026-11-15** : 15 procès distincts" in texte
     assert "--local" in texte and "S3 non lu" in texte
     assert "ne sont pas un échantillon planifié" in texte
     for identifiant in locaux:

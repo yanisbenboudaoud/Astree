@@ -5,6 +5,8 @@
 import contratRobert from '../data/proces/2026-11-15-fcb6ce39f184.json';
 import type { BedrockContrat, ContratTribunal } from '../api/contrat';
 import { adapterContrat } from '../api/adaptateur';
+import { jugerDecision, reponsesDuContrat } from '../api/tribunal';
+import robertVecu from '../data/proces/2026-11-16-2e2faa67372b.json';
 import { choixInstruction, moment, resumeBedrock } from '../domaine/instruction';
 import { phaseDeLEtape } from '../domaine/progression';
 import { FINE } from '../lib/format';
@@ -78,5 +80,15 @@ describe('mesure Bedrock', () => {
     expect(etapes[3].secondes).toBe(6);
     expect(moment(12.4)).toBe('+12,4 s');
     expect(adapter(base).trace[0].secondes).toBeUndefined();
+  });
+});
+
+describe('procès rejoués en démonstration (#189)', () => {
+  it('avec le Pacte vécu aussi, le procès le plus récent est rejoué : répliques et mesure Bedrock', async () => {
+    const calibrage = reponsesDuContrat(robertVecu as unknown as ContratTribunal)!;
+    const resultat = await jugerDecision('robert', { type: 'position', ticker: 'TSLA', taille: 30 }, { calibrage });
+    expect(resultat.procesId).toBe('2026-11-16-2e2faa67372b');
+    expect(resultat.arguments.filter((a) => a.repondA)).toHaveLength(2);
+    expect(resultat.contrat.bedrock?.garde_fou?.interventions).toBe(0);
   });
 });

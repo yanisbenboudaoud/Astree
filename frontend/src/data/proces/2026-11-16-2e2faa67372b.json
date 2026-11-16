@@ -1,0 +1,1206 @@
+{
+  "persona": "robert",
+  "demande": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)",
+  "decision": {
+    "type": "position",
+    "ticker": "TSLA",
+    "taille": 0.3,
+    "financement": "proportionnel",
+    "libelle": "30 % en TSLA"
+  },
+  "pacte": {
+    "id": "robert",
+    "profil_risque": "faible_a_modere",
+    "horizon_ans": [
+      3,
+      5
+    ],
+    "date_signature": "2026-11-14",
+    "regles": [
+      {
+        "id": "pire_baisse_max",
+        "type": "pire_baisse_max",
+        "seuil": -0.101618,
+        "libelle": "Pire baisse tolérée : −10,2 % (mesurée)",
+        "provenance": "Mesurée sur vos réponses du 2026-11-16 à de vrais jours de marché",
+        "etiquette": "fait",
+        "piece": "P2"
+      },
+      {
+        "id": "plafond_crypto",
+        "type": "plafond",
+        "categories": [
+          "crypto"
+        ],
+        "max": 0.0,
+        "libelle": "Crypto : exclue"
+      },
+      {
+        "id": "preserver_capital",
+        "type": "qualitative",
+        "libelle": "Préserver mon capital"
+      },
+      {
+        "id": "entreprises_etablies",
+        "type": "qualitative",
+        "libelle": "Entreprises établies, modèle compris"
+      }
+    ]
+  },
+  "pieces": [
+    {
+      "id": "P1",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Pacte de Robert",
+      "outil": "charger_pacte",
+      "valeurs": {
+        "date_signature": "2026-11-14",
+        "pire_baisse_max": -0.101618,
+        "plafond_crypto": 0.0,
+        "horizon_ans": [
+          3,
+          5
+        ]
+      },
+      "valeur_affichee": "Signé le 14 nov. 2026",
+      "source": "personas/robert.json (persona fictif)",
+      "traitement": "Règles typées lues par l'agent Profil (format générique du Pacte)",
+      "limites": "Seuil de pire baisse mesuré sur les réponses de l'utilisateur (P2) ; les autres seuils sont des hypothèses de l'équipe"
+    },
+    {
+      "id": "P2",
+      "type": "declaree",
+      "etiquette": "fait",
+      "titre": "Pacte vécu : 3 jours de marché revécus",
+      "outil": "calibrer_pacte",
+      "valeurs": {
+        "date_reponses": "2026-11-16",
+        "capital": 650000,
+        "dates_sommets": [
+          "2021-12-27",
+          "2022-04-04",
+          "2022-04-04"
+        ],
+        "dates_jours": [
+          "2022-05-09",
+          "2022-06-13",
+          "2022-07-14"
+        ],
+        "series_jours": [
+          "Invesco QQQ Trust (Nasdaq-100) (QQQ)",
+          "iShares S&P/TSX 60 Index ETF (XIU.TO)",
+          "iShares S&P/TSX 60 Index ETF (XIU.TO)"
+        ],
+        "baisses_jours": [
+          -0.253932,
+          -0.101618,
+          -0.160337
+        ],
+        "valeurs_jours": [
+          484944,
+          583948,
+          545781
+        ],
+        "reponses_jours": [
+          "vend",
+          "reste",
+          "vend"
+        ],
+        "seuil_mesure": -0.101618,
+        "baisse_refusee": -0.160337,
+        "horizon_ans": [
+          3,
+          5
+        ],
+        "capacite_annees_retour": 1.730322,
+        "capacite_reponse": "pas_attendre"
+      },
+      "valeur_affichee": "Reste à −10,2 % · vend à −16,0 % · seuil mesuré −10,2 %",
+      "source": "Vos réponses du 2026-11-16 ; jours réels de marché : Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "Chaque jour est le premier où la série a baissé d'au moins un niveau (−5 % à −50 %) depuis un sommet ; rien après ce jour n'est montré. Questions par dichotomie ; le seuil est la baisse réelle du dernier jour où l'utilisateur est resté.",
+      "limites": "Une réponse à un épisode passé ne garantit pas le comportement futur : l'effet de l'expérience simulée est documenté à court terme, pas à long terme (Bradbury, Hens et Zeisberger, Review of Finance, 2015). Une seule période de données : peu d'épisodes différents. Les montants supposent le capital au sommet."
+    },
+    {
+      "id": "P3",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Simulation du portefeuille avec 30 % en TSLA",
+      "outil": "simuler_portefeuille",
+      "valeurs": {
+        "taille": 0.3,
+        "pire_baisse": -0.289679,
+        "rendement_annuel": 0.119792,
+        "volatilite_annuelle": 0.189667,
+        "pire_baisse_actuelle": -0.077574,
+        "rendement_annuel_actuel": 0.092868,
+        "volatilite_annuelle_actuelle": 0.055947,
+        "part_cad": 0.63,
+        "part_usd": 0.37,
+        "part_cad_actuelle": 0.9,
+        "part_usd_actuelle": 0.1,
+        "capital": 650000,
+        "perte_au_pire_moment_cad": 188291,
+        "perte_au_pire_moment_cad_actuelle": 50423,
+        "ecart_perte_au_pire_moment_cad": 137868,
+        "ecart_pire_baisse_points": 21.2105,
+        "ecart_rendement_annuel_points": 2.6924,
+        "rapport_volatilite": 3.3901,
+        "inflation_annuelle": 0.035441,
+        "rendement_reel_annuel": 0.081464,
+        "rendement_reel_annuel_actuel": 0.055461,
+        "taux_sans_risque_moyen": 0.031906,
+        "ratio_sharpe": 0.463368,
+        "ratio_sharpe_actuel": 1.089631,
+        "frais_annuels": 0.000735,
+        "frais_annuels_cad": 478,
+        "frais_annuels_actuels": 0.00105,
+        "frais_annuels_cad_actuels": 682,
+        "ecart_frais_annuels_cad": 204
+      },
+      "valeur_affichee": "−29,0 % max · +12,0 %/an",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13 ; Pages et documents des émetteurs des FNB (ratio des frais), relevés le 2026-11-15",
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; exposition en devise : part du portefeuille par devise de cotation (assets_universe.csv) ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié, chaque mois étant supposé publié à la fin du mois suivant) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle ; frais : ratio des frais de chaque FNB (page ou document de l'émetteur), pondéré par les poids ; zéro pour un titre détenu en direct ; déjà prélevés dans les cours, donc affichés sans être déduits",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; exposition selon la devise de cotation, pas selon celle des titres détenus par un fonds ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés ; frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage et écart entre prix d'achat et de vente non comptés"
+    },
+    {
+      "id": "P4",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Rejeu de 2022 avec 30 % en TSLA",
+      "outil": "simuler_portefeuille",
+      "valeurs": {
+        "taille": 0.3,
+        "periode": [
+          "2021-12-31",
+          "2022-12-30"
+        ],
+        "rendement_2022_actuel": -0.025948,
+        "rendement_2022_apres": -0.237129,
+        "capital": 650000,
+        "resultat_2022_cad_apres": -154134,
+        "resultat_2022_cad_actuel": -16866,
+        "ecart_2022_cad": 137268,
+        "ecart_2022_points": 21.1181,
+        "inflation_2022": 0.063,
+        "rendement_reel_2022_actuel": -0.083676,
+        "rendement_reel_2022_apres": -0.282341,
+        "taux_directeur_debut_2022": 0.0025,
+        "taux_directeur_fin_2022": 0.0425,
+        "taux_directeur_moyen_2022": 0.019232,
+        "obligation_10_ans_debut_2022": 0.0142,
+        "obligation_10_ans_fin_2022": 0.033
+      },
+      "valeur_affichee": "−2,6 % → −23,7 %",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
+      "traitement": "Portefeuille avec et sans la position, de la dernière séance de 2021 à la dernière séance de 2022 ; inflation : IPC du Canada de 2021-12 à 2022-12 ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; taux directeur et obligation à 10 ans au début et à la fin de l'année",
+      "limites": "Une seule année de crise ; la suivante peut être différente ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés"
+    },
+    {
+      "id": "P5",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Taille maximale compatible avec le Pacte",
+      "outil": "taille_max_compatible",
+      "valeurs": {
+        "taille_max_compatible": 0.07,
+        "taille_demandee": 0.3,
+        "pas_de_recherche": 0.01,
+        "regles_verifiees": [
+          "pire_baisse_max",
+          "plafond_crypto"
+        ],
+        "regle_limitante": "pire_baisse_max",
+        "pire_baisse_a_taille_max": -0.095217,
+        "pire_baisse_a_taille_suivante": -0.103388,
+        "part_crypto_a_taille_max": 0.0,
+        "part_crypto_a_taille_suivante": 0.0
+      },
+      "valeur_affichee": "7 % au maximum",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "Simulation de la décision de 0 à 30 % par pas de 1 point, même financement, sur toute la période ; à chaque taille, contrôles du Greffier (verifier_pacte) sur les règles calculables : pire_baisse_max, plafond_crypto",
+      "limites": "Une seule période passée ; seules les règles calculables (pire baisse, plafonds) sont prises en compte, pas les règles qualitatives ni documentaires ; le passé ne prédit pas l'avenir"
+    },
+    {
+      "id": "P6",
+      "type": "calculee",
+      "etiquette": "fait",
+      "titre": "Indicateurs de TSLA",
+      "outil": "indicateurs_actif",
+      "valeurs": {
+        "rendement_annuel": 0.055333,
+        "volatilite_annuelle": 0.589116,
+        "pire_baisse": -0.708806,
+        "rendement_2022": -0.626429,
+        "date_sommet": "2022-01-03",
+        "date_creux": "2023-01-03",
+        "date_retour_sommet": "2024-12-05",
+        "annees_recuperation": 2.921287,
+        "periode": [
+          "2021-11-12",
+          "2026-11-12"
+        ]
+      },
+      "valeur_affichee": "−70,9 % max · +5,5 %/an · 2,9 ans pour revenir au sommet",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada, extrait le 2026-11-13",
+      "traitement": "Prix adj_close convertis en CAD, calendrier des séances américaines (dernier prix reporté), 2021-11-12 → 2026-11-12 ; rendement annualisé composé, volatilité = écart type quotidien × √252, pire baisse depuis un sommet, temps de récupération du sommet précédant la pire baisse au retour à ce sommet",
+      "limites": "Une seule période de 5 ans ; une seule chute observée pour le temps de récupération ; biais du survivant ; le passé ne prédit pas l'avenir"
+    },
+    {
+      "id": "P7",
+      "type": "calculee",
+      "etiquette": "fait",
+      "titre": "Jurisprudence : verdicts passés de ce profil",
+      "outil": "consulter_jurisprudence",
+      "valeurs": {
+        "regle": "toutes",
+        "proces_archives": 6,
+        "proces_en_violation": 6,
+        "maintenu": 1,
+        "modifie": 4,
+        "pacte_ajuste": 1,
+        "dates_antecedents": [
+          "2026-11-15",
+          "2026-11-15",
+          "2026-11-15",
+          "2026-11-15",
+          "2026-11-15"
+        ],
+        "decisions_antecedents": [
+          "30 % en TSLA",
+          "30 % en TSLA",
+          "30 % en TSLA",
+          "30 % en TSLA",
+          "30 % en TSLA"
+        ],
+        "regles_violees_antecedents": [
+          "pire_baisse_max",
+          "pire_baisse_max",
+          "pire_baisse_max",
+          "pire_baisse_max",
+          "pire_baisse_max"
+        ],
+        "verdicts_antecedents": [
+          "modifie",
+          "modifie",
+          "maintenu",
+          "modifie",
+          "pacte_ajuste"
+        ]
+      },
+      "valeur_affichee": "6 procès archivés · 6 en violation : 1 maintenu, 4 modifiés, 1 Pacte ajusté",
+      "source": "Archive des verdicts du Tribunal (verdicts/<profil>/), écrite par la route /verdict quand l'utilisateur rend son verdict",
+      "traitement": "Pour chaque procès archivé de ce profil : règles du Pacte en violation et verdict choisi par l'utilisateur. Au plus les 200 procès les plus récents ; les 5 derniers antécédents en violation sont détaillés.",
+      "limites": "Seuls les procès dont l'utilisateur a rendu un verdict sont archivés. Les règles sont comparées par identifiant : le Pacte a pu changer depuis. Un verdict passé ne dit rien de la qualité de la décision prise."
+    },
+    {
+      "id": "P8",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Liquidité de 7 lignes du portefeuille : jours pour les revendre",
+      "outil": "mesurer_liquidite",
+      "valeurs": {
+        "capital": 650000,
+        "part_max_volume": 0.1,
+        "titres": [
+          "TSLA",
+          "ZST.TO",
+          "XBB.TO",
+          "XIU.TO",
+          "JNJ",
+          "RY.TO",
+          "FTS.TO"
+        ],
+        "poids_TSLA": 0.3,
+        "valeur_position_cad_TSLA": 195000.0,
+        "valeur_echangee_moyenne_cad_TSLA": 34607419962.64,
+        "valeur_echangee_moyenne_millions_cad_TSLA": 34607.419963,
+        "part_volume_quotidien_TSLA": 5.63463e-06,
+        "jours_pour_vendre_TSLA": 5.63463e-05,
+        "poids_ZST.TO": 0.21,
+        "valeur_position_cad_ZST.TO": 136500.0,
+        "valeur_echangee_moyenne_cad_ZST.TO": 1644523.61,
+        "valeur_echangee_moyenne_millions_cad_ZST.TO": 1.644524,
+        "part_volume_quotidien_ZST.TO": 0.0830028,
+        "jours_pour_vendre_ZST.TO": 0.830028,
+        "poids_XBB.TO": 0.14,
+        "valeur_position_cad_XBB.TO": 91000.0,
+        "valeur_echangee_moyenne_cad_XBB.TO": 4706508.65,
+        "valeur_echangee_moyenne_millions_cad_XBB.TO": 4.706509,
+        "part_volume_quotidien_XBB.TO": 0.0193349,
+        "jours_pour_vendre_XBB.TO": 0.193349,
+        "poids_XIU.TO": 0.14,
+        "valeur_position_cad_XIU.TO": 91000.0,
+        "valeur_echangee_moyenne_cad_XIU.TO": 124547153.85,
+        "valeur_echangee_moyenne_millions_cad_XIU.TO": 124.547154,
+        "part_volume_quotidien_XIU.TO": 0.000730647,
+        "jours_pour_vendre_XIU.TO": 0.00730647,
+        "poids_JNJ": 0.07,
+        "valeur_position_cad_JNJ": 45500.0,
+        "valeur_echangee_moyenne_cad_JNJ": 2058191095.95,
+        "valeur_echangee_moyenne_millions_cad_JNJ": 2058.191096,
+        "part_volume_quotidien_JNJ": 2.21068e-05,
+        "jours_pour_vendre_JNJ": 0.000221068,
+        "poids_RY.TO": 0.07,
+        "valeur_position_cad_RY.TO": 45500.0,
+        "valeur_echangee_moyenne_cad_RY.TO": 662231019.97,
+        "valeur_echangee_moyenne_millions_cad_RY.TO": 662.23102,
+        "part_volume_quotidien_RY.TO": 6.87071e-05,
+        "jours_pour_vendre_RY.TO": 0.000687071,
+        "poids_FTS.TO": 0.07,
+        "valeur_position_cad_FTS.TO": 45500.0,
+        "valeur_echangee_moyenne_cad_FTS.TO": 102982465.54,
+        "valeur_echangee_moyenne_millions_cad_FTS.TO": 102.982466,
+        "part_volume_quotidien_FTS.TO": 0.000441823,
+        "jours_pour_vendre_FTS.TO": 0.00441823,
+        "jours_pour_vendre_max": 0.830028,
+        "titre_le_moins_liquide": "ZST.TO",
+        "periode": [
+          "2021-11-12",
+          "2026-11-12"
+        ]
+      },
+      "valeur_affichee": "Le plus long : ZST.TO, 0,8 jour de bourse · au plus 10 % des échanges par jour",
+      "source": "Yahoo Finance via yfinance (volume et close), extrait le 2026-11-13 ; USD/CAD Banque du Canada, extrait le 2026-11-13",
+      "traitement": "Valeur échangée par séance = volume × prix de clôture (close) dans la devise de cotation, convertie en CAD au taux du jour (dernier taux reporté) ; crypto : volume déjà exprimé en dollars US échangés ; moyenne sur les séances de chaque titre, 2021-11-12 → 2026-11-12, sans report ni jour férié compté comme nul ; position = poids après la décision × capital fictif ; jours pour vendre = position ÷ (part maximale × valeur échangée moyenne)",
+      "limites": "Moyenne sur toute la période : un jour de crise, les échanges peuvent se tarir au moment où l'on veut vendre ; la part maximale des échanges est une hypothèse de l'équipe ; les volumes crypto sont agrégés par Yahoo sur plusieurs plateformes et peuvent être gonflés ; un FNB s'échange aussi par création et rachat de parts auprès de ses créateurs de marché, si bien que son volume en bourse ne mesure pas toute sa liquidité ; seul le volume de la bourse de cotation est compté ; ni frais ni écart entre prix acheteur et vendeur"
+    },
+    {
+      "id": "P9",
+      "type": "calculee",
+      "etiquette": "fait",
+      "titre": "Corrélations entre TSLA, XIU.TO, RY.TO, JNJ, FTS.TO, XBB.TO",
+      "outil": "calculer_correlations",
+      "valeurs": {
+        "correlation_TSLA_XIU.TO": 0.391069,
+        "correlation_TSLA_RY.TO": 0.252346,
+        "correlation_TSLA_JNJ": -0.066609,
+        "correlation_TSLA_FTS.TO": -0.070849,
+        "correlation_TSLA_XBB.TO": 0.078046,
+        "correlation_XIU.TO_RY.TO": 0.726096,
+        "correlation_XIU.TO_JNJ": 0.071466,
+        "correlation_XIU.TO_FTS.TO": 0.204151,
+        "correlation_XIU.TO_XBB.TO": 0.197326,
+        "correlation_RY.TO_JNJ": 0.082191,
+        "correlation_RY.TO_FTS.TO": 0.152019,
+        "correlation_RY.TO_XBB.TO": 0.125289,
+        "correlation_JNJ_FTS.TO": 0.301782,
+        "correlation_JNJ_XBB.TO": 0.095867,
+        "correlation_FTS.TO_XBB.TO": 0.286921,
+        "titres": [
+          "TSLA",
+          "XIU.TO",
+          "RY.TO",
+          "JNJ",
+          "FTS.TO",
+          "XBB.TO"
+        ],
+        "nb_rendements_quotidiens": 1254,
+        "periode": [
+          "2021-11-12",
+          "2026-11-12"
+        ]
+      },
+      "valeur_affichee": "XIU.TO/RY.TO 0,73 · TSLA/XIU.TO 0,39 · JNJ/FTS.TO 0,30 · 15 paires en tout",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada, extrait le 2026-11-13",
+      "traitement": "Prix adj_close convertis en CAD, calendrier des séances américaines (dernier prix reporté), 2021-11-12 → 2026-11-12 ; corrélation de Pearson des rendements quotidiens, pour chaque paire de titres",
+      "limites": "Une seule période de 5 ans ; les corrélations changent dans le temps et montent souvent en période de crise ; la conversion en CAD ajoute un facteur de change commun aux titres en USD ; les rendements crypto du week-end sont cumulés dans le lundi ; le passé ne prédit pas l'avenir"
+    },
+    {
+      "id": "P10",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Ce qui changerait la réponse : points de bascule des règles en violation",
+      "outil": "points_de_bascule",
+      "valeurs": {
+        "regles_en_violation": [
+          "pire_baisse_max"
+        ],
+        "seuils_du_pacte": [
+          -0.101618
+        ],
+        "seuils_suffisants": [
+          -0.289679
+        ],
+        "tailles_max_par_regle": [
+          0.07
+        ],
+        "taille_demandee": 0.3,
+        "taille_max_toutes_regles": 0.07,
+        "pas_de_recherche": 0.01
+      },
+      "valeur_affichee": "Pire baisse : 7 % max ou seuil −29,0 %",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada",
+      "traitement": "Pour chaque règle calculable en violation : plus grande taille où elle est conforme (simulation de 0 à la taille demandée par pas de 1 point, même financement, contrôles du Greffier à chaque taille), et seuil qui suffirait : la valeur simulée après la décision (pire baisse, ou part des catégories du plafond)",
+      "limites": "Une seule période passée ; un seuil qui suffit sur cette période ne protège pas d'une baisse future plus forte ; seules les règles calculables (pire baisse, plafonds) ont un point de bascule, pas les règles qualitatives ni documentaires ; ajuster le Pacte reste un choix de l'utilisateur, pas une recommandation"
+    }
+  ],
+  "controles": [
+    {
+      "statut": "violation",
+      "regle": "pire_baisse_max",
+      "message": "Pire baisse −29,0 % au-delà du seuil −10,2 %",
+      "pieces": [
+        "P3",
+        "P1",
+        "P2"
+      ]
+    },
+    {
+      "statut": "conforme",
+      "regle": "plafond_crypto",
+      "message": "Cryptoactifs : 0,0 % du portefeuille après la décision, exclusion respectée",
+      "pieces": [
+        "P1"
+      ]
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "preserver_capital",
+      "message": "Règle déclarée, non mesurable par calcul : à juger par l'utilisateur",
+      "pieces": [
+        "P1"
+      ]
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "entreprises_etablies",
+      "message": "Règle déclarée, non mesurable par calcul : à juger par l'utilisateur",
+      "pieces": [
+        "P1"
+      ]
+    },
+    {
+      "statut": "conforme",
+      "regle": "verifier_chiffres",
+      "message": "Chiffres cités vérifiés contre leurs pièces : 31/31 chiffres, 10 arguments"
+    },
+    {
+      "statut": "conforme",
+      "regle": "cadre_simulation",
+      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 10 arguments vérifiés ; Guardrail Bedrock : 10 contrôles"
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "performance_passee",
+      "message": "Performance passée invoquée : elle ne prédit pas l'avenir"
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "biais_survivant",
+      "message": "Biais du survivant : univers choisi en 2026, les résultats passés paraissent meilleurs"
+    }
+  ],
+  "verdict": null,
+  "hypotheses": [
+    "Période : 2021-11-12 au 2026-11-12",
+    "Rendements calculés sur adj_close",
+    "Calendrier des séances américaines, dernier prix reporté",
+    "Montants convertis en CAD",
+    "Financement proportionnel par défaut : toutes les lignes du portefeuille sont réduites au prorata",
+    "Seuil de pire baisse mesuré sur les réponses de l'utilisateur (P2) ; autres seuils choisis par l'équipe",
+    "Portefeuille et capital fictifs",
+    "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période",
+    "Frais de gestion des FNB : déjà prélevés dans les cours (adj_close), affichés sans être déduits une seconde fois"
+  ],
+  "sources": [
+    {
+      "nom": "Pacte de l'investisseur",
+      "fichier": "personas/robert.json",
+      "date_extraction": "2026-11-14",
+      "format": "JSON (règles déclarées)",
+      "usage": "Les règles que l'investisseur s'est fixées et que le procès vérifie",
+      "pieces": [
+        {
+          "id": "P1",
+          "raison": "Toujours au dossier : les règles que le procès vérifie"
+        }
+      ]
+    },
+    {
+      "nom": "Réponses de l'investisseur",
+      "date_extraction": "2026-11-16",
+      "format": "déclarations",
+      "usage": "Ce que l'investisseur a lui-même répondu : questionnaire, jours de marché revécus",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Versée d'office : les réponses aux jours de marché revécus fixent le seuil de pire baisse"
+        }
+      ]
+    },
+    {
+      "nom": "Yahoo Finance via yfinance (prix ajustés)",
+      "fichier": "prices_daily.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Les prix des titres : simulations, rejeu de 2022, indicateurs",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Versée d'office : les réponses aux jours de marché revécus fixent le seuil de pire baisse"
+        },
+        {
+          "id": "P3",
+          "raison": "Simulation complète de la décision demandée, indispensable au dossier."
+        },
+        {
+          "id": "P4",
+          "raison": "Rejouer l'année de crise pour voir la tenue face à la pire baisse tolérée."
+        },
+        {
+          "id": "P5",
+          "raison": "La pire baisse semble dépasser le seuil du Pacte : chercher une taille plus modeste compatible."
+        },
+        {
+          "id": "P6",
+          "raison": "Juger le risque propre du titre au regard de l'horizon et de la préservation du capital."
+        },
+        {
+          "id": "P9",
+          "raison": "Comparer le titre visé aux lignes déjà détenues pour mesurer la diversification apportée."
+        },
+        {
+          "id": "P10",
+          "raison": "Pièce obligatoire ajoutée d'office : une règle calculable du Pacte est en violation"
+        }
+      ]
+    },
+    {
+      "nom": "Banque du Canada, API Valet : change USD/CAD",
+      "fichier": "fx_usdcad_daily.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Toujours utilisée avec les prix : tous les montants sont convertis en CAD",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Versée d'office : les réponses aux jours de marché revécus fixent le seuil de pire baisse"
+        },
+        {
+          "id": "P3",
+          "raison": "Simulation complète de la décision demandée, indispensable au dossier."
+        },
+        {
+          "id": "P4",
+          "raison": "Rejouer l'année de crise pour voir la tenue face à la pire baisse tolérée."
+        },
+        {
+          "id": "P5",
+          "raison": "La pire baisse semble dépasser le seuil du Pacte : chercher une taille plus modeste compatible."
+        },
+        {
+          "id": "P6",
+          "raison": "Juger le risque propre du titre au regard de l'horizon et de la préservation du capital."
+        },
+        {
+          "id": "P8",
+          "raison": "Vérifier le temps nécessaire pour revendre les lignes avec un horizon relativement court."
+        },
+        {
+          "id": "P9",
+          "raison": "Comparer le titre visé aux lignes déjà détenues pour mesurer la diversification apportée."
+        },
+        {
+          "id": "P10",
+          "raison": "Pièce obligatoire ajoutée d'office : une règle calculable du Pacte est en violation"
+        }
+      ]
+    },
+    {
+      "nom": "Univers d'actifs des organisateurs du datathon",
+      "fichier": "assets_universe.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "La devise et la catégorie de chaque titre : conversion en CAD, plafonds du Pacte",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "Versée d'office : les réponses aux jours de marché revécus fixent le seuil de pire baisse"
+        },
+        {
+          "id": "P3",
+          "raison": "Simulation complète de la décision demandée, indispensable au dossier."
+        },
+        {
+          "id": "P4",
+          "raison": "Rejouer l'année de crise pour voir la tenue face à la pire baisse tolérée."
+        },
+        {
+          "id": "P5",
+          "raison": "La pire baisse semble dépasser le seuil du Pacte : chercher une taille plus modeste compatible."
+        },
+        {
+          "id": "P6",
+          "raison": "Juger le risque propre du titre au regard de l'horizon et de la préservation du capital."
+        },
+        {
+          "id": "P8",
+          "raison": "Vérifier le temps nécessaire pour revendre les lignes avec un horizon relativement court."
+        },
+        {
+          "id": "P9",
+          "raison": "Comparer le titre visé aux lignes déjà détenues pour mesurer la diversification apportée."
+        },
+        {
+          "id": "P10",
+          "raison": "Pièce obligatoire ajoutée d'office : une règle calculable du Pacte est en violation"
+        }
+      ],
+      "controles": [
+        "plafond_crypto"
+      ]
+    },
+    {
+      "nom": "Yahoo Finance via yfinance (volumes et prix de clôture)",
+      "fichier": "prices_daily.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Les montants échangés chaque jour : le temps qu'il faudrait pour revendre une ligne",
+      "pieces": [
+        {
+          "id": "P8",
+          "raison": "Vérifier le temps nécessaire pour revendre les lignes avec un horizon relativement court."
+        }
+      ]
+    },
+    {
+      "nom": "Banque du Canada, API Valet : IPC, taux directeur, obligation à 10 ans",
+      "fichier": "macro_rates.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Le pouvoir d'achat : inflation, rendement réel, taux sans risque, ratio de Sharpe",
+      "pieces": [
+        {
+          "id": "P3",
+          "raison": "Simulation complète de la décision demandée, indispensable au dossier."
+        },
+        {
+          "id": "P4",
+          "raison": "Rejouer l'année de crise pour voir la tenue face à la pire baisse tolérée."
+        }
+      ]
+    },
+    {
+      "nom": "Pages et documents des émetteurs des FNB : ratio des frais, relevé par l'équipe",
+      "fichier": "donnees_externes/frais_fnb.json",
+      "date_extraction": "2026-11-15",
+      "format": "JSON (relevé)",
+      "usage": "Le coût annuel des frais de gestion des FNB, déjà prélevés dans leurs cours",
+      "pieces": [
+        {
+          "id": "P3",
+          "raison": "Simulation complète de la décision demandée, indispensable au dossier."
+        }
+      ]
+    },
+    {
+      "nom": "Archives des verdicts de ce profil",
+      "fichier": "verdicts/robert/ (S3)",
+      "date_extraction": "2026-11-16",
+      "format": "JSON",
+      "usage": "Les procès passés de ce profil et les verdicts rendus",
+      "pieces": [
+        {
+          "id": "P7",
+          "raison": "Voir si un conflit semblable avec le Pacte s'est déjà produit pour ce profil."
+        }
+      ]
+    }
+  ],
+  "limites": [
+    "Les rendements passés ne garantissent pas les rendements futurs",
+    "Biais du survivant dans l'univers d'actifs",
+    "La pire baisse et la volatilité ne sont que des indicateurs de risque parmi d'autres",
+    "Une réponse à un jour de marché passé ne garantit pas le comportement futur"
+  ],
+  "trace": [
+    {
+      "etape": "agent_profil",
+      "outil": "charger_pacte",
+      "entree": "robert",
+      "sortie": "P1",
+      "horodatage": "2026-11-16T00:20:20.657+00:00"
+    },
+    {
+      "etape": "calibrage",
+      "outil": "calibrer_pacte",
+      "entree": {
+        "questions": [
+          "baisse_25",
+          "baisse_10",
+          "baisse_15",
+          "capacite"
+        ],
+        "reponses": [
+          "vend",
+          "reste",
+          "vend",
+          "pas_attendre"
+        ]
+      },
+      "sortie": "P2",
+      "horodatage": "2026-11-16T00:20:20.657+00:00"
+    },
+    {
+      "etape": "agent_profil",
+      "outil": "bedrock",
+      "entree": "Je veux mettre 30 % de mon portefeuille en Tesla (TSLA)",
+      "sortie": {
+        "type_decision": "position",
+        "actif_mentionne": "Tesla (TSLA)",
+        "ticker": "TSLA",
+        "taille": 0.3,
+        "montant": null,
+        "devise_montant": "non_precisee",
+        "panier": [],
+        "actifs_hors_univers": [],
+        "financement_depuis": null,
+        "ambiguites": []
+      },
+      "horodatage": "2026-11-16T00:20:20.657+00:00"
+    },
+    {
+      "etape": "agent_profil",
+      "outil": "valider_decision",
+      "entree": {
+        "type_decision": "position",
+        "actif_mentionne": "Tesla (TSLA)",
+        "ticker": "TSLA",
+        "taille": 0.3,
+        "montant": null,
+        "devise_montant": "non_precisee",
+        "panier": [],
+        "actifs_hors_univers": [],
+        "financement_depuis": null,
+        "ambiguites": []
+      },
+      "sortie": {
+        "type": "position",
+        "ticker": "TSLA",
+        "taille": 0.3,
+        "financement": "proportionnel",
+        "libelle": "30 % en TSLA"
+      },
+      "horodatage": "2026-11-16T00:20:20.657+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "simuler_portefeuille",
+      "raison": "Simulation complète de la décision demandée, indispensable au dossier.",
+      "entree": {
+        "financement": "proportionnel",
+        "periode": "complete",
+        "taille": 0.3,
+        "ticker": "TSLA"
+      },
+      "sortie": "P3",
+      "horodatage": "2026-11-16T00:20:24.203+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "simuler_portefeuille",
+      "raison": "Rejouer l'année de crise pour voir la tenue face à la pire baisse tolérée.",
+      "entree": {
+        "financement": "proportionnel",
+        "periode": "2022",
+        "taille": 0.3,
+        "ticker": "TSLA"
+      },
+      "sortie": "P4",
+      "horodatage": "2026-11-16T00:20:30.737+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "taille_max_compatible",
+      "raison": "La pire baisse semble dépasser le seuil du Pacte : chercher une taille plus modeste compatible.",
+      "entree": {
+        "financement": "proportionnel",
+        "taille": 0.3,
+        "ticker": "TSLA"
+      },
+      "sortie": "P5",
+      "horodatage": "2026-11-16T00:20:31.062+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "indicateurs_actif",
+      "raison": "Juger le risque propre du titre au regard de l'horizon et de la préservation du capital.",
+      "entree": {
+        "ticker": "TSLA"
+      },
+      "sortie": "P6",
+      "horodatage": "2026-11-16T00:20:31.255+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "consulter_jurisprudence",
+      "raison": "Voir si un conflit semblable avec le Pacte s'est déjà produit pour ce profil.",
+      "entree": {
+        "regle": "toutes"
+      },
+      "sortie": "P7",
+      "horodatage": "2026-11-16T00:20:31.568+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "mesurer_liquidite",
+      "raison": "Vérifier le temps nécessaire pour revendre les lignes avec un horizon relativement court.",
+      "entree": {
+        "titres": []
+      },
+      "sortie": "P8",
+      "horodatage": "2026-11-16T00:20:31.750+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "calculer_correlations",
+      "raison": "Comparer le titre visé aux lignes déjà détenues pour mesurer la diversification apportée.",
+      "entree": {
+        "tickers": [
+          "TSLA",
+          "XIU.TO",
+          "RY.TO",
+          "JNJ",
+          "FTS.TO",
+          "XBB.TO"
+        ]
+      },
+      "sortie": "P9",
+      "horodatage": "2026-11-16T00:20:31.890+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "points_de_bascule",
+      "raison": "Pièce obligatoire ajoutée d'office : une règle calculable du Pacte est en violation",
+      "entree": {
+        "regles": [
+          "pire_baisse_max"
+        ]
+      },
+      "sortie": "P10",
+      "horodatage": "2026-11-16T00:20:33.701+00:00"
+    },
+    {
+      "etape": "procureur",
+      "outil": "bedrock",
+      "entree": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8",
+        "P9",
+        "P10"
+      ],
+      "sortie": [
+        {
+          "etiquette": "fait",
+          "texte": "Au pire moment, votre portefeuille aurait perdu 188 291 $ avec 30 % en TSLA, contre 50 423 $ sans cette position.",
+          "pieces": [
+            "P3"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Vous avez écrit « Pire baisse tolérée : −10,2 % (mesurée) » ; avec 30 % en TSLA, la plus forte chute depuis un sommet atteint −29,0 %. Lors des jours de marché revécus, vous aviez répondu vendre à −16,0 %.",
+          "pieces": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Ce conflit n'est pas nouveau : 6 procès archivés de ce profil étaient en violation, dont 4 terminés par une décision modifiée. Des procès du 15 novembre 2026 portaient déjà sur « 30 % en TSLA » et sur la règle de pire baisse.",
+          "pieces": [
+            "P7"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "La règle « Pire baisse tolérée : −10,2 % (mesurée) » serait respectée jusqu'à 7 % en TSLA, ou avec un seuil inscrit au Pacte de −29,0 %. À 7 %, la pire baisse est de −9,5 %.",
+          "pieces": [
+            "P5",
+            "P10"
+          ]
+        }
+      ],
+      "horodatage": "2026-11-16T00:20:54.380+00:00"
+    },
+    {
+      "etape": "avocat",
+      "outil": "bedrock",
+      "entree": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8",
+        "P9",
+        "P10"
+      ],
+      "sortie": [
+        {
+          "etiquette": "fait",
+          "texte": "Avec 30 % en TSLA, le portefeuille a gagné +12,0 % par an, contre +9,3 % pour le portefeuille actuel. Ce résultat vaut pour une seule période passée et ne dit rien de l'avenir.",
+          "pieces": [
+            "P3"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Après une chute de 70,9 %, TSLA est revenue à son sommet en 2,9 ans, soit moins que votre horizon de 3 à 5 ans. Une seule chute a été observée, et le passé ne prédit pas l'avenir.",
+          "pieces": [
+            "P6",
+            "P1"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Une version à 7 % en TSLA respecterait la règle « Pire baisse tolérée : −10,2 % », avec −9,5 % au pire moment.",
+          "pieces": [
+            "P5",
+            "P1"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "La règle « Crypto : exclue » est respectée, la part de crypto restant à 0 % aux tailles testées.",
+          "pieces": [
+            "P5",
+            "P1"
+          ]
+        }
+      ],
+      "horodatage": "2026-11-16T00:20:56.059+00:00"
+    },
+    {
+      "etape": "procureur",
+      "outil": "bedrock_replique",
+      "entree": {
+        "repond_a": 1,
+        "argument": "Avec 30 % en TSLA, le portefeuille a gagné +12,0 % par an, contre +9,3 % pour le portefeuille actuel. Ce résultat vaut pour une seule période passée et ne dit rien de l'avenir."
+      },
+      "sortie": {
+        "etiquette": "fait",
+        "texte": "Au pire moment, ce rendement aurait coûté 188 291 $, contre 50 423 $ sans TSLA. La règle « Pire baisse tolérée : −10,2 % (mesurée) » est alors dépassée.",
+        "pieces": [
+          "P3",
+          "P1"
+        ]
+      },
+      "horodatage": "2026-11-16T00:21:07.286+00:00"
+    },
+    {
+      "etape": "avocat",
+      "outil": "bedrock_replique",
+      "entree": {
+        "repond_a": 2,
+        "argument": "Vous avez écrit « Pire baisse tolérée : −10,2 % (mesurée) » ; avec 30 % en TSLA, la plus forte chute depuis un sommet atteint −29,0 %. Lors des jours de marché revécus, vous aviez répondu vendre à −16,0 %."
+      },
+      "sortie": {
+        "etiquette": "fait",
+        "texte": "Votre réponse de vendre à −16,0 % décrit un épisode passé, et la pièce précise qu'elle ne garantit pas votre comportement futur. La règle « Crypto : exclue » reste respectée, et la pire baisse est la seule règle calculable en violation.",
+        "pieces": [
+          "P1",
+          "P2",
+          "P10"
+        ]
+      },
+      "horodatage": "2026-11-16T00:21:10.006+00:00"
+    },
+    {
+      "etape": "greffier",
+      "outil": "verifier_pacte",
+      "entree": [
+        "pire_baisse_max",
+        "plafond_crypto",
+        "preserver_capital",
+        "entreprises_etablies"
+      ],
+      "sortie": "1 violation, 1 conforme, 2 à vérifier",
+      "horodatage": "2026-11-16T00:21:10.007+00:00"
+    },
+    {
+      "etape": "greffier",
+      "outil": "verifier_chiffres",
+      "entree": "10 arguments",
+      "sortie": "Chiffres cités vérifiés contre leurs pièces : 31/31 chiffres, 10 arguments",
+      "horodatage": "2026-11-16T00:21:11.830+00:00"
+    },
+    {
+      "etape": "greffier",
+      "outil": "verifier_cadre_simulation",
+      "entree": "10 arguments",
+      "sortie": "Aucun conseil personnalisé ni promesse sur l'avenir : 10 arguments vérifiés ; Guardrail Bedrock : 10 contrôles",
+      "horodatage": "2026-11-16T00:21:11.830+00:00"
+    }
+  ],
+  "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.",
+  "comparaison": {
+    "actuel": {
+      "rendement_annuel": 0.092868,
+      "volatilite_annuelle": 0.055947,
+      "pire_baisse": -0.077574,
+      "rendement_2022": -0.025948
+    },
+    "apres": {
+      "rendement_annuel": 0.119792,
+      "volatilite_annuelle": 0.189667,
+      "pire_baisse": -0.289679,
+      "rendement_2022": -0.237129
+    }
+  },
+  "taille_max_compatible": 0.07,
+  "points_de_bascule": [
+    {
+      "regle": "pire_baisse_max",
+      "type": "pire_baisse_max",
+      "seuil_actuel": -0.101618,
+      "seuil_suffisant": -0.289679,
+      "taille_max": 0.07,
+      "message": "Conforme jusqu'à 7 % en TSLA, ou avec un seuil de −29,0 % au lieu de −10,2 %",
+      "pieces": [
+        "P10"
+      ]
+    }
+  ],
+  "requisitoire": [
+    {
+      "etiquette": "fait",
+      "texte": "Au pire moment, votre portefeuille aurait perdu 188 291 $ avec 30 % en TSLA, contre 50 423 $ sans cette position.",
+      "pieces": [
+        "P3"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Vous avez écrit « Pire baisse tolérée : −10,2 % (mesurée) » ; avec 30 % en TSLA, la plus forte chute depuis un sommet atteint −29,0 %. Lors des jours de marché revécus, vous aviez répondu vendre à −16,0 %.",
+      "pieces": [
+        "P1",
+        "P2",
+        "P3"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Ce conflit n'est pas nouveau : 6 procès archivés de ce profil étaient en violation, dont 4 terminés par une décision modifiée. Des procès du 15 novembre 2026 portaient déjà sur « 30 % en TSLA » et sur la règle de pire baisse.",
+      "pieces": [
+        "P7"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "La règle « Pire baisse tolérée : −10,2 % (mesurée) » serait respectée jusqu'à 7 % en TSLA, ou avec un seuil inscrit au Pacte de −29,0 %. À 7 %, la pire baisse est de −9,5 %.",
+      "pieces": [
+        "P5",
+        "P10"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Au pire moment, ce rendement aurait coûté 188 291 $, contre 50 423 $ sans TSLA. La règle « Pire baisse tolérée : −10,2 % (mesurée) » est alors dépassée.",
+      "pieces": [
+        "P3",
+        "P1"
+      ],
+      "repond_a": {
+        "cote": "plaidoirie",
+        "numero": 1
+      }
+    }
+  ],
+  "plaidoirie": [
+    {
+      "etiquette": "fait",
+      "texte": "Avec 30 % en TSLA, le portefeuille a gagné +12,0 % par an, contre +9,3 % pour le portefeuille actuel. Ce résultat vaut pour une seule période passée et ne dit rien de l'avenir.",
+      "pieces": [
+        "P3"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Après une chute de 70,9 %, TSLA est revenue à son sommet en 2,9 ans, soit moins que votre horizon de 3 à 5 ans. Une seule chute a été observée, et le passé ne prédit pas l'avenir.",
+      "pieces": [
+        "P6",
+        "P1"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Une version à 7 % en TSLA respecterait la règle « Pire baisse tolérée : −10,2 % », avec −9,5 % au pire moment.",
+      "pieces": [
+        "P5",
+        "P1"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "La règle « Crypto : exclue » est respectée, la part de crypto restant à 0 % aux tailles testées.",
+      "pieces": [
+        "P5",
+        "P1"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Votre réponse de vendre à −16,0 % décrit un épisode passé, et la pièce précise qu'elle ne garantit pas votre comportement futur. La règle « Crypto : exclue » reste respectée, et la pire baisse est la seule règle calculable en violation.",
+      "pieces": [
+        "P1",
+        "P2",
+        "P10"
+      ],
+      "repond_a": {
+        "cote": "requisitoire",
+        "numero": 2
+      }
+    }
+  ],
+  "arguments_rejetes": [],
+  "bedrock": {
+    "modele": "global.anthropic.claude-sonnet-5-5",
+    "appels": 8,
+    "jetons_entree": 70650,
+    "jetons_sortie": 8587,
+    "duree_bedrock_s": 80.5,
+    "cout_estime_usd": 0.2272,
+    "par_agent": [
+      {
+        "agent": "agent_profil",
+        "appels": 1,
+        "jetons_entree": 3488,
+        "jetons_sortie": 107
+      },
+      {
+        "agent": "orchestrateur",
+        "appels": 3,
+        "jetons_entree": 24154,
+        "jetons_sortie": 1163
+      },
+      {
+        "agent": "procureur",
+        "appels": 2,
+        "jetons_entree": 21596,
+        "jetons_sortie": 3567
+      },
+      {
+        "agent": "avocat",
+        "appels": 2,
+        "jetons_entree": 21412,
+        "jetons_sortie": 3750
+      }
+    ],
+    "garde_fou": {
+      "verifications": 11,
+      "interventions": 0
+    },
+    "duree_proces_s": 53.7
+  }
+}

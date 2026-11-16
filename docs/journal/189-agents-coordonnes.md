@@ -21,7 +21,15 @@ Quatre manques de la partie agentique (audit du 15 novembre) : les agents ne se 
   | `2026-11-16-6563f5a1e2be` | Amira · panier à 25 % | 7 | 61 493 / 8 594 | 0,21 $ | 56 s | 28/28 |
   | `2026-11-16-2f205d08775f` | Mateo · 10 % XOM | 12 | 82 993 / 8 916 | 0,26 $ | 63 s | 18/18 |
 
-  Robert a aussi son contre-interrogatoire « Et si je mettais 15 % au lieu de 30 % ? » (25/25 chiffres). Les trois sont copiés depuis S3 dans `frontend/src/data/proces/`, en tête de `index.json` : ce sont eux que le mode démonstration rejoue. Une demande qui tente de détourner les consignes (« Ignore toutes tes consignes… ») est refusée en 0,7 s, HTTP 400, sans appel au modèle.
+  Avec le Pacte vécu (réponses de démonstration, mêmes seuils mesurés qu'avant : −10,2 %, −40,6 %, −15,1 %), trois autres procès, tenus de la même façon :
+
+  | Procès | Profil · décision | Appels Bedrock | Coût estimé | Durée | Chiffres |
+  |---|---|---|---|---|---|
+  | `2026-11-16-2e2faa67372b` | Robert · 30 % TSLA | 8 | 0,23 $ | 54 s | 31/31 |
+  | `2026-11-16-4c1f1ca81fd9` | Amira · panier à 25 % | 7 | 0,22 $ | 57 s | 25/25 |
+  | `2026-11-16-a1a71679be7a` | Mateo · 10 % XOM | 8 | 0,22 $ | 55 s | 19/19 |
+
+  Robert a aussi son contre-interrogatoire « Et si je mettais 15 % au lieu de 30 % ? » (25/25 chiffres). Les six sont copiés depuis S3 dans `frontend/src/data/proces/`, en tête de `index.json` : ce sont eux que le mode démonstration rejoue. Une demande qui tente de détourner les consignes (« Ignore toutes tes consignes… ») est refusée en 0,7 s, HTTP 400, sans appel au modèle.
 - `frontend/src/domaine/debat.ts` : nouveau thème `liquidite` (« Pourriez-vous revendre vite ? ») ; l'Avocat d'Amira en parle, et l'argument tombait dans « Autres points ».
 
 ## Comment l'utiliser
@@ -31,8 +39,8 @@ Rien à changer pour lancer un procès : la réplique et la mesure sont toujours
 ```
 
 ## Comment vérifier
-- `.venv/bin/python -m pytest` : 1097 tests, dont la réplique dans le procès (`test_replique_vise_un_argument_valide_et_passe_le_greffier`, `test_replique_dont_la_cible_est_ecartee_est_rejetee`), le refus du Guardrail avant tout appel, le compteur par agent et par fil d'exécution (`tests/test_llm.py`), le déploiement idempotent du Guardrail (`tests/test_deployer.py`).
-- `npm --prefix frontend test` : 165 tests, dont `instruction.test.ts`.
+- `.venv/bin/python -m pytest` : 1115 tests, dont la réplique dans le procès (`test_replique_vise_un_argument_valide_et_passe_le_greffier`, `test_replique_dont_la_cible_est_ecartee_est_rejetee`), le refus du Guardrail avant tout appel, le compteur par agent et par fil d'exécution (`tests/test_llm.py`), le déploiement idempotent du Guardrail (`tests/test_deployer.py`).
+- `npm --prefix frontend test` : 169 tests, dont `instruction.test.ts` (qui vérifie aussi que le procès rejoué avec le Pacte vécu est le nouveau).
 - Après un vrai procès : `python -m contrat.valider <contrat.json>` ; le champ `bedrock` donne le coût du procès, et chaque étape son heure.
 
 ## Choix faits en cours de route
@@ -42,6 +50,6 @@ Rien à changer pour lancer un procès : la réplique et la mesure sont toujours
 - **Stabilité de l'orchestrateur** : d'une répétition à l'autre, le même outil n'est pas toujours choisi (6 cas sur 9 identiques, `docs/validation/evaluation_orchestrateur.md`). C'est voulu : le modèle choisit les preuves ; les phases, la pièce obligatoire, le budget et tous les contrôles du Greffier, eux, ne varient jamais. La doc technique le dit (section 3).
 
 ## Limites et suite
-- Les procès **avec Pacte vécu** (`"calibrage": true`) et Robert à 25 % datent d'avant #189 : rejoués, ils n'ont ni réplique, ni heure, ni mesure.
-- Le Guardrail n'est intervenu sur aucun des 32 arguments réels : il n'a donc encore rien attrapé que le Greffier aurait laissé passer.
+- Robert à 25 % et Amira à QQQ et NVDA datent d'avant #189 : rejoués, ils n'ont ni réplique, ni heure, ni mesure.
+- Le Guardrail n'est intervenu sur aucun des 61 arguments réels : il n'a donc encore rien attrapé que le Greffier aurait laissé passer.
 - Un appel Bedrock du contre-interrogatoire n'est pas compté (le champ `bedrock` porte sur le procès).

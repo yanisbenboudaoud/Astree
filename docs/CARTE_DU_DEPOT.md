@@ -1,6 +1,6 @@
 # Carte du dépôt
 
-Une ligne par fichier ou dossier important : son rôle, et la fiche du journal (`docs/journal/`) qui raconte comment il a été construit. Vue d'ensemble par dossier : [`README.md`](../README.md#organisation-du-dépôt).
+Une ligne par fichier ou dossier important : son rôle, et la fiche du journal (`docs/journal/`) qui raconte comment il a été construit. Vue d'ensemble par dossier : [`INSTALLATION.md`](INSTALLATION.md#organisation-du-dépôt).
 
 Une PR qui ajoute, déplace ou supprime un fichier ou un dossier important met cette carte à jour.
 
@@ -60,6 +60,7 @@ Une PR qui ajoute, déplace ou supprime un fichier ou un dossier important met c
 | `validation/plan_proces.py`, `validation/jeux/plan_proces.json` | Plan de procès : 3 décisions × 3 profils × 2 répétitions, tenus sur la Lambda (vrais appels Bedrock) ; résultats dans `validation/jeux/plan_proces_resultats.json`. `python -m validation.plan_proces` | [167](journal/167-evaluation-orchestrateur.md) |
 | `tests/` | Un fichier de test par module (`test_donnees.py` ↔ `pipeline/donnees.py`). `pytest -m bedrock` pour les vrais appels ; `conftest.py` interdit tout client Bedrock dans les autres tests (#189) | — |
 | `docs/GUIDE_DU_PROJET.md` | Guide complet du projet pour tous les niveaux : l'idée sans jargon, le fonctionnement, la visite de chaque dossier, le chemin d'une demande dans le code, la façon de travailler, l'état et les limites | — |
+| `docs/INSTALLATION.md` | Guide complet repris du README : installation (macOS, Linux, Windows), réglages `.env`, commandes, ajout d'un profil, reproduction des résultats, déploiement, les deux sites, données et leurs sources, organisation du dépôt | — |
 | `docs/guide_jurisprudence.md` | Guide pas à pas de la jurisprudence (#56) et de la correction du validateur (#65) : la boucle complète sur un vrai procès, les choix, les limites, et des questions pour vérifier sa compréhension | [056](journal/056-jurisprudence.md), [065](journal/065-valider-erreurs-outil.md) |
 | `docs/CHOIX_CONCEPTION.md` | Le *pourquoi* de chaque choix d'architecture | [000](journal/000-fondations.md) |
 | `docs/DOCUMENTATION_TECHNIQUE.md` | Documentation technique : rôle des agents, garde-fous de l'orchestrateur, outils et méthode de calcul, Pacte générique, explicabilité sur un vrai procès (argument → pièce → fichier source), règles de `verifier_chiffres` avec un argument corrigé, validations, limites, schéma AWS | [018](journal/018-livrables-documentation.md) |

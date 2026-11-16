@@ -108,7 +108,7 @@ Pièges des données de départ et façon dont ils sont traités : [`REFERENCE_D
 
 Chaque contrat les énumère dans son champ `hypotheses`. Les principales :
 
-- Période d'analyse : 2021-11-12 au 2026-11-12 ([`README.md`](../README.md), « Données »).
+- Période d'analyse : 2021-11-12 au 2026-11-12 ([`INSTALLATION.md`](INSTALLATION.md#données), « Données »).
 - Les **seuils des Pactes** sont des hypothèses de l'équipe, pas des recommandations réglementaires, sauf la pire baisse mesurée par le Pacte vécu ([`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md), section 3).
 - Le **budget** de 8 appels et le barème du questionnaire ([`config/questionnaire.json`](../config/questionnaire.json)) sont des hypothèses de l'équipe.
 - L'IPC du mois M est supposé publié le dernier jour du mois M + 1 (`date_publication_ipc`, [`macro.py`](../pipeline/macro.py)).
@@ -131,7 +131,7 @@ Les **catégories** des plafonds sont définies une seule fois pour tous les pro
 
 Un profil peut avoir plusieurs **poches** (plusieurs horizons dans un même portefeuille) : [`pipeline/poches.py`](../pipeline/poches.py), fiche [115](journal/115-poches-horizons.md). Un Pacte peut aussi naître du **questionnaire investisseur**, transformé en fichier profil par Python sans LLM : fiche [084](journal/084-questionnaire-investisseur.md).
 
-**Preuve que c'est générique** : un 4ᵉ profil inventé, écrit en un seul fichier JSON, est jugé sans aucune ligne de code ([`validation/resultats_scenarios.md`](validation/resultats_scenarios.md), section 7). Comment ajouter un profil : [`README.md`](../README.md), « Ajouter un profil ».
+**Preuve que c'est générique** : un 4ᵉ profil inventé, écrit en un seul fichier JSON, est jugé sans aucune ligne de code ([`validation/resultats_scenarios.md`](validation/resultats_scenarios.md), section 7). Comment ajouter un profil : [`INSTALLATION.md`](INSTALLATION.md#ajouter-un-profil), « Ajouter un profil ».
 
 ## 6. L'explicabilité : remonter d'un argument au fichier source
 
@@ -228,7 +228,7 @@ D'autres rejets, joués volontairement, sont dans [`validation/resultats_scenari
 
 > **À l'écran** : [les contrôles du Greffier](preuves/ecrans/06-robert-controles-greffier.png) affichent, sous chacun, son taux mesuré (bulletin du Greffier, #172).
 
-Les principaux résultats, promesse par promesse, sont repris dans la section « Preuves » du [`README.md`](../README.md#preuves) ; l'index des rapports, la commande qui régénère chacun et leurs limites sont dans [`validation/README.md`](validation/README.md).
+Les principaux résultats, promesse par promesse, sont repris dans la section « Preuves » du [`README.md`](../README.md#preuves), en version courte ; l'index des rapports, la commande qui régénère chacun et leurs limites sont dans [`validation/README.md`](validation/README.md).
 
 | Validation | Commande | Résultat | Fiche |
 |---|---|---|---|

@@ -120,7 +120,7 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 - les nombres dérivés (écarts, ratios) sont interdits : si un argument en a besoin, c'est Python qui les calcule ;
 - les dates sont vérifiées comme les autres nombres.
 
-**Mesuré, pas seulement promis** (#165, #166) : le vérificateur de chiffres et le contrôle du cadre ont été mis à l'épreuve sur des jeux de pièges écrits avant la mesure. Les taux, avec leurs intervalles de confiance et leurs ratés, sont dans la section « Preuves » du [`README.md`](../README.md#preuves).
+**Mesuré, pas seulement promis** (#165, #166) : le vérificateur de chiffres et le contrôle du cadre ont été mis à l'épreuve sur des jeux de pièges écrits avant la mesure. Les taux, avec leurs intervalles de confiance et leurs ratés, sont dans [`validation/README.md`](validation/README.md#résultats-en-détail), « Résultats en détail ».
 
 ---
 

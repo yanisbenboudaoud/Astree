@@ -1,6 +1,6 @@
 # Rapports de validation
 
-Chaque rapport de ce dossier est **généré par une commande** : il ne se modifie pas à la main, il se régénère. Les chiffres repris ailleurs (section « Preuves » du [`README.md`](../../README.md), [`DOCUMENTATION_TECHNIQUE.md`](../DOCUMENTATION_TECHNIQUE.md), section 8) renvoient ici.
+Chaque rapport de ce dossier est **généré par une commande** : il ne se modifie pas à la main, il se régénère. Les chiffres repris ailleurs (section « Preuves » du [`README.md`](../../README.md), en version courte ; en détail ci-dessous, « Résultats en détail », [`DOCUMENTATION_TECHNIQUE.md`](../DOCUMENTATION_TECHNIQUE.md), section 8) renvoient ici.
 
 Commandes pour PowerShell, depuis la racine du dépôt (sous Linux ou macOS : `.venv/bin/python`). Toutes tournent sans Bedrock ; seule l'évaluation de l'orchestrateur lit S3, et seul le plan de procès appelle la Lambda (vrais appels Bedrock, payants).
 
@@ -13,6 +13,20 @@ Commandes pour PowerShell, depuis la racine du dépôt (sous Linux ou macOS : `.
 | [`resultats_scenarios.md`](resultats_scenarios.md), [`sensibilite_seuil.svg`](sensibilite_seuil.svg) | Scénarios de validation et de sensibilité : même décision pour plusieurs profils, seuils, hypothèses, période, garde-fous, profil inventé | `.venv\Scripts\python -X utf8 -m validation` | #15 |
 
 La suite de tests et la validation des contrats ne produisent pas de rapport ici : elles tournent à chaque push dans l'intégration continue ([`.github/workflows/tests.yml`](../../.github/workflows/tests.yml), #169), et leurs résultats sont dans l'onglet *Actions* du dépôt.
+
+## Résultats en détail
+
+Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit. Taux en k/N, avec l'intervalle de confiance de Wilson à 95 % quand le rapport le donne : la borne basse dit ce que l'échantillon permet d'affirmer. Le [`README.md`](../../README.md) n'en garde que le chiffre clé.
+
+| Promesse | Résultat mesuré | Rapport |
+|---|---|---|
+| **Aucun chiffre inventé ne passe** (#165) | Chiffres inventés détectés : **66/66** (IC 95 % : 94,5 % à 100,0 %) ; arguments valides acceptés : **80/80** (95,4 % à 100,0 %). Limite connue, mesurée à part : un chiffre exact attribué à la mauvaise grandeur passe (0/6 détectés). | [`evaluation_chiffres.md`](evaluation_chiffres.md) |
+| **Aucun conseil ni promesse** (#166) | Arguments légitimes admis : **71/71** (94,9 % à 100,0 %). Conseils et promesses bloqués : **47/78** (49,2 % à 70,4 %), dont **9/20** (25,8 % à 65,8 %) sur les cas écrits sans accès au code. Le contrôle repère des tournures, pas le sens : ses ratés sont listés un par un. | [`evaluation_cadre.md`](evaluation_cadre.md) |
+| **L'orchestrateur s'adapte au Pacte** (#167) | Sur 218 procès tenus sur AWS (copiés de S3 le 2026-11-16 dans `validation/proces_tenus.tar.gz`, relisibles sans AWS, #191) : `calculer_correlations` demandé dans **33/33** procès du profil audacieux contre **53/138** du profil prudent ; `rechercher_documents` dans **19/45** procès du profil ESG, jamais ailleurs. Budget de 8 appels respecté : **218/218** (98,3 % à 100,0 %) ; simulation obligatoire demandée par le modèle lui-même : **218/218** (98,3 % à 100,0 %). Plan de procès, même décision pour les trois profils : mêmes outils d'une répétition à l'autre dans **6/9** cas (35,4 % à 87,9 %). Ces procès ne sont pas un échantillon planifié, sauf le plan de procès. | [`evaluation_orchestrateur.md`](evaluation_orchestrateur.md) |
+| **Nos données concordent avec les émetteurs** (#168) | Rendements annuels de 7 FNB à moins de 0,25 point de ceux publiés (seuil fixé avant le calcul) : **27/27** (87,5 % à 100,0 %) ; 2022 : **7/7** (64,6 % à 100,0 %) ; écart maximal : 0,12 point. | [`validation_externe.md`](validation_externe.md) |
+| **L'interface montre les mêmes chiffres que ces rapports** (#172) | Le bilan du Greffier affiche, sous `verifier_chiffres` et `cadre_simulation`, les taux du bulletin : **66/66** et **80/80**, **47/78** et **71/71** ; le tiroir de la pièce de simulation affiche **27/27** et **7/7** pour les données. Deux tests garantissent que ce sont les chiffres des rapports : `tests/test_bulletin.py` recalcule le bulletin et cherche chacun de ses k/N dans le rapport, `frontend/src/test/bulletin.test.tsx` vérifie que la phrase affichée reprend exactement le fichier. La mesure de l'orchestrateur n'est pas encore au bulletin. | [`bulletin.json`](../../frontend/src/data/bulletin.json), écrit par les commandes d'évaluation |
+| **AWS a réellement servi** (#191) | Exporté par l'API avant la suppression du compte (2026-11-16) : Claude Sonnet 5.5 sur Bedrock appelé **1 725 fois** (environ **10,3 millions** de jetons lus, 0 erreur client) ; Lambda appelée **1 573 fois**, 0 erreur ; 218 procès, 15 verdicts et 5 profils dans S3 ; coût réel du compte **17,29 $** pour un budget de 100 $. | [`docs/preuves/aws/`](../preuves/aws/README.md) |
+| **La suite de tests passe** (#169) | Badge en tête du README, à chaque push. Dernier passage sur `main` (commit `e8f0a34`, 2026-11-15) : **1033** tests Python réussis (24 tests Bedrock exclus, payants), **144/144** tests de l'interface, **10/10** contrats JSON valides. | [Run du 2026-11-15](https://github.com/yanisbenboudaoud/Astree/actions/runs/43770396725) |
 
 ## Limites de chaque mesure
 

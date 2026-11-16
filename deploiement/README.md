@@ -86,6 +86,8 @@ aws login                                                                    # u
 
 Options : `--sans-construction` envoie `frontend/dist/` tel quel ; `--forcer` renvoie tous les fichiers (après un changement des en-têtes) ; `--attendre` attend que la distribution soit déployée.
 
+`--mode` ne fixe que le mode **par défaut** du site. Depuis #137, chaque visiteur peut en changer : `?mode=demo` (procès enregistrés, sans appel à la Lambda) ou `?mode=direct` dans l'adresse, ou l'interrupteur à droite du bandeau ; le choix est mémorisé dans son navigateur (`frontend/README.md`). Vérification gratuite : `ASTREE_URL=https://d15khh2djw55mh.cloudfront.net npm run verifier:mode`.
+
 [`deployer_interface.py`](deployer_interface.py) est **idempotent** comme `deployer.py` : un second lancement ne crée rien, n'envoie que les fichiers modifiés et n'invalide rien si `index.html` et les procès-verbaux n'ont pas changé.
 
 | Réglage | Valeur | Pourquoi |
@@ -98,7 +100,7 @@ Options : `--sans-construction` envoie `frontend/dist/` tel quel ; `--forcer` re
 | Cache | Politique gérée `CachingOptimized`. `assets/*` : `public, max-age=31536000, immutable` ; tout le reste (`index.html`, `proces-verbaux/*.html`, `marque.svg`) : `no-cache` | Vite hache le nom des fichiers d'`assets/` : un fichier modifié change de nom. Le reste doit suivre chaque déploiement |
 | En-têtes de sécurité | Politique gérée `SecurityHeadersPolicy` (HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) | Bonnes pratiques, sans code |
 | Zone de diffusion | `PriceClass_100` (Amérique du Nord et Europe) | Le jury est à Montréal ; la classe la moins chère |
-| Construction | `npm run build` avec `VITE_API_URL` lue sur le compte (`get_function_url_config`) et `VITE_USE_MOCKS=false` par défaut | L'adresse de la Lambda n'est jamais écrite dans le dépôt. Les variables du processus passent avant `frontend/.env.local` : la configuration locale de chacun n'entre pas dans le site |
+| Construction | `npm run build` avec `VITE_API_URL` lue sur le compte (`get_function_url_config`) et `VITE_USE_MOCKS=false` par défaut (le mode par défaut du site ; `?mode=` et l'interrupteur le changent, #137) | L'adresse de la Lambda n'est jamais écrite dans le dépôt. Les variables du processus passent avant `frontend/.env.local` : la configuration locale de chacun n'entre pas dans le site |
 | Envoi | Seuls les fichiers modifiés (ETag = MD5 local), `index.html` en dernier, fichiers absents de `dist/` supprimés. `Content-Type` fixé par extension | `index.html` ne désigne jamais un fichier pas encore envoyé. Sous Windows, `mimetypes` peut donner `text/plain` pour `.js` |
 | Invalidation | `/`, `/index.html` et `/proces-verbaux/*`, seulement si un fichier hors `assets/` a changé | Les 1 000 premiers chemins invalidés par mois sont gratuits |
 

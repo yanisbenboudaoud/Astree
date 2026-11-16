@@ -8,6 +8,7 @@ import type { DecisionUI, Echange, EntreeJournal, Piece, ResultatTribunal } from
 import type { IdOption } from '../domaine/verdict';
 import type { Reponse } from '../domaine/questions';
 import type { ReponsesCalibrage } from '../domaine/calibrage';
+import { cleSession } from '../api/config';
 
 export interface EtatTribunal {
   statut: 'vide' | 'chargement' | 'pret' | 'erreur' | 'non_enregistre';
@@ -117,7 +118,8 @@ function reducteur(etat: Etat, action: Action): Etat {
   return suivant === courant ? etat : { ...etat, [action.profil]: suivant };
 }
 
-const CLE_STOCKAGE = 'astree.etat.v1';
+// Propre au mode (#137) : un procès en direct n'est jamais repris dans les procès enregistrés.
+const CLE_STOCKAGE = cleSession('astree.etat.v1');
 
 function lireStockage(): Etat {
   try {

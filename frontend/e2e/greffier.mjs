@@ -27,6 +27,8 @@ for (const canal of ['msedge', 'chrome']) {
 }
 if (!navigateur) throw new Error('Ni Edge ni Chrome trouvés.');
 const page = await navigateur.newPage({ viewport: { width: 1440, height: 900 } });
+// Mode fixé avant chaque chargement (#137) : procès enregistrés, donc aucun procès payant, même sur un site en direct par défaut.
+await page.addInitScript(() => { try { localStorage.setItem('astree.mode', 'demo'); } catch { /* sans stockage : mode du site */ } });
 page.on('console', (m) => { if (['error', 'warning'].includes(m.type())) problemes.push(`console ${m.type()} : ${m.text()}`); });
 page.on('pageerror', (e) => problemes.push(`erreur de page : ${e.message}`));
 
@@ -43,7 +45,11 @@ async function ouvrirTribunal(taille) {
   for (let i = 0; i < taille; i += 1) await page.keyboard.press('ArrowRight');
   await page.getByRole('button', { name: /Soumettre au Tribunal/ }).click();
   await page.waitForSelector('#titre-bilan', { timeout: 20_000 });
+  // En démonstration, la Lambda est réveillée à l'ouverture de la section (#137) : on attend ce
+  // réveil, comme avant pendant la relecture, pour mesurer une vérification et non un démarrage à froid.
+  const reveil = page.waitForResponse((r) => r.url().endsWith('/verifier'), { timeout: 15_000 }).catch(() => null);
   await page.getByRole('button', { name: /Mettre le Greffier à l’épreuve/ }).click();
+  await reveil;
 }
 
 async function resultat() {

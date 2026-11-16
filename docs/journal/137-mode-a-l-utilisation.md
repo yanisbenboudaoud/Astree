@@ -1,6 +1,6 @@
 # #137 — Site hébergé : mode direct par défaut, bascule vers les procès enregistrés à l'utilisation
 
-- **Issue** : #137 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #137 · **PR** : #193 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit

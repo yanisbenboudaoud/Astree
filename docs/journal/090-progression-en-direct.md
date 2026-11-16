@@ -35,7 +35,7 @@ Interface en mode direct (`frontend/README.md`) : rien à faire, `jugerDecision`
 
 ## Choix faits en cours de route
 - **`/tribunal` sans `progression: true` garde l'ancien comportement**, et l'interface accepte un 200 avec le contrat. Le déploiement ne casse donc ni les scripts (`tester_function_url.py`) ni une interface pas encore à jour, et l'interface marche avec une Lambda pas encore redéployée (sans progression).
-- **Concurrence réservée gardée à 2** (`CLAUDE.md`, coûts). Elle compte le procès en arrière-plan **et** les relectures : avec deux procès en cours, les relectures reçoivent 429 jusqu'à ce qu'un procès finisse. L'interface l'affiche (« Tribunal occupé ») et continue de relire. Augmenter la concurrence aurait relevé le plafond des appels Bedrock simultanés.
+- **Concurrence réservée gardée à 2** (`REFERENCE_DU_PROJET.md`, coûts). Elle compte le procès en arrière-plan **et** les relectures : avec deux procès en cours, les relectures reçoivent 429 jusqu'à ce qu'un procès finisse. L'interface l'affiche (« Tribunal occupé ») et continue de relire. Augmenter la concurrence aurait relevé le plafond des appels Bedrock simultanés.
 - **Les étapes de l'Agent Profil sont signalées à la fin de sa phase** (un seul appel Bedrock). La phase, elle, s'affiche dès son début.
 - **Une étape qui dure quelques millisecondes peut ne jamais s'afficher « en cours »** (le Greffier sans renvoi) : la relecture toutes les 1,5 s la trouve déjà finie. La montrer « en cours » serait du faux ; l'écran final la montre cochée, avec ses étapes.
 - **Les 5 outils peuvent apparaître ensemble** : l'orchestrateur les demande souvent dans un même tour, et Python les exécute en 0,1 s.

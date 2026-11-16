@@ -1,4 +1,4 @@
-"""Validation du contrat de sortie du Tribunal (CLAUDE.md, section 5).
+"""Validation du contrat de sortie du Tribunal (REFERENCE_DU_PROJET.md, section 5).
 
 Deux niveaux :
 1. le schéma JSON (contrat/schema_sortie.json) : champs obligatoires, types, valeurs permises ;

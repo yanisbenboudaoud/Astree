@@ -1,4 +1,4 @@
-"""Outil 6 du Greffier : verifier_chiffres (CLAUDE.md, section 4 ter).
+"""Outil 6 du Greffier : verifier_chiffres (REFERENCE_DU_PROJET.md, section 4 ter).
 
 Promesse du pitch : « aucun chiffre inventé ne passe ». Chaque nombre écrit
 dans un argument (Procureur, Avocat, contre-interrogatoire) doit exister dans

@@ -1,5 +1,5 @@
 /**
- * Contrat JSON produit par le pipeline (CLAUDE.md, section 5 ; contrat/schema_sortie.json).
+ * Contrat JSON produit par le pipeline (REFERENCE_DU_PROJET.md, section 5 ; contrat/schema_sortie.json).
  * Les valeurs sont des décimales brutes ; seul `valeur_affichee` est prêt à afficher.
  */
 

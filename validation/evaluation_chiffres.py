@@ -139,7 +139,7 @@ def rapport(nom: str, jeu: dict[str, Any], resultats: list[ResultatCas]) -> str:
         "## Méthode",
         "",
         "- Vérificateur : `pipeline.chiffres.verifier_argument`, le même que le Greffier et l'écran "
-        "« Trompez le Greffier » (`CLAUDE.md`, section 4 ter).",
+        "« Trompez le Greffier » (`REFERENCE_DU_PROJET.md`, section 4 ter).",
         f"- Dossier de chaque cas : décision et pièces du procès enregistré "
         f"(`frontend/src/data/proces/<id>.json`), période {jeu['periode'][0]} → {jeu['periode'][1]}.",
         "- Piège détecté : argument rejeté **et** nombre piège parmi les introuvables. "

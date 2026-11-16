@@ -6,7 +6,7 @@
 L'essentiel du calcul a été livré par #111 (fiche [111](111-diversite-des-sources.md)) : lecture de l'IPC, `inflation_annuelle` et `rendement_reel_annuel` (avant / après) dans la pièce de `simuler_portefeuille`, consigne aux agents, vérification par `verifier_chiffres`. Cette fiche décrit ce que #113 ajoute.
 
 ## Ce qui a été construit
-- **`pipeline/macro.py`** : la règle « jamais avant la publication » (`CLAUDE.md`, section 6) devient explicite au lieu de reposer sur le contenu du fichier.
+- **`pipeline/macro.py`** : la règle « jamais avant la publication » (`REFERENCE_DU_PROJET.md`, section 6) devient explicite au lieu de reposer sur le contenu du fichier.
   - `date_publication_ipc(mois)` : l'IPC du mois M est supposé publié le **dernier jour du mois M + 1** (2026-09 → 2026-10-31) ;
   - `inflation(debut, fin, connu_le=None)` : n'utilise que les mois publiés à `connu_le`, par défaut la date d'extraction de `macro_rates.csv` (mise en cache : un seul accès à `sources_metadata.csv`, même dans S3) ;
   - `Inflation.publie_le` : date de publication supposée du dernier mois utilisé.
@@ -14,7 +14,7 @@ L'essentiel du calcul a été livré par #111 (fiche [111](111-diversite-des-sou
 - **`pipeline/vues_interface.py`** : `inflation_de_la_periode` et `rendement_reel`. Le profil gagne `inflation` (`annuelle`, `moisDebut`, `moisFin`, `publieLe`) et `actuel.rendementReel` ; chaque entrée des tables de décision et du panier gagne `rendementReel`. Les valeurs sont `null` sans données macro. Fichiers régénérés : `frontend/src/data/generated/` (seuls ces champs changent).
 - **Interface** : ligne « Rendement après inflation » sur l'écran Décision, sous le rendement en dollars, avec l'inflation en détail et la bulle ⓘ (`INDICATEURS.rendement_reel`, `domaine/limites.ts`). Elle est absente si le profil n'a pas de données macro (`domaine/decision.ts`, `effetsSurLePacte`). Types `InflationPeriode` et `rendementReel` (`api/types.ts`).
 - **Validation** (`validation/scenarios.py`, groupe 10) : rendement réel de la période avant / après ; IPC présent dans le fichier mais pas encore publié.
-- **Documentation** : `CLAUDE.md` (section 6 bis), `docs/CHOIX_CONCEPTION.md` (choix 16), carte du `README.md`.
+- **Documentation** : `REFERENCE_DU_PROJET.md` (section 6 bis), `docs/CHOIX_CONCEPTION.md` (choix 16), carte du `README.md`.
 
 ## Comment l'utiliser
 ```python

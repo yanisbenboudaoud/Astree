@@ -23,7 +23,7 @@ prix_cad = charger_donnees(["RY.TO", "TSLA", "BTC-USD"])   # tout en CAD
 ```bash
 pytest tests/test_donnees.py
 ```
-Les tests vérifient qu'un titre CAD ne change pas, qu'un titre USD est multiplié par le taux du jour, et que le dernier taux est reporté les jours fériés canadiens. Ils retrouvent aussi les chiffres de la maquette (`docs/exemples/contrat_robert.json`) : la pire baisse de TSLA en CAD (−0,7088, pièce P4), et le rendement annualisé (0,0929), la volatilité (0,0559) et la pire baisse (−0,0776) du portefeuille actuel de Robert. La méthode de la section 6 bis de `CLAUDE.md` est donc reproduite.
+Les tests vérifient qu'un titre CAD ne change pas, qu'un titre USD est multiplié par le taux du jour, et que le dernier taux est reporté les jours fériés canadiens. Ils retrouvent aussi les chiffres de la maquette (`docs/exemples/contrat_robert.json`) : la pire baisse de TSLA en CAD (−0,7088, pièce P4), et le rendement annualisé (0,0929), la volatilité (0,0559) et la pire baisse (−0,0776) du portefeuille actuel de Robert. La méthode de la section 6 bis de `REFERENCE_DU_PROJET.md` est donc reproduite.
 
 ## Choix faits en cours de route
 - **Report du taux** : le fichier de la Banque du Canada n'a pas de taux les jours fériés canadiens. Le dernier taux connu est reporté sur toutes les dates, puis on ne garde que les séances américaines (même méthode que pour les prix, fiche 004).

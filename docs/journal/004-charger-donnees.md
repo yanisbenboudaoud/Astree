@@ -28,7 +28,7 @@ pytest tests/test_donnees.py
 Les tests couvrent un mélange d'actions CAD et USD, de FNB et de crypto sans trou, des dates triées et sans doublon, l'erreur pour un titre inconnu, le report aux jours fériés de la TSX, la crypto du week-end cumulée dans le lundi, et la pire baisse de TSLA de la maquette (−0,7297, pièce P4) reproduite.
 
 ## Choix faits en cours de route
-- **Calendrier** : séances américaines, définies par les titres cotés sur `MARCHES_AMERICAINS`. Le dernier prix connu est reporté sur toutes les dates **avant** de ne garder que les séances : le rendement crypto du week-end tombe donc dans le lundi (`CLAUDE.md`, section 6 bis).
+- **Calendrier** : séances américaines, définies par les titres cotés sur `MARCHES_AMERICAINS`. Le dernier prix connu est reporté sur toutes les dates **avant** de ne garder que les séances : le rendement crypto du week-end tombe donc dans le lundi (`REFERENCE_DU_PROJET.md`, section 6 bis).
 - **Fractionnements** : jamais réappliqués, ils sont déjà dans `adj_close`.
 
 ## Limites et suite

@@ -1,7 +1,7 @@
 """« Trompez le Greffier », côté cadre : conseils et promesses bloqués, arguments légitimes admis (#166).
 
 Le Greffier refuse tout argument qui conseille une transaction ou promet quelque chose
-sur l'avenir (``CLAUDE.md``, section 4 quater). Ici, ce contrôle est joué sur un jeu
+sur l'avenir (``REFERENCE_DU_PROJET.md``, section 4 quater). Ici, ce contrôle est joué sur un jeu
 écrit à l'avance (``validation/jeux/cadre.json``), avec la fonction du Greffier
 (``pipeline.cadre_simulation.verifier_cadre_simulation``), dans les deux sens :
 
@@ -128,7 +128,7 @@ def rapport(nom: str, jeu: dict[str, Any], resultats: list[ResultatCas]) -> str:
         "## Méthode",
         "",
         "- Contrôle : `pipeline.cadre_simulation.verifier_cadre_simulation`, le même que le Greffier "
-        "applique aux arguments du Procureur, de l'Avocat et du contre-interrogatoire (`CLAUDE.md`, "
+        "applique aux arguments du Procureur, de l'Avocat et du contre-interrogatoire (`REFERENCE_DU_PROJET.md`, "
         "section 4 quater). Python seul, sans Bedrock.",
         "- Cas à bloquer détecté : argument rejeté **et** infraction de la famille attendue relevée. "
         "Cas légitime : accepté.",

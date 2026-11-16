@@ -280,4 +280,4 @@ Il avait été écrit avant la gestion des erreurs d'outil : il exigeait une pi�
 | Ce qui existe, en détail | fiches [056](journal/056-jurisprudence.md) et [065](journal/065-valider-erreurs-outil.md) |
 | L'outil | `pipeline/jurisprudence.py` |
 | Ses tests | `tests/test_jurisprudence.py` |
-| Liste des 7 outils | `CLAUDE.md`, section 4 bis |
+| Liste des 7 outils | `REFERENCE_DU_PROJET.md`, section 4 bis |

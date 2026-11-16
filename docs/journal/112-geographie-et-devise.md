@@ -17,7 +17,7 @@ Atelier Banque Nationale : « diversifier, c'est varier les expositions », y co
 - **`pipeline/greffier.py`** : `nom_categories` garde un libellé seul tel quel (« États-Unis », « Placements hors du Canada » au lieu de « États-unis »).
 - **Questionnaire** (`config/questionnaire.json`, `pipeline/questionnaire.py`) : question facultative `hors_canada`, « Quelle part maximale de votre portefeuille accepteriez-vous hors du Canada ? » (un quart, la moitié, les trois quarts, pas de limite). Elle donne la règle `plafond_hors_canada` (catégorie `hors_canada`). Passée ou « pas de limite » : ni règle ni contrôle. Texte d'aide dans `frontend/src/ecrans/ConstruireMonPacte.tsx` ; réponse « la moitié » ajoutée à `docs/exemples/reponses_questionnaire.json`.
 - **`frontend/src/data/generated/`** régénéré (`scripts/build_ui_series.py`) : les catégories des titres (`univers.json`), les libellés (`categories.json`), les 16 questions et l'exemple de démonstration (`questionnaire.json`, `decisions/investisseur_exemple/`). Les tables des trois profils de test ne changent pas.
-- **`CLAUDE.md`** : tableau des catégories (section 3), outil 2 (section 4 bis), méthode de l'exposition en devise (section 6 bis). **`docs/GUIDE_DU_PROJET.md`** : liste des catégories.
+- **`REFERENCE_DU_PROJET.md`** : tableau des catégories (section 3), outil 2 (section 4 bis), méthode de l'exposition en devise (section 6 bis). **`docs/GUIDE_DU_PROJET.md`** : liste des catégories.
 
 ## Comment l'utiliser
 ```python

@@ -51,7 +51,7 @@ TRAITEMENT = (
     "les catégories géographiques). Un FNB dont la composition ne permet pas le calcul garde son classement "
     "direct (fonds_sans_composition, ou part du FNB absente de la pièce)"
 )
-# Sans chiffre : les agents ne reprennent aucun nombre des limites (CLAUDE.md, section 4 ter).
+# Sans chiffre : les agents ne reprennent aucun nombre des limites (REFERENCE_DU_PROJET.md, section 4 ter).
 LIMITES = (
     "Composition relevée à la date des fiches des émetteurs, appliquée à toute la période simulée ; "
     "répartitions arrondies par les émetteurs ; classifications différentes selon l'émetteur (GICS, ICB, "

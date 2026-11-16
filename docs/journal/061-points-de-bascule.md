@@ -13,7 +13,7 @@
 - **`pipeline/tribunal.py`** : `verser_points_de_bascule` ajoute la pièce **d'office**, après l'orchestrateur et avant le débat. L'étape de trace porte `etape: "orchestrateur"` et la raison `RAISON_POINTS_DE_BASCULE` (« Pièce obligatoire ajoutée d'office : une règle calculable du Pacte est en violation »). La recherche de taille maximale est faite une seule fois, pour les deux champs. `prochain_numero` numérote la pièce à la suite du dossier ; il vient de `pipeline/contre_interrogatoire.py` (fiche 055), qui l'importe désormais de `tribunal.py`.
 - **`pipeline/debat.py`** : une phrase de consigne de plus pour le Procureur (rappeler ce qui changerait la réponse) et pour l'Avocat (version plus modeste), **comme un constat, jamais comme un conseil** (« jamais « vous devriez » ni « il faudrait » »). Sans cette précision, un argument de l'Avocat disait « il faudrait envisager d'ajuster le seuil du Pacte ».
 - **`pipeline/greffier.py`** : `_nom_categories` devient public (`nom_categories`), pour le résumé de la pièce.
-- **Contrat** : champ `points_de_bascule` dans `contrat/schema_sortie.json` (`$defs/point_de_bascule`). `contrat/valider.py` (`erreurs_points_de_bascule`) exige un point par règle calculable en violation, et seulement pour elles. Il vérifie aussi le type, les doublons et les pièces citées. `docs/exemples/` : pièce P6, étape de trace et champ dans les deux exemples. `CLAUDE.md` : sections 4, 4 bis (outil 8) et 5.
+- **Contrat** : champ `points_de_bascule` dans `contrat/schema_sortie.json` (`$defs/point_de_bascule`). `contrat/valider.py` (`erreurs_points_de_bascule`) exige un point par règle calculable en violation, et seulement pour elles. Il vérifie aussi le type, les doublons et les pièces citées. `docs/exemples/` : pièce P6, étape de trace et champ dans les deux exemples. `REFERENCE_DU_PROJET.md` : sections 4, 4 bis (outil 8) et 5.
 - **Interface** : `points_de_bascule?` dans `src/api/contrat.ts` ; `pointsDeBascule()` dans `src/domaine/verdict.ts`. L'écran Verdict affiche un encadré « Ce qui changerait la réponse » : paragraphe et libellé de la règle, message, lien vers la pièce (qui ouvre son tiroir). Sans le champ, rien n'est affiché.
 
 ## Comment l'utiliser
@@ -60,7 +60,7 @@ Le Pacte vécu déplace bien le point de bascule : le seuil mesuré remplace cel
 - **Arrondi du côté permissif** : au plus proche, la pire baisse du panier audacieux (−0,6185554) donnait −0,618555, qui laissait la règle en violation. Le test « le seuil suffisant rend la règle conforme » l'a montré.
 - **Champ facultatif dans le schéma** : les procès enregistrés de l'interface (`frontend/src/data/proces/`) datent d'avant #61 et doivent continuer à passer `contrat.valider`. Le pipeline produit toujours le champ, et `valider.py` le contrôle dès qu'il est présent.
 - **Listes parallèles dans la pièce**, comme la jurisprudence (fiche 056) : le schéma n'admet que des listes de valeurs simples.
-- **Raison de trace d'office** : elle commence par « Pièce obligatoire ajoutée d'office », comme le demande `CLAUDE.md` section 5. L'interface l'affiche donc avec l'icône de signalement, comme la simulation ajoutée d'office.
+- **Raison de trace d'office** : elle commence par « Pièce obligatoire ajoutée d'office », comme le demande `REFERENCE_DU_PROJET.md` section 5. L'interface l'affiche donc avec l'icône de signalement, comme la simulation ajoutée d'office.
 
 ## Limites et suite
 - Seules les règles calculables ont un point de bascule. Pour le cas 3 (profil ESG + XOM, critère documentaire), le champ est vide.

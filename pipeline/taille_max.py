@@ -1,4 +1,4 @@
-"""Outil 4 : taille_max_compatible (CLAUDE.md, section 4 bis).
+"""Outil 4 : taille_max_compatible (REFERENCE_DU_PROJET.md, section 4 bis).
 
 La réponse utile n'est souvent pas « non », mais « pas à cette taille ».
 L'outil cherche la plus grande taille de la décision qui respecte **toutes les
@@ -31,7 +31,7 @@ NOM_OUTIL = "taille_max_compatible"
 PAS_DE_RECHERCHE = 0.01
 TYPES_CALCULABLES = ("pire_baisse_max", "plafond")
 
-# Les valeurs des pièces sont brutes : au moins 4 décimales (CLAUDE.md, section 5).
+# Les valeurs des pièces sont brutes : au moins 4 décimales (REFERENCE_DU_PROJET.md, section 5).
 DECIMALES_VALEURS = 6
 
 

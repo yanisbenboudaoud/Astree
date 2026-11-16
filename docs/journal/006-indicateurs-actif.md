@@ -6,7 +6,7 @@
 ## Ce qui a été construit
 - **`pipeline/indicateurs.py`** :
   - Cinq fonctions de calcul **pures**, sur une série de valeurs indexée par date (prix d'un titre ou valeur d'un portefeuille), réutilisables par `simuler_portefeuille` (#9) : `calculer_rendement_annualise`, `calculer_volatilite_annuelle`, `calculer_pire_baisse`, `calculer_rendement_2022`, `calculer_temps_recuperation`.
-  - `indicateurs_actif(ticker)` : calcule ces indicateurs en CAD sur toute la période et renvoie une **pièce** au format du contrat (`CLAUDE.md`, section 5), **sans `id`** : c'est l'orchestrateur qui numérote les pièces. Valeurs brutes à 6 décimales, `valeur_affichee` arrondie par Python.
+  - `indicateurs_actif(ticker)` : calcule ces indicateurs en CAD sur toute la période et renvoie une **pièce** au format du contrat (`REFERENCE_DU_PROJET.md`, section 5), **sans `id`** : c'est l'orchestrateur qui numérote les pièces. Valeurs brutes à 6 décimales, `valeur_affichee` arrondie par Python.
   - `DESCRIPTION_BEDROCK` : la description de l'outil pour l'orchestrateur (#12), faite avec `decrire_outil` (fiche [007](007-client-llm-bedrock.md)) ; un seul paramètre, `ticker`.
 - **`pipeline/donnees.py`** : ajout de `date_extraction(nom_fichier)`, qui lit la date d'extraction dans `sources_metadata.csv` (utilisée dans la `source` de la pièce).
 - **`tests/test_indicateurs.py`** : 17 tests.

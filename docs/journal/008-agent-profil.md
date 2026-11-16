@@ -11,7 +11,7 @@
   - `interpreter_extraction` : la partie Python. Elle vérifie chaque champ, **convertit un montant en part** du capital fictif (« 50 000 $ » → 7,7 %) et formate le libellé.
   - `chemin_profil(identifiant)` et `ProfilInconnu` : un identifiant qui ne correspond à aucun fichier `personas/<id>.json` est refusé.
 - **`pipeline/univers.py`** (#29) : `charger_univers()` lit `assets_universe.csv` en liste de dictionnaires.
-- **Contrat** (#29) : nouveau contrôle système `interpretation_demande`, toujours `a_verifier`, pour une demande incomplète ou ambiguë (`CLAUDE.md` section 5, `contrat/valider.py`).
+- **Contrat** (#29) : nouveau contrôle système `interpretation_demande`, toujours `a_verifier`, pour une demande incomplète ou ambiguë (`REFERENCE_DU_PROJET.md` section 5, `contrat/valider.py`).
 
 ## Comment l'utiliser
 ```python

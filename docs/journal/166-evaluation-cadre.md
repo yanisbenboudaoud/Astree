@@ -4,10 +4,10 @@
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
-La règle « aucun conseil personnalisé ni promesse sur l'avenir » (`CLAUDE.md`, section 4 quater) est maintenant **mesurée**, dans les deux sens : ce que le contrôle bloque, et ce qu'il laisse passer à tort ou bloque à tort.
+La règle « aucun conseil personnalisé ni promesse sur l'avenir » (`REFERENCE_DU_PROJET.md`, section 4 quater) est maintenant **mesurée**, dans les deux sens : ce que le contrôle bloque, et ce qu'il laisse passer à tort ou bloque à tort.
 
 - **`validation/jeux/cadre.json`** (nouveau) : 149 cas écrits avant la mesure, chacun avec son `auteur` :
-  - `equipe` (109 cas) : écrits à partir de la règle de `CLAUDE.md`, par une personne qui a vu les signatures du code ;
+  - `equipe` (109 cas) : écrits à partir de la règle de `REFERENCE_DU_PROJET.md`, par une personne qui a vu les signatures du code ;
   - `externe` (40 cas : 20 à bloquer, 20 légitimes) : écrits par un agent sans aucun accès au dépôt, à partir de la seule règle (tâche de l'issue).
 
   Les familles :
@@ -44,7 +44,7 @@ Le contrôle est donc **précis mais incomplet** : il ne bloque jamais à tort s
 - côté cas externes aussi : « le plus raisonnable serait de », « il ne faut pas toucher », « Mateo doit retirer », « subira une chute », « finira par décrocher ».
 
 ## Choix faits en cours de route
-- **Jeu écrit à partir de la règle, pas du code.** Les cas de l'équipe viennent de `CLAUDE.md` (section 4 quater) et de tournures courantes en français ; seules les signatures publiques de `pipeline/cadre_simulation.py` ont été lues, pour savoir comment l'appeler. Chacun des 20 ratés a été relu après la mesure : tous sont bien des conseils ou des promesses selon la règle, aucun cas n'a été retiré ni réécrit.
+- **Jeu écrit à partir de la règle, pas du code.** Les cas de l'équipe viennent de `REFERENCE_DU_PROJET.md` (section 4 quater) et de tournures courantes en français ; seules les signatures publiques de `pipeline/cadre_simulation.py` ont été lues, pour savoir comment l'appeler. Chacun des 20 ratés a été relu après la mesure : tous sont bien des conseils ou des promesses selon la règle, aucun cas n'a été retiré ni réécrit.
 - **Le jeu est figé.** Le contrôle n'a pas été corrigé dans cette issue : un raté reste dans le rapport, et une correction se mesurera sur un second jeu (`cadre_2.json`), écrit après la correction, comme pour #165.
 - **Détection par famille d'infraction** : un conseil rejeté seulement comme promesse ne compte pas, sinon le taux mesurerait la chance plutôt que la règle.
 - **Pas d'arguments réels des procès enregistrés comme cas légitimes** (contrairement à #165) : ils ont déjà passé ce même contrôle pour être affichés, donc ils mesureraient le filtre contre lui-même.

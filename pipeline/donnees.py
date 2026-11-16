@@ -1,4 +1,4 @@
-"""Socle de données commun à tous les outils (CLAUDE.md, sections 6 et 6 bis).
+"""Socle de données commun à tous les outils (REFERENCE_DU_PROJET.md, sections 6 et 6 bis).
 
 Lit les CSV de ``alphaforge_starter/`` et renvoie des prix prêts à calculer.
 

@@ -1,4 +1,4 @@
-"""Le Tribunal : enchaîne les phases du procès et assemble le contrat (CLAUDE.md, sections 4 et 5).
+"""Le Tribunal : enchaîne les phases du procès et assemble le contrat (REFERENCE_DU_PROJET.md, sections 4 et 5).
 
 Phases fixes, imposées par Python : Profil → Orchestrateur → Procureur et
 Avocat → Greffier → Verdict.
@@ -21,7 +21,7 @@ dossier, avant le débat, et remplit le champ ``points_de_bascule`` du contrat
 
 Le Greffier passe en dernier : ``verifier_pacte`` contrôle chaque règle du
 Pacte, puis chaque argument du débat est vérifié : ses chiffres
-(``verifier_chiffres``, CLAUDE.md, section 4 ter) et le cadre « simulation
+(``verifier_chiffres``, REFERENCE_DU_PROJET.md, section 4 ter) et le cadre « simulation
 seulement » (``verifier_cadre_simulation`` : aucun conseil, aucune promesse,
 #60). Un argument refusé est renvoyé **une fois** à son agent
 (``corriger_argument``), puis rangé dans ``arguments_rejetes`` s'il échoue encore.

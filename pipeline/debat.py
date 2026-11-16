@@ -1,4 +1,4 @@
-"""Procureur et Avocat : le débat qui explique la décision (CLAUDE.md, section 4).
+"""Procureur et Avocat : le débat qui explique la décision (REFERENCE_DU_PROJET.md, section 4).
 
 Le Procureur argumente **contre** la décision, au regard du Pacte de
 l'utilisateur ; l'Avocat la défend **honnêtement**. Ils reçoivent le dossier
@@ -6,7 +6,7 @@ rassemblé par l'orchestrateur (décision, Pacte, pièces), sont appelés **en
 parallèle** et **n'appellent aucun outil** : ils ne produisent jamais un
 chiffre eux-mêmes, ils citent ceux des pièces.
 
-Leurs consignes reprennent les règles de ``verifier_chiffres`` (CLAUDE.md,
+Leurs consignes reprennent les règles de ``verifier_chiffres`` (REFERENCE_DU_PROJET.md,
 section 4 ter) et celles du cadre « simulation seulement » (aucun conseil,
 aucune promesse, ``pipeline.cadre_simulation``, #60). Le Greffier vérifie
 ensuite chaque argument (``pipeline.chiffres.trier_arguments``) ; un argument

@@ -1,4 +1,4 @@
-"""Greffier : le point de contrôle du Tribunal, en Python sans LLM (CLAUDE.md, section 4).
+"""Greffier : le point de contrôle du Tribunal, en Python sans LLM (REFERENCE_DU_PROJET.md, section 4).
 
 Outil 5, ``verifier_pacte`` : compare la décision aux règles du Pacte et rend
 un contrôle par règle (``conforme``, ``violation`` ou ``a_verifier``), au
@@ -153,7 +153,7 @@ def controler_qualitative(regle: dict[str, Any], contexte: dict[str, Any]) -> di
     return _controle("a_verifier", regle, MESSAGE_QUALITATIVE, [contexte["id_piece_pacte"]])
 
 
-# Ajouter un type de règle = une fonction ci-dessus + une ligne ici (CLAUDE.md, section 3).
+# Ajouter un type de règle = une fonction ci-dessus + une ligne ici (REFERENCE_DU_PROJET.md, section 3).
 CONTROLES_PAR_TYPE: dict[str, Callable[[dict, dict], dict]] = {
     "pire_baisse_max": controler_pire_baisse_max,
     "plafond": controler_plafond,

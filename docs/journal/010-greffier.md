@@ -4,7 +4,7 @@
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
-Le Greffier est le point de contrôle du Tribunal, en **Python sans LLM** (`CLAUDE.md` section 4).
+Le Greffier est le point de contrôle du Tribunal, en **Python sans LLM** (`REFERENCE_DU_PROJET.md` section 4).
 
 - **`pipeline/greffier.py`** : outil 5.
   - `verifier_pacte(regles, poids_apres, piece_simulation, id_piece_pacte, pieces)` rend un contrôle par règle, au format `controles` du contrat. Une fonction par type de règle, réunies dans `CONTROLES_PAR_TYPE` :
@@ -13,7 +13,7 @@ Le Greffier est le point de contrôle du Tribunal, en **Python sans LLM** (`CLAU
     - `controler_critere_documentaire` attend une pièce `documentaire` ; sans elle, `a_verifier` « source manquante » ;
     - `controler_qualitative` rend toujours `a_verifier`.
   - Contrôles du système : `controle_biais_survivant()` (toujours `a_verifier`) et `controle_performance_passee(arguments)` (`a_verifier` si un argument parle de rendement, de performance ou de gain).
-- **`pipeline/chiffres.py`** : outil 6, `verifier_chiffres`, qui suit les règles 1 à 9 de `CLAUDE.md` section 4 ter.
+- **`pipeline/chiffres.py`** : outil 6, `verifier_chiffres`, qui suit les règles 1 à 9 de `REFERENCE_DU_PROJET.md` section 4 ter.
   - `extraire_nombres(texte)` : pourcentages, décimaux, entiers, années et dates (ISO, « 14 novembre », « janv. 2022 »). Ne sont pas extraits : les id de pièces, les nombres collés à des lettres et les noms d'actifs (« S&P 500 »).
   - `verifier_argument(argument, dossier)` compare chaque nombre aux pièces citées, à la décision et à la période, avec l'arrondi écrit et la règle du signe. En cas d'échec, il rend un **motif exact**, par exemple « « −29,0 % » introuvable dans P3 (présent dans P1, pièce non citée) ».
   - `trier_arguments(arguments, cote, dossier, corriger)` renvoie **une fois** un argument refusé à son agent, puis le range dans `arguments_rejetes`.

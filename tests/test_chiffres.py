@@ -1,4 +1,4 @@
-"""Tests de verifier_chiffres (pipeline/chiffres.py) : chaque exemple de CLAUDE.md, section 4 ter."""
+"""Tests de verifier_chiffres (pipeline/chiffres.py) : chaque exemple de REFERENCE_DU_PROJET.md, section 4 ter."""
 
 import json
 from pathlib import Path

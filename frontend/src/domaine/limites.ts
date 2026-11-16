@@ -5,7 +5,7 @@
  * incertitudes importantes de façon compréhensible, d'expliquer chaque indicateur et ses limites
  * sur une période explicitée, et de rappeler que la volatilité n'est qu'un indicateur de risque
  * parmi d'autres (p. 17). Chaque phrase ici décrit une limite réelle de la méthode du projet
- * (CLAUDE.md, sections 6 et 6 bis) : aucune n'est générique ni rassurante.
+ * (REFERENCE_DU_PROJET.md, sections 6 et 6 bis) : aucune n'est générique ni rassurante.
  */
 import { date } from '../lib/format';
 

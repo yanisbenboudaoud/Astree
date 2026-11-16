@@ -1,6 +1,6 @@
 """L'orchestrateur et le débat mesurés sur les procès réellement tenus (#167).
 
-L'orchestrateur Bedrock choisit lui-même ses outils (CLAUDE.md, section 4). Cette
+L'orchestrateur Bedrock choisit lui-même ses outils (REFERENCE_DU_PROJET.md, section 4). Cette
 évaluation relit les procès archivés par la Lambda dans S3 (``traces/<date>/<id>.json``)
 et ceux de ``frontend/src/data/proces/``, **sans aucun appel à Bedrock**, et mesure :
 
@@ -448,7 +448,7 @@ def rapport(lecture: Lecture, mesures: Mesures, plan: dict[str, Any] | None = No
         "",
         "## Le débat",
         "",
-        "Un argument renvoyé l'est une fois à son agent avec le motif exact (`CLAUDE.md`, sections 4 ter et "
+        "Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE_DU_PROJET.md`, sections 4 ter et "
         "4 quater) ; s'il échoue encore, il va dans `arguments_rejetes`.",
         "",
         "| Côté | Proposés | Renvoyés | Corrigés après renvoi | Rejetés | Affichés | Motifs des renvois |",

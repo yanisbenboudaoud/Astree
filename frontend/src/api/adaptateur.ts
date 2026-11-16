@@ -1,5 +1,5 @@
 /**
- * Contrat du pipeline (CLAUDE.md, section 5) → types de l'écran Tribunal (annexe D.7).
+ * Contrat du pipeline (REFERENCE_DU_PROJET.md, section 5) → types de l'écran Tribunal (annexe D.7).
  * Le même adaptateur sert aux procès enregistrés (mode démonstration) et au Tribunal en direct.
  */
 import type { ArgumentContrat, ContratTribunal, EchangeContrat, EtapeTraceContrat, EtiquetteContrat, PieceContrat, SourceContrat } from './contrat';

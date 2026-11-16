@@ -4,7 +4,7 @@
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
-- **`personas/robert.json`, `personas/amira.json`, `personas/mateo.json`** (#20, #23) : les trois profils de test (étiquette `fictif`). Chacun contient le profil, le portefeuille de départ, la `decision_demo` et le **Pacte** : une liste de règles typées (`pire_baisse_max`, `plafond`, `critere_documentaire`, `qualitative`), chacune avec un `id`, ses paramètres, un `libelle` et une `justification`. Format décrit dans `CLAUDE.md`, section 3.
+- **`personas/robert.json`, `personas/amira.json`, `personas/mateo.json`** (#20, #23) : les trois profils de test (étiquette `fictif`). Chacun contient le profil, le portefeuille de départ, la `decision_demo` et le **Pacte** : une liste de règles typées (`pire_baisse_max`, `plafond`, `critere_documentaire`, `qualitative`), chacune avec un `id`, ses paramètres, un `libelle` et une `justification`. Format décrit dans `REFERENCE_DU_PROJET.md`, section 3.
 - **`config/categories.json`** (#23) : les catégories `tech` et `crypto` utilisées par les règles `plafond`, définies **une seule fois** pour tous les profils, à partir des champs `asset_class` et `sector` de `assets_universe.csv`, plus des ajouts justifiés (`GOOGL`, `AMZN`, `QQQ` dans `tech`).
 - **`personas/schema_pacte.json`** : schéma JSON d'un fichier profil, avec un sous-schéma par type de règle (paramètres obligatoires, aucun paramètre d'un autre type, `justification` obligatoire).
 - **`pipeline/pacte.py`** :
@@ -41,7 +41,7 @@ Ajouter un profil = ajouter un fichier `personas/<id>.json` au même format. Auc
 - `QQQ` est compté en entier dans `tech`, par simplicité.
 - **`charger_pacte` renvoie le profil complet**, pas directement la pièce comme le prévoyait l'issue : le pipeline a besoin du portefeuille et des règles typées, et c'est lui qui numérote les pièces. La pièce est construite à part par `piece_pacte`.
 - **Un titre hors univers lève une erreur** au lieu de renvoyer un ensemble vide : sinon, il passerait un plafond sans bruit, comme un titre « sans catégorie ».
-- Tout champ inconnu est refusé (attrape les fautes de frappe) ; un nouveau champ doit d'abord être ajouté au schéma. `age` et `metier` sont facultatifs ; `decision_demo` est obligatoire, comme dans `CLAUDE.md`.
+- Tout champ inconnu est refusé (attrape les fautes de frappe) ; un nouveau champ doit d'abord être ajouté au schéma. `age` et `metier` sont facultatifs ; `decision_demo` est obligatoire, comme dans `REFERENCE_DU_PROJET.md`.
 
 ## Limites et suite
 - **TSLA n'est pas classé `tech`** : son secteur est Consumer Discretionary et il n'est pas dans les ajouts. Sans effet pour le profil prudent (plafond sur la crypto seulement), mais avec le profil audacieux, TSLA ne compterait pas dans « tech + crypto ≤ 75 % ».

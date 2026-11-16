@@ -17,7 +17,7 @@ Méthode :
 - **Inflation d'une période** : produit des variations sur 12 mois, une par année
   entière, en partant du dernier mois de référence utilisable à la fin de la période.
   Ce produit vaut exactement IPC(fin) / IPC(début).
-- **Date de publication** (#113, ``CLAUDE.md`` section 6) : le fichier date l'IPC au mois
+- **Date de publication** (#113, ``REFERENCE_DU_PROJET.md`` section 6) : le fichier date l'IPC au mois
   de référence, pas à sa publication. Statistique Canada publie l'IPC d'un mois vers le
   troisième mardi du mois suivant ; hypothèse prudente de l'équipe : l'IPC du mois M est
   connu le **dernier jour du mois M + 1** (``date_publication_ipc``). Un mois n'est

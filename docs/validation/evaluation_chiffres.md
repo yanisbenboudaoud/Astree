@@ -59,7 +59,7 @@ Jeu écrit avant la première mesure, sur les pièces des 7 procès enregistrés
 
 ## Méthode
 
-- Vérificateur : `pipeline.chiffres.verifier_argument`, le même que le Greffier et l'écran « Trompez le Greffier » (`CLAUDE.md`, section 4 ter).
+- Vérificateur : `pipeline.chiffres.verifier_argument`, le même que le Greffier et l'écran « Trompez le Greffier » (`REFERENCE_DU_PROJET.md`, section 4 ter).
 - Dossier de chaque cas : décision et pièces du procès enregistré (`frontend/src/data/proces/<id>.json`), période 2021-11-12 → 2026-11-12.
 - Piège détecté : argument rejeté **et** nombre piège parmi les introuvables. Argument valide : accepté.
 - Intervalle de confiance : Wilson à 95 % (`validation.evaluation.intervalle_wilson`).

@@ -5,7 +5,7 @@
 
 ## Ce qui a été construit
 - **`pipeline/contre_interrogatoire.py`** :
-  - `interroger(contrat, question)` : répond à une question posée après le procès et renvoie une copie du contrat complétée. Les nouvelles pièces sont ajoutées à `pieces`, et un échange est ajouté à `contre_interrogatoire`. Même boucle que le procès (`CLAUDE.md`, section 4) : l'orchestrateur choisit les outils, le Procureur et l'Avocat répondent en citant les pièces, puis le Greffier vérifie chaque chiffre (`verifier_cote`, une relance puis rejet).
+  - `interroger(contrat, question)` : répond à une question posée après le procès et renvoie une copie du contrat complétée. Les nouvelles pièces sont ajoutées à `pieces`, et un échange est ajouté à `contre_interrogatoire`. Même boucle que le procès (`REFERENCE_DU_PROJET.md`, section 4) : l'orchestrateur choisit les outils, le Procureur et l'Avocat répondent en citant les pièces, puis le Greffier vérifie chaque chiffre (`verifier_cote`, une relance puis rejet).
   - `verifier_question` (500 caractères au plus, espaces normalisés), `prochain_numero` (numérotation à la suite) et `pieces_de_l_echange`.
   - `QuestionInvalide` : question vide ou trop longue, ou procès sans décision, refusés **avant tout appel au modèle**.
 - **`pipeline/orchestrateur.py`** : `instruire_question` reprend la boucle de `instruire_dossier`, mise en commun dans `_jouer`, avec ses propres consignes (`CONSIGNES_QUESTION`). Le budget est plus petit (`BUDGET_APPELS_QUESTION = 4`), les pièces déjà au dossier sont montrées au modèle pour qu'il ne les recalcule pas, et aucune pièce n'est ajoutée d'office. `instruire_dossier` ne change pas.

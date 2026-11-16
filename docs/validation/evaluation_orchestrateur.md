@@ -97,7 +97,7 @@ Demandés pour certains profils seulement : `rechercher_documents` (mateo) ; `me
 
 ## Le débat
 
-Un argument renvoyé l'est une fois à son agent avec le motif exact (`CLAUDE.md`, sections 4 ter et 4 quater) ; s'il échoue encore, il va dans `arguments_rejetes`.
+Un argument renvoyé l'est une fois à son agent avec le motif exact (`REFERENCE_DU_PROJET.md`, sections 4 ter et 4 quater) ; s'il échoue encore, il va dans `arguments_rejetes`.
 
 | Côté | Proposés | Renvoyés | Corrigés après renvoi | Rejetés | Affichés | Motifs des renvois |
 |---|---|---|---|---|---|---|

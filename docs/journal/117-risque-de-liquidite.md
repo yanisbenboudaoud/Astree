@@ -15,7 +15,7 @@
 - **`pipeline/debat.py`** : une phrase de consigne, « les montants échangés existent aussi en millions : « 1,6 million $ par jour » ; n'écris jamais « milliard » ».
 - **Interface** : libellé de l'étape dans la trace (`api/adaptateur.ts`).
 - **Validation** (`validation/scenarios.py`, groupe 12) : ligne la plus longue à revendre, volume crypto, titre sans volume (58/58).
-- **Documentation** : `CLAUDE.md` (section 4 bis, outil 9), carte du `README.md`, `docs/GUIDE_DU_PROJET.md`.
+- **Documentation** : `REFERENCE_DU_PROJET.md` (section 4 bis, outil 9), carte du `README.md`, `docs/GUIDE_DU_PROJET.md`.
 
 ## Comment l'utiliser
 ```python

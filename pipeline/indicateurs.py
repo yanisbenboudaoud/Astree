@@ -1,4 +1,4 @@
-"""Outil 1 : indicateurs_actif (CLAUDE.md, sections 4 bis et 6 bis).
+"""Outil 1 : indicateurs_actif (REFERENCE_DU_PROJET.md, sections 4 bis et 6 bis).
 
 Deux niveaux :
 
@@ -26,7 +26,7 @@ from pipeline.llm import decrire_outil
 JOURS_DE_SEANCE_PAR_AN = 252
 JOURS_PAR_AN = 365.25
 
-# Les valeurs des pièces sont brutes : au moins 4 décimales (CLAUDE.md, section 5).
+# Les valeurs des pièces sont brutes : au moins 4 décimales (REFERENCE_DU_PROJET.md, section 5).
 DECIMALES_VALEURS = 6
 
 

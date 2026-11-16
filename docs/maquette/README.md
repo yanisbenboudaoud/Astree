@@ -25,6 +25,6 @@ La version ci-dessous (« AlphaForge », 4 écrans) est l'ancienne maquette, gar
 
 ## Données
 
-Les chiffres de la maquette ont été calculés sur `alphaforge_starter/` avec la méthode décrite dans `CLAUDE.md` (section 6 bis). Dans le prototype, les tailles de position sont **précalculées** ; dans l'application, elles seront calculées à la demande par les outils Python dans Lambda.
+Les chiffres de la maquette ont été calculés sur `alphaforge_starter/` avec la méthode décrite dans `REFERENCE_DU_PROJET.md` (section 6 bis). Dans le prototype, les tailles de position sont **précalculées** ; dans l'application, elles seront calculées à la demande par les outils Python dans Lambda.
 
 Le faux JSON correspondant à l'écran Tribunal de Robert est dans `docs/exemples/contrat_robert.json`.

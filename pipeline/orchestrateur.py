@@ -1,6 +1,6 @@
 """Orchestrateur : instruit le dossier en choisissant les outils Python à appeler.
 
-Deuxième phase du Tribunal (CLAUDE.md, section 4). Un modèle Bedrock lit la
+Deuxième phase du Tribunal (REFERENCE_DU_PROJET.md, section 4). Un modèle Bedrock lit la
 décision et le Pacte, choisit lui-même les outils et leurs paramètres, et donne
 une raison courte pour chaque appel. Python exécute chaque appel ; chaque
 résultat devient une pièce numérotée (P2, P3… : P1 est la pièce « Pacte »).
@@ -50,7 +50,7 @@ from pipeline.llm import (
 from pipeline.simulation import ErreurSimulation
 from pipeline.univers import charger_univers
 
-BUDGET_APPELS = 8  # hypothèse de l'équipe (CLAUDE.md, section 4)
+BUDGET_APPELS = 8  # hypothèse de l'équipe (REFERENCE_DU_PROJET.md, section 4)
 BUDGET_APPELS_QUESTION = 4  # contre-interrogatoire (#55) : une question appelle peu d'outils
 LONGUEUR_MAX_RAISON = 160
 

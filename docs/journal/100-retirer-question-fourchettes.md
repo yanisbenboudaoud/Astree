@@ -14,7 +14,7 @@ La question 7 du questionnaire (`fourchettes` : cinq cartes de portefeuilles ré
   - `detail_bareme` renvoie `resserrement` au lieu de `tolerance` ; `seuil_retenu` vaut `{valeur, brut, resserre}`.
   - `piece_questionnaire` : plus de `tolerance_declaree` ni de `pire_baisse_carte` ; `seuil_resserre` (booléen) dit si le seuil a été resserré. Exemple : « Capacité −10,0 % · seuil retenu −7,5 % (resserré) · 1 contradiction ».
 - **Interface** (fiche 086) : le type `CarteFourchette` et le rendu des cartes sont retirés de `ConstruireMonPacte.tsx` (et de son CSS). Le type `Bareme` suit le nouveau `detail_bareme`. L'écran d'entrée affiche `QUESTIONS.length` au lieu de « 16 questions » écrit en dur. `frontend/src/data/generated/questionnaire.json` est régénéré (`scripts/build_ui_series.py --profils robert` : seul ce fichier change).
-- `docs/exemples/reponses_questionnaire.json`, `CLAUDE.md` (section 3), `README.md`, `frontend/README.md`, `deploiement/README.md`.
+- `docs/exemples/reponses_questionnaire.json`, `REFERENCE_DU_PROJET.md` (section 3), `README.md`, `frontend/README.md`, `deploiement/README.md`.
 
 ## Comment l'utiliser
 ```python

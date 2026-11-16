@@ -4,29 +4,127 @@
 
 Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % de mon portefeuille en Tesla »). Des agents Amazon Bedrock en font le **procès** à partir de pièces calculées en Python : un Procureur argumente contre, un Avocat pour, un Greffier vérifie le Pacte de l'investisseur et chaque chiffre cité. L'utilisateur rend le verdict.
 
-### 🔗 Essayer l'outil en ligne
-
-| Lien | Ce qu'il fait | Disponible |
-|---|---|---|
-| **Version AWS (complète)** : <https://d15khh2djw55mh.cloudfront.net> | La solution en direct : S3 + CloudFront pour l'interface, Lambda + Bedrock pour les agents. Juge **n'importe quelle décision**, répond aux questions libres (contre-interrogatoire), construit un Pacte avec vos propres réponses, affiche la progression du procès en direct. Un interrupteur (en haut à droite) passe aussi en mode démonstration. | Pendant l'évaluation. Coupée après le jury pour éviter des coûts. |
-| **Version démonstration (durable)** : <https://yanisbenboudaoud.github.io/Datathon2026/> | La même interface sur GitHub Pages, **sans appel à AWS**. Elle rejoue des procès réellement tenus par les agents sur Bedrock, enregistrés dans le dépôt avec leurs pièces, arguments, contrôles du Greffier, sources, limites et trace. Ne peut pas juger une décision non enregistrée. | Toujours, même après la fermeture du compte AWS. |
-
 > Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
 
-## Par où commencer
+## Essayer en ligne
 
-| Pour… | Lire |
-|---|---|
-| **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
-| Comprendre le projet, ses règles et son architecture | [`CLAUDE.md`](CLAUDE.md) |
-| Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
-| La **documentation technique** (agents, garde-fous, méthode, explicabilité, validations, AWS) | [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md) |
-| Le projet **en une page** | [`docs/ONE_PAGER.md`](docs/ONE_PAGER.md) |
-| Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
-| Trouver le rôle de **chaque fichier** | [`docs/CARTE_DU_DEPOT.md`](docs/CARTE_DU_DEPOT.md) |
-| Voir l'interface visée, ou la lancer | [`docs/maquette/`](docs/maquette/), [`frontend/`](frontend/README.md) |
-| Connaître le format de sortie du pipeline | `CLAUDE.md` section 5, et [`docs/exemples/`](docs/exemples/) |
-| Vérifier **chaque promesse** du projet | la section [Preuves](#preuves) ci-dessous |
+Deux sites, la même interface. Le premier tient de vrais procès sur AWS ; le second rejoue des procès déjà tenus, sans AWS, et reste en ligne après le jury.
+
+| | **Version AWS (complète)** | **Version démonstration (durable)** |
+|---|---|---|
+| Adresse | <https://d15khh2djw55mh.cloudfront.net> | <https://yanisbenboudaoud.github.io/Datathon2026/> |
+| Hébergement | S3 + CloudFront ; agents sur Lambda + Bedrock | GitHub Pages, aucun appel à AWS |
+| Procès | Vrais procès en direct (20 à 50 s), progression affichée étape par étape | Procès réellement tenus sur Bedrock, enregistrés dans le dépôt, rejoués instantanément |
+| Juger **n'importe quelle décision** | Oui | Non : seulement les décisions enregistrées (sinon, l'écran propose la décision enregistrée) |
+| Poser une question libre (contre-interrogatoire) | Oui | Non : les questions enregistrées sont affichées telles quelles |
+| Construire un Pacte avec vos propres réponses | Oui | Non |
+| Disponible | Pendant l'évaluation ; coupée après le jury pour éviter des coûts | Toujours, même après la fermeture du compte AWS |
+
+Sur la version AWS, l'interrupteur en haut à droite, ou `?mode=demo` dans l'adresse, passe aussi en mode démonstration. Dans les deux versions, chaque procès garde la preuve de son passage sur Bedrock (champ `bedrock` : appels par agent, jetons, durée, coût estimé).
+
+Quand le point d'accès AWS sera coupé (#191) : chaque écran est capturé dans [`docs/preuves/ecrans/`](docs/preuves/ecrans/README.md), et les preuves du fonctionnement sur AWS, exportées par l'API avant la suppression du compte (appels Bedrock, Lambda, S3, IAM, CloudFront, budget), sont dans [`docs/preuves/aws/`](docs/preuves/aws/README.md).
+
+## Installation (guide court)
+
+Prérequis : **Python 3.14** (la version du runtime Lambda), **Node 20 ou plus** et Git. Aucun compte AWS n'est nécessaire pour les tests ni pour l'interface en mode démonstration.
+
+**1. Récupérer le code et installer Python**
+
+macOS ou Linux :
+
+```bash
+git clone https://github.com/yanisbenboudaoud/Datathon2026.git
+cd Datathon2026
+python3.14 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+cp .env.example .env
+```
+
+Windows (PowerShell) :
+
+```powershell
+git clone https://github.com/yanisbenboudaoud/Datathon2026.git
+cd Datathon2026
+py -3.14 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
+Copy-Item .env.example .env
+```
+
+**2. Lancer les tests** (sans réseau ni AWS)
+
+```bash
+python -m pytest
+```
+
+**3. Lancer l'interface** en mode démonstration (procès enregistrés, sans AWS)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Puis ouvrir <http://localhost:5173>. Le mode direct (branché sur la Lambda) et les autres commandes (`npm test`, `npm run verifier`…) sont dans [`frontend/README.md`](frontend/README.md).
+
+**4. Facultatif : appeler Bedrock** depuis votre poste (une fois par poste)
+
+```bash
+aws login                    # région us-east-1 ; ne crée aucune clé
+python -m pytest -m bedrock  # vrais appels Bedrock, payants (quelques cents)
+```
+
+Il faut l'AWS CLI (sous Windows : `winget install Amazon.AWSCLI`, puis ouvrir un nouveau terminal). Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws login`.
+
+Réglages du fichier `.env` :
+
+| Variable | Rôle | Valeur |
+|---|---|---|
+| `AWS_REGION` | Région Bedrock | `us-east-1` |
+| `BEDROCK_MODEL_ID` | Modèle des agents (profil d'inférence) | `global.anthropic.claude-sonnet-5-5` ; `global.anthropic.claude-haiku-5-5` pour les tests |
+| `SOURCE_DONNEES` | Où lire les CSV | `local` (par défaut) ; `s3` dans la Lambda, avec `BUCKET_PROJET` = nom du bucket |
+
+Après une mise à jour de `requirements-dev.txt`, relancer `pip install -r requirements-dev.txt`. Sous Windows, ajouter `-X utf8` aux commandes `python` ci-dessous pour afficher ✓ et ✗.
+
+## Utiliser le projet
+
+Les commandes suivantes se lancent depuis la racine du dépôt, l'environnement `.venv` activé.
+
+**Juger une décision** (vrais appels Bedrock ; le contrat JSON sort sur la sortie standard) :
+
+```bash
+python -m pipeline robert "Je veux mettre 30 % de mon portefeuille en Tesla"
+```
+
+**Valider un contrat JSON** (format de sortie : [`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md), section 5 ; exemples dans [`docs/exemples/`](docs/exemples/)) :
+
+```bash
+python -m contrat.valider docs/exemples/contrat_robert.json docs/exemples/contrat_amira.json docs/exemples/contrat_sofia.json
+```
+
+**Ajouter un profil** : un fichier JSON, sans une ligne de code ([`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md), section 3).
+
+1. Copier `personas/robert.json` dans `personas/<id>.json` (`<id>` en minuscules, chiffres et `_`, le même que le champ `id`) et changer `id`, `nom`, `profil_risque`, `horizon_ans`, `capital_fictif_cad` et `portefeuille` (titres de `alphaforge_starter/assets_universe.csv`, poids totalisant 1).
+2. Écrire les règles du `pacte` avec les types `pire_baisse_max`, `plafond` (catégories de `config/categories.json`), `critere_documentaire` ou `qualitative`, chacune avec `libelle` et `justification`.
+3. Vérifier le fichier : `python -c "from pipeline.pacte import charger_pacte; charger_pacte('personas/<id>.json')"` (format : `personas/schema_pacte.json`).
+4. Le juger : `python -m pipeline <id> "<demande>"`.
+
+On peut aussi le construire par le questionnaire investisseur : `python -m pipeline.questionnaire <reponses.json>` (exemple : `docs/exemples/reponses_questionnaire.json`), ou par l'écran « Construire mon Pacte » de l'interface.
+
+**Reproduire les résultats** (sans AWS ni Bedrock ; chaque commande régénère son rapport dans `docs/validation/`) :
+
+```bash
+python -m validation                        # scénarios de validation et de sensibilité (#15)
+python -m validation.evaluation chiffres    # « Trompez le Greffier, 100 fois » (#165)
+python -m validation.evaluation cadre       # « Trompez le Greffier », côté cadre (#166)
+python -m validation.externe                # nos rendements face à ceux des émetteurs (#168)
+python -m contrat.valider frontend/src/data/proces/2026-11-15-032ec3367b19.json
+```
+
+Un procès enregistré se relit pièce par pièce, et chaque chiffre se recalcule avec le même code : exemple complet dans [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md), section 6.
+
+**Déployer sur AWS** : `deploiement/deployer.py` crée ou met à jour toute l'infrastructure (S3, IAM, Lambda, Function URL, Guardrail), de façon idempotente ; `deploiement/tester_function_url.py` lance un procès sur la Lambda déployée ; `deploiement/deployer_interface.py` héberge l'interface (S3 + CloudFront). Paramètres vérifiés (runtime, couche pandas, délai, mémoire, CORS, coûts, IAM) : [`deploiement/README.md`](deploiement/README.md). Schéma : [`docs/architecture.md`](docs/architecture.md).
 
 ## Preuves
 
@@ -42,106 +140,18 @@ Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit.
 | **AWS a réellement servi** (#191) | Exporté par l'API avant la suppression du compte (2026-11-16) : Claude Sonnet 5.5 sur Bedrock appelé **1 725 fois** (environ **10,3 millions** de jetons lus, 0 erreur client) ; Lambda appelée **1 573 fois**, 0 erreur ; 218 procès, 15 verdicts et 5 profils dans S3 ; coût réel du compte **17,29 $** pour un budget de 100 $. | [`docs/preuves/aws/`](docs/preuves/aws/README.md) |
 | **La suite de tests passe** (#169) | Badge en tête de ce README, à chaque push. Dernier passage sur `main` (commit `e8f0a34`, 2026-11-15) : **1033** tests Python réussis (24 tests Bedrock exclus, payants), **144/144** tests de l'interface, **10/10** contrats JSON valides. | [Run du 2026-11-15](https://github.com/yanisbenboudaoud/Datathon2026/actions/runs/43770396725) |
 
-## Démarrage
+## Documentation
 
-**Essayer sans rien installer** : les deux liens en tête de ce README.
-
-- **Version AWS** (<https://d15khh2djw55mh.cloudfront.net>, S3 + CloudFront, #135) : elle tient de **vrais procès en direct** (Lambda + Bedrock, #141), de 20 à 50 s chacun ; `?mode=demo` dans l'adresse, ou l'interrupteur en haut à droite, rejoue des procès enregistrés, instantanés et sans appel à la Lambda (#137). Le point d'accès AWS sera coupé après le jury pour éviter des coûts : ce lien cessera alors de fonctionner. Pour la mettre à jour : `deploiement\deployer_interface.py` ([`deploiement/README.md`](deploiement/README.md), « Interface hébergée »).
-- **Version démonstration** (<https://yanisbenboudaoud.github.io/Datathon2026/>, GitHub Pages) : le lien durable. Elle rejoue des procès réellement tenus sur AWS, sans appeler AWS. Ce qu'elle ne peut pas faire : juger une décision non enregistrée, répondre à une question libre (contre-interrogatoire), construire un Pacte avec vos propres réponses. Chaque procès enregistré garde la preuve de son passage sur Bedrock (champ `bedrock` : appels par agent, jetons, durée, coût estimé).
-- **Captures et preuves AWS** (#191), pour quand le point d'accès AWS sera coupé : chaque écran dans [`docs/preuves/ecrans/`](docs/preuves/ecrans/README.md) ; les preuves du fonctionnement sur AWS, exportées par l'API avant la suppression du compte (appels Bedrock, Lambda, S3, IAM, CloudFront, budget), dans [`docs/preuves/aws/`](docs/preuves/aws/README.md).
-
-Prérequis : **Python 3.14**, la version du runtime Lambda (`python3.14`, #22), et **Node 20 ou plus** pour l'interface. Les commandes ci-dessous sont écrites pour PowerShell (Windows). Sous macOS ou Linux, remplacer `.venv\Scripts\` par `.venv/bin/`, les `\` des chemins par `/`, et `Copy-Item` par `cp`. Après une mise à jour de `requirements-dev.txt`, relancer la commande `pip install`.
-
-Windows (PowerShell) :
-
-```powershell
-py -m venv .venv
-.venv\Scripts\pip install -r requirements-dev.txt
-Copy-Item .env.example .env
-.venv\Scripts\python -m pytest          # tests unitaires, sans réseau ni AWS
-```
-
-macOS ou Linux :
-
-```bash
-python3.14 -m venv .venv
-.venv/bin/pip install -r requirements-dev.txt
-cp .env.example .env
-.venv/bin/python -m pytest              # tests unitaires, sans réseau ni AWS
-```
-
-### Lancer l'interface en local
-
-En mode démonstration (procès enregistrés, sans AWS), depuis la racine du dépôt :
-
-```bash
-cd frontend
-npm install
-npm run dev                             # http://localhost:5173
-```
-
-Pour brancher l'interface sur la Lambda déployée (mode direct) et pour les autres commandes (`npm test`, `npm run verifier`…) : [`frontend/README.md`](frontend/README.md).
-
-Pour appeler Bedrock (une fois par poste) :
-
-```powershell
-winget install Amazon.AWSCLI            # puis ouvrir un nouveau terminal
-aws login                               # région us-east-1 ; ne crée aucune clé
-.venv\Scripts\python -m pytest -m bedrock   # vrais appels Bedrock (payants, quelques cents)
-```
-
-Valider un contrat JSON (`-X utf8` est nécessaire sous Windows pour afficher ✓ et ✗) :
-
-```powershell
-.venv\Scripts\python -X utf8 -m contrat.valider docs\exemples\contrat_robert.json docs\exemples\contrat_amira.json docs\exemples\contrat_sofia.json
-```
-
-### Configuration (`.env`)
-
-| Variable | Rôle | Valeur |
-|---|---|---|
-| `AWS_REGION` | Région Bedrock | `us-east-1` |
-| `BEDROCK_MODEL_ID` | Modèle des agents (profil d'inférence) | `global.anthropic.claude-sonnet-5-5` ; `global.anthropic.claude-haiku-5-5` pour les tests |
-| `SOURCE_DONNEES` | Où lire les CSV | `local` (par défaut) ; `s3` dans la Lambda (#13), avec `BUCKET_PROJET` = nom du bucket |
-
-Aucune clé AWS dans le code ni dans `.env` : les identifiants viennent de `aws login`.
-
-### Juger une décision en local
-
-Vrais appels Bedrock, depuis le poste (contrat JSON sur la sortie standard) :
-
-```powershell
-.venv\Scripts\python -X utf8 -m pipeline robert "Je veux mettre 30 % de mon portefeuille en Tesla"
-```
-
-### Déployer sur AWS
-
-`deploiement\deployer.py` crée ou met à jour toute l'infrastructure (S3, IAM, Lambda, Function URL), de façon idempotente ; `deploiement\tester_function_url.py` lance un procès sur la Lambda déployée ; `deploiement\deployer_interface.py` héberge l'interface (S3 + CloudFront). Paramètres vérifiés (runtime, couche pandas, délai, mémoire, CORS, coûts, IAM) : [`deploiement/README.md`](deploiement/README.md). Schéma : [`docs/architecture.md`](docs/architecture.md).
-
-### Reproduire les résultats
-
-Sans AWS ni Bedrock, sur les données du dépôt ; chaque commande régénère son rapport dans `docs/validation/` :
-
-```powershell
-.venv\Scripts\python -X utf8 -m validation                        # scénarios de validation et de sensibilité (#15)
-.venv\Scripts\python -X utf8 -m validation.evaluation chiffres    # « Trompez le Greffier, 100 fois » (#165)
-.venv\Scripts\python -X utf8 -m validation.evaluation cadre       # « Trompez le Greffier », côté cadre (#166)
-.venv\Scripts\python -X utf8 -m validation.externe                # nos rendements face à ceux des émetteurs (#168)
-.venv\Scripts\python -X utf8 -m contrat.valider frontend\src\data\proces\2026-11-15-032ec3367b19.json
-```
-
-Un procès enregistré se relit pièce par pièce, et chaque chiffre se recalcule avec le même code : exemple complet dans [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md), section 6.
-
-### Ajouter un profil
-
-Un profil, c'est **un fichier JSON**, sans une ligne de code ([`CLAUDE.md`](CLAUDE.md), section 3) :
-
-1. Copier `personas/robert.json` dans `personas/<id>.json` (`<id>` en minuscules, chiffres et `_`, le même que le champ `id`) et changer `id`, `nom`, `profil_risque`, `horizon_ans`, `capital_fictif_cad` et `portefeuille` (titres de `alphaforge_starter/assets_universe.csv`, poids totalisant 1).
-2. Écrire les règles du `pacte` avec les types `pire_baisse_max`, `plafond` (catégories de `config/categories.json`), `critere_documentaire` ou `qualitative`, chacune avec `libelle` et `justification`.
-3. Vérifier le fichier : `.venv\Scripts\python -c "from pipeline.pacte import charger_pacte; charger_pacte('personas/<id>.json')"` (format : `personas/schema_pacte.json`).
-4. Le juger : `.venv\Scripts\python -X utf8 -m pipeline <id> "<demande>"`.
-
-On peut aussi le construire par le questionnaire investisseur : `python -m pipeline.questionnaire <reponses.json>` (exemple : `docs/exemples/reponses_questionnaire.json`), ou l'écran « Construire mon Pacte » de l'interface.
+| Pour… | Lire |
+|---|---|
+| **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
+| Les règles du projet, son architecture et le contrat JSON (la référence) | [`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md) |
+| Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
+| La **documentation technique** (agents, garde-fous, méthode, explicabilité, validations, AWS) | [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md) |
+| Le projet **en une page** | [`docs/ONE_PAGER.md`](docs/ONE_PAGER.md) |
+| Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
+| Trouver le rôle de **chaque fichier** | [`docs/CARTE_DU_DEPOT.md`](docs/CARTE_DU_DEPOT.md) |
+| Voir la maquette de l'interface | [`docs/maquette/`](docs/maquette/) |
 
 ## Organisation du dépôt
 
@@ -157,26 +167,22 @@ On peut aussi le construire par le questionnaire investisseur : `python -m pipel
 | `scripts/` | Précalcul des données de l'interface |
 | `docs/` | Guide, documentation technique, one pager, choix de conception, architecture AWS, résultats de validation, maquette, journal |
 
-Le rôle de **chaque fichier** et la fiche du journal qui le documente : [`docs/CARTE_DU_DEPOT.md`](docs/CARTE_DU_DEPOT.md).
-
 ## Données
 
-Jeu de départ `alphaforge_starter/`, période du 2021-11-12 au 2026-11-12, extrait le 2026-11-13 :
+**Jeu de départ** `alphaforge_starter/`, période du 2021-11-12 au 2026-11-12, extrait le 2026-11-13 :
 - prix quotidiens : Yahoo Finance, via la bibliothèque yfinance (`adj_close` pour les rendements) ;
 - taux USD/CAD : Banque du Canada (API Valet) ;
 - taux et indicateurs macroéconomiques : Banque du Canada et FRED.
 
-Sources, traitements, limites et conditions d'utilisation : `alphaforge_starter/README.md` et `alphaforge_starter/sources_metadata.csv`. Les pièges connus de ces données sont dans `CLAUDE.md`, section 6.
+Sources, traitements, limites et conditions d'utilisation : `alphaforge_starter/README.md` et `alphaforge_starter/sources_metadata.csv`. Pièges connus de ces données : [`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md), section 6.
 
-**Données ajoutées par l'équipe : documents ESG** (cas 3, #17), dans `donnees_externes/documents_esg.json`. Le jeu de départ ne contient aucune donnée ESG. Trois documents publics ont été lus dans leur version originale le 2026-11-14 :
-- la fiche « Commonwealth v. Exxon Mobil Corp. » du Sabin Center for Climate Change Law (Columbia Law School) ;
-- le prospectus simplifié de Vanguard ESG U.S. Stock ETF (ESGV) du 2025-12-19, déposé à la SEC ;
-- les règles de la série d'indices FTSE Global Choice (v5.0, août 2026).
+**Données ajoutées par l'équipe**, dans `donnees_externes/`. Chaque fichier donne, pour chaque valeur, sa source, sa date de relevé, son traitement et ses limites.
 
-Pour chaque document, le fichier donne la source, la date de consultation, des extraits copiés mot pour mot, un résumé et une qualification écrits par l'équipe, le traitement et les limites. Les conditions d'utilisation sont de courts extraits cités avec leur source, à des fins éducatives.
+| Fichier | Contenu | Relevé le | Sert à |
+|---|---|---|---|
+| `documents_esg.json` (#17) | Trois documents publics lus dans leur version originale : la fiche « Commonwealth v. Exxon Mobil Corp. » du Sabin Center for Climate Change Law (Columbia Law School), le prospectus simplifié de Vanguard ESG U.S. Stock ETF (ESGV) du 2025-12-19 déposé à la SEC, et les règles de la série d'indices FTSE Global Choice (v5.0, août 2026). Extraits copiés mot pour mot ; résumé et qualification écrits par l'équipe. | 2026-11-14 | Cas 3 (préférences non financières) : le jeu de départ ne contient aucune donnée ESG |
+| `frais_fnb.json` (#114) | Ratio des frais des 9 FNB de l'univers, sur la page ou le document officiel de l'émetteur (iShares, Vanguard, BMO, State Street, Invesco) | 2026-11-15 | Afficher le coût annuel des frais. Ils sont déjà prélevés dans `adj_close`, donc jamais déduits une seconde fois |
+| `composition_fnb.json` (#116) | Répartitions par secteur (et par pays quand elles sont publiées) des 9 FNB, avec la date affichée par chaque émetteur | 2026-11-15 | Calculer les plafonds par transparence |
+| `rendements_emetteurs.json` (#168) | Rendements totaux par année civile, 2022 à 2025, de 7 FNB (XIU, XBB, ZST, AGG, TLT, SPY, ESGV), avec la ligne citée mot pour mot. QQQ et GLD n'en publient pas dans les documents lus | 2026-11-15 | Valider nos rendements calculés : **27/27** dans le seuil de 0,25 point, fixé avant le calcul |
 
-**Données ajoutées par l'équipe : frais des FNB** (#114), dans `donnees_externes/frais_fnb.json`. Le ratio des frais de chacun des 9 FNB de l'univers a été relevé le 2026-11-15 sur la page ou le document officiel de l'émetteur (fiches iShares et Vanguard, aperçu du FNB de BMO, pages State Street, Invesco et iShares États-Unis). Ces frais sont prélevés sur l'actif des fonds : ils sont déjà dans `adj_close`. La simulation affiche leur coût annuel, sans le déduire une seconde fois.
-
-**Données ajoutées par l'équipe : composition des FNB** (#116), dans `donnees_externes/composition_fnb.json`. Les répartitions par secteur (et par pays quand elles sont publiées) des 9 FNB de l'univers ont été relevées le 2026-11-15 sur les pages publiques de leurs émetteurs (State Street, Invesco, Vanguard, BlackRock, BMO), avec la date affichée par chacun. Elles servent à calculer les plafonds par transparence. Conditions d'utilisation : quelques chiffres agrégés cités avec leur source, à des fins éducatives ; hors du datathon, il faudrait une source sous licence.
-
-**Données ajoutées par l'équipe : rendements publiés par les émetteurs** (#168), dans `donnees_externes/rendements_emetteurs.json`. Les rendements totaux par année civile de 2022 à 2025 de 7 FNB de l'univers (XIU, XBB, ZST, AGG, TLT, SPY, ESGV) ont été relevés le 2026-11-15 dans les fiches iShares, l'aperçu du FNB de BMO, les prospectus de SPY déposés à la SEC et le prospectus de Vanguard, avec la ligne citée mot pour mot. Ils servent seulement à valider nos rendements calculés sur `adj_close` (`python -m validation.externe`) : **27/27 dans le seuil de 0,25 point**, fixé avant le calcul. QQQ et GLD ne publient pas de rendement par année civile dans les documents lus : ils ne sont pas relevés. Chiffres publics des émetteurs, cités avec leur source à des fins éducatives.
+Conditions d'utilisation : de courts extraits et quelques chiffres agrégés, cités avec leur source, à des fins éducatives ; hors du datathon, il faudrait une source sous licence.

@@ -9,7 +9,7 @@
   - Toute autre sortie qui n'est pas une pièce reste rejetée, avec le message « n'est ni une pièce ni une erreur d'outil ».
   - La pièce obligatoire `simuler_portefeuille` doit avoir **réussi** : une simulation demandée mais en erreur ne compte plus.
 - `pipeline/orchestrateur.py` : constante `PREFIXE_ERREUR`, utilisée par `_refuser`. Un test vérifie qu'elle est identique à celle du validateur.
-- `CLAUDE.md`, section 5 : règle ajoutée pour la trace.
+- `REFERENCE_DU_PROJET.md`, section 5 : règle ajoutée pour la trace.
 
 ## Comment vérifier
 - `pytest tests/test_contrat.py` : un appel refusé est accepté ; « P99 », « Erreur : » sans motif et « rien » sont rejetés ; une simulation obligatoire en erreur est rejetée ; les deux préfixes sont identiques.

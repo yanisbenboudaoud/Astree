@@ -1,6 +1,6 @@
 """Contre-interrogatoire (#55) : une question libre de l'utilisateur après le procès.
 
-``CLAUDE.md``, section 4 : « La question va à l'orchestrateur, qui choisit les
+``REFERENCE_DU_PROJET.md``, section 4 : « La question va à l'orchestrateur, qui choisit les
 outils ; les nouvelles pièces vont au Procureur et à l'Avocat, puis au Greffier. »
 C'est donc la même boucle que le procès, sur le dossier existant :
 

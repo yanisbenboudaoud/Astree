@@ -1,4 +1,4 @@
-"""Chargement et validation des Pactes (CLAUDE.md, section 3).
+"""Chargement et validation des Pactes (REFERENCE_DU_PROJET.md, section 3).
 
 Un fichier ``personas/<id>.json`` décrit un profil et son Pacte. Le reste du code
 ne lit jamais un nom de persona : il lit les règles renvoyées par ``charger_pacte``.

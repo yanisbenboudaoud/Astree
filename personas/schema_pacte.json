@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://alphaforge.ai/personas/schema_pacte.json",
-  "title": "Fichier profil et son Pacte (CLAUDE.md, section 3)",
+  "title": "Fichier profil et son Pacte (REFERENCE_DU_PROJET.md, section 3)",
   "description": "Format commun à tous les fichiers personas/<id>.json. Ajouter un profil = ajouter un fichier qui respecte ce schéma, sans changer le code. Les nombres sont des décimales (0.30 = 30 %). Ce que le schéma ne peut pas exprimer est vérifié en Python au chargement : id de règles uniques, catégories existantes dans config/categories.json, poids qui totalisent 1, tickers sans doublon, horizon minimum ≤ maximum.",
   "type": "object",
   "additionalProperties": false,
@@ -18,7 +18,7 @@
     "age": {"type": "integer", "minimum": 18},
     "metier": {"type": "string", "minLength": 1},
     "etiquette": {
-      "description": "Tout profil est un scénario simulé (CLAUDE.md, section 4).",
+      "description": "Tout profil est un scénario simulé (REFERENCE_DU_PROJET.md, section 4).",
       "const": "fictif"
     },
     "profil_risque": {"type": "string", "minLength": 1},
@@ -179,7 +179,7 @@
     },
 
     "regle": {
-      "description": "Règle du Pacte. Le « type » choisit le sous-schéma de ses paramètres. Ajouter un type = un sous-schéma ici, une fonction dans le Greffier et une ligne dans le tableau de CLAUDE.md, section 3.",
+      "description": "Règle du Pacte. Le « type » choisit le sous-schéma de ses paramètres. Ajouter un type = un sous-schéma ici, une fonction dans le Greffier et une ligne dans le tableau de REFERENCE_DU_PROJET.md, section 3.",
       "type": "object",
       "required": ["id", "type", "libelle", "justification"],
       "properties": {

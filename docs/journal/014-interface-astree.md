@@ -5,7 +5,7 @@
 
 ## Ce qui a été construit
 - **`frontend/`** : l'interface « Astrée » (React 18, TypeScript, Vite, CSS Modules), fidèle à la maquette Figma V2 et à [`docs/maquette/spec_interface_astree.md`](../maquette/spec_interface_astree.md). Routes de l'annexe D.1 : entrée, `/:profil/portefeuille` (recherche, confirmation `?archive=1`), `/decision`, `/tribunal` (`?piece=P4` ouvre le tiroir), `/verdict`. Mode d'emploi : [`frontend/README.md`](../../frontend/README.md).
-  - `src/api/` : `contrat.ts` (types du contrat, `CLAUDE.md` §5), `types.ts` (annexe D.7), `adaptateur.ts` (`adapterContrat` : contrat → écran Tribunal), `tribunal.ts` (`jugerDecision`, `archiverVerdict`, drapeau `VITE_USE_MOCKS`), `donnees.ts`.
+  - `src/api/` : `contrat.ts` (types du contrat, `REFERENCE_DU_PROJET.md` §5), `types.ts` (annexe D.7), `adaptateur.ts` (`adapterContrat` : contrat → écran Tribunal), `tribunal.ts` (`jugerDecision`, `archiverVerdict`, drapeau `VITE_USE_MOCKS`), `donnees.ts`.
   - `src/domaine/` : logique d'affichage pure, sans nom de profil. `decision.ts` (effets sur le Pacte, messages, demande envoyée au Tribunal), `pacte.ts` (règle clé, signalements de la recherche), `questions.ts` (contre-interrogatoire), `verdict.ts` (options et archivage).
   - `src/data/proces/` : **trois vrais procès** du pipeline (Bedrock Sonnet 5.5, 2026-11-14), enregistrés tels quels, qui passent `python -m contrat.valider`. Celui d'Amira contient une correction du Greffier (argument renvoyé à l'Avocat puis corrigé).
   - `e2e/verifier.mjs` : vérification de bout en bout (playwright-core avec Edge ou Chrome, axe-core).
@@ -38,7 +38,7 @@ Résultat au 2026-11-14 : 33/33 vitest, 6/6 pytest ; `npm run verifier` sans auc
   - XOM : la source ESG documentée de #17 rend une **violation**, pas « à vérifier, source manquante » ;
   - les libellés des règles sont ceux du Pacte (« Pire baisse tolérée », et non « Chute maximale tolérée »).
 - **Contenu du Tribunal** : de vrais procès enregistrés plutôt que les textes de l'annexe C.5, pour que chaque argument ait passé le Greffier. Un procès n'est rejoué que pour la décision qu'il a jugée.
-- **Pas de « version conforme » choisie à la main pour le panier** : le système ne propose pas de portefeuille (`CLAUDE.md` §4). L'option du Verdict est « Réallouer seulement 28 % », la part maximale calculée par le Tribunal (outil 4, pièce P4).
+- **Pas de « version conforme » choisie à la main pour le panier** : le système ne propose pas de portefeuille (`REFERENCE_DU_PROJET.md` §4). L'option du Verdict est « Réallouer seulement 28 % », la part maximale calculée par le Tribunal (outil 4, pièce P4).
 - **Questions suggérées** : le contre-interrogatoire libre n'est pas encore dans le contrat. Les réponses aux questions suggérées viennent du **Greffier**, en code sans LLM : il lit les pièces ou les tables précalculées, et chaque nouveau calcul devient une pièce numérotée (ex. : P6, « Simulation à 15 % »).
 - **Statut du portefeuille** : « respecte les règles mesurables de votre Pacte » (2 règles vérifiées, 2 à juger), car une règle qualitative n'est jamais « respectée » par calcul.
 - **Groupes de « Vos positions »** : déduits de la classe, du secteur et des catégories (`groupe_du_titre`), sans nom de profil.

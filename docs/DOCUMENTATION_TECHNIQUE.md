@@ -4,7 +4,7 @@ Ce document décrit **comment** le système fonctionne et **comment le vérifier
 
 | Pour… | Lire |
 |---|---|
-| Les règles du projet et le contrat JSON complet | [`CLAUDE.md`](../CLAUDE.md) |
+| Les règles du projet et le contrat JSON complet | [`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md) |
 | Le **pourquoi** de chaque choix d'architecture | [`CHOIX_CONCEPTION.md`](CHOIX_CONCEPTION.md) |
 | Le schéma AWS détaillé | [`architecture.md`](architecture.md) |
 | Ce qui a été construit, issue par issue | [`journal/`](journal/) |
@@ -21,7 +21,7 @@ Ce document décrit **comment** le système fonctionne et **comment le vérifier
 
 L'utilisateur arrive avec **sa propre décision** (« 25 % de mon portefeuille en Tesla »). Le système ne propose rien : il fait le **procès** de cette décision contre le **Pacte** de l'investisseur, c'est-à-dire ses règles déclarées à l'avance. L'utilisateur rend le verdict. Pourquoi ce cadrage : [`CHOIX_CONCEPTION.md`](CHOIX_CONCEPTION.md), choix 1 et 8.
 
-Une seule règle traverse tout le code : **Python calcule, le LLM explique** ([choix 2](CHOIX_CONCEPTION.md), [`CLAUDE.md`](../CLAUDE.md) section 2). Aucun nombre n'est produit par un modèle de langage ; chaque nombre affiché vient d'une fonction Python testée.
+Une seule règle traverse tout le code : **Python calcule, le LLM explique** ([choix 2](CHOIX_CONCEPTION.md), [`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md) section 2). Aucun nombre n'est produit par un modèle de langage ; chaque nombre affiché vient d'une fonction Python testée.
 
 ## 2. Les agents et leur rôle
 
@@ -72,7 +72,7 @@ Ces garde-fous sont **testés avec un faux modèle** : un modèle qui demande 10
 
 ### Les outils (Python, sans LLM)
 
-Liste complète, avec qui les appelle : [`CLAUDE.md`](../CLAUDE.md), section 4 bis. Résumé :
+Liste complète, avec qui les appelle : [`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md), section 4 bis. Résumé :
 
 | Outil | Rôle | Code | Fiche |
 |---|---|---|---|
@@ -92,7 +92,7 @@ Chaque outil rend une **pièce** : `valeurs` brutes (au moins 4 décimales), `va
 
 ### Méthode de calcul
 
-La méthode est fixée dans [`CLAUDE.md`](../CLAUDE.md), section 6 bis. En bref :
+La méthode est fixée dans [`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md), section 6 bis. En bref :
 
 - **Prix** : `adj_close` (ajustés pour dividendes et fractionnements), convertis en CAD avec le taux USD/CAD de la Banque du Canada, dernier taux connu reporté.
 - **Calendrier** : séances de la bourse américaine ; prix TSX et crypto reportés au dernier prix connu.
@@ -102,14 +102,14 @@ La méthode est fixée dans [`CLAUDE.md`](../CLAUDE.md), section 6 bis. En bref 
 - **Pouvoir d'achat** : rendement réel par la relation de Fisher, IPC utilisé seulement s'il était publié à la date de la mesure ([`macro.py`](../pipeline/macro.py), fiche [113](journal/113-inflation-rendement-reel.md), [choix 16](CHOIX_CONCEPTION.md)).
 - **Frais des FNB** : déjà prélevés dans `adj_close`, affichés sans être déduits une seconde fois (fiche [114](journal/114-frais-fnb.md)).
 
-Pièges des données de départ et façon dont ils sont traités : [`CLAUDE.md`](../CLAUDE.md), section 6, et [`alphaforge_starter/README.md`](../alphaforge_starter/README.md).
+Pièges des données de départ et façon dont ils sont traités : [`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md), section 6, et [`alphaforge_starter/README.md`](../alphaforge_starter/README.md).
 
 ### Hypothèses
 
 Chaque contrat les énumère dans son champ `hypotheses`. Les principales :
 
 - Période d'analyse : 2021-11-12 au 2026-11-12 ([`README.md`](../README.md), « Données »).
-- Les **seuils des Pactes** sont des hypothèses de l'équipe, pas des recommandations réglementaires, sauf la pire baisse mesurée par le Pacte vécu ([`CLAUDE.md`](../CLAUDE.md), section 3).
+- Les **seuils des Pactes** sont des hypothèses de l'équipe, pas des recommandations réglementaires, sauf la pire baisse mesurée par le Pacte vécu ([`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md), section 3).
 - Le **budget** de 8 appels et le barème du questionnaire ([`config/questionnaire.json`](../config/questionnaire.json)) sont des hypothèses de l'équipe.
 - L'IPC du mois M est supposé publié le dernier jour du mois M + 1 (`date_publication_ipc`, [`macro.py`](../pipeline/macro.py)).
 - La composition des FNB, relevée en novembre 2026, s'applique à toute la période ([`composition_fnb.json`](../donnees_externes/composition_fnb.json)).
@@ -188,7 +188,7 @@ La chaîne complète est donc : argument → `P4` → `indicateurs_actif` → `p
 
 > **À l'écran** : l'encadré « Arguments contrôlés par le Greffier pendant ce procès » de [la capture du procès](preuves/ecrans/05-robert-tribunal.png) montre un vrai renvoi : chiffres fautifs, motif exact, version corrigée et acceptée.
 
-Le vérificateur ([`pipeline/chiffres.py`](../pipeline/chiffres.py)) porte la promesse « aucun chiffre inventé ne passe ». Ses dix règles sont dans [`CLAUDE.md`](../CLAUDE.md), section 4 ter ; chaque exemple de cette section est un test unitaire ([`tests/test_chiffres.py`](../tests/test_chiffres.py)). En bref :
+Le vérificateur ([`pipeline/chiffres.py`](../pipeline/chiffres.py)) porte la promesse « aucun chiffre inventé ne passe ». Ses dix règles sont dans [`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md), section 4 ter ; chaque exemple de cette section est un test unitaire ([`tests/test_chiffres.py`](../tests/test_chiffres.py)). En bref :
 
 1. **Ce qui est vérifié** : chaque nombre du texte (pourcentages, décimaux, entiers, années, dates), sauf les identifiants de pièces et les nombres d'un nom d'actif (« S&P 500 »). La virgule n'est décimale que si un chiffre la suit.
 2. **Contre quoi** : seulement les pièces **citées** par l'argument, plus la décision et la période d'analyse.
@@ -201,7 +201,7 @@ Le vérificateur ([`pipeline/chiffres.py`](../pipeline/chiffres.py)) porte la pr
 9. **Compte rendu** : « nombres vérifiés / nombres extraits » et nombre d'arguments.
 10. **Tests obligatoires**.
 
-Le même renvoi s'applique au cadre « simulation seulement » : aucun conseil ni promesse sur l'avenir ([`CLAUDE.md`](../CLAUDE.md), section 4 quater ; [`cadre_simulation.py`](../pipeline/cadre_simulation.py)).
+Le même renvoi s'applique au cadre « simulation seulement » : aucun conseil ni promesse sur l'avenir ([`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md), section 4 quater ; [`cadre_simulation.py`](../pipeline/cadre_simulation.py)).
 
 ### Exemple réel : un argument renvoyé puis corrigé
 
@@ -259,7 +259,7 @@ Liste complète : [`CHOIX_CONCEPTION.md`](CHOIX_CONCEPTION.md), « Limites connu
 
 ## 10. Architecture AWS
 
-AWS est une condition d'admissibilité ([`CLAUDE.md`](../CLAUDE.md), section 1 bis). Peu de services, chacun justifié ([`CHOIX_CONCEPTION.md`](CHOIX_CONCEPTION.md), choix 13). Schéma complet, avec la progression en direct : [`architecture.md`](architecture.md).
+AWS est une condition d'admissibilité ([`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md), section 1 bis). Peu de services, chacun justifié ([`CHOIX_CONCEPTION.md`](CHOIX_CONCEPTION.md), choix 13). Schéma complet, avec la progression en direct : [`architecture.md`](architecture.md).
 
 ```mermaid
 flowchart LR
@@ -314,7 +314,7 @@ Les ressources AWS seront supprimées après l'événement : ces captures, prise
 *Figure 10.9 : le bucket du projet. `donnees/` : les CSV lus par la Lambda ; `traces/` : chaque procès archivé avec ses pièces et sa trace ; `progression/` : l'étape en cours, relue par l'interface (#90) ; `verdicts/` : les choix de l'utilisateur, relus par la jurisprudence (#56) ; `profils/` : les Pactes créés au questionnaire (#87).*
 
 ![Trace d'un procès archivée dans S3](captures/06-s3-trace.png)
-*Figure 10.10 : début d'un procès archivé dans `traces/2026-11-16/` (contrat de la section 5 de [`CLAUDE.md`](../CLAUDE.md)). Profil de test prudent, « 30 % en TSLA ». La règle de pire baisse porte le seuil mesuré par le Pacte vécu (−10,2 %), avec sa provenance et la pièce `P2` qui le prouve.*
+*Figure 10.10 : début d'un procès archivé dans `traces/2026-11-16/` (contrat de la section 5 de [`REFERENCE_DU_PROJET.md`](../REFERENCE_DU_PROJET.md)). Profil de test prudent, « 30 % en TSLA ». La règle de pire baisse porte le seuil mesuré par le Pacte vécu (−10,2 %), avec sa provenance et la pièce `P2` qui le prouve.*
 
 ![Bucket du site : accès public bloqué](captures/10-s3-site-prive.png)
 *Figure 10.11 : le bucket `alphaforge-site-<compte>`, qui contient l'interface, bloque tout accès public. Seule la distribution CloudFront peut le lire (#135).*

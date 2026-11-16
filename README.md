@@ -18,14 +18,14 @@ Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre déc
 | Pour… | Lire |
 |---|---|
 | **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
-| Comprendre le projet, ses règles et son architecture | [`CLAUDE.md`](CLAUDE.md) |
+| Comprendre le projet, ses règles et son architecture | [`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md) |
 | Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
 | La **documentation technique** (agents, garde-fous, méthode, explicabilité, validations, AWS) | [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md) |
 | Le projet **en une page** | [`docs/ONE_PAGER.md`](docs/ONE_PAGER.md) |
 | Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
 | Trouver le rôle de **chaque fichier** | [`docs/CARTE_DU_DEPOT.md`](docs/CARTE_DU_DEPOT.md) |
 | Voir l'interface visée, ou la lancer | [`docs/maquette/`](docs/maquette/), [`frontend/`](frontend/README.md) |
-| Connaître le format de sortie du pipeline | `CLAUDE.md` section 5, et [`docs/exemples/`](docs/exemples/) |
+| Connaître le format de sortie du pipeline | `REFERENCE_DU_PROJET.md` section 5, et [`docs/exemples/`](docs/exemples/) |
 | Vérifier **chaque promesse** du projet | la section [Preuves](#preuves) ci-dessous |
 
 ## Preuves
@@ -132,7 +132,7 @@ Un procès enregistré se relit pièce par pièce, et chaque chiffre se recalcul
 
 ### Ajouter un profil
 
-Un profil, c'est **un fichier JSON**, sans une ligne de code ([`CLAUDE.md`](CLAUDE.md), section 3) :
+Un profil, c'est **un fichier JSON**, sans une ligne de code ([`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md), section 3) :
 
 1. Copier `personas/robert.json` dans `personas/<id>.json` (`<id>` en minuscules, chiffres et `_`, le même que le champ `id`) et changer `id`, `nom`, `profil_risque`, `horizon_ans`, `capital_fictif_cad` et `portefeuille` (titres de `alphaforge_starter/assets_universe.csv`, poids totalisant 1).
 2. Écrire les règles du `pacte` avec les types `pire_baisse_max`, `plafond` (catégories de `config/categories.json`), `critere_documentaire` ou `qualitative`, chacune avec `libelle` et `justification`.
@@ -164,7 +164,7 @@ Jeu de départ `alphaforge_starter/`, période du 2021-11-12 au 2026-11-12, extr
 - taux USD/CAD : Banque du Canada (API Valet) ;
 - taux et indicateurs macroéconomiques : Banque du Canada et FRED.
 
-Sources, traitements, limites et conditions d'utilisation : `alphaforge_starter/README.md` et `alphaforge_starter/sources_metadata.csv`. Les pièges connus de ces données sont dans `CLAUDE.md`, section 6.
+Sources, traitements, limites et conditions d'utilisation : `alphaforge_starter/README.md` et `alphaforge_starter/sources_metadata.csv`. Les pièges connus de ces données sont dans `REFERENCE_DU_PROJET.md`, section 6.
 
 **Données ajoutées par l'équipe : documents ESG** (cas 3, #17), dans `donnees_externes/documents_esg.json`. Le jeu de départ ne contient aucune donnée ESG. Trois documents publics ont été lus dans leur version originale le 2026-11-14 :
 - la fiche « Commonwealth v. Exxon Mobil Corp. » du Sabin Center for Climate Change Law (Columbia Law School) ;

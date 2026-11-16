@@ -52,7 +52,7 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 
 ## Choix 2 — « Python calcule, le LLM explique »
 
-**Décision.** Tous les chiffres (rendement, volatilité, pire baisse, corrélations, taille maximale) sont calculés par 6 outils Python testés (`CLAUDE.md`, section 4 bis). Le Procureur et l'Avocat reçoivent ces pièces et ne produisent jamais un chiffre eux-mêmes.
+**Décision.** Tous les chiffres (rendement, volatilité, pire baisse, corrélations, taille maximale) sont calculés par 6 outils Python testés (`REFERENCE_DU_PROJET.md`, section 4 bis). Le Procureur et l'Avocat reçoivent ces pièces et ne produisent jamais un chiffre eux-mêmes.
 
 **Pourquoi.**
 - Un LLM peut **inventer un chiffre crédible**. Dans un contexte financier, c'est inacceptable.
@@ -74,7 +74,7 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 
 ## Choix 4 — Un orchestrateur Bedrock dans des phases fixes
 
-**Décision.** Un **orchestrateur** (LLM via Bedrock) instruit le dossier : il lit la décision et le Pacte, **choisit les outils Python à appeler** et leurs paramètres, et justifie chaque appel par une phrase courte visible dans la trace. Les **phases**, elles, restent fixes et sont imposées par Python : Profil → Orchestrateur → Procureur et Avocat (en parallèle) → Greffier → Verdict (#12). Détails et garde-fous : `CLAUDE.md`, section 4.
+**Décision.** Un **orchestrateur** (LLM via Bedrock) instruit le dossier : il lit la décision et le Pacte, **choisit les outils Python à appeler** et leurs paramètres, et justifie chaque appel par une phrase courte visible dans la trace. Les **phases**, elles, restent fixes et sont imposées par Python : Profil → Orchestrateur → Procureur et Avocat (en parallèle) → Greffier → Verdict (#12). Détails et garde-fous : `REFERENCE_DU_PROJET.md`, section 4.
 
 **Pourquoi.**
 - **Vraiment agentique (20 % de la note).** Avec un ordre d'outils fixé par Python, les LLM ne faisaient que rédiger : le jury aurait vu un pipeline. L'orchestrateur **mobilise** des outils et **adapte** les preuves au cas (diapo 5) : une décision crypto appelle les corrélations, un horizon court appelle le temps de récupération, un seuil dépassé appelle la taille maximale compatible.
@@ -114,7 +114,7 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 - Les règles sont **génériques et testables** : elles lisent les seuils du Pacte, quel que soit le profil (ex. : profil de test prudent + 30 % TSLA → au moins une `violation` ; profil audacieux + la même décision → pas de violation sur la pire baisse, avec une marge faible : −42,6 % pour un seuil de −45 %).
 - Argument de pitch : *« notre système ne peut pas citer un chiffre inventé sans qu'on le détecte »*.
 
-**Le vérificateur de chiffres a des règles précises** (`CLAUDE.md`, section 4 ter). Sans elles, le « 17/17 » affiché ne serait pas défendable devant le jury :
+**Le vérificateur de chiffres a des règles précises** (`REFERENCE_DU_PROJET.md`, section 4 ter). Sans elles, le « 17/17 » affiché ne serait pas défendable devant le jury :
 - un nombre n'est comparé **qu'aux pièces citées** par l'argument (plus la décision et la période) ;
 - la valeur brute de la pièce est arrondie **à la précision écrite dans le texte** (« −29 % » valide `-0.2897`, « −28 % » non) ;
 - les nombres dérivés (écarts, ratios) sont interdits : si un argument en a besoin, c'est Python qui les calcule ;
@@ -126,7 +126,7 @@ Infrastructure AWS : **Bedrock** (LLM), **Lambda** (outils et orchestration), **
 
 ## Choix 7 — Le Pacte : des règles déclarées à l'avance
 
-**Décision.** Chaque profil a un Pacte (`personas/<nom>.json`) avec une justification par règle (#3). Tous les Pactes suivent **le même format** : une liste de **règles typées** (`pire_baisse_max`, `plafond`, `critere_documentaire`, `qualitative`), chacune avec un `id`, ses paramètres, un `libelle` et une `justification` (`CLAUDE.md`, section 3). Les catégories utilisées par les plafonds (`tech`, `crypto`) sont définies **une seule fois** pour tous les profils dans `config/categories.json`, à partir de `assets_universe.csv`.
+**Décision.** Chaque profil a un Pacte (`personas/<nom>.json`) avec une justification par règle (#3). Tous les Pactes suivent **le même format** : une liste de **règles typées** (`pire_baisse_max`, `plafond`, `critere_documentaire`, `qualitative`), chacune avec un `id`, ses paramètres, un `libelle` et une `justification` (`REFERENCE_DU_PROJET.md`, section 3). Les catégories utilisées par les plafonds (`tech`, `crypto`) sont définies **une seule fois** pour tous les profils dans `config/categories.json`, à partir de `assets_universe.csv`.
 
 **Pourquoi.**
 - **Aucune règle propre à un persona.** L'ancien format avait des champs sur mesure (`interdit_exclusivement_tech`, une liste `categories` dans le seul fichier d'Amira, une exclusion `speculatif` définie nulle part). Avec des types génériques, « pas exclusivement tech » devient un simple plafond (tech + crypto ≤ 75 %), et « pas de spéculation » un plafond crypto à 0.
@@ -197,7 +197,7 @@ Les personas de l'énoncé deviennent des **profils de test**. Le code ne teste 
 - **D'office plutôt qu'un outil de l'orchestrateur** : la pièce n'a aucun paramètre à choisir (elle découle de la décision et du Pacte) et doit être présente à chaque violation. En faire un outil aurait été un faux choix, qui consomme le budget d'appels. Elle ne refait aucun calcul : elle relit la recherche de `taille_max_compatible`, jugée par les contrôles du Greffier.
 - **Vérifiable** : le seuil suffisant est arrondi du côté permissif. Un test prouve qu'avec ce seuil à la place du sien, le Greffier rend `conforme` (au plus proche, la pire baisse du panier audacieux, −0,6185554, aurait donné −0,618555, qui laissait la règle en violation).
 
-**Alternative écartée.** Laisser le Procureur ou l'Avocat calculer « il faudrait accepter −29 % » : c'est un nombre dérivé, que le Greffier rejetterait (`CLAUDE.md`, section 4 ter, règle 6). C'est Python qui le calcule.
+**Alternative écartée.** Laisser le Procureur ou l'Avocat calculer « il faudrait accepter −29 % » : c'est un nombre dérivé, que le Greffier rejetterait (`REFERENCE_DU_PROJET.md`, section 4 ter, règle 6). C'est Python qui le calcule.
 
 ---
 
@@ -211,7 +211,7 @@ Les personas de l'énoncé deviennent des **profils de test**. Le code ne teste 
 
 ## Choix 12 — Un contrat JSON entre la pipeline et l'interface
 
-**Décision.** La pipeline produit toujours le format défini dans `CLAUDE.md` (section 5). Un faux JSON (`docs/exemples/contrat_robert.json`) permet à l'interface d'avancer en parallèle (#2).
+**Décision.** La pipeline produit toujours le format défini dans `REFERENCE_DU_PROJET.md` (section 5). Un faux JSON (`docs/exemples/contrat_robert.json`) permet à l'interface d'avancer en parallèle (#2).
 
 **Pourquoi.** Le format impose `pieces`, `controles`, `hypotheses`, `sources`, `limites` et `avertissement` : l'explicabilité est **structurelle**, elle ne dépend pas de la bonne volonté du LLM.
 
@@ -269,8 +269,8 @@ Phrase pour le one pager : « Chaque décision jugée par Astrée devient un pro
 
 **Pourquoi.**
 - L'atelier a insisté sur le **risque d'inflation** : un portefeuille prudent peut perdre bien plus en pouvoir d'achat qu'en dollars. En 2022, le portefeuille actuel du profil prudent fait −2,6 % en dollars, mais −8,4 % après inflation.
-- **Calculé par Python, pas par l'agent** : la soustraction naïve (+12,0 − 3,5 = 8,5 %) est fausse, et le Greffier la rejette comme nombre dérivé (`CLAUDE.md`, section 4 ter, règle 6).
-- **Aucune valeur avant sa publication** (énoncé, p. 14 ; `CLAUDE.md`, section 6) : le fichier date l'IPC au mois de référence, et Statistique Canada le publie vers le troisième mardi du mois suivant. Hypothèse prudente : l'IPC du mois M est connu le dernier jour du mois M + 1. Une mesure n'utilise que les mois publiés à sa date (l'extraction des données) : pour une période qui finit le 12 novembre 2026, l'inflation s'arrête à septembre 2026, même si le fichier contenait octobre. La période d'inflation est donc décalée de deux mois sur celle des prix, ce que dit le traitement de la pièce.
+- **Calculé par Python, pas par l'agent** : la soustraction naïve (+12,0 − 3,5 = 8,5 %) est fausse, et le Greffier la rejette comme nombre dérivé (`REFERENCE_DU_PROJET.md`, section 4 ter, règle 6).
+- **Aucune valeur avant sa publication** (énoncé, p. 14 ; `REFERENCE_DU_PROJET.md`, section 6) : le fichier date l'IPC au mois de référence, et Statistique Canada le publie vers le troisième mardi du mois suivant. Hypothèse prudente : l'IPC du mois M est connu le dernier jour du mois M + 1. Une mesure n'utilise que les mois publiés à sa date (l'extraction des données) : pour une période qui finit le 12 novembre 2026, l'inflation s'arrête à septembre 2026, même si le fichier contenait octobre. La période d'inflation est donc décalée de deux mois sur celle des prix, ce que dit le traitement de la pièce.
 
 **Alternatives écartées.** Utiliser le dernier mois du fichier, quel qu'il soit : juste aujourd'hui par hasard, faux dès qu'on ajoute une valeur non encore publiée. Interpoler les mois manquants : ce serait inventer une donnée.
 

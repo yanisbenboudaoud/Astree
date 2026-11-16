@@ -1,6 +1,6 @@
 """Agent Profil : transforme la demande de l'utilisateur en décision structurée.
 
-Première phase du Tribunal (CLAUDE.md, section 4). Le LLM sert seulement à
+Première phase du Tribunal (REFERENCE_DU_PROJET.md, section 4). Le LLM sert seulement à
 **comprendre le texte** : il repère le titre, la taille et le financement.
 Python vérifie ensuite chaque champ et fait les calculs (ex. : un montant en
 dollars converti en part du portefeuille).
@@ -16,7 +16,7 @@ de n'importe quel profil, le charge et le valide (``charger_profil`` : un fichie
 de ``personas/`` ou un profil créé par le questionnaire, #87), puis ne lit que son
 portefeuille et son capital.
 
-Deux types de décisions (CLAUDE.md, section 5) :
+Deux types de décisions (REFERENCE_DU_PROJET.md, section 5) :
 - « position » : un titre, une taille et un financement ;
 - « reallocation » (#16) : un panier de titres avec leurs poids, et la part du
   portefeuille réallouée, prise au prorata de toutes les lignes. Un panier

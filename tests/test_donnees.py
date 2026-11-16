@@ -173,7 +173,7 @@ def test_reproduit_la_pire_baisse_de_tsla_en_cad(prix_cad):
 
 
 def test_reproduit_le_portefeuille_actuel_de_robert():
-    # Portefeuille de personas/robert.json, rééquilibré chaque jour (CLAUDE.md, section 6 bis).
+    # Portefeuille de personas/robert.json, rééquilibré chaque jour (REFERENCE_DU_PROJET.md, section 6 bis).
     # Valeurs attendues : « comparaison.actuel » de docs/exemples/contrat_robert.json.
     poids = pd.Series({"ZST.TO": 0.3, "XBB.TO": 0.2, "XIU.TO": 0.2, "JNJ": 0.1, "RY.TO": 0.1, "FTS.TO": 0.1})
     rendements = charger_donnees(list(poids.index)).pct_change().dropna()

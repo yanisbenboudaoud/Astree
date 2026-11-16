@@ -34,7 +34,7 @@ NOM_OUTIL = "consulter_jurisprudence"
 PREFIXE_VERDICTS = "verdicts/"
 DOSSIER_VERDICTS_LOCAL = Path(__file__).resolve().parent.parent / "archives" / "verdicts"
 TOUTES = "toutes"  # valeur du paramètre « regle » : toutes les règles du Pacte
-VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # CLAUDE.md, section 5
+VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # REFERENCE_DU_PROJET.md, section 5
 LIMITE_ARCHIVES = 200  # archives lues au plus (les plus récentes) : borne la durée du procès
 NB_ANTECEDENTS_MAX = 5  # antécédents détaillés dans la pièce (les plus récents)
 

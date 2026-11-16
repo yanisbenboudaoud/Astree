@@ -50,7 +50,7 @@ CLASSES_VOLUME_EN_DEVISE = {"crypto"}
 # Au-delà, la pièce deviendrait illisible ; sans titre demandé, les plus grosses lignes sont gardées.
 MAX_TITRES = 12
 
-DECIMALES_VALEURS = 6  # valeurs brutes (CLAUDE.md, section 5)
+DECIMALES_VALEURS = 6  # valeurs brutes (REFERENCE_DU_PROJET.md, section 5)
 DECIMALES_MONTANTS = 2
 # Parts et jours souvent minuscules (0,000006) : chiffres significatifs plutôt que décimales,
 # pour ne jamais écrire 0 à la place d'une petite valeur.

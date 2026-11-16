@@ -43,7 +43,7 @@ Pour changer une phrase de limite, modifier `domaine/limites.ts` : tous les écr
 
 ## Choix faits en cours de route
 - **La limite au bon endroit, pas en bloc** : un ⓘ par indicateur et une liste par écran, plutôt qu'un avertissement général que personne ne lit.
-- **Trois étiquettes seulement** (fait, hypothèse, fictif, CLAUDE.md section 4) : la simulation est « Fictif », précisée par le mot « simulation ».
+- **Trois étiquettes seulement** (fait, hypothèse, fictif, REFERENCE_DU_PROJET.md section 4) : la simulation est « Fictif », précisée par le mot « simulation ».
 - **Panneau ouvert d'office sur grand écran, replié sur téléphone** : l'espace libre du paysage sert à lire les limites sans clic.
 
 ## Limites et suite

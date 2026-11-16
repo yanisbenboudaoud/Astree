@@ -8,7 +8,7 @@ Les agents appellent maintenant Bedrock par le profil d'inférence **global** `g
 
 - **`deploiement/politique_iam_lambda.json`** : `bedrock:InvokeModel` sur le profil global, sur le modèle dans us-east-1 et sur le modèle **sans région** (`arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-5-5`). Les ARN des trois régions américaines du profil `us.` sont retirés.
 - **`deploiement/deployer.py`** : `MODELE` vaut le profil global, pour qu'un prochain déploiement ne revienne pas en arrière.
-- **`.env.example`**, **`README.md`**, **`CLAUDE.md`** (section 1 bis), **`deploiement/README.md`** et le commentaire de **`pipeline/llm.py`** : nouvel identifiant.
+- **`.env.example`**, **`README.md`**, **`REFERENCE_DU_PROJET.md`** (section 1 bis), **`deploiement/README.md`** et le commentaire de **`pipeline/llm.py`** : nouvel identifiant.
 - Déjà appliqué sur le compte : politique du rôle `alphaforge-lambda` et variable `BEDROCK_MODEL_ID` de la Lambda `alphaforge-tribunal`.
 
 ## Comment l'utiliser

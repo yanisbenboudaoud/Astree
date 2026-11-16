@@ -1,4 +1,4 @@
-"""Outil 3 : calculer_correlations (CLAUDE.md, section 4 bis ; cas général 2).
+"""Outil 3 : calculer_correlations (REFERENCE_DU_PROJET.md, section 4 bis ; cas général 2).
 
 Mesure si des titres évoluent ensemble : deux lignes très corrélées (ex. :
 BTC et ETH) ne se diversifient pas l'une l'autre. Sert au Procureur pour le
@@ -29,7 +29,7 @@ from pipeline.llm import decrire_outil
 # Au-delà, la pièce deviendrait illisible (10 titres = 45 paires).
 MAX_TITRES = 10
 
-# Les valeurs des pièces sont brutes : au moins 4 décimales (CLAUDE.md, section 5).
+# Les valeurs des pièces sont brutes : au moins 4 décimales (REFERENCE_DU_PROJET.md, section 5).
 DECIMALES_VALEURS = 6
 
 # Paires montrées dans la valeur affichée (les plus corrélées).

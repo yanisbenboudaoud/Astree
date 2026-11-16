@@ -1,4 +1,4 @@
-"""Catégories d'actifs utilisées par les règles « plafond » des Pactes (CLAUDE.md, section 3).
+"""Catégories d'actifs utilisées par les règles « plafond » des Pactes (REFERENCE_DU_PROJET.md, section 3).
 
 Elles sont définies une seule fois, pour tous les profils, dans
 ``config/categories.json``. Un titre appartient à une catégorie si sa classe

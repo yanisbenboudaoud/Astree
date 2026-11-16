@@ -4,7 +4,7 @@
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
-- **`CLAUDE.md`** : les règles du projet, lues automatiquement par Claude Code.
+- **`REFERENCE_DU_PROJET.md`** : la référence du projet : ses règles et son architecture.
   - #1 : renommé depuis `instruction.md` ; ajout de l'exigence AWS (diapo 7) et de la grille d'évaluation (diapo 10).
   - #20 : architecture du **Tribunal** (Agent Profil → pièces → Procureur et Avocat → Greffier → verdict de l'utilisateur), les 6 outils (section 4 bis), le contrat JSON (section 5), la méthode de calcul (section 6 bis).
   - Commit `abe9458` : conception orientée vers **trois cas généraux** plutôt que trois personas (section 3).
@@ -16,7 +16,7 @@
 - **`.claude/settings.json`** (commit `71190cd`) : aucune signature de Claude dans les commits et les PR.
 
 ## Comment l'utiliser
-Lire `CLAUDE.md` en premier, puis `docs/CHOIX_CONCEPTION.md`. Ouvrir `docs/maquette/prototype.html` dans un navigateur pour voir le parcours visé.
+Lire `REFERENCE_DU_PROJET.md` en premier, puis `docs/CHOIX_CONCEPTION.md`. Ouvrir `docs/maquette/prototype.html` dans un navigateur pour voir le parcours visé.
 
 ## Comment vérifier
 Rien à exécuter. Les chiffres de la maquette et du faux contrat ont été recalculés depuis les CSV avec la méthode de la section 6 bis (#23).

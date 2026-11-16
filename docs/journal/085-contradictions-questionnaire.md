@@ -19,7 +19,7 @@ Le questionnaire (#84) sépare la **tolérance** (ce que la personne veut accept
   - `profil_depuis_reponses` garde les réponses dans le profil (champ `questionnaire` : `date`, `etiquette`, `reponses`). Nouveau paramètre `etiquette_reponses` (`fait` par défaut, `fictif` pour des réponses de démonstration).
 - **`personas/schema_pacte.json`** : champ facultatif `questionnaire`.
 - **`pipeline/tribunal.py`** : si le profil porte `questionnaire`, ses réponses deviennent la pièce qui suit le Pacte (P2, ou P3 après le Pacte vécu), avec une étape de trace `lire_questionnaire`, ses contrôles et une hypothèse sur le barème.
-- **`contrat/valider.py`** : `coherence_questionnaire` et `questionnaire` rejoignent les contrôles du système. Mise à jour de **`CLAUDE.md`** section 5, et de la phrase sur les pièces `declaree` dans les consignes du Procureur et de l'Avocat (`pipeline/debat.py`).
+- **`contrat/valider.py`** : `coherence_questionnaire` et `questionnaire` rejoignent les contrôles du système. Mise à jour de **`REFERENCE_DU_PROJET.md`** section 5, et de la phrase sur les pièces `declaree` dans les consignes du Procureur et de l'Avocat (`pipeline/debat.py`).
 
 ## Comment l'utiliser
 ```python

@@ -2,7 +2,7 @@
 
 > Généré par `python -m validation.evaluation cadre` à partir de `validation/jeux/cadre.json` (issue #166, jeu rédigé le 2026-11-15). Ne pas modifier à la main : relancer la commande.
 
-Jeu écrit avant la première mesure, à partir de la règle de `CLAUDE.md` (section 4 quater) et non des expressions régulières de `pipeline/cadre_simulation.py`. Un cas à bloquer contient une tournure interdite d'une seule famille d'infraction (`conseil` ou `promesse`) : il est détecté si l'argument est rejeté **et** qu'une infraction de cette famille est relevée. Un cas légitime, souvent piégeux (citation, négation, conditionnel, interrogation indirecte), doit être accepté. Les familles sont fixées avant la mesure ; un raté reste dans le rapport, et une règle corrigée se mesure sur un second jeu écrit après la correction. Chaque cas a un `auteur` : `equipe` (cas écrits à partir de la règle, par une personne qui a vu les signatures du code) ou `externe` (40 cas écrits à partir de la seule règle, sans aucun accès au dépôt ni au code, comme le demande l'issue) ; le rapport donne le taux de chaque groupe.
+Jeu écrit avant la première mesure, à partir de la règle de `REFERENCE_DU_PROJET.md` (section 4 quater) et non des expressions régulières de `pipeline/cadre_simulation.py`. Un cas à bloquer contient une tournure interdite d'une seule famille d'infraction (`conseil` ou `promesse`) : il est détecté si l'argument est rejeté **et** qu'une infraction de cette famille est relevée. Un cas légitime, souvent piégeux (citation, négation, conditionnel, interrogation indirecte), doit être accepté. Les familles sont fixées avant la mesure ; un raté reste dans le rapport, et une règle corrigée se mesure sur un second jeu écrit après la correction. Chaque cas a un `auteur` : `equipe` (cas écrits à partir de la règle, par une personne qui a vu les signatures du code) ou `externe` (40 cas écrits à partir de la seule règle, sans aucun accès au dépôt ni au code, comme le demande l'issue) ; le rapport donne le taux de chaque groupe.
 
 ## Résultat
 
@@ -90,7 +90,7 @@ Jeu écrit avant la première mesure, à partir de la règle de `CLAUDE.md` (sec
 
 ## Méthode
 
-- Contrôle : `pipeline.cadre_simulation.verifier_cadre_simulation`, le même que le Greffier applique aux arguments du Procureur, de l'Avocat et du contre-interrogatoire (`CLAUDE.md`, section 4 quater). Python seul, sans Bedrock.
+- Contrôle : `pipeline.cadre_simulation.verifier_cadre_simulation`, le même que le Greffier applique aux arguments du Procureur, de l'Avocat et du contre-interrogatoire (`REFERENCE_DU_PROJET.md`, section 4 quater). Python seul, sans Bedrock.
 - Cas à bloquer détecté : argument rejeté **et** infraction de la famille attendue relevée. Cas légitime : accepté.
 - Intervalle de confiance : Wilson à 95 % (`validation.evaluation.intervalle_wilson`).
 - Un raté reste dans ce rapport. Une règle corrigée se mesure sur un second jeu, écrit après la correction.

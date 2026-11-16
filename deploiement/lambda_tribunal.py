@@ -120,7 +120,7 @@ from pipeline.tribunal import bornes_periode, juger_decision, verifier_avant_pro
 from pipeline.univers import charger_univers
 from pipeline.vues_interface import semaines_du_profil, table_position, vues_profil
 
-VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # CLAUDE.md, section 5
+VERDICTS = ("maintenu", "modifie", "pacte_ajuste")  # REFERENCE_DU_PROJET.md, section 5
 ROUTES = ("/tribunal", "/progression", "/verdict", "/question", "/verifier", "/proces-verbal",
           "/questionnaire", "/profil", "/table")
 ACTION_JUGER = "juger_en_arriere_plan"  # événement interne : procès lancé par /tribunal (#90)

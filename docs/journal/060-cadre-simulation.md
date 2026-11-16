@@ -4,7 +4,7 @@
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
-Le case demande à la gouvernance de vérifier le cadre « simulation seulement » (p. 9) et interdit de se présenter comme du conseil financier personnalisé (p. 17). Jusqu'ici, rien n'empêchait un argument d'écrire « vous devriez acheter » ou « TSLA va continuer à monter ». Les règles sont dans `CLAUDE.md`, section 4 quater.
+Le case demande à la gouvernance de vérifier le cadre « simulation seulement » (p. 9) et interdit de se présenter comme du conseil financier personnalisé (p. 17). Jusqu'ici, rien n'empêchait un argument d'écrire « vous devriez acheter » ou « TSLA va continuer à monter ». Les règles sont dans `REFERENCE_DU_PROJET.md`, section 4 quater.
 
 - **`pipeline/cadre_simulation.py`** (nouveau, Python sans LLM) :
   - `detecter_infractions(texte)` : expressions régulières fixes, en deux familles :
@@ -17,7 +17,7 @@ Le case demande à la gouvernance de vérifier le cadre « simulation seulement 
 - **`pipeline/tribunal.py`** : ajoute le contrôle `cadre_simulation` juste après `verifier_chiffres`, et une étape `greffier` / `verifier_cadre_simulation` dans la trace.
 - **`pipeline/contre_interrogatoire.py`** (#55) : les réponses passent déjà par `verifier_cote`, donc par le nouveau contrôle. Son compte rendu est ajouté comme étape `verifier_cadre_simulation` de la trace de l'échange, sans changer le format de l'échange.
 - **`pipeline/debat.py`** : règles A (aucun conseil) et B (aucune promesse ni prévision) dans `REGLES_COMMUNES`, plus une consigne dans le mode correction.
-- **Contrat** : `cadre_simulation` est ajouté à `CONTROLES_SYSTEME` (`contrat/valider.py`), donc il devient aussi un id de règle réservé (`pipeline/pacte.py`). Il est aussi ajouté à la description du schéma, aux deux faux contrats de `docs/exemples/` et à l'exemple de `CLAUDE.md`, section 5.
+- **Contrat** : `cadre_simulation` est ajouté à `CONTROLES_SYSTEME` (`contrat/valider.py`), donc il devient aussi un id de règle réservé (`pipeline/pacte.py`). Il est aussi ajouté à la description du schéma, aux deux faux contrats de `docs/exemples/` et à l'exemple de `REFERENCE_DU_PROJET.md`, section 5.
 - **`validation/scenarios.py`**, groupe 5 : les arguments passent maintenant par `trier_arguments`, avec 6 cas de plus (conseil, impératif, promesse, futur, promesse niée, citation du Pacte). Le rapport est régénéré : 40 réussis.
 
 ## Comment l'utiliser
@@ -43,7 +43,7 @@ Dans un procès, rien à brancher : `trier_arguments` l'applique déjà, et `jug
 
 ## Choix faits en cours de route
 - **Une seule relance pour les deux contrôles** : relancer une fois pour les chiffres, puis encore une fois pour le cadre, aurait donné deux relances par argument. Un texte corrigé pour le cadre aurait aussi pu casser ses chiffres sans être revérifié.
-- **Les prévisions à la baisse sont aussi refusées** (« TSLA va chuter », « le portefeuille perdra ») : le passé ne prédit pas l'avenir, dans un sens comme dans l'autre (`CLAUDE.md`, section 7). Une simulation se dit au passé, et un scénario au conditionnel avec l'étiquette `hypothese`.
+- **Les prévisions à la baisse sont aussi refusées** (« TSLA va chuter », « le portefeuille perdra ») : le passé ne prédit pas l'avenir, dans un sens comme dans l'autre (`REFERENCE_DU_PROJET.md`, section 7). Une simulation se dit au passé, et un scénario au conditionnel avec l'étiquette `hypothese`.
 - **La précision passe avant le rappel** : un faux positif coûte une relance Bedrock et peut faire rejeter un argument juste. Les verbes courants dans une argumentation sont donc écartés (« il faut rappeler », « gardez à l'esprit », « attendre », « passer », « dépasser »). Les verbes aussi transitifs (« doubler », « augmenter ») ne comptent que sans complément d'objet, et « le verdict vous reviendra » n'est pas une prévision.
 - **Un conseil nié reste un conseil** (« ne vendez pas », « vous ne devriez pas »). Seules les promesses tiennent compte de la négation.
 - **Une interrogation indirecte n'est ni un conseil ni une promesse** (« si », « s'il », « quand », « ce qu'… » dans la même proposition). Le contre-interrogatoire demande à l'agent de répondre à une demande de conseil que le Tribunal ne tranche pas : « le Tribunal ne dit pas s'il faut vendre » doit passer. « Je pense qu'il faut vendre » reste un conseil.

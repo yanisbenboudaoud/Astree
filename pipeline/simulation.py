@@ -1,13 +1,13 @@
 """Outil 2 : simuler_portefeuille — le portefeuille du profil avant et après la décision.
 
-C'est la pièce principale du procès (CLAUDE.md, sections 4 bis et 6 bis) : que
+C'est la pièce principale du procès (REFERENCE_DU_PROJET.md, sections 4 bis et 6 bis) : que
 serait devenu le portefeuille sur la période d'analyse, avec et sans la
 décision ? Elle remplit ``comparaison.actuel`` et ``comparaison.apres`` du
 contrat, et c'est la seule pièce obligatoire de l'orchestrateur.
 ``taille_max_compatible`` (#21) l'appelle en boucle : les rendements quotidiens
 sont donc chargés une seule fois par ensemble de titres.
 
-Méthode (CLAUDE.md, section 6 bis) :
+Méthode (REFERENCE_DU_PROJET.md, section 6 bis) :
 
 - **Prix** : ``charger_donnees`` (``adj_close`` en CAD, séances américaines).
 - **Rééquilibrage quotidien** aux poids cibles : le rendement du portefeuille un
@@ -56,7 +56,7 @@ TOLERANCE_POIDS = 1e-6
 LIMITES_PERIODE_COMPLETE = "Une seule période de {annees} ans ; biais du survivant ; le passé ne prédit pas l'avenir"
 LIMITES_REJEU = "Une seule année de crise ; la suivante peut être différente"
 # Ajoutée aux limites quand la pièce contient les données macro (#111). Sans chiffre : les
-# agents ne reprennent aucun nombre des limites (CLAUDE.md, section 4 ter).
+# agents ne reprennent aucun nombre des limites (REFERENCE_DU_PROJET.md, section 4 ter).
 LIMITES_MACRO = "inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés"
 # Exposition en devise de la pièce de la période complète (#112), sans chiffre non plus.
 TRAITEMENT_DEVISES = "exposition en devise : part du portefeuille par devise de cotation (assets_universe.csv)"

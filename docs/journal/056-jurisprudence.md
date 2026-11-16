@@ -11,7 +11,7 @@
 - `pipeline/orchestrateur.py` : l'outil est ajouté à la liste blanche de `outils_du_profil`. Son seul paramètre est `regle`, avec pour valeurs possibles les `id` des règles du Pacte jugé et `toutes`. Une ligne d'exemple a été ajoutée aux consignes. Le budget de 8 appels ne change pas.
 - `deploiement/lambda_tribunal.py` : `/verdict` archive désormais dans `verdicts/<profil>/<id>.json` (au lieu de `verdicts/<id>.json`, fiche 013), pour que la jurisprudence lise un seul préfixe.
 - `pipeline/debat.py` (seconde PR) : une phrase de la consigne du Procureur l'invite à rappeler un antécédent de la jurisprudence (date, décision, verdict), sans reproche. Sans elle, la pièce était versée au dossier mais aucun argument ne la citait.
-- `CLAUDE.md` (tableau 4 bis, outil 7), carte du `README.md`, `deploiement/README.md`, `docs/architecture.md`.
+- `REFERENCE_DU_PROJET.md` (tableau 4 bis, outil 7), carte du `README.md`, `deploiement/README.md`, `docs/architecture.md`.
 
 ## Comment l'utiliser
 ```python

@@ -8,11 +8,11 @@
 - **`docs/journal/`** : le journal de construction.
   - `README.md` : à quoi sert le journal, ses règles et le modèle de fiche.
   - Fiches rétroactives pour le travail déjà fusionné : `000` (fondations), `002` (contrat JSON), `003` (Pacte générique), `004` (`charger_donnees`), `007` (client LLM).
-- **`CLAUDE.md`, section 11** : nouvelle règle « Journal » : chaque PR qui termine ou avance une issue ajoute ou met à jour sa fiche, et la carte du dépôt si besoin. Comme `CLAUDE.md` est partagé par Git, la session Claude de chaque membre suit cette règle.
+- **`REFERENCE_DU_PROJET.md`, section 11** : nouvelle règle « Journal » : chaque PR qui termine ou avance une issue ajoute ou met à jour sa fiche, et la carte du dépôt si besoin. Comme `REFERENCE_DU_PROJET.md` est partagé par Git, la session Claude de chaque membre suit cette règle.
 - **`.github/pull_request_template.md`** : deux cases à cocher, la fiche du journal et la carte du dépôt.
 
 PR #177 (2026-11-15) :
-- **`docs/DOCUMENTATION_TECHNIQUE.md`** : rôle de chaque agent, orchestrateur et garde-fous (liste blanche, budget de 8 appels, pièce obligatoire, phases fixes), outils, méthode de calcul et hypothèses, Pacte générique, explicabilité, règles de `verifier_chiffres`, validations, limites et schéma AWS. Elle renvoie à `CLAUDE.md`, `docs/CHOIX_CONCEPTION.md`, `docs/architecture.md` et aux fiches au lieu de les recopier ; chaque chiffre cité renvoie à son fichier.
+- **`docs/DOCUMENTATION_TECHNIQUE.md`** : rôle de chaque agent, orchestrateur et garde-fous (liste blanche, budget de 8 appels, pièce obligatoire, phases fixes), outils, méthode de calcul et hypothèses, Pacte générique, explicabilité, règles de `verifier_chiffres`, validations, limites et schéma AWS. Elle renvoie à `REFERENCE_DU_PROJET.md`, `docs/CHOIX_CONCEPTION.md`, `docs/architecture.md` et aux fiches au lieu de les recopier ; chaque chiffre cité renvoie à son fichier.
   - Exemple d'explicabilité tiré d'un vrai procès (`frontend/src/data/proces/2026-11-15-032ec3367b19.json`, 25 % en TSLA) : argument du Procureur → pièce `P4` (`indicateurs_actif`) → étape de la trace avec la raison de l'orchestrateur → `prices_daily.csv` et `fx_usdcad_daily.csv`, puis la commande qui recalcule la pièce.
   - Exemple d'argument renvoyé puis corrigé, tiré de l'étape `bedrock_correction` du même procès (« 30 % » introuvable dans `P6`).
 - **`docs/ONE_PAGER.md`** : problème, Tribunal, originalité, données, explicabilité, bénéfices, en une page.
@@ -31,7 +31,7 @@ Documentation technique : chaque lien relatif mène à un fichier existant (sauf
 - **Un fichier par issue**, plutôt qu'un seul `JOURNAL.md` : plusieurs PR avancent en parallèle, et un fichier commun entrerait en conflit à chaque fusion.
 - **Deux vues séparées** : la carte du `README.md` donne l'état actuel et se met à jour sur place ; les fiches gardent l'histoire et ne sont pas réécrites quand le code change plus tard.
 - **Pas d'index des fiches** : la liste du dossier, triée par numéro, en tient lieu, et un index commun serait une autre source de conflits.
-- **Pas de hook** : une règle dans `CLAUDE.md` et une case dans le modèle de PR suffisent pour un projet de 2 jours.
+- **Pas de hook** : une règle dans `REFERENCE_DU_PROJET.md` et une case dans le modèle de PR suffisent pour un projet de 2 jours.
 
 ## Limites et suite
 Reste à faire dans cette issue : la **vidéo**.

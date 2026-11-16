@@ -4,7 +4,7 @@
 - **Dernière mise à jour** : 2026-11-14
 
 ## Ce qui a été construit
-- **`contrat/schema_sortie.json`** : schéma JSON du contrat (`CLAUDE.md`, section 5). Il vérifie les champs obligatoires, les valeurs permises (`statut`, `etiquette`, type de pièce, `verdict`, `cote`), les paramètres de chaque type de règle, et l'absence de chiffre dans la `raison` des appels de l'orchestrateur. Il refuse tout champ inconnu.
+- **`contrat/schema_sortie.json`** : schéma JSON du contrat (`REFERENCE_DU_PROJET.md`, section 5). Il vérifie les champs obligatoires, les valeurs permises (`statut`, `etiquette`, type de pièce, `verdict`, `cote`), les paramètres de chaque type de règle, et l'absence de chiffre dans la `raison` des appels de l'orchestrateur. Il refuse tout champ inconnu.
 - **`contrat/valider.py`** : le schéma, plus les renvois entre champs que le schéma ne peut pas exprimer (pièces citées qui existent, un contrôle par règle du Pacte, aucune règle inconnue, simulation obligatoire présente dans la trace, poids du panier qui totalisent 1).
   - `valider_contrat(contrat) -> list[str]` : liste des erreurs, vide si le contrat est valide.
   - `CONTROLES_SYSTEME` : les contrôles admis en plus des règles du Pacte.

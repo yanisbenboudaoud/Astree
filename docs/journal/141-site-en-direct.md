@@ -15,7 +15,7 @@ Aucun code : cette issue met en ligne ce que #135, #136 et #137 ont construit. D
 Documentation mise à jour :
 - `deploiement/README.md`, section « Interface hébergée » : mode actuel, consigne de mise à jour (sans `--mode`), tableau « Vérifié le 2026-11-16 » ;
 - `README.md` (« Essayer sans rien installer ») ;
-- `CLAUDE.md` (architecture AWS).
+- `REFERENCE_DU_PROJET.md` (architecture AWS).
 
 ## Comment l'utiliser
 - Vrai procès : https://d15khh2djw55mh.cloudfront.net, de 20 à 50 s par procès, deux procès au plus en même temps.

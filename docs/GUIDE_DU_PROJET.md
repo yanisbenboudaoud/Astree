@@ -226,7 +226,7 @@ Garde-fous de coût : 2 procès en même temps au maximum, une alerte de budget,
 
 ```
 Datathon2026/
-├── CLAUDE.md               les règles du projet (la référence)
+├── REFERENCE_DU_PROJET.md               les règles du projet (la référence)
 ├── README.md               démarrage rapide et organisation du dépôt
 ├── alphaforge_starter/     les données de marché fournies par le datathon
 ├── personas/               les profils et leurs Pactes (un fichier par profil)
@@ -246,7 +246,7 @@ Datathon2026/
 
 | Fichier | Rôle |
 |---|---|
-| `CLAUDE.md` | **Les règles du projet** : le but, l'architecture, le format du contrat, les pièges des données. En cas de doute, c'est lui qui fait foi. |
+| `REFERENCE_DU_PROJET.md` | **Les règles du projet** : le but, l'architecture, le format du contrat, les pièges des données. En cas de doute, c'est lui qui fait foi. |
 | `README.md` | Comment démarrer, et l'organisation du dépôt par dossier. |
 | `docs/CARTE_DU_DEPOT.md` | La **carte du dépôt** : une ligne par fichier important, avec sa fiche du journal. |
 | `requirements.txt` | Les bibliothèques Python embarquées dans la Lambda. |
@@ -270,7 +270,7 @@ Fournies par le datathon, du 2021-11-12 au 2026-11-12. On ne les modifie pas.
 | `corporate_actions.csv` | Dividendes et fractionnements, à titre d'information seulement |
 | `sources_metadata.csv`, `README.md`, `data_quality_warnings.txt`, `build_dataset.py` | D'où viennent les données, leurs défauts connus, et le script qui les a produites |
 
-**Pièges connus** (détaillés dans `CLAUDE.md`, section 6) : les prix sont en deux devises, la crypto se négocie aussi la fin de semaine, et l'univers a été choisi en 2026, ce qui fait paraître le passé plus beau qu'il n'était (biais du survivant).
+**Pièges connus** (détaillés dans `REFERENCE_DU_PROJET.md`, section 6) : les prix sont en deux devises, la crypto se négocie aussi la fin de semaine, et l'univers a été choisi en 2026, ce qui fait paraître le passé plus beau qu'il n'était (biais du survivant).
 
 ## 3.4 `personas/`, `config/`, `donnees_externes/` : ce que le système lit
 
@@ -488,8 +488,8 @@ Deux règles d'équipe : aucune mention de l'assistant de code dans les commits 
 |---|---|
 | **Ajouter un profil** | Écrire `personas/<id>.json` (copier un profil existant). Aucun code. Puis, pour l'interface, régénérer ses chiffres depuis la racine : `.venv/bin/python -X utf8 scripts/build_ui_series.py` (sous Windows : `npm run series` dans `frontend/`). |
 | **Changer un seuil du Pacte** | Modifier le fichier du profil, et la `justification` de la règle. |
-| **Ajouter un type de règle** | Une fonction dans `pipeline/greffier.py`, une ligne dans le tableau de `CLAUDE.md` (section 3), et le schéma `personas/schema_pacte.json`. |
-| **Ajouter un outil** | Un fichier dans `pipeline/` (sans LLM, avec ses tests), une entrée dans `outils_du_profil` (`pipeline/orchestrateur.py`), une ligne dans `CLAUDE.md` (section 4 bis). |
+| **Ajouter un type de règle** | Une fonction dans `pipeline/greffier.py`, une ligne dans le tableau de `REFERENCE_DU_PROJET.md` (section 3), et le schéma `personas/schema_pacte.json`. |
+| **Ajouter un outil** | Un fichier dans `pipeline/` (sans LLM, avec ses tests), une entrée dans `outils_du_profil` (`pipeline/orchestrateur.py`), une ligne dans `REFERENCE_DU_PROJET.md` (section 4 bis). |
 | **Changer le contrat JSON** | **Prévenir toute l'équipe d'abord.** Puis `contrat/schema_sortie.json`, `contrat/valider.py`, `docs/exemples/`, et `frontend/src/api/contrat.ts`. |
 | **Changer ce que dit un agent** | Ses consignes : `pipeline/debat.py` (Procureur, Avocat), `pipeline/orchestrateur.py` (`CONSIGNES`), `pipeline/agent_profil.py`. |
 | **Comprendre pourquoi une chose est ainsi** | `docs/CHOIX_CONCEPTION.md`, puis la fiche du journal indiquée dans la carte du `README.md`. |
@@ -535,7 +535,7 @@ La liste à jour est toujours sur GitHub, onglet *Issues*.
 
 | Pour… | Lire |
 |---|---|
-| Les règles complètes | `CLAUDE.md` |
+| Les règles complètes | `REFERENCE_DU_PROJET.md` |
 | Le pourquoi de chaque choix | `docs/CHOIX_CONCEPTION.md` |
 | L'architecture AWS en détail | `docs/architecture.md`, `deploiement/README.md` |
 | L'histoire de chaque morceau | `docs/journal/` (une fiche par issue) |

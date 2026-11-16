@@ -413,7 +413,7 @@ def test_l_exposition_en_usd_passe_le_greffier():
 
     piece = piece_simulation("P1", PORTEFEUILLE, DECISION)
     dossier = {"decision": DECISION, "pieces": [piece], "periode": ["2021-11-12", "2026-11-12"]}
-    # Une part s'écrit sans signe : le Greffier la lit comme positive (CLAUDE.md, section 4 ter, règle 4).
+    # Une part s'écrit sans signe : le Greffier la lit comme positive (REFERENCE_DU_PROJET.md, section 4 ter, règle 4).
     texte = ("Avec cette décision, la part de votre portefeuille cotée en dollars américains passerait de "
              "10 % à 37 % : sa valeur en CAD dépendrait davantage du taux de change.")
     assert verifier_argument({"texte": texte, "pieces": ["P1"]}, dossier).introuvables == []

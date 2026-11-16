@@ -8,7 +8,7 @@
   - `debattre(dossier)` : appelle le Procureur et l'Avocat **en parallèle** et renvoie un `ResultatDebat` (`requisitoire`, `plaidoirie`, `trace`).
   - `plaider(role, dossier)` : les arguments d'un seul rôle (`"procureur"` ou `"avocat"`), au format `argument` du contrat (`etiquette`, `texte`, `pieces`), avec leur étape de trace.
   - `corriger_argument(role, dossier, argument, motif)` : mode correction, qui renvoie un argument refusé à son agent avec le motif exact du Greffier, pour une réécriture unique. Il se branche sur `pipeline.chiffres.trier_arguments` (fiche du Greffier, #10).
-  - `CONSIGNES` et `REGLES_COMMUNES` : les prompts, qui reprennent les règles de `verifier_chiffres` (`CLAUDE.md`, section 4 ter).
+  - `CONSIGNES` et `REGLES_COMMUNES` : les prompts, qui reprennent les règles de `verifier_chiffres` (`REFERENCE_DU_PROJET.md`, section 4 ter).
   - `schema_arguments` et `schema_argument` : la sortie JSON imposée. Les pièces citées sont limitées à celles du dossier.
 - **`tests/test_debat.py`** : 6 tests unitaires sans LLM (dont un qui prouve que les deux appels se chevauchent) et 5 tests réels. Ceux-ci couvrent les deux faux contrats de `docs/exemples/`, deux **vrais procès** (vraies pièces de l'Agent Profil et de l'orchestrateur), chacun passé au Greffier, et une correction.
 

@@ -1,6 +1,6 @@
-# CLAUDE.md — Projet AlphaForge AI (Datathon PolyFinances 2026)
+# REFERENCE_DU_PROJET.md — Projet AlphaForge AI (Datathon PolyFinances 2026)
 
-Ce fichier donne à Claude le contexte et les règles du projet. Toute l'équipe partage ce fichier via Git : si une règle change, modifiez-la ici et faites un commit.
+Ce fichier est la référence du projet : son but, ses règles, son architecture et le contrat JSON. En cas de doute, c'est lui qui fait foi. Toute l'équipe le partage via Git : si une règle change, modifiez-la ici et faites un commit.
 
 ## 1. But du projet
 

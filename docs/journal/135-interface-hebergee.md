@@ -14,7 +14,7 @@ L'interface n'est plus seulement sur `localhost:5173` : elle est en ligne à **h
   - `chemins_a_invalider`, `invalider`, `origine_autorisee` : invalidation si besoin, et un avertissement si le CORS de la Function URL n'autorise pas le site.
 - **`tests/test_deployer_interface.py`** : 13 tests avec de faux clients S3 et CloudFront qui gardent leur état (aucun appel AWS ni npm).
 - **Ressources AWS créées** : bucket `alphaforge-site-<compte>`, OAC `alphaforge-interface`, distribution `E38EHD2ML8M1CA`.
-- **Documentation** : section « Interface hébergée » de `deploiement/README.md` (réglages, raisons, vérifications), schéma et tableau des services de `docs/architecture.md`, `CLAUDE.md` (section 1 bis), `README.md` (« Démarrage », carte du dépôt), `frontend/README.md`.
+- **Documentation** : section « Interface hébergée » de `deploiement/README.md` (réglages, raisons, vérifications), schéma et tableau des services de `docs/architecture.md`, `REFERENCE_DU_PROJET.md` (section 1 bis), `README.md` (« Démarrage », carte du dépôt), `frontend/README.md`.
 
 ## Comment l'utiliser
 ```powershell

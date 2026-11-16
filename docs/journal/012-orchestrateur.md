@@ -42,7 +42,7 @@ Les tests vérifient la numérotation des pièces, le paramètre `raison` ajout�
 - **Pièce obligatoire** : la simulation `periode: "complete"` de la décision demandée (même titre, taille et financement). Une simulation d'une autre taille ou du rejeu 2022 ne compte pas.
 - **Numérotation** : le Pacte est P1 (créé par l'Agent Profil), l'orchestrateur numérote à partir de P2.
 - **`comparaison`** est calculée directement par `simuler_portefeuille` dans `juger_decision` : ce n'est pas un choix du modèle.
-- **`persona`** contient l'identifiant du profil (`robert`), comme le dit `CLAUDE.md` section 5 (l'exemple `contrat_robert.json` écrit `Robert`).
+- **`persona`** contient l'identifiant du profil (`robert`), comme le dit `REFERENCE_DU_PROJET.md` section 5 (l'exemple `contrat_robert.json` écrit `Robert`).
 - **Commande** : `python -m pipeline <id> "<demande>"` au lieu de `python -m alphaforge personas/robert.json "…"` prévu dans l'issue : il n'y a pas de paquet `alphaforge`, et l'Agent Profil charge un profil par identifiant (fiche 008).
 
 **Procès complet, vrai appel** (profil prudent, « 30 % en TSLA ») : environ 22 s ; 8 arguments (4 de chaque côté), **29/29 chiffres vérifiés**, aucun rejet ; `valider_contrat` ne signale que l'absence de `taille_max_compatible`.

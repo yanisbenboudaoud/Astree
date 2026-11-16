@@ -8,7 +8,7 @@
 - **Vérifications sur la Lambda déployée** (`alphaforge-tribunal`), consignées dans `deploiement/README.md`, section « Vérifié sur la Lambda déployée ».
 - **`deploiement/tester_function_url.py`** : lance un procès sur la Lambda par sa Function URL. Il lit l'adresse sur le compte, signe la requête (la Function URL est en `AWS_IAM`) et affiche le statut, la durée et un résumé du contrat.
 - **Alerte de budget** `alphaforge-budget-mensuel`, créée sur le compte : 100 $ par mois, courriel à 80 % du réel et à 100 % du prévu.
-- **`deploiement/README.md`**, **`CLAUDE.md`** (section 1 bis) : la Function URL reste en `AWS_IAM` tant que l'interface n'est pas en ligne ; ce qu'il faudra régler pour l'interface (`NONE`, CORS, `ExposeHeaders`) ; la section « Coûts ».
+- **`deploiement/README.md`**, **`REFERENCE_DU_PROJET.md`** (section 1 bis) : la Function URL reste en `AWS_IAM` tant que l'interface n'est pas en ligne ; ce qu'il faudra régler pour l'interface (`NONE`, CORS, `ExposeHeaders`) ; la section « Coûts ».
 
 1re PR (#46) :
 - **`deploiement/README.md`** : les paramètres vérifiés du déploiement, pour la #13. On y trouve le runtime, la couche pandas, le délai, la mémoire, la concurrence, les variables d'environnement, le contenu et la taille du zip, la Function URL et le CORS.
@@ -16,7 +16,7 @@
 - **`requirements-dev.txt`** : pandas 3.1.0, numpy 2.5.4 et pyarrow 24.0.0, **les versions de la couche Lambda** (pandas était en 2.3.3).
 - **`requirements.txt`** : un commentaire explique ce qui va dans le zip, dont boto3.
 - **`tests/test_donnees.py`** : `dayofweek` remplacé par `day_of_week`, obsolète en pandas 3.
-- **`CLAUDE.md`** (section 1 bis) et **`docs/CHOIX_CONCEPTION.md`** (choix 13) : la décision et les valeurs retenues.
+- **`REFERENCE_DU_PROJET.md`** (section 1 bis) et **`docs/CHOIX_CONCEPTION.md`** (choix 13) : la décision et les valeurs retenues.
 
 ## Comment l'utiliser
 Mettre à jour son environnement local (pandas passe en 3.1.0) :

@@ -35,7 +35,7 @@ RATIO_MAXIMAL = 0.05  # au-delà, une erreur de saisie (5 % par an) : le relevé
 HYPOTHESE_FRAIS = (
     "Frais de gestion des FNB : déjà prélevés dans les cours (adj_close), affichés sans être déduits une seconde fois"
 )
-# Sans chiffre : les agents ne reprennent aucun nombre des limites (CLAUDE.md, section 4 ter).
+# Sans chiffre : les agents ne reprennent aucun nombre des limites (REFERENCE_DU_PROJET.md, section 4 ter).
 LIMITES_FRAIS = (
     "frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage "
     "et écart entre prix d'achat et de vente non comptés"

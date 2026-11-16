@@ -4,7 +4,7 @@
 - **Dernière mise à jour** : 2026-11-15
 
 ## Ce qui a été construit
-- **`pipeline/chiffres.py`** : `detailler_argument(argument, dossier)`. Même verdict que `verifier_argument` (mêmes règles, `CLAUDE.md` §4 ter), mais nombre par nombre : où chaque nombre a été trouvé (pièce citée, « décision » ou « période »), ou son motif exact s'il est introuvable (« « −40 % » introuvable dans P2 », « … (présent dans P3, pièce non citée) »). Renvoie `valide`, `motif`, `nombres`, `compte`.
+- **`pipeline/chiffres.py`** : `detailler_argument(argument, dossier)`. Même verdict que `verifier_argument` (mêmes règles, `REFERENCE_DU_PROJET.md` §4 ter), mais nombre par nombre : où chaque nombre a été trouvé (pièce citée, « décision » ou « période »), ou son motif exact s'il est introuvable (« « −40 % » introuvable dans P2 », « … (présent dans P3, pièce non citée) »). Renvoie `valide`, `motif`, `nombres`, `compte`.
 - **`deploiement/lambda_tribunal.py`** : route `POST /verifier` `{"id", "texte", "pieces"}`. Elle relit le procès archivé (`traces/<date>/<id>.json`, y compris les pièces ajoutées par le contre-interrogatoire) et appelle `detailler_argument`, **sans Bedrock**. Garde-fous du point d'accès public : 600 caractères, 10 pièces, identifiants de pièce au format `P<n>`, 30 vérifications par minute et par adresse IP (`trop_de_verifications`, fenêtre glissante en mémoire de l'instance, réponse 429).
 - **Interface** (`frontend/`) :
   - `src/components/TrompezLeGreffier.tsx`, sur l'écran Tribunal : champ « Votre argument », pièces à cocher, et chaque nombre affiché « Trouvé » (vert, avec sa pièce) ou « Introuvable » (rouge, avec le motif), ainsi que le temps de réponse mesuré ;

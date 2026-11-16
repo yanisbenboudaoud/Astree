@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://alphaforge.ai/contrat/schema_sortie.json",
-  "title": "Contrat de sortie du Tribunal (CLAUDE.md, section 5)",
+  "title": "Contrat de sortie du Tribunal (REFERENCE_DU_PROJET.md, section 5)",
   "description": "Une réponse par audience, quel que soit le profil. Les nombres sont des décimales (0.30 = 30 %), en CAD sauf mention contraire. Les renvois entre champs (pièces citées, règles contrôlées) sont vérifiés par contrat/valider.py, pas par ce schéma.",
   "type": "object",
   "additionalProperties": false,
@@ -216,7 +216,7 @@
     },
 
     "regle": {
-      "description": "Règle du Pacte, reprise du fichier profil sans sa justification. Paramètres selon le type (CLAUDE.md, section 3).",
+      "description": "Règle du Pacte, reprise du fichier profil sans sa justification. Paramètres selon le type (REFERENCE_DU_PROJET.md, section 3).",
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "type", "libelle"],

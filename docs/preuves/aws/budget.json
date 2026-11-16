@@ -1,0 +1,20 @@
+[
+ {
+  "BudgetName": "alphaforge-budget-mensuel",
+  "BudgetLimit": {
+   "Amount": "100.0",
+   "Unit": "USD"
+  },
+  "TimeUnit": "MONTHLY",
+  "CalculatedSpend": {
+   "ActualSpend": {
+    "Amount": "17.291",
+    "Unit": "USD"
+   },
+   "ForecastedSpend": {
+    "Amount": "8.646",
+    "Unit": "USD"
+   }
+  }
+ }
+]

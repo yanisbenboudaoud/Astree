@@ -1,0 +1,53 @@
+{
+ "FunctionName": "alphaforge-tribunal",
+ "FunctionArn": "arn:aws:lambda:us-east-1:908027376963:function:alphaforge-tribunal",
+ "Runtime": "python3.14",
+ "Role": "arn:aws:iam::908027376963:role/alphaforge-lambda",
+ "Handler": "lambda_tribunal.handler",
+ "CodeSize": 17826035,
+ "Description": "Tribunal AlphaForge : POST /tribunal et /verdict (#13)",
+ "Timeout": 300,
+ "MemorySize": 1024,
+ "LastModified": "2026-11-16T01:35:22.000+0000",
+ "CodeSha256": "RAbDfo29AXLe5H1f7A4AEmC1umc69KdjrKhauw4ufYU=",
+ "Version": "$LATEST",
+ "Environment": {
+  "Variables": {
+   "SOURCE_DONNEES": "s3",
+   "BUCKET_PROJET": "alphaforge-908027376963",
+   "BEDROCK_GUARDRAIL_VERSION": "1",
+   "BEDROCK_GUARDRAIL_ID": "4j1tyv0fqmto",
+   "BEDROCK_MODEL_ID": "global.anthropic.claude-sonnet-5-5"
+  }
+ },
+ "TracingConfig": {
+  "Mode": "PassThrough"
+ },
+ "RevisionId": "ca1b0508-76dd-43d7-8369-54a23dd7fc8c",
+ "Layers": [
+  {
+   "Arn": "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python314:12",
+   "CodeSize": 60910316
+  }
+ ],
+ "State": "Active",
+ "LastUpdateStatus": "Successful",
+ "PackageType": "Zip",
+ "Architectures": [
+  "x86_64"
+ ],
+ "EphemeralStorage": {
+  "Size": 512
+ },
+ "SnapStart": {
+  "ApplyOn": "None",
+  "OptimizationStatus": "Off"
+ },
+ "RuntimeVersionConfig": {
+  "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:eaebdc1115476ede1dce9876df554dcaaae527c20c43bd19bfeaa754e9eafb4d"
+ },
+ "LoggingConfig": {
+  "LogFormat": "Text",
+  "LogGroup": "/aws/lambda/alphaforge-tribunal"
+ }
+}

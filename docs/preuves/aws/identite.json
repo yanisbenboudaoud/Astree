@@ -1,0 +1,5 @@
+{
+ "UserId": "AROA5G2VGGVB2M4F4AAW5:Participant",
+ "Account": "908027376963",
+ "Arn": "arn:aws:sts::908027376963:assumed-role/WSParticipantRole/Participant"
+}

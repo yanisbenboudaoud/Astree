@@ -14,8 +14,9 @@ rapport donne le nombre de procès lus et la date de lecture, et il change quand
 nouveaux procès sont archivés.
 
 Usage : ``python -m validation.evaluation orchestrateur`` (S3 et procès locaux, avec les
-identifiants de ``aws login``) ou ``python -m validation.evaluation orchestrateur --local``
-(procès de l'interface seulement).
+identifiants de ``aws login``), ``python -m validation.evaluation orchestrateur --archive`` (la
+copie de S3 versée au dépôt, ``validation/proces_tenus.tar.gz``, #191 : reproductible sans AWS)
+ou ``python -m validation.evaluation orchestrateur --local`` (procès de l'interface seulement).
 """
 
 from __future__ import annotations
@@ -85,10 +86,11 @@ class Lecture:
     origines: dict[str, list[str]]  # id → ["S3", "interface"]
     date_lecture: str
     bucket: str | None
+    archive: bool = False  # traces relues dans validation/proces_tenus.tar.gz, pas dans S3 (#191)
 
 
 def rassembler(s3: dict[str, dict[str, Any]], locaux: dict[str, dict[str, Any]], date_lecture: str,
-               bucket: str | None) -> Lecture:
+               bucket: str | None, archive: bool = False) -> Lecture:
     """Union des deux sources : un procès de l'interface est souvent une copie d'une trace S3."""
     contrats, origines = {}, {}
     for origine, source in (("S3", s3), ("interface", locaux)):
@@ -96,7 +98,7 @@ def rassembler(s3: dict[str, dict[str, Any]], locaux: dict[str, dict[str, Any]],
             contrats.setdefault(identifiant, contrat)
             origines.setdefault(identifiant, []).append(origine)
     ordre = sorted(contrats)
-    return Lecture({i: contrats[i] for i in ordre}, {i: origines[i] for i in ordre}, date_lecture, bucket)
+    return Lecture({i: contrats[i] for i in ordre}, {i: origines[i] for i in ordre}, date_lecture, bucket, archive)
 
 
 # --- Lecture d'une trace ---------------------------------------------------------------
@@ -364,8 +366,11 @@ def rapport(lecture: Lecture, mesures: Mesures, plan: dict[str, Any] | None = No
     depuis_s3 = sum("S3" in o for o in lecture.origines.values())
     locaux = sum("interface" in o for o in lecture.origines.values())
     dates = sorted(i[:10] for i in lecture.contrats)
-    commande = "python -m validation.evaluation orchestrateur" + ("" if lecture.bucket else " --local")
-    source = (f"`s3://{lecture.bucket}/{PREFIXE_TRACES}` ({depuis_s3} procès) et `frontend/src/data/proces/` "
+    commande = "python -m validation.evaluation orchestrateur" + (
+        " --archive" if lecture.archive else "" if lecture.bucket else " --local")
+    lieu_s3 = (f"`validation/proces_tenus.tar.gz`, copie de `s3://{lecture.bucket}/{PREFIXE_TRACES}`"
+               if lecture.archive else f"`s3://{lecture.bucket}/{PREFIXE_TRACES}`")
+    source = (f"{lieu_s3} ({depuis_s3} procès) et `frontend/src/data/proces/` "
               f"({locaux} procès, dont {sum(o == ['interface'] for o in lecture.origines.values())} absents de S3)"
               if lecture.bucket else f"`frontend/src/data/proces/` seulement ({locaux} procès ; S3 non lu)")
 
@@ -488,10 +493,15 @@ def rapport(lecture: Lecture, mesures: Mesures, plan: dict[str, Any] | None = No
 
 # --- Commande ---------------------------------------------------------------------------
 
-def lire(local_seulement: bool = False) -> Lecture:
+def lire(local_seulement: bool = False, archive: bool = False) -> Lecture:
     locaux = lire_proces_locaux()
     if local_seulement:
         return rassembler({}, locaux, date.today().isoformat(), None)
+    if archive:
+        # La date de lecture est celle de la copie : le rapport se régénère à l'identique (#191).
+        from validation.archive_proces import traces_archivees
+        traces, manifeste = traces_archivees()
+        return rassembler(traces, locaux, manifeste["lu_le"][:10], manifeste["bucket"], archive=True)
     bucket = nom_bucket_projet()
     return rassembler(lire_traces_s3(bucket), locaux, date.today().isoformat(), bucket)
 
@@ -500,13 +510,13 @@ def executer(arguments: list[str]) -> tuple[str, str]:
     """Lit les procès, écrit le rapport ; rend le chemin et un résumé d'une ligne."""
     from validation.plan_proces import charger_plan, charger_resultats
 
-    lecture = lire(local_seulement="--local" in arguments)
+    lecture = lire(local_seulement="--local" in arguments, archive="--archive" in arguments)
     mesures = mesurer(lecture.contrats.values())
     chemin = RACINE / "docs" / "validation" / "evaluation_orchestrateur.md"
     chemin.write_text(rapport(lecture, mesures, charger_plan(), charger_resultats()), encoding="utf-8")
     if "--local" not in arguments:
-        # Bulletin du Greffier (#172) : seulement sur la lecture complète (S3), pour qu'une lecture
-        # locale de quelques procès n'écrase pas la mesure faite sur tous les procès tenus.
+        # Bulletin du Greffier (#172) : seulement sur une lecture complète (S3 ou sa copie archivée),
+        # pour qu'une lecture locale de quelques procès n'écrase pas la mesure faite sur tous les procès.
         from validation.bulletin import mesure_orchestrateur, ranger_mesure
         ranger_mesure(*mesure_orchestrateur(mesures, lecture.date_lecture))
     return str(chemin.relative_to(RACINE)), f"{mesures.nb_proces} procès lus le {lecture.date_lecture}"

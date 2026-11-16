@@ -28,6 +28,43 @@
    },
    "date": "2026-11-15"
   },
+  "orchestrateur": {
+   "issue": 167,
+   "rapport": "docs/validation/evaluation_orchestrateur.md",
+   "proces": 218,
+   "lu_le": "2026-11-16",
+   "budget_respecte": {
+    "k": 218,
+    "n": 218,
+    "taux": 1.0,
+    "rates": 0,
+    "ic95": [
+     0.9827,
+     1.0
+    ]
+   },
+   "simulation_demandee": {
+    "k": 218,
+    "n": 218,
+    "taux": 1.0,
+    "rates": 0,
+    "ic95": [
+     0.9827,
+     1.0
+    ]
+   },
+   "corriges_apres_renvoi": {
+    "k": 146,
+    "n": 152,
+    "taux": 0.9605,
+    "rates": 6,
+    "ic95": [
+     0.9166,
+     0.9818
+    ]
+   },
+   "date": "2026-11-15"
+  },
   "validation_externe": {
    "issue": 168,
    "rapport": "docs/validation/validation_externe.md",

@@ -30,7 +30,7 @@ La docstring du module montre la boucle complète de l'orchestrateur avec `conve
 pytest                # tests unitaires, sans réseau ni AWS
 pytest -m bedrock     # 3 vrais appels Bedrock (payants, quelques jetons)
 ```
-Configuration du poste : voir « Démarrage » dans le `README.md` de la racine.
+Configuration du poste : voir « Installation (guide court) » dans le `README.md` de la racine.
 
 ## Choix faits en cours de route
 - **Modèles** : `us.anthropic.claude-sonnet-5-5` pour les agents, `us.anthropic.claude-haiku-5-5` (moins cher) pour les tests ; on change avec `BEDROCK_MODEL_ID`, sans toucher au code.

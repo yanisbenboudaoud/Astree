@@ -24,3 +24,5 @@ archives/
 
 # Documents officiels du Datathon (case, présentation, transcription) : gardés en local, jamais versionnés
 Datathonprep2026/
+
+.claude/

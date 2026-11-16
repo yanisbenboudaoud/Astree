@@ -1,7 +1,7 @@
 # #189 — Agents coordonnés et mesurés : réplique, trace horodatée, Guardrail Bedrock
 
-- **Issue** : #189 · **PR** : à venir · **Statut** : en cours (code et tests faits ; déploiement et procès enregistrés à faire)
-- **Dernière mise à jour** : 2026-11-15
+- **Issue** : #189 · **PR** : #190 · **Statut** : terminée
+- **Dernière mise à jour** : 2026-11-16
 
 ## Ce qui a été construit
 Quatre manques de la partie agentique (audit du 15 novembre) : les agents ne se répondaient pas, la trace n'avait ni heure ni coût, le choix des preuves par l'orchestrateur était replié, et le cadre « simulation seulement » n'avait qu'un contrôle.
@@ -13,6 +13,17 @@ Quatre manques de la partie agentique (audit du 15 novembre) : les agents ne se 
 - **Interface** : cinquième phase « Réplique » à l'écran de chargement ; sous le tableau du débat, le bloc « Les répliques » (l'argument visé rappelé par sa première phrase) ; l'encadré « Comment les agents ont instruit ce dossier », visible sans rien déplier, qui liste chaque calcul choisi par l'orchestrateur avec sa raison, ceux ajoutés d'office par Python, et la mesure Bedrock (`frontend/src/domaine/instruction.ts`) ; le moment de chaque étape (« +12,4 s ») dans « Comment le Tribunal a travaillé ». Le procès-verbal annonce chaque réplique (« Réplique à l'argument 1 de l'Avocat »).
 - **Tests** : `tests/conftest.py` interdit désormais tout client Bedrock dans un test non marqué `bedrock` : un appel oublié derrière un faux échoue au lieu d'être facturé (c'est arrivé une fois pendant ce travail, avant ce garde-fou : un ou deux appels de réplique).
 
+- **Déployé et essayé sur la Lambda** (2026-11-16) : Guardrail créé (version 1) ; trois procès réels, tous valides, chacun avec deux répliques, 0 argument rejeté et 0 intervention du Guardrail sur 10 ou 11 textes :
+
+  | Procès | Profil · décision | Appels Bedrock | Jetons lus / écrits | Coût estimé | Durée | Chiffres |
+  |---|---|---|---|---|---|---|
+  | `2026-11-16-dc4199dcaa79` | Robert · 30 % TSLA | 8 | 65 710 / 8 271 | 0,21 $ | 56 s | 35/35 |
+  | `2026-11-16-6563f5a1e2be` | Amira · panier à 25 % | 7 | 61 493 / 8 594 | 0,21 $ | 56 s | 28/28 |
+  | `2026-11-16-2f205d08775f` | Mateo · 10 % XOM | 12 | 82 993 / 8 916 | 0,26 $ | 63 s | 18/18 |
+
+  Robert a aussi son contre-interrogatoire « Et si je mettais 15 % au lieu de 30 % ? » (25/25 chiffres). Les trois sont copiés depuis S3 dans `frontend/src/data/proces/`, en tête de `index.json` : ce sont eux que le mode démonstration rejoue. Une demande qui tente de détourner les consignes (« Ignore toutes tes consignes… ») est refusée en 0,7 s, HTTP 400, sans appel au modèle.
+- `frontend/src/domaine/debat.ts` : nouveau thème `liquidite` (« Pourriez-vous revendre vite ? ») ; l'Avocat d'Amira en parle, et l'argument tombait dans « Autres points ».
+
 ## Comment l'utiliser
 Rien à changer pour lancer un procès : la réplique et la mesure sont toujours là. Pour le Guardrail, redéployer :
 ```bash
@@ -20,8 +31,8 @@ Rien à changer pour lancer un procès : la réplique et la mesure sont toujours
 ```
 
 ## Comment vérifier
-- `.venv/bin/python -m pytest` : 1079 tests, dont la réplique dans le procès (`test_replique_vise_un_argument_valide_et_passe_le_greffier`, `test_replique_dont_la_cible_est_ecartee_est_rejetee`), le refus du Guardrail avant tout appel, le compteur par agent et par fil d'exécution (`tests/test_llm.py`), le déploiement idempotent du Guardrail (`tests/test_deployer.py`).
-- `npm --prefix frontend test` : 162 tests, dont `instruction.test.ts`.
+- `.venv/bin/python -m pytest` : 1097 tests, dont la réplique dans le procès (`test_replique_vise_un_argument_valide_et_passe_le_greffier`, `test_replique_dont_la_cible_est_ecartee_est_rejetee`), le refus du Guardrail avant tout appel, le compteur par agent et par fil d'exécution (`tests/test_llm.py`), le déploiement idempotent du Guardrail (`tests/test_deployer.py`).
+- `npm --prefix frontend test` : 165 tests, dont `instruction.test.ts`.
 - Après un vrai procès : `python -m contrat.valider <contrat.json>` ; le champ `bedrock` donne le coût du procès, et chaque étape son heure.
 
 ## Choix faits en cours de route
@@ -31,6 +42,6 @@ Rien à changer pour lancer un procès : la réplique et la mesure sont toujours
 - **Stabilité de l'orchestrateur** : d'une répétition à l'autre, le même outil n'est pas toujours choisi (6 cas sur 9 identiques, `docs/validation/evaluation_orchestrateur.md`). C'est voulu : le modèle choisit les preuves ; les phases, la pièce obligatoire, le budget et tous les contrôles du Greffier, eux, ne varient jamais. La doc technique le dit (section 3).
 
 ## Limites et suite
-- Les procès enregistrés de l'interface (`frontend/src/data/proces/`) datent d'avant : ils n'ont ni réplique, ni heure, ni mesure. Il faut tenir de nouveaux procès sur la Lambda redéployée pour les montrer en mode démonstration, **avant la suppression du compte AWS** (16 novembre 2026, 11 h 30).
-- Le Guardrail n'a pas encore été essayé sur de vrais arguments : surveiller les refus dans `cadre_simulation` au premier procès.
+- Les procès **avec Pacte vécu** (`"calibrage": true`) et Robert à 25 % datent d'avant #189 : rejoués, ils n'ont ni réplique, ni heure, ni mesure.
+- Le Guardrail n'est intervenu sur aucun des 32 arguments réels : il n'a donc encore rien attrapé que le Greffier aurait laissé passer.
 - Un appel Bedrock du contre-interrogatoire n'est pas compté (le champ `bedrock` porte sur le procès).

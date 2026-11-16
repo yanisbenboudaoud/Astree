@@ -5,10 +5,13 @@ import { regrouperDebat, themeArgument } from '../domaine/debat';
 
 const contrats = import.meta.glob<ContratTribunal>('../data/proces/2026-*.json', { eager: true, import: 'default' });
 
-const argumentsDe = (contrat: ContratTribunal) => ({
-  procureur: contrat.requisitoire.map((a): Argument => ({ camp: 'Procureur', texte: a.texte, provenance: 'Fait', pieces: a.pieces })),
-  avocat: contrat.plaidoirie.map((a): Argument => ({ camp: 'Avocat', texte: a.texte, provenance: 'Fait', pieces: a.pieces })),
-});
+const argumentsDe = (contrat: ContratTribunal) => {
+  const argument = (camp: Argument['camp']) => (a: ContratTribunal['requisitoire'][number]): Argument => ({
+    camp, texte: a.texte, provenance: 'Fait', pieces: a.pieces,
+    ...(a.repond_a ? { repondA: { camp: camp === 'Procureur' ? 'Avocat' : 'Procureur', numero: a.repond_a.numero, accroche: '' } } : {}),
+  });
+  return { procureur: contrat.requisitoire.map(argument('Procureur')), avocat: contrat.plaidoirie.map(argument('Avocat')) };
+};
 
 describe('thème d’un argument (première phrase)', () => {
   it.each([
@@ -45,7 +48,9 @@ describe('thème d’un argument (première phrase)', () => {
 
 describe('débat point par point sur les procès enregistrés', () => {
   it.each(Object.entries(contrats))('%s : chaque argument a un thème, rien ne se perd', (_, contrat) => {
-    const { procureur, avocat } = argumentsDe(contrat);
+    // Comme l'écran Tribunal : les répliques (#189) ont leur propre bloc, hors du tableau.
+    const { procureur: tous, avocat: tousAvocat } = argumentsDe(contrat);
+    const [procureur, avocat] = [tous, tousAvocat].map((args) => args.filter((a) => !a.repondA));
     const points = regrouperDebat(procureur, avocat);
     expect(points.some((p) => p.theme === 'autre')).toBe(false);
     expect(points.flatMap((p) => p.procureur.map((a) => a.argument))).toHaveLength(procureur.length);

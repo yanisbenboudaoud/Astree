@@ -36,6 +36,8 @@ const navigateur = await lancer();
 
 async function nouvellePage(largeur = 1440) {
   const page = await navigateur.newPage({ viewport: { width: largeur, height: 900 } });
+  // Mode fixé avant chaque chargement (#137) : procès enregistrés, donc aucun procès payant, même sur un site en direct par défaut.
+  await page.addInitScript(() => { try { localStorage.setItem('astree.mode', 'demo'); } catch { /* sans stockage : mode du site */ } });
   page.on('console', (m) => { if (['error', 'warning'].includes(m.type())) problemes.push(`console ${m.type()} : ${m.text()}`); });
   page.on('pageerror', (e) => problemes.push(`erreur de page : ${e.message}`));
   return page;

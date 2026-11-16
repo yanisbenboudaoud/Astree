@@ -29,6 +29,8 @@ if (!navigateur) throw new Error('Ni Chrome ni Edge trouvés.');
 
 async function nouvellePage() {
   const page = await navigateur.newPage({ viewport: { width: 1440, height: 900 } });
+  // Mode fixé avant chaque chargement (#137) : procès enregistrés, donc aucun procès payant, même sur un site en direct par défaut.
+  await page.addInitScript(() => { try { localStorage.setItem('astree.mode', 'demo'); } catch { /* sans stockage : mode du site */ } });
   page.on('pageerror', (e) => erreursPage.push(e.message));
   return page;
 }

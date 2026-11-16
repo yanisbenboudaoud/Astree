@@ -1,7 +1,8 @@
-/** Gabarit commun : bandeau de simulation, en-tête (logo, procédure, aide, menu de profil), contenu. */
+/** Gabarit commun : bandeau de simulation (et choix du mode, #137), en-tête (logo, procédure, aide, menu de profil), contenu. */
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MODE_DIRECT } from '../api/tribunal';
+import { DIRECT_DISPONIBLE, MODE, MODE_DIRECT, changerMode, type ModeInterface } from '../api/config';
+import { Bouton } from './Bouton';
 import { Icone } from './Icone';
 import styles from './Gabarit.module.css';
 
@@ -21,12 +22,31 @@ export function useTitre(ecran: string) {
 
 export function BandeauSimulation() {
   return (
-    <div className={styles.bandeau} role="note">
-      <Icone nom="fiole" taille={13} />
-      <span>Simulation · aucune transaction réelle · aucun conseil personnalisé</span>
+    <div className={styles.bandeau}>
+      <p className={styles.texteBandeau} role="note">
+        <Icone nom="fiole" taille={13} />
+        <span>Simulation · aucune transaction réelle · aucun conseil personnalisé</span>
+      </p>
+      {DIRECT_DISPONIBLE && <ChoixMode />}
     </div>
   );
 }
+
+/** Les deux modes (#137), tels que l'interrupteur les présente. */
+export const MODES: { id: ModeInterface; libelle: string; phrase: string; action: string }[] = [
+  {
+    id: 'direct',
+    libelle: 'En direct (Bedrock sur AWS)',
+    phrase: 'Chaque procès est tenu maintenant par les agents, sur AWS Lambda et Amazon Bedrock : de 20 à 50 secondes, deux procès au plus en même temps.',
+    action: 'Passer en direct',
+  },
+  {
+    id: 'demo',
+    libelle: 'Procès enregistrés',
+    phrase: 'Rejoue des procès réellement tenus par les agents et archivés tels quels : instantané, sans nouvel appel à Bedrock.',
+    action: 'Passer aux procès enregistrés',
+  },
+];
 
 /** Rang affiché au dernier écran : chaque écran remonte le gabarit, le curseur glisse depuis l'étape précédente. */
 let dernierRang = 0;
@@ -107,7 +127,54 @@ function Aide() {
           </p>
           <p className="t-petit c-500">
             Mode {MODE_DIRECT ? 'direct : le Tribunal est appelé sur AWS Lambda.' : 'démonstration : des procès réellement tenus par les agents sont rejoués.'}
+            {DIRECT_DISPONIBLE && ' Le mode se change en haut de la page.'}
           </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Interrupteur discret du bandeau (#137) : le mode courant, et l'autre mode avec ce qu'il fait.
+ * Changer de mode recharge l'interface sur l'accueil (`changerMode`). Absent sans adresse de Lambda.
+ */
+function ChoixMode() {
+  const [ouvert, setOuvert] = useState(false);
+  const bouton = useRef<HTMLButtonElement>(null);
+  const panneau = useRef<HTMLDivElement>(null);
+  const id = useId();
+  const fermer = () => {
+    setOuvert(false);
+    bouton.current?.focus();
+  };
+  useFermetureExterieure(ouvert, fermer, [bouton, panneau]);
+  const courant = MODES.find((m) => m.id === MODE) ?? MODES[1];
+  return (
+    <div className={styles.ancreMode}>
+      <button ref={bouton} type="button" className={styles.boutonMode} aria-expanded={ouvert} aria-controls={id} onClick={() => setOuvert((o) => !o)}>
+        <span className={`${styles.pointMode} ${MODE === 'direct' ? styles.pointDirect : ''}`} aria-hidden="true" />
+        <span><span className="visuellement-cache">Mode : </span>{courant.libelle}</span>
+        <Icone nom={ouvert ? 'chevron-haut' : 'chevron-bas'} taille={12} />
+      </button>
+      {ouvert && (
+        <div ref={panneau} id={id} className={styles.panneauMode} role="dialog" aria-label="Mode de l’interface">
+          <p className="t-corps-fort">Mode de l’interface</p>
+          <ul className={styles.listeModes}>
+            {MODES.map((m) => (
+              <li key={m.id} className={`${styles.mode} ${m.id === MODE ? styles.modeCourant : ''}`}>
+                <p className="t-petit-fort">
+                  {m.libelle}
+                  {m.id === MODE && <span className={styles.modeActuel}> · mode actuel</span>}
+                </p>
+                <p className="t-petit c-700">{m.phrase}</p>
+                {m.id !== MODE && (
+                  <Bouton variante="secondaire" compact onClick={() => changerMode(m.id)}>{m.action}</Bouton>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="t-petit c-500">Changer de mode ramène à l’accueil.</p>
         </div>
       )}
     </div>

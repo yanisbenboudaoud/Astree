@@ -9,7 +9,7 @@
 import univers from '../data/generated/univers.json';
 import libelles from '../data/libelles.json';
 import profilsUi from '../data/profils_ui.json';
-import { MODE_DIRECT, URL_API, lireErreur } from './config';
+import { MODE_DIRECT, URL_API, cleSession, lireErreur } from './config';
 import type { ConfigProfilUI, ConfigRecherche, DonneesCalibrage, Profil, TablePanier, TablePosition, Titre } from './types';
 
 const profilsGeneres = import.meta.glob<Profil>('../data/generated/profils/*.json', { eager: true, import: 'default' });
@@ -31,7 +31,8 @@ export interface VuesProfil {
   calibrage: DonneesCalibrage;
 }
 
-const CLE_PROFILS_CREES = 'astree.profils.v1';
+// Propre au mode (#137) : un profil créé en direct est rangé dans S3, celui de la démonstration non.
+const CLE_PROFILS_CREES = cleSession('astree.profils.v1');
 
 function lireProfilsCrees(): Record<string, VuesProfil> {
   try {

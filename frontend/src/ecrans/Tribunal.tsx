@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Argument, DecisionUI, EtapeTrace, Piece, Profil, ProgressionTribunal, ResultatTribunal } from '../api/types';
 import type { BedrockContrat } from '../api/contrat';
+import { DIRECT_DISPONIBLE } from '../api/config';
 import { MODE_DIRECT, ProcesNonEnregistre, jugerDecision, poserQuestion, questionLibreDisponible, reprendreProces, reveillerLambda } from '../api/tribunal';
 import { adapterEchange } from '../api/adaptateur';
 import { Gabarit, useTitre } from '../components/Gabarit';
@@ -238,12 +239,16 @@ function Instruction({ trace, bedrock, onOuvrir }: {
   );
 }
 
-function Repli({ titre, sousTitre, children, id }: { titre: string; sousTitre: string; children: React.ReactNode; id: string }) {
+function Repli({ titre, sousTitre, children, id, onOuvrir }: { titre: string; sousTitre: string; children: React.ReactNode; id: string; onOuvrir?: () => void }) {
   const [ouvert, setOuvert] = useState(false);
+  const basculer = () => {
+    if (!ouvert) onOuvrir?.();
+    setOuvert((o) => !o);
+  };
   return (
     <div className={styles.repli}>
       <h2 className={styles.titreRepli}>
-        <button type="button" aria-expanded={ouvert} aria-controls={id} onClick={() => setOuvert((o) => !o)} className={styles.boutonRepli}>
+        <button type="button" aria-expanded={ouvert} aria-controls={id} onClick={basculer} className={styles.boutonRepli}>
           <span className={styles.texteRepli}>
             <span className="t-intertitre">{titre}</span>
             <span className="t-petit c-500">{sousTitre}</span>
@@ -263,7 +268,9 @@ function NonEnregistre({ profil, decision, enregistree, onRejouer, raisonPacteVe
       <Message type="À vérifier" titre={`Aucun procès enregistré pour « ${libelleDecision(decision)} »`}>
         <p>
           En mode démonstration, Astrée rejoue des procès réellement tenus par les agents Bedrock, sans rien inventer.
-          Pour juger cette décision, il faut le Tribunal en direct (VITE_USE_MOCKS=false et l'adresse de la Lambda).
+          {DIRECT_DISPONIBLE
+            ? 'Pour juger cette décision, passez en direct (« Procès enregistrés », en haut de la page) : les agents tiendront un vrai procès sur AWS.'
+            : "Pour juger cette décision, il faut le Tribunal en direct (VITE_USE_MOCKS=false et l'adresse de la Lambda)."}
         </p>
         {raisonPacteVecu && <p>{raisonPacteVecu}</p>}
       </Message>
@@ -408,8 +415,12 @@ export function Tribunal({ profil }: { profil: Profil }) {
   const echanges = useMemo(() => [...(resultat?.echanges ?? []), ...etat.echanges], [resultat, etat.echanges]);
   const sources = useMemo(() => sourcesAffichees(resultat?.sources ?? []), [resultat]);
 
-  // Réveille la Lambda dès l'ouverture : la première vérification n'attend pas un démarrage à froid.
-  useEffect(() => reveillerLambda(resultat?.procesId), [resultat?.procesId]);
+  // Réveille la Lambda pour que la première vérification n'attende pas un démarrage à froid : en
+  // direct dès l'ouverture ; en démonstration, seulement à l'ouverture de « Mettre le Greffier à
+  // l'épreuve » (plus bas), car rejouer un procès enregistré n'appelle jamais la Lambda (#137).
+  useEffect(() => {
+    if (MODE_DIRECT) reveillerLambda(resultat?.procesId);
+  }, [resultat?.procesId]);
 
   useEffect(() => {
     if (!questionEnCours) return undefined;
@@ -858,7 +869,12 @@ export function Tribunal({ profil }: { profil: Profil }) {
                 </ul>
               </Repli>
             )}
-            <Repli id="repli-greffier" titre="Mettre le Greffier à l’épreuve" sousTitre="Écrivez un argument chiffré : le Greffier vérifie chaque nombre, sans IA">
+            <Repli
+              id="repli-greffier"
+              titre="Mettre le Greffier à l’épreuve"
+              sousTitre="Écrivez un argument chiffré : le Greffier vérifie chaque nombre, sans IA"
+              onOuvrir={MODE_DIRECT ? undefined : () => reveillerLambda(resultat.procesId)}
+            >
               <TrompezLeGreffier resultat={resultat} pieces={pieces} integre />
             </Repli>
           </div>

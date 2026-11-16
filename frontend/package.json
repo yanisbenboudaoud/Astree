@@ -12,6 +12,7 @@
     "verifier": "node e2e/verifier.mjs",
     "verifier:direct": "node e2e/direct.mjs",
     "verifier:greffier": "node e2e/greffier.mjs",
+    "verifier:mode": "node e2e/mode.mjs",
     "series": "cd .. && .venv\\Scripts\\python -X utf8 scripts\\build_ui_series.py"
   },
   "dependencies": {

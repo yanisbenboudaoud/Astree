@@ -9,6 +9,7 @@ Ce document décrit **comment** le système fonctionne et **comment le vérifier
 | Le schéma AWS détaillé | [`architecture.md`](architecture.md) |
 | Ce qui a été construit, issue par issue | [`journal/`](journal/) |
 | Une explication sans jargon | [`GUIDE_DU_PROJET.md`](GUIDE_DU_PROJET.md) |
+| **Chaque écran du prototype**, en captures (le jury ne pourra pas le tester) | [section 11](#11-le-prototype-en-captures) et [`preuves/ecrans/`](preuves/ecrans/README.md) |
 
 > Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
 
@@ -23,6 +24,8 @@ L'utilisateur arrive avec **sa propre décision** (« 25 % de mon portefeuille e
 Une seule règle traverse tout le code : **Python calcule, le LLM explique** ([choix 2](CHOIX_CONCEPTION.md), [`CLAUDE.md`](../CLAUDE.md) section 2). Aucun nombre n'est produit par un modèle de langage ; chaque nombre affiché vient d'une fonction Python testée.
 
 ## 2. Les agents et leur rôle
+
+> **À l'écran** : [le procès de Robert, 30 % en TSLA](preuves/ecrans/05-robert-tribunal.png) : bilan du Greffier, débat question par question, répliques, instruction par l'orchestrateur, argument renvoyé par le Greffier, contre-interrogatoire.
 
 Les phases sont **fixes** : Profil → Orchestrateur → Procureur et Avocat → Réplique → Greffier → Verdict. Elles sont enchaînées par `juger_decision` ([`pipeline/tribunal.py`](../pipeline/tribunal.py)).
 
@@ -41,6 +44,8 @@ Après le procès, l'utilisateur peut poser une question libre (**contre-interro
 Le Greffier a remplacé l'ancien agent Gouvernance, et le débat a remplacé l'agent Explicabilité : [`CHOIX_CONCEPTION.md`](CHOIX_CONCEPTION.md), choix 5 et 6.
 
 ## 3. L'orchestrateur Bedrock et ses garde-fous
+
+> **À l'écran** : l'encadré « Comment les agents ont instruit ce dossier » de [la capture du procès](preuves/ecrans/05-robert-tribunal.png) liste chaque outil choisi par l'orchestrateur, sa raison et la pièce produite ; [le procès en cours](preuves/ecrans/04-robert-proces-en-cours.png) montre les phases réelles, étape par étape.
 
 L'orchestrateur est une boucle **Converse** de Bedrock avec `toolConfig` (*tool use*), codée dans [`pipeline/orchestrateur.py`](../pipeline/orchestrateur.py) et [`pipeline/llm.py`](../pipeline/llm.py) (`converser_avec_outils`). Le modèle **choisit** les preuves ; Python les **produit** et encadre le choix. Le service managé Bedrock Agents a été écarté : [`CHOIX_CONCEPTION.md`](CHOIX_CONCEPTION.md), choix 4.
 
@@ -111,6 +116,8 @@ Chaque contrat les énumère dans son champ `hypotheses`. Les principales :
 
 ## 5. Le Pacte générique
 
+> **À l'écran** : [le Pacte tiré du questionnaire](preuves/ecrans/16-construire-pacte-apercu.png), chaque règle avec la réponse qui l'a produite, et [la limite mesurée par le Pacte vécu](preuves/ecrans/18-pacte-vecu-resultat.png) sur de vrais jours de baisse.
+
 Un profil est **un fichier JSON** dans [`personas/`](../personas/), validé par [`personas/schema_pacte.json`](../personas/schema_pacte.json) et chargé par `charger_pacte` ([`pipeline/pacte.py`](../pipeline/pacte.py)). Le code ne teste jamais un nom de persona : il lit les règles ([`CHOIX_CONCEPTION.md`](CHOIX_CONCEPTION.md), choix 7 et 7 bis ; fiche [003](journal/003-pacte-generique.md)).
 
 | `type` de règle | Paramètres | Contrôle du Greffier |
@@ -127,6 +134,8 @@ Un profil peut avoir plusieurs **poches** (plusieurs horizons dans un même port
 **Preuve que c'est générique** : un 4ᵉ profil inventé, écrit en un seul fichier JSON, est jugé sans aucune ligne de code ([`validation/resultats_scenarios.md`](validation/resultats_scenarios.md), section 7). Comment ajouter un profil : [`README.md`](../README.md), « Ajouter un profil ».
 
 ## 6. L'explicabilité : remonter d'un argument au fichier source
+
+> **À l'écran** : [le tiroir d'une pièce](preuves/ecrans/07-robert-piece-simulation.png) (ce qu'elle montre, d'où viennent les données, données vérifiées, limites, étapes du calcul) et [le procès-verbal exporté](preuves/ecrans/09-robert-proces-verbal.png).
 
 Chaque argument affiché cite des pièces ; chaque pièce nomme l'outil qui l'a produite, sa source, son traitement et ses limites ; chaque appel d'outil est dans la trace, avec la raison de l'orchestrateur ; le champ `sources` relie chaque fichier aux pièces qui l'utilisent ([`pipeline/sources.py`](../pipeline/sources.py), fiche [111](journal/111-diversite-des-sources.md)). Chaque élément porte une étiquette `fait`, `hypothese` ou `fictif` ([choix 9](CHOIX_CONCEPTION.md)).
 
@@ -177,6 +186,8 @@ La chaîne complète est donc : argument → `P4` → `indicateurs_actif` → `p
 
 ## 7. Les règles de `verifier_chiffres`
 
+> **À l'écran** : l'encadré « Arguments contrôlés par le Greffier pendant ce procès » de [la capture du procès](preuves/ecrans/05-robert-tribunal.png) montre un vrai renvoi : chiffres fautifs, motif exact, version corrigée et acceptée.
+
 Le vérificateur ([`pipeline/chiffres.py`](../pipeline/chiffres.py)) porte la promesse « aucun chiffre inventé ne passe ». Ses dix règles sont dans [`CLAUDE.md`](../CLAUDE.md), section 4 ter ; chaque exemple de cette section est un test unitaire ([`tests/test_chiffres.py`](../tests/test_chiffres.py)). En bref :
 
 1. **Ce qui est vérifié** : chaque nombre du texte (pourcentages, décimaux, entiers, années, dates), sauf les identifiants de pièces et les nombres d'un nom d'actif (« S&P 500 »). La virgule n'est décimale que si un chiffre la suit.
@@ -214,6 +225,8 @@ Ce qui s'est passé :
 D'autres rejets, joués volontairement, sont dans [`validation/resultats_scenarios.md`](validation/resultats_scenarios.md), section 5 : chiffre inventé (« −31,0 % »), arrondi faux (« −29,03 % »), mauvaise pièce citée, signe manquant (« 2,6 % » pour une valeur négative). L'interface permet aussi au jury d'essayer de tromper le Greffier lui-même (fiche [069](journal/069-trompez-le-greffier.md)).
 
 ## 8. Validations
+
+> **À l'écran** : [les contrôles du Greffier](preuves/ecrans/06-robert-controles-greffier.png) affichent, sous chacun, son taux mesuré (bulletin du Greffier, #172).
 
 Les principaux résultats, promesse par promesse, sont repris dans la section « Preuves » du [`README.md`](../README.md#preuves) ; l'index des rapports, la commande qui régénère chacun et leurs limites sont dans [`validation/README.md`](validation/README.md).
 
@@ -308,3 +321,43 @@ Les ressources AWS seront supprimées après l'événement : ces captures, prise
 
 ![Bucket du site : stratégie](captures/10-s3-site-politique.png)
 *Figure 10.12 : la stratégie du bucket du site. Une seule autorisation : `s3:GetObject` pour le service CloudFront, à condition que la demande vienne de la distribution de l'interface (`AWS:SourceArn`). Personne d'autre ne lit le bucket, même pas une autre distribution.*
+
+## 11. Le prototype en captures
+
+Le jury ne pourra pas tester le prototype : le compte AWS de l'événement sera supprimé. Chaque écran est donc capturé dans [`preuves/ecrans/`](preuves/ecrans/README.md), en **mode démonstration** : l'interface rejoue des procès **réellement tenus** par les agents Bedrock sur AWS, sans appel réseau. Le script [`frontend/e2e/preuves.mjs`](../frontend/e2e/preuves.mjs) refait toutes les captures (#191).
+
+### Le parcours, écran par écran
+
+| Étape | Capture | Ce qu'elle montre |
+|---|---|---|
+| Accueil | [`01-accueil`](preuves/ecrans/01-accueil.png) | Choisir un profil de test ou construire son propre Pacte |
+| Portefeuille | [`02-robert-portefeuille`](preuves/ecrans/02-robert-portefeuille.png) | Le portefeuille de Robert, son Pacte, la recherche d'un titre |
+| Décision | [`03-robert-decision`](preuves/ecrans/03-robert-decision.png) | 30 % en TSLA : zone compatible avec le Pacte et effet sur chaque règle, avant le procès |
+| Procès en cours | [`04-robert-proces-en-cours`](preuves/ecrans/04-robert-proces-en-cours.png) | Les phases réelles : Agent Profil, Orchestrateur, Procureur et Avocat, Greffier |
+| Tribunal | [`05-robert-tribunal`](preuves/ecrans/05-robert-tribunal.png) | Bilan du Greffier, débats, répliques, instruction, renvoi d'un argument, contre-interrogatoire |
+| Contrôles du Greffier | [`06-robert-controles-greffier`](preuves/ecrans/06-robert-controles-greffier.png) | Chaque contrôle sur les arguments, avec son taux mesuré |
+| Pièce | [`07-robert-piece-simulation`](preuves/ecrans/07-robert-piece-simulation.png) | Une pièce de simulation : rôle, sources, données vérifiées, limites, calcul |
+| Verdict | [`08-robert-verdict`](preuves/ecrans/08-robert-verdict.png) | Maintenir, modifier ou ajuster le Pacte, avec les points de bascule |
+| Procès-verbal | [`09-robert-proces-verbal`](preuves/ecrans/09-robert-proces-verbal.png) | Le procès complet, exportable : pièces, débat, contrôles, trace |
+| Cas 2 : Amira | [`10`](preuves/ecrans/10-amira-decision-panier.png), [`11`](preuves/ecrans/11-amira-tribunal.png), [`12`](preuves/ecrans/12-amira-verdict.png) | Panier crypto-tech : risque accepté, plafonds de diversification en violation, un point de bascule par règle |
+| Cas 3 : Mateo | [`13`](preuves/ecrans/13-mateo-decision.png), [`14`](preuves/ecrans/14-mateo-tribunal.png) | XOM : la controverse ESG documentée, pièce documentaire avec sa source |
+| Construire mon Pacte | [`15`](preuves/ecrans/15-construire-pacte-question.png), [`16`](preuves/ecrans/16-construire-pacte-apercu.png) | Le questionnaire, puis le Pacte tiré des réponses |
+| Pacte vécu | [`17`](preuves/ecrans/17-pacte-vecu-question.png), [`18`](preuves/ecrans/18-pacte-vecu-resultat.png) | Un vrai jour de baisse revécu ; la limite mesurée sur les réponses |
+
+### Quatre écrans clés
+
+**La décision, avant le procès** : la zone compatible avec le Pacte et l'effet sur chaque règle.
+
+![Décision : 30 % en TSLA](preuves/ecrans/03-robert-decision.png)
+
+**Les contrôles du Greffier**, chacun avec son taux mesuré quand on a essayé de le tromper.
+
+![Contrôles du Greffier et bulletin](preuves/ecrans/06-robert-controles-greffier.png)
+
+**Une pièce** : d'où viennent les données, comment elles sont vérifiées, ce qu'elles ne disent pas.
+
+![Tiroir d'une pièce de simulation](preuves/ecrans/07-robert-piece-simulation.png)
+
+**Le Pacte vécu** : la limite de pire baisse mesurée sur de vrais jours de marché, au lieu d'être déclarée.
+
+![Pacte vécu : limite mesurée](preuves/ecrans/18-pacte-vecu-resultat.png)

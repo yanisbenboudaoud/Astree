@@ -1,6 +1,6 @@
 # #141 — Site hébergé en mode direct : mettre en ligne le vrai Tribunal
 
-- **Issue** : #141 · **PR** : à venir · **Statut** : terminée
+- **Issue** : #141 · **PR** : #194 · **Statut** : terminée
 - **Dernière mise à jour** : 2026-11-16
 
 ## Ce qui a été construit

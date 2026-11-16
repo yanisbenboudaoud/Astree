@@ -2,8 +2,9 @@
  * Contrat du pipeline (CLAUDE.md, section 5) → types de l'écran Tribunal (annexe D.7).
  * Le même adaptateur sert aux procès enregistrés (mode démonstration) et au Tribunal en direct.
  */
-import type { ContratTribunal, EchangeContrat, EtapeTraceContrat, EtiquetteContrat, PieceContrat, SourceContrat } from './contrat';
+import type { ArgumentContrat, ContratTribunal, EchangeContrat, EtapeTraceContrat, EtiquetteContrat, PieceContrat, SourceContrat } from './contrat';
 import type { Argument, ArgumentRejete, Controle, Correction, Echange, EtapeTrace, Piece, Provenance, ResultatTribunal, SourceDossier } from './types';
+import { accroche } from '../domaine/debat';
 import { paragraphe, parGravite, statutUi } from '../domaine/pacte';
 import { phaseDeLEtape } from '../domaine/progression';
 import { part } from '../lib/format';
@@ -65,6 +66,12 @@ function titreEtape(etape: EtapeTraceContrat, nombre: number | undefined, libell
   if (outil === 'bedrock' && etape.etape === 'avocat') return `L’Avocat plaide pour : ${arguments_(nombre)}`;
   if (outil === 'bedrock') return 'Comprendre votre demande';
   if (outil === 'bedrock_correction') return 'Un argument renvoyé par le Greffier, puis corrigé';
+  if (outil === 'bedrock_replique') {
+    const vise = typeof entree.repond_a === 'number' ? ` ${entree.repond_a}` : '';
+    return etape.etape === 'procureur'
+      ? `Le Procureur répond à l’argument${vise} de l’Avocat`
+      : `L’Avocat répond à l’argument${vise} du Procureur`;
+  }
   if (outil === 'valider_decision') return libelleDecision ? `Décision retenue : ${libelleDecision}` : 'Décision retenue';
   if (outil === 'charger_pacte') return 'Lire votre Pacte';
   if (etape.etape === 'calibrage') return 'Reprendre vos réponses au Pacte vécu';
@@ -91,7 +98,13 @@ function titreEtape(etape: EtapeTraceContrat, nombre: number | undefined, libell
   }
 }
 
-export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
+/** Heure de la première étape horodatée (#189), en millisecondes ; undefined pour un procès enregistré avant. */
+export function debutTrace(trace: EtapeTraceContrat[]): number | undefined {
+  const premiere = trace.find((e) => e.horodatage);
+  return premiere?.horodatage ? Date.parse(premiere.horodatage) : undefined;
+}
+
+export function etapeTrace(etape: EtapeTraceContrat, debut?: number): EtapeTrace {
   const role = ROLES[etape.etape] ?? etape.etape;
   const outil = etape.outil ?? '';
   const sortie = etape.sortie;
@@ -102,7 +115,10 @@ export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
   if (outil === 'bedrock' && etape.etape === 'procureur') appel = `réquisitoire · ${nombre ?? '?'} arguments`;
   else if (outil === 'bedrock' && etape.etape === 'avocat') appel = `plaidoirie · ${nombre ?? '?'} arguments`;
   else if (outil === 'bedrock') appel = 'lecture de la demande (Bedrock) → décision structurée';
-  else if (outil === 'bedrock_correction') {
+  else if (outil === 'bedrock_replique') {
+    const texte = typeof sortie === 'object' && sortie !== null && 'texte' in sortie ? String((sortie as { texte: string }).texte) : '';
+    appel = `réplique (Bedrock) → « ${accroche(texte).tete} »`;
+  } else if (outil === 'bedrock_correction') {
     appel = 'argument renvoyé par le Greffier, puis corrigé';
     etat = 'signalement';
   } else if (outil === 'valider_decision') {
@@ -127,7 +143,8 @@ export function etapeTrace(etape: EtapeTraceContrat): EtapeTrace {
   }
   if (etape.raison && /d.office/i.test(etape.raison)) etat = 'signalement';
 
-  return { role, titre, appel, etat, phase: phaseDeLEtape(etape), raison: etape.raison, sortie: idPiece };
+  const secondes = debut !== undefined && etape.horodatage ? (Date.parse(etape.horodatage) - debut) / 1000 : undefined;
+  return { role, titre, appel, etat, phase: phaseDeLEtape(etape), raison: etape.raison, sortie: idPiece, secondes };
 }
 
 export function adapterPiece(p: PieceContrat, citeePar: string[] = []): Piece {
@@ -181,9 +198,10 @@ export interface ContexteAdaptation {
 export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdaptation): ResultatTribunal {
   const regles = contrat.pacte.regles;
 
+  const debut = debutTrace(contrat.trace);
   const argumentsTribunal: Argument[] = [
-    ...contrat.requisitoire.map((a) => ({ camp: 'Procureur' as const, texte: a.texte, provenance: provenanceUi(a.etiquette), pieces: a.pieces })),
-    ...contrat.plaidoirie.map((a) => ({ camp: 'Avocat' as const, texte: a.texte, provenance: provenanceUi(a.etiquette), pieces: a.pieces })),
+    ...contrat.requisitoire.map((a) => argumentDuProces(a, 'Procureur', contrat)),
+    ...contrat.plaidoirie.map((a) => argumentDuProces(a, 'Avocat', contrat)),
   ];
 
   const citations = new Map<string, string[]>();
@@ -237,7 +255,7 @@ export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdapt
     arguments: argumentsTribunal,
     limiteAvocat: contrat.controles.find((c) => c.regle === 'biais_survivant')?.message,
     pieces,
-    trace: contrat.trace.map(etapeTrace),
+    trace: contrat.trace.map((e) => etapeTrace(e, debut)),
     questionsSuggerees: [],
     argumentsRejetes,
     corrections,
@@ -246,6 +264,20 @@ export function adapterContrat(contrat: ContratTribunal, contexte: ContexteAdapt
     procesId: contexte.procesId,
     contrat,
   };
+}
+
+/** Un argument du procès ; une réplique (#189) garde l'argument adverse qu'elle vise (camp, numéro, première phrase). */
+function argumentDuProces(a: ArgumentContrat, camp: Argument['camp'], contrat: ContratTribunal): Argument {
+  const argument: Argument = { camp, texte: a.texte, provenance: provenanceUi(a.etiquette), pieces: a.pieces };
+  const vise = a.repond_a ? contrat[a.repond_a.cote][a.repond_a.numero - 1] : undefined;
+  if (a.repond_a && vise) {
+    argument.repondA = {
+      camp: a.repond_a.cote === 'requisitoire' ? 'Procureur' : 'Avocat',
+      numero: a.repond_a.numero,
+      accroche: accroche(vise.texte).tete,
+    };
+  }
+  return argument;
 }
 
 /** Une source du contrat → affichage : détails sur une ligne, pièces et libellés des règles (#111). */

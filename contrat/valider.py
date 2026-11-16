@@ -82,6 +82,7 @@ def erreurs_renvois(contrat):
 
     if "points_de_bascule" in contrat:
         erreurs += erreurs_points_de_bascule(contrat)
+    erreurs += erreurs_repliques(contrat)
 
     decision = contrat["decision"]
     poche_decision, poche_pacte = decision.get("poche"), contrat["pacte"].get("poche", {}).get("id")
@@ -94,6 +95,25 @@ def erreurs_renvois(contrat):
 
     erreurs += erreurs_contre_interrogatoire(contrat, pieces_connues)
     erreurs += erreurs_sources(contrat, pieces_connues, regles_controlees)
+    return erreurs
+
+
+def erreurs_repliques(contrat):
+    """Une réplique (#189) répond à un argument du camp adverse qui existe et n'est pas lui-même une réplique."""
+    erreurs = []
+    for cote in ("requisitoire", "plaidoirie"):
+        for i, argument in enumerate(contrat[cote]):
+            cible = argument.get("repond_a")
+            if cible is None:
+                continue
+            if cible["cote"] == cote:
+                erreurs.append(f"{cote}/{i} : une réplique répond au camp adverse, pas au sien")
+                continue
+            adverses = contrat[cible["cote"]]
+            if cible["numero"] > len(adverses):
+                erreurs.append(f"{cote}/{i} : l'argument {cible['numero']} de « {cible['cote']} » n'existe pas")
+            elif "repond_a" in adverses[cible["numero"] - 1]:
+                erreurs.append(f"{cote}/{i} : la réplique vise une autre réplique")
     return erreurs
 
 

@@ -1,5 +1,5 @@
 /**
- * Écran « Le Tribunal instruit le dossier » (annexe D.5, #90) : les 4 phases fixes du procès,
+ * Écran « Le Tribunal instruit le dossier » (annexe D.5, #90) : les 5 phases fixes du procès,
  * la phase en cours animée, et sous chaque phase ses étapes réelles, au fur et à mesure.
  * - En direct : la progression publiée par la Lambda, relue pendant le procès.
  * - En démonstration : la trace d'un procès enregistré, relue étape par étape à un rythme fixe annoncé.

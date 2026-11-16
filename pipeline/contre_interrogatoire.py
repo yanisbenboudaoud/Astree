@@ -36,7 +36,7 @@ from pipeline.agent_profil import charger_profil
 from pipeline.cadre_simulation import controle_cadre_simulation
 from pipeline.chiffres import controle_verifier_chiffres
 from pipeline.debat import debattre
-from pipeline.llm import converser_avec_outils
+from pipeline.llm import converser_avec_outils, verifier_garde_fou
 from pipeline.orchestrateur import instruire_question
 from pipeline.poches import profil_de_la_poche
 from pipeline.sources import sources_du_proces
@@ -46,7 +46,7 @@ LONGUEUR_MAX_QUESTION = 500  # une question tient en une ou deux phrases
 
 
 class QuestionInvalide(ValueError):
-    """Question refusée avant tout appel au modèle (vide, trop longue, procès sans décision)."""
+    """Question refusée avant tout appel au modèle (vide, trop longue, procès sans décision, Guardrail Bedrock)."""
 
 
 def interroger(
@@ -70,6 +70,9 @@ def interroger(
         ProfilInconnu, PacteInvalide: profil du contrat introuvable ou invalide.
     """
     question = verifier_question(question)
+    motif = verifier_garde_fou(question, "INPUT")  # avant tout appel au modèle (#189)
+    if motif:
+        raise QuestionInvalide(f"Question refusée : {motif}")
     if not contrat.get("decision"):
         raise QuestionInvalide("Ce procès n'a pas de décision : il n'y a rien à contre-interroger")
 

@@ -108,7 +108,7 @@ describe('écran « Le Tribunal instruit le dossier »', () => {
     render(<ChargementTribunal mode="direct" phase="orchestrateur" etapes={etapes} termine={false} debut={Date.now()}
       activite="L'orchestrateur choisit les preuves à rassembler (Bedrock)" />);
     const phases = screen.getAllByRole('listitem').filter((li) => li.hasAttribute('data-etat'));
-    expect(phases.map((li) => li.getAttribute('data-etat'))).toEqual(['faite', 'en_cours', 'a_venir', 'a_venir']);
+    expect(phases.map((li) => li.getAttribute('data-etat'))).toEqual(['faite', 'en_cours', 'a_venir', 'a_venir', 'a_venir']);
     expect(phases[1]).toHaveAttribute('aria-current', 'step');
     const orchestrateur = within(phases[1]);
     expect(orchestrateur.getByText(/^Simuler votre portefeuille avec 30\s%\sen TSLA$/)).toBeInTheDocument();
@@ -154,9 +154,10 @@ describe('relecture d’un procès enregistré (mode démonstration)', () => {
 
 describe('états des phases', () => {
   it('avant, pendant et après', () => {
-    expect(Object.values(etatsDesPhases(null, false))).toEqual(['a_venir', 'a_venir', 'a_venir', 'a_venir']);
-    expect(Object.values(etatsDesPhases('debat', false))).toEqual(['faite', 'faite', 'en_cours', 'a_venir']);
-    expect(Object.values(etatsDesPhases(null, true))).toEqual(['faite', 'faite', 'faite', 'faite']);
+    expect(Object.values(etatsDesPhases(null, false))).toEqual(['a_venir', 'a_venir', 'a_venir', 'a_venir', 'a_venir']);
+    expect(Object.values(etatsDesPhases('debat', false))).toEqual(['faite', 'faite', 'en_cours', 'a_venir', 'a_venir']);
+    expect(Object.values(etatsDesPhases('replique', false))).toEqual(['faite', 'faite', 'faite', 'en_cours', 'a_venir']);
+    expect(Object.values(etatsDesPhases(null, true))).toEqual(['faite', 'faite', 'faite', 'faite', 'faite']);
   });
 
   it('renvois comptés par agent', () => {

@@ -217,6 +217,25 @@
 }
 .limite svg { flex: none; color: var(--statut-verifier); margin-top: 1px; }
 
+/* Répliques (#189) : sous le tableau du débat, chacune avec l'argument qu'elle vise. */
+.repliques { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.listeRepliques { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 10px; list-style: none; margin: 0; padding: 0; }
+.replique { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--fond-carte); border-radius: var(--rayon-petit); }
+.argumentVise { font-style: italic; }
+
+/* Instruction du dossier (#189) : les calculs choisis par l'orchestrateur, visibles sans déplier. */
+.instruction { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-left: 4px solid var(--encre-700); background: var(--fond-creux); }
+.listeInstruction { display: flex; flex-direction: column; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.choix { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) auto; align-items: start; gap: 4px 12px; }
+.origineChoix { font-size: 12px; font-weight: 600; color: var(--encre-900); }
+.origineOffice { color: var(--encre-500); font-weight: 400; }
+.texteChoix { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mesureBedrock { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 8px 0 0; list-style: none; border-top: 1px solid var(--trait-fin); }
+@media (max-width: 640px) {
+  .choix { grid-template-columns: minmax(0, 1fr) auto; }
+  .origineChoix { grid-column: 1 / -1; }
+}
+
 .rejetes { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px; border-left: 4px solid var(--encre-700); background: var(--fond-creux); }
 .rejete { display: flex; align-items: flex-start; gap: 8px; }
 .correction { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--fond-carte); border-radius: var(--rayon-petit); }

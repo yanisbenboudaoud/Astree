@@ -6,4 +6,5 @@ pythonpath = ["."]
 addopts = "-m 'not bedrock'"
 markers = [
     "bedrock: vrai appel à Amazon Bedrock (payant, nécessite un accès AWS)",
+    "client_bedrock: crée un client Bedrock sans l'appeler (échappe au garde-fou de tests/conftest.py)",
 ]

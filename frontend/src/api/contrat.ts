@@ -43,10 +43,17 @@ export interface PieceContrat {
   limites: string;
 }
 
+/** Réplique (#189) : l'argument du camp adverse visé, par son numéro (1, 2…) dans la liste de ce camp. */
+export interface RepondA {
+  cote: 'requisitoire' | 'plaidoirie';
+  numero: number;
+}
+
 export interface ArgumentContrat {
   etiquette: EtiquetteContrat;
   texte: string;
   pieces: string[];
+  repond_a?: RepondA;
 }
 
 export interface ControleContrat {
@@ -67,6 +74,21 @@ export interface EtapeTraceContrat {
   raison?: string;
   entree?: unknown;
   sortie?: unknown;
+  /** Heure de l'étape, UTC (#189). Absente des procès enregistrés avant. */
+  horodatage?: string;
+}
+
+/** Appels Amazon Bedrock du procès, comptés par Python (#189). Absent des procès enregistrés avant. */
+export interface BedrockContrat {
+  modele: string;
+  appels: number;
+  jetons_entree: number;
+  jetons_sortie: number;
+  duree_bedrock_s: number;
+  cout_estime_usd: number;
+  duree_proces_s: number;
+  par_agent: { agent: string; appels: number; jetons_entree: number; jetons_sortie: number }[];
+  garde_fou?: { verifications: number; interventions: number };
 }
 
 /**
@@ -141,6 +163,7 @@ export interface ContratTribunal {
   trace: EtapeTraceContrat[];
   avertissement: string;
   contre_interrogatoire?: EchangeContrat[];
+  bedrock?: BedrockContrat;
 }
 
 /**

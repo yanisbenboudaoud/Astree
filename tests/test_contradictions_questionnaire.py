@@ -155,6 +155,7 @@ def profil_du_questionnaire(tmp_path, monkeypatch):
     debat = FauxDebat()
     monkeypatch.setattr(tribunal, "debattre", debat.debattre)
     monkeypatch.setattr(tribunal, "corriger_argument", debat.corriger_argument)
+    monkeypatch.setattr(tribunal, "repliquer_les_deux", debat.repliquer_les_deux)
     monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
     return genere
 
@@ -176,6 +177,7 @@ def test_profil_ecrit_a_la_main_sans_piece_du_questionnaire(monkeypatch):
     debat = FauxDebat()
     monkeypatch.setattr(tribunal, "debattre", debat.debattre)
     monkeypatch.setattr(tribunal, "corriger_argument", debat.corriger_argument)
+    monkeypatch.setattr(tribunal, "repliquer_les_deux", debat.repliquer_les_deux)
     monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
     contrat = juger_decision("robert", "Je veux mettre 30 % en Tesla",
                              converser=FauxModele([demande("indicateurs_actif", ticker="TSLA")]))

@@ -5,7 +5,8 @@ du procès, au moment où elle a lieu. Trois sortes d'événements :
 
 - ``{"type": "phase", "phase": <id>, "activite": <texte>}`` : une phase commence (la
   précédente est finie). Phases, dans l'ordre fixe de ``PHASES`` : ``agent_profil``,
-  ``orchestrateur``, ``debat`` (Procureur et Avocat en parallèle), ``greffier`` ;
+  ``orchestrateur``, ``debat`` (Procureur et Avocat en parallèle), ``replique`` (chacun
+  répond à un argument de l'autre, #189), ``greffier`` ;
 - ``{"type": "etape", "etape": <étape de trace>}`` : une étape vient d'être tracée, au
   même format que ``trace`` dans le contrat (un appel d'outil de l'orchestrateur, le
   retour du Procureur ou de l'Avocat, un contrôle du Greffier…) ;
@@ -31,7 +32,7 @@ import threading
 from datetime import datetime, timezone
 from typing import Any, Callable
 
-PHASES = ("agent_profil", "orchestrateur", "debat", "greffier")
+PHASES = ("agent_profil", "orchestrateur", "debat", "replique", "greffier")
 STATUTS = ("en_cours", "termine", "erreur")
 
 Signaler = Callable[[dict[str, Any]], None]
@@ -43,6 +44,15 @@ def ne_rien_signaler(evenement: dict[str, Any]) -> None:
 
 def maintenant_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def horodater(etape: dict[str, Any]) -> dict[str, Any]:
+    """Ajoute à une étape de trace l'heure où elle a eu lieu (UTC, à la milliseconde, #189).
+
+    L'étape garde sa première heure si elle est signalée deux fois.
+    """
+    etape.setdefault("horodatage", datetime.now(timezone.utc).isoformat(timespec="milliseconds"))
+    return etape
 
 
 class Progression:

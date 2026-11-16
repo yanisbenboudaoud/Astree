@@ -15,7 +15,7 @@
 import indexProces from '../data/proces/index.json';
 import type { ContratTribunal, DecisionContrat, EchangeContrat, PieceContrat, ProgressionContrat, VerdictContrat } from './contrat';
 import type { DecisionUI, ProgressionTribunal, ResultatTribunal, ResultatVerification } from './types';
-import { adapterContrat, etapeTrace, numeroAudience } from './adaptateur';
+import { adapterContrat, debutTrace, etapeTrace, numeroAudience } from './adaptateur';
 import { profil as profilDe } from './donnees';
 import { correspondAuContrat, demandeDecision, libelleDecision } from '../domaine/decision';
 import { estPhase } from '../domaine/progression';
@@ -107,9 +107,11 @@ function attente(ms: number, signal?: AbortSignal): Promise<void> {
 
 /** Réponse de /progression → écran : les étapes passent par le même adaptateur que la trace du contrat. */
 export function progressionUi(corps: ProgressionContrat): ProgressionTribunal {
+  const etapes = corps.etapes ?? [];
+  const debut = debutTrace(etapes);
   return {
     phase: estPhase(corps.phase) ? corps.phase : null,
-    etapes: (corps.etapes ?? []).map(etapeTrace),
+    etapes: etapes.map((e) => etapeTrace(e, debut)),
     activite: corps.activite ?? undefined,
   };
 }

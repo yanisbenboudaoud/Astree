@@ -36,11 +36,23 @@ Progression en direct (#90) : avec ``signaler``, chaque étape réelle est publi
 moment où elle a lieu (début de chaque phase, chaque appel d'outil de l'orchestrateur,
 retour du Procureur et de l'Avocat, chaque renvoi du Greffier ; format dans
 ``pipeline.progression``). Le contrat est identique avec ou sans ``signaler``.
+
+Agents coordonnés et mesurés (#189) :
+- **Réplique** : après les plaidoiries, chaque camp répond à l'argument adverse qui pèse
+  le plus contre lui (``pipeline.debat.repliquer_les_deux``), en ne visant que des
+  arguments que le Greffier accepte tels quels. Le Greffier vérifie les répliques comme
+  les autres ; une réplique dont l'argument visé est finalement écarté est rejetée.
+- **Mesure** : chaque étape de trace porte son ``horodatage`` ; le champ ``bedrock`` du
+  contrat compte les appels Bedrock par agent, les jetons, la durée et le coût estimé.
+- **Guardrail Bedrock** (s'il est configuré) : la demande est soumise au Guardrail avant
+  tout appel au modèle (``RefusGardeFou`` si elle tente de détourner les consignes), et
+  chaque argument qui passe les vérifications Python l'est aussi, en sortie.
 """
 
 from __future__ import annotations
 
 import threading
+import time
 from typing import Any, Callable
 
 from pipeline.agent_profil import charger_profil, lancer_agent_profil
@@ -49,20 +61,21 @@ from pipeline.calibrage import ErreurCalibrage, ResultatCalibrage, calibrer
 from pipeline.chiffres import controle_verifier_chiffres, trier_arguments
 from pipeline.composition import NOM_OUTIL as OUTIL_COMPOSITION
 from pipeline.composition import piece_composition
-from pipeline.debat import corriger_argument, debattre
+from pipeline.chiffres import argument_recevable
+from pipeline.debat import CHAMP_CONTRAT, ADVERSAIRE, corriger_argument, debattre, repliquer_les_deux
 from pipeline.greffier import controle_biais_survivant, controle_performance_passee, verifier_pacte
 from pipeline.donnees import HYPOTHESES_DONNEES, seances_americaines
 from pipeline.frais import HYPOTHESE_FRAIS
 from pipeline.macro import HYPOTHESE_TAUX_SANS_RISQUE
 from pipeline.sources import VALEURS_FRAIS, sources_du_proces
 from pipeline.indicateurs import DECIMALES_VALEURS
-from pipeline.llm import converser_avec_outils
+from pipeline.llm import RefusGardeFou, compter_appels, converser_avec_outils, garde_fou_actif, verifier_garde_fou
 from pipeline.orchestrateur import RAISON_D_OFFICE, instruire_dossier
 from pipeline.pacte import pacte_pour_contrat, piece_pacte
 from pipeline.points_de_bascule import NOM_OUTIL as OUTIL_POINTS_DE_BASCULE
 from pipeline.points_de_bascule import piece_points_de_bascule, pour_contrat
 from pipeline.poches import a_des_poches, profil_de_la_poche
-from pipeline.progression import Signaler, ne_rien_signaler
+from pipeline.progression import Signaler, horodater, ne_rien_signaler
 from pipeline.questionnaire import NOM_OUTIL_PIECE as OUTIL_QUESTIONNAIRE
 from pipeline.questionnaire import controles_questionnaire, piece_questionnaire
 from pipeline.taille_max import ResultatRecherche, rechercher_taille_max
@@ -94,9 +107,11 @@ ACTIVITES = {
     "orchestrateur": "L'orchestrateur choisit les preuves à rassembler (Bedrock) ; Python exécute chaque outil",
     "calculs": "Python compare le portefeuille avant et après, et cherche la taille maximale compatible",
     "debat": "Le Procureur et l'Avocat plaident en parallèle, à partir des pièces (Bedrock)",
+    "replique": "Chacun répond à l'argument de l'autre qui pèse le plus contre lui (Bedrock)",
     "greffier": "Le Greffier contrôle le Pacte, puis les chiffres et le cadre de chaque argument (Python)",
 }
 DESTINATAIRES = {"procureur": "au Procureur", "avocat": "à l'Avocat"}
+RAISON_CIBLE_ECARTEE = "L'argument visé par cette réplique a été écarté par le Greffier"
 
 
 def verifier_avant_proces(
@@ -165,8 +180,18 @@ def juger_decision(
     Raises:
         ProfilInconnu, PacteInvalide, PocheInconnue: voir ``lancer_agent_profil``.
         ErreurCalibrage: réponses du Pacte vécu incomplètes ou invalides.
+        RefusGardeFou: le Guardrail Bedrock a refusé la demande (aucun appel au modèle).
     """
-    signaler = signaler or ne_rien_signaler
+    debut = time.monotonic()
+    with compter_appels() as compteur:
+        contrat = _juger(identifiant_profil, demande, converser, calibrage, signaler, poche)
+    contrat["bedrock"] = {**compteur.resume(), "duree_proces_s": round(time.monotonic() - debut, 1)}
+    return contrat
+
+
+def _juger(identifiant_profil, demande, converser, calibrage, signaler, poche) -> dict[str, Any]:
+    """Le procès lui-même (voir ``juger_decision``), dont les appels Bedrock sont comptés."""
+    signaler = horodater_signaux(signaler or ne_rien_signaler)
 
     def signaler_etape(etape: dict[str, Any]) -> None:
         signaler({"type": "etape", "etape": etape})
@@ -177,6 +202,9 @@ def juger_decision(
     vecu = None
     if calibrage is not None:  # vérifié avant l'Agent Profil : une erreur ne coûte aucun appel Bedrock
         vecu = verifier_avant_proces(identifiant_profil, calibrage, poche)
+    motif = verifier_garde_fou(demande, "INPUT")  # avant tout appel au modèle (#189)
+    if motif:
+        raise RefusGardeFou(f"Demande refusée : {motif}")
     commencer("agent_profil")
     profil = lancer_agent_profil(demande, identifiant_profil, ID_PIECE_PACTE, poche)
     pieces_initiales = [profil.piece_pacte]
@@ -243,6 +271,14 @@ def juger_decision(
     debat = debattre(dossier, signaler_etape=signaler_plaidoirie(signaler))
     contrat["trace"] += debat.trace
 
+    # Réplique (#189) : chaque camp répond à un argument que le Greffier accepterait tel quel.
+    commencer("replique")
+    repliques = repliquer_les_deux(dossier,
+                                   [a for a in debat.requisitoire if argument_recevable(a, dossier)],
+                                   [a for a in debat.plaidoirie if argument_recevable(a, dossier)],
+                                   signaler_etape=signaler_etape)
+    contrat["trace"] += [replique.etape for replique in repliques]
+
     # Greffier, en dernier : règles du Pacte, puis chiffres et cadre des arguments.
     commencer("greffier")
     controles_pacte = controler_pacte(profil.profil, profil.decision, instruction, contrat["pieces"])
@@ -254,17 +290,32 @@ def juger_decision(
     })
     requisitoire = verifier_cote(debat.requisitoire, "requisitoire", "procureur", dossier, contrat["trace"], signaler)
     plaidoirie = verifier_cote(debat.plaidoirie, "plaidoirie", "avocat", dossier, contrat["trace"], signaler)
-    controle_chiffres = controle_verifier_chiffres(requisitoire, plaidoirie)
-    controle_cadre = controle_cadre_simulation(requisitoire, plaidoirie)
-    nombre_arguments = f"{len(debat.requisitoire) + len(debat.plaidoirie)} arguments"
+    valides = {"procureur": requisitoire.valides, "avocat": plaidoirie.valides}
+    visees, cibles_ecartees = {"procureur": [], "avocat": []}, []
+    for replique in repliques:
+        numero = numero_cible(replique.cible, valides[ADVERSAIRE[replique.role]])
+        repond_a = {"cote": CHAMP_CONTRAT[ADVERSAIRE[replique.role]], "numero": numero}
+        if numero is None:  # l'argument visé a été corrigé puis rejeté : la réplique ne répond plus à rien
+            cibles_ecartees.append({"cote": CHAMP_CONTRAT[replique.role], **replique.argument,
+                                    "raison": RAISON_CIBLE_ECARTEE})
+            continue
+        visees[replique.role].append({**replique.argument, "repond_a": repond_a})
+    repliques_requisitoire = verifier_cote(visees["procureur"], "requisitoire", "procureur", dossier,
+                                           contrat["trace"], signaler)
+    repliques_plaidoirie = verifier_cote(visees["avocat"], "plaidoirie", "avocat", dossier, contrat["trace"], signaler)
+    tris = (requisitoire, plaidoirie, repliques_requisitoire, repliques_plaidoirie)
+    controle_chiffres = controle_verifier_chiffres(*tris)
+    controle_cadre = controle_cadre_simulation(*tris)
+    nombre_arguments = f"{len(debat.requisitoire) + len(debat.plaidoirie) + len(repliques)} arguments"
     for outil, controle in (("verifier_chiffres", controle_chiffres), ("verifier_cadre_simulation", controle_cadre)):
         tracer(contrat["trace"], signaler_etape,
                {"etape": "greffier", "outil": outil, "entree": nombre_arguments, "sortie": controle["message"]})
 
-    contrat["requisitoire"] = requisitoire.valides
-    contrat["plaidoirie"] = plaidoirie.valides
-    contrat["arguments_rejetes"] = requisitoire.rejetes + plaidoirie.rejetes
-    performance = controle_performance_passee(requisitoire.valides + plaidoirie.valides)
+    contrat["requisitoire"] = requisitoire.valides + repliques_requisitoire.valides
+    contrat["plaidoirie"] = plaidoirie.valides + repliques_plaidoirie.valides
+    contrat["arguments_rejetes"] = [*requisitoire.rejetes, *plaidoirie.rejetes, *repliques_requisitoire.rejetes,
+                                    *repliques_plaidoirie.rejetes, *cibles_ecartees]
+    performance = controle_performance_passee(contrat["requisitoire"] + contrat["plaidoirie"])
     contrat["controles"] += [*controles_pacte, controle_chiffres, controle_cadre,
                              *([performance] if performance else []), controle_biais_survivant()]
     contrat["hypotheses"] = [periode_analyse(), *HYPOTHESES_DONNEES, *profil.hypotheses,
@@ -396,7 +447,36 @@ def verifier_cote(arguments, cote, role, dossier, trace, signaler: Signaler | No
         tracer(trace, None if signaler is None else lambda e: signaler({"type": "etape", "etape": e}), etape)
         return corrige
 
-    return trier_arguments(arguments, cote, dossier, corriger)
+    return trier_arguments(arguments, cote, dossier, corriger,
+                           garde_fou=verifier_sortie if garde_fou_actif() else None)
+
+
+def verifier_sortie(texte: str) -> str | None:
+    """Un argument soumis au Guardrail Bedrock, côté sortie (#189)."""
+    return verifier_garde_fou(texte, "OUTPUT")
+
+
+def numero_cible(cible: dict[str, Any], valides: list[dict[str, Any]]) -> int | None:
+    """Numéro (1, 2…) de l'argument visé par une réplique dans la liste finale de son camp.
+
+    La réplique ne vise qu'un argument accepté tel quel : c'est le même objet dans la liste
+    des arguments valides. None s'il n'y est plus.
+    """
+    return next((i for i, argument in enumerate(valides, start=1) if argument is cible), None)
+
+
+def horodater_signaux(signaler: Signaler) -> Signaler:
+    """Chaque étape signalée reçoit l'heure où elle a eu lieu, avant d'être publiée (#189).
+
+    L'étape signalée est le même objet que celle de la trace du contrat : le contrat
+    garde donc les mêmes heures que la progression en direct.
+    """
+    def signaler_horodate(evenement: dict[str, Any]) -> None:
+        if evenement.get("type") == "etape":
+            horodater(evenement["etape"])
+        signaler(evenement)
+
+    return signaler_horodate
 
 
 def controler_pacte(profil, decision, instruction, pieces) -> list[dict[str, Any]]:

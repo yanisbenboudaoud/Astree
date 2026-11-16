@@ -226,3 +226,37 @@ def test_trois_points_de_bascule_du_cas_2():
     contrat = charger_exemple("contrat_amira.json")
     assert [p["regle"] for p in contrat["points_de_bascule"]] == [
         "pire_baisse_max", "plafond_crypto", "pas_exclusivement_tech"]
+
+
+# --- Réplique et mesure (#189) ------------------------------------------------
+
+
+def test_replique_vers_un_argument_adverse_acceptee(contrat):
+    contrat["requisitoire"].append({**contrat["requisitoire"][0], "repond_a": {"cote": "plaidoirie", "numero": 1}})
+    assert valider_contrat(contrat) == []
+
+
+@pytest.mark.parametrize("repond_a, attendu", [
+    ({"cote": "requisitoire", "numero": 1}, "au camp adverse"),
+    ({"cote": "plaidoirie", "numero": 99}, "n'existe pas"),
+])
+def test_replique_vers_une_cible_invalide_rejetee(contrat, repond_a, attendu):
+    contrat["requisitoire"].append({**contrat["requisitoire"][0], "repond_a": repond_a})
+    assert any(attendu in erreur for erreur in valider_contrat(contrat))
+
+
+def test_replique_vers_une_replique_rejetee(contrat):
+    contrat["plaidoirie"].append({**contrat["plaidoirie"][0], "repond_a": {"cote": "requisitoire", "numero": 1}})
+    contrat["requisitoire"].append({**contrat["requisitoire"][0],
+                                    "repond_a": {"cote": "plaidoirie", "numero": len(contrat["plaidoirie"])}})
+    assert any("vise une autre réplique" in erreur for erreur in valider_contrat(contrat))
+
+
+def test_champ_bedrock_et_horodatage_acceptes(contrat):
+    contrat["bedrock"] = {"modele": "global.anthropic.claude-sonnet-5-5", "appels": 7, "jetons_entree": 51000,
+                          "jetons_sortie": 7000, "duree_bedrock_s": 38.2, "cout_estime_usd": 0.172,
+                          "duree_proces_s": 41.0, "par_agent": [{"agent": "orchestrateur", "appels": 3,
+                                                                 "jetons_entree": 30000, "jetons_sortie": 2000}],
+                          "garde_fou": {"verifications": 10, "interventions": 0}}
+    contrat["trace"][0]["horodatage"] = "2026-11-15T22:09:01.123+00:00"
+    assert valider_contrat(contrat) == []

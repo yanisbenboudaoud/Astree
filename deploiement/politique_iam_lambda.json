@@ -12,6 +12,12 @@
       ]
     },
     {
+      "Sid": "GuardrailDuProjet",
+      "Effect": "Allow",
+      "Action": "bedrock:ApplyGuardrail",
+      "Resource": "ARN_DU_GARDE_FOU"
+    },
+    {
       "Sid": "JournauxCloudWatch",
       "Effect": "Allow",
       "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],

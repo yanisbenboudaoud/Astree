@@ -4,7 +4,7 @@
 
 Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % de mon portefeuille en Tesla »). Des agents Amazon Bedrock en font le **procès** à partir de pièces calculées en Python : un Procureur argumente contre, un Avocat pour, un Greffier vérifie le Pacte de l'investisseur et chaque chiffre cité. L'utilisateur rend le verdict.
 
-**🔗 Essayer le site : <https://yanisbenboudaoud.github.io/Datathon2026/>** (mode démonstration : il rejoue des procès réellement tenus sur AWS, sans appeler AWS).
+**🔗 Essayer le site : <https://yanisbenboudaoud.github.io/Datathon2026/>** (GitHub Pages, mode démonstration). Il rejoue des procès réellement tenus par les agents sur AWS (Bedrock), enregistrés dans le dépôt avec leurs pièces, leurs arguments, les contrôles du Greffier, les sources, les hypothèses, les limites et la trace. Il n'appelle pas AWS : il reste en ligne après la fermeture de notre compte AWS.
 
 > Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
 
@@ -38,9 +38,13 @@ Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit.
 
 ## Démarrage
 
-**Essayer sans rien installer** : l'interface est hébergée sur AWS (S3 + CloudFront, #135) à l'adresse **https://d15khh2djw55mh.cloudfront.net**. Pour l'instant, elle rejoue des procès réellement tenus par les agents (mode démonstration) ; le mode direct suivra (#141). Pour la mettre à jour : `deploiement\deployer_interface.py` ([`deploiement/README.md`](deploiement/README.md), « Interface hébergée »).
+**Essayer sans rien installer** : le site **<https://yanisbenboudaoud.github.io/Datathon2026/>** (GitHub Pages) rejoue des procès réellement tenus sur AWS, sans appeler AWS. C'est le lien durable.
 
-Prérequis : **Python 3.14**, la version du runtime Lambda (`python3.14`, #22). Commandes pour PowerShell, sous Windows. Après une mise à jour de `requirements-dev.txt`, relancer la commande `pip install` ci-dessous.
+**Version hébergée sur AWS** : la même interface est servie par S3 + CloudFront (#135) à l'adresse <https://d15khh2djw55mh.cloudfront.net>, active pendant l'évaluation. Le point d'accès AWS (Lambda Function URL + Bedrock) sera coupé après le jury pour éviter des coûts : ce lien cessera alors de fonctionner. Ce que le site GitHub Pages ne peut pas faire sans AWS : juger une décision non enregistrée, répondre à une question libre (contre-interrogatoire), construire un Pacte avec vos propres réponses. Chaque procès enregistré garde la preuve de son passage sur Bedrock (champ `bedrock` : appels par agent, jetons, durée, coût estimé). Pour mettre à jour la version AWS : `deploiement/deployer_interface.py` ([`deploiement/README.md`](deploiement/README.md), « Interface hébergée »).
+
+Prérequis : **Python 3.14**, la version du runtime Lambda (`python3.14`, #22), et **Node 20 ou plus** pour l'interface. Les commandes ci-dessous sont écrites pour PowerShell (Windows). Sous macOS ou Linux, remplacer `.venv\Scripts\` par `.venv/bin/`, les `\` des chemins par `/`, et `Copy-Item` par `cp`. Après une mise à jour de `requirements-dev.txt`, relancer la commande `pip install`.
+
+Windows (PowerShell) :
 
 ```powershell
 py -m venv .venv
@@ -48,6 +52,27 @@ py -m venv .venv
 Copy-Item .env.example .env
 .venv\Scripts\python -m pytest          # tests unitaires, sans réseau ni AWS
 ```
+
+macOS ou Linux :
+
+```bash
+python3.14 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+cp .env.example .env
+.venv/bin/python -m pytest              # tests unitaires, sans réseau ni AWS
+```
+
+### Lancer l'interface en local
+
+En mode démonstration (procès enregistrés, sans AWS), depuis la racine du dépôt :
+
+```bash
+cd frontend
+npm install
+npm run dev                             # http://localhost:5173
+```
+
+Pour brancher l'interface sur la Lambda déployée (mode direct) et pour les autres commandes (`npm test`, `npm run verifier`…) : [`frontend/README.md`](frontend/README.md).
 
 Pour appeler Bedrock (une fois par poste) :
 

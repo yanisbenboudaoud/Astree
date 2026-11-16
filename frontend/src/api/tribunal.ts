@@ -1,7 +1,9 @@
 /**
- * Accès au Tribunal.
+ * Accès au Tribunal. Le mode est celui de la page (`MODE_DIRECT`, src/api/config.ts) : `?mode=`,
+ * mode mémorisé, ou celui de la construction (#137).
  * - Mode démonstration (VITE_USE_MOCKS=true, par défaut) : rejoue un procès réellement tenu
  *   par la Lambda et archivé dans S3 (copié dans src/data/proces/), s'il juge exactement la décision.
+ *   Aucun appel à la Lambda, sauf « Trompez le Greffier » quand l'utilisateur l'ouvre.
  * - Mode direct (VITE_USE_MOCKS=false) : appelle la Lambda du Tribunal (VITE_API_URL),
  *   `POST /tribunal` puis `POST /verdict` (deploiement/lambda_tribunal.py). Le procès part en
  *   arrière-plan (réponse 202) et sa progression réelle est relue toutes les 1,5 s sur

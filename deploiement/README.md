@@ -76,7 +76,7 @@ Remarques :
 
 ## Interface hébergée : S3 privé + CloudFront (#135)
 
-**Adresse : https://d15khh2djw55mh.cloudfront.net**. Le site est actuellement en **mode démonstration** (procès enregistrés, « Trompez le Greffier » en direct). Le passage au mode direct attend #136 et #137 : c'est l'issue #141.
+**Adresse : https://d15khh2djw55mh.cloudfront.net**. Le site est en **mode direct par défaut** depuis le 2026-11-16 à 01 h 36 UTC (#141) : chaque procès est tenu par la Lambda, qui appelle Bedrock et S3. Les procès enregistrés restent à un clic : `https://d15khh2djw55mh.cloudfront.net/?mode=demo`, ou l'interrupteur à droite du bandeau (#137). **Pour le mettre à jour depuis `main`, lancer `deployer_interface.py` sans `--mode`** : `--mode demo` remettrait les procès enregistrés par défaut pour tous les visiteurs.
 
 ```powershell
 aws login                                                                    # une fois par session
@@ -85,6 +85,8 @@ aws login                                                                    # u
 ```
 
 Options : `--sans-construction` envoie `frontend/dist/` tel quel ; `--forcer` renvoie tous les fichiers (après un changement des en-têtes) ; `--attendre` attend que la distribution soit déployée.
+
+`--mode` ne fixe que le mode **par défaut** du site. Depuis #137, chaque visiteur peut en changer : `?mode=demo` (procès enregistrés, sans appel à la Lambda) ou `?mode=direct` dans l'adresse, ou l'interrupteur à droite du bandeau ; le choix est mémorisé dans son navigateur (`frontend/README.md`). Vérification gratuite : `ASTREE_URL=https://d15khh2djw55mh.cloudfront.net npm run verifier:mode`.
 
 [`deployer_interface.py`](deployer_interface.py) est **idempotent** comme `deployer.py` : un second lancement ne crée rien, n'envoie que les fichiers modifiés et n'invalide rien si `index.html` et les procès-verbaux n'ont pas changé.
 
@@ -98,7 +100,7 @@ Options : `--sans-construction` envoie `frontend/dist/` tel quel ; `--forcer` re
 | Cache | Politique gérée `CachingOptimized`. `assets/*` : `public, max-age=31536000, immutable` ; tout le reste (`index.html`, `proces-verbaux/*.html`, `marque.svg`) : `no-cache` | Vite hache le nom des fichiers d'`assets/` : un fichier modifié change de nom. Le reste doit suivre chaque déploiement |
 | En-têtes de sécurité | Politique gérée `SecurityHeadersPolicy` (HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) | Bonnes pratiques, sans code |
 | Zone de diffusion | `PriceClass_100` (Amérique du Nord et Europe) | Le jury est à Montréal ; la classe la moins chère |
-| Construction | `npm run build` avec `VITE_API_URL` lue sur le compte (`get_function_url_config`) et `VITE_USE_MOCKS=false` par défaut | L'adresse de la Lambda n'est jamais écrite dans le dépôt. Les variables du processus passent avant `frontend/.env.local` : la configuration locale de chacun n'entre pas dans le site |
+| Construction | `npm run build` avec `VITE_API_URL` lue sur le compte (`get_function_url_config`) et `VITE_USE_MOCKS=false` par défaut (le mode par défaut du site ; `?mode=` et l'interrupteur le changent, #137) | L'adresse de la Lambda n'est jamais écrite dans le dépôt. Les variables du processus passent avant `frontend/.env.local` : la configuration locale de chacun n'entre pas dans le site |
 | Envoi | Seuls les fichiers modifiés (ETag = MD5 local), `index.html` en dernier, fichiers absents de `dist/` supprimés. `Content-Type` fixé par extension | `index.html` ne désigne jamais un fichier pas encore envoyé. Sous Windows, `mimetypes` peut donner `text/plain` pour `.js` |
 | Invalidation | `/`, `/index.html` et `/proces-verbaux/*`, seulement si un fichier hors `assets/` a changé | Les 1 000 premiers chemins invalidés par mois sont gratuits |
 
@@ -128,6 +130,18 @@ Options : `--sans-construction` envoie `frontend/dist/` tel quel ; `--forcer` re
 | Second lancement du script | Aucune ressource créée (toujours 1 OAC et 1 distribution `alphaforge-interface`), 0 fichier envoyé sur 146, aucune invalidation |
 
 Pendant ces vérifications, un redéploiement de la Lambda depuis une autre session (`deployer.py` sans `--origine`, 20 h 46 UTC) a retiré le domaine du CORS : le Greffier en direct échouait depuis le site. Il a été remis avec `--url-seulement --origine`. C'est le problème que règle #136 (section suivante). Une modification du CORS met aussi quelques secondes à s'appliquer partout.
+
+**Vérifié le 2026-11-16, site en mode direct (#141)**. Lambda redéployée depuis `main` (après #136 et #137) par un `deployer.py` complet **sans `--origine`** à 01 h 35 UTC (`LastModified` 01:35:22), puis site construit et envoyé par `deployer_interface.py` **sans `--mode`** (34 fichiers envoyés, 2 supprimés, invalidation terminée) :
+
+| Vérification | Résultat |
+|---|---|
+| CORS de la Function URL après ce `deployer.py` | `http://localhost:5173` et `https://d15khh2djw55mh.cloudfront.net`, lus sur le compte ; prévol `OPTIONS /tribunal` depuis le site : 200 avec `Access-Control-Allow-Origin`, depuis une autre origine : aucun en-tête `Access-Control-*` |
+| Nouveau visiteur, sans mode mémorisé | Interrupteur « En direct (Bedrock sur AWS) », aucun appel à la Lambda sur l'accueil |
+| `ASTREE_URL=https://d15khh2djw55mh.cloudfront.net npm run verifier:direct` | Robert, « 30 % en TSLA » : vrai procès en 53 s (phases Orchestrateur → Procureur et Avocat → Réplique → Greffier), question « Et si je mettais 15 % au lieu de 30 % ? » en 19 s (22/22 chiffres vérifiés), verdict archivé (`verdicts/robert/2026-11-16-9b710b346da7.json`). Amira, panier à 25 % : vrai procès en 62 s, verdict archivé (`verdicts/amira/2026-11-16-bfd65308abc2.json`). Aucune erreur de console, axe-core sans violation |
+| `ASTREE_URL=… npm run verifier:mode` | `?mode=demo` : procès enregistré de Robert rejoué jusqu'au verdict signé avec **0 requête vers la Lambda** ; mode mémorisé ; interrupteur (axe-core) ; aller-retour vers le direct |
+| `ASTREE_URL=… npm run verifier` (procès enregistrés, fixés par le script) | Aucun problème : 3 profils, 23 écrans sous axe-core, débordement à 1440 et 1280 px, console |
+| `ASTREE_URL=… npm run verifier:greffier` (procès enregistrés) | 4 exemples vérifiés par la Lambda, de 82 à 103 ms chacun |
+| `LastModified` de la Lambda juste avant les procès | 01:35:22 UTC, le déploiement depuis `main` : aucune autre branche ne l'avait remplacée |
 
 **Limites** :
 - Un onglet ouvert avant un redéploiement peut ne plus trouver un morceau de l'interface chargé à la demande (la table des paniers de l'écran Décision) : il a été supprimé du bucket. Recharger la page suffit.

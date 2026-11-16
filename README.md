@@ -4,7 +4,12 @@
 
 Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % de mon portefeuille en Tesla »). Des agents Amazon Bedrock en font le **procès** à partir de pièces calculées en Python : un Procureur argumente contre, un Avocat pour, un Greffier vérifie le Pacte de l'investisseur et chaque chiffre cité. L'utilisateur rend le verdict.
 
-**🔗 Essayer le site : <https://yanisbenboudaoud.github.io/Datathon2026/>** (mode démonstration : il rejoue des procès réellement tenus sur AWS, sans appeler AWS).
+### 🔗 Essayer l'outil en ligne
+
+| Lien | Ce qu'il fait | Disponible |
+|---|---|---|
+| **Version AWS (complète)** : <https://d15khh2djw55mh.cloudfront.net> | La solution en direct : S3 + CloudFront pour l'interface, Lambda + Bedrock pour les agents. Juge **n'importe quelle décision**, répond aux questions libres (contre-interrogatoire), construit un Pacte avec vos propres réponses, affiche la progression du procès en direct. Un interrupteur (en haut à droite) passe aussi en mode démonstration. | Pendant l'évaluation. Coupée après le jury pour éviter des coûts. |
+| **Version démonstration (durable)** : <https://yanisbenboudaoud.github.io/Datathon2026/> | La même interface sur GitHub Pages, **sans appel à AWS**. Elle rejoue des procès réellement tenus par les agents sur Bedrock, enregistrés dans le dépôt avec leurs pièces, arguments, contrôles du Greffier, sources, limites et trace. Ne peut pas juger une décision non enregistrée. | Toujours, même après la fermeture du compte AWS. |
 
 > Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.
 
@@ -39,9 +44,15 @@ Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit.
 
 ## Démarrage
 
-**Voir sans rien installer** : le compte AWS de l'événement est supprimé après le Datathon, donc l'adresse hébergée (https://d15khh2djw55mh.cloudfront.net, S3 + CloudFront, #135) et la Lambda ne répondent plus. Chaque écran est capturé dans [`docs/preuves/ecrans/`](docs/preuves/ecrans/README.md), et les preuves du fonctionnement sur AWS sont dans [`docs/preuves/aws/`](docs/preuves/aws/README.md) (#191). En local, l'interface fonctionne toujours sans AWS : elle rejoue des procès réellement tenus par les agents (mode démonstration). Pour la mettre à jour : `deploiement\deployer_interface.py` ([`deploiement/README.md`](deploiement/README.md), « Interface hébergée »).
+**Essayer sans rien installer** : les deux liens en tête de ce README.
 
-Prérequis : **Python 3.14**, la version du runtime Lambda (`python3.14`, #22). Commandes pour PowerShell, sous Windows. Après une mise à jour de `requirements-dev.txt`, relancer la commande `pip install` ci-dessous.
+- **Version AWS** (<https://d15khh2djw55mh.cloudfront.net>, S3 + CloudFront, #135) : elle tient de **vrais procès en direct** (Lambda + Bedrock, #141), de 20 à 50 s chacun ; `?mode=demo` dans l'adresse, ou l'interrupteur en haut à droite, rejoue des procès enregistrés, instantanés et sans appel à la Lambda (#137). Le point d'accès AWS sera coupé après le jury pour éviter des coûts : ce lien cessera alors de fonctionner. Pour la mettre à jour : `deploiement\deployer_interface.py` ([`deploiement/README.md`](deploiement/README.md), « Interface hébergée »).
+- **Version démonstration** (<https://yanisbenboudaoud.github.io/Datathon2026/>, GitHub Pages) : le lien durable. Elle rejoue des procès réellement tenus sur AWS, sans appeler AWS. Ce qu'elle ne peut pas faire : juger une décision non enregistrée, répondre à une question libre (contre-interrogatoire), construire un Pacte avec vos propres réponses. Chaque procès enregistré garde la preuve de son passage sur Bedrock (champ `bedrock` : appels par agent, jetons, durée, coût estimé).
+- **Captures et preuves AWS** (#191), pour quand le point d'accès AWS sera coupé : chaque écran dans [`docs/preuves/ecrans/`](docs/preuves/ecrans/README.md) ; les preuves du fonctionnement sur AWS, exportées par l'API avant la suppression du compte (appels Bedrock, Lambda, S3, IAM, CloudFront, budget), dans [`docs/preuves/aws/`](docs/preuves/aws/README.md).
+
+Prérequis : **Python 3.14**, la version du runtime Lambda (`python3.14`, #22), et **Node 20 ou plus** pour l'interface. Les commandes ci-dessous sont écrites pour PowerShell (Windows). Sous macOS ou Linux, remplacer `.venv\Scripts\` par `.venv/bin/`, les `\` des chemins par `/`, et `Copy-Item` par `cp`. Après une mise à jour de `requirements-dev.txt`, relancer la commande `pip install`.
+
+Windows (PowerShell) :
 
 ```powershell
 py -m venv .venv
@@ -49,6 +60,27 @@ py -m venv .venv
 Copy-Item .env.example .env
 .venv\Scripts\python -m pytest          # tests unitaires, sans réseau ni AWS
 ```
+
+macOS ou Linux :
+
+```bash
+python3.14 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+cp .env.example .env
+.venv/bin/python -m pytest              # tests unitaires, sans réseau ni AWS
+```
+
+### Lancer l'interface en local
+
+En mode démonstration (procès enregistrés, sans AWS), depuis la racine du dépôt :
+
+```bash
+cd frontend
+npm install
+npm run dev                             # http://localhost:5173
+```
+
+Pour brancher l'interface sur la Lambda déployée (mode direct) et pour les autres commandes (`npm test`, `npm run verifier`…) : [`frontend/README.md`](frontend/README.md).
 
 Pour appeler Bedrock (une fois par poste) :
 

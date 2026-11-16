@@ -284,6 +284,46 @@ flowchart LR
 
 **Sécurité et coûts** : aucune clé dans le code ni dans Git, rôle IAM minimal ([`politique_iam_lambda.json`](../deploiement/politique_iam_lambda.json)), concurrence réservée de 2, CORS limité à l'interface, débit limité par adresse IP, alerte de budget. Paramètres vérifiés : [`deploiement/README.md`](../deploiement/README.md) ; détails : [`architecture.md`](architecture.md), « Sécurité et coûts ».
 
+### Preuves du déploiement (captures de la console AWS, 2026-11-15)
+
+Les ressources AWS seront supprimées après l'événement : ces captures, prises sur le compte du Datathon, montrent la solution déployée.
+
+![Lambda alphaforge-tribunal : vue d'ensemble](captures/10-lambda-vue.png)
+*Figure 10.1 : la fonction Lambda `alphaforge-tribunal` (us-east-1), avec sa couche gérée (pandas) et sa Function URL. L'adresse est masquée : elle n'est pas publiée dans le dépôt.*
+
+![Lambda : configuration générale](captures/10-lambda-general.png)
+*Figure 10.2 : mémoire de 1024 Mo et délai de 5 minutes (300 s). Les valeurs par défaut (128 Mo, 3 s) ne suffisent pas : un procès dure de 20 à 50 s ([fiche 022](journal/022-pieges-aws.md)).*
+
+![Lambda : URL de fonction et CORS](captures/10-lambda-url.png)
+*Figure 10.3 : la Function URL, point d'accès de l'interface (choix de #22 : pas de coupure à 29 s comme API Gateway). CORS limité à `http://localhost:5173` et au site CloudFront, méthode `POST` seulement, en-tête `x-proces-id` exposé pour `/verdict`.*
+
+![Lambda : simultanéité réservée](captures/10-lambda-concurrence.png)
+*Figure 10.4 : simultanéité réservée de 2. Le point d'accès est public et chaque procès appelle Bedrock (payant) : au plus deux exécutions à la fois, un 3ᵉ procès reçoit 429 (« Tribunal occupé ») au lieu d'un coût de plus.*
+
+![Lambda : invocation asynchrone](captures/10-lambda-async.png)
+*Figure 10.5 : la progression en direct (#90) lance le procès en arrière-plan par une invocation asynchrone de la Lambda elle-même. Aucune relance automatique (0 tentative) : un procès raté serait refait et refacturé ; un procès qui ne démarre pas en 1 min est abandonné.*
+
+![Lambda : variables d'environnement](captures/10-lambda-env.png)
+*Figure 10.6 : la configuration de la Lambda tient en cinq variables : le profil d'inférence global de Bedrock, le Guardrail et sa version, le bucket et la source des données (`s3`, contre `local` sur un poste). Aucune clé d'accès : les droits viennent du rôle IAM de la fonction.*
+
+![Lambda : surveillance CloudWatch](captures/08-lambda-surveiller.png)
+*Figure 10.7 : métriques CloudWatch de la Lambda, du 13 au 16 novembre 2026. 1 487 invocations (procès, questions, profils, et chaque relecture de `/progression` toutes les 1,5 s), aucune erreur, taux de réussite minimal de 100 %. Durée moyenne de 11,6 s (tirée vers le bas par les relectures, rapides) et maximale de 71,1 s : un procès complet avec répliques dépasserait les 29 s d'API Gateway, d'où la Function URL.*
+
+![Journal CloudWatch de deux procès](captures/06-cloudwatch-logs.png)
+*Figure 10.8 : journal CloudWatch de la Lambda, deux procès du 16 novembre 2026 (UTC). Runtime `python3.14` ; données lues dans S3 en 0,5 s au démarrage ; procès de 57,0 s et 54,7 s ; 239 et 240 Mo utilisés sur 1024 Mo.*
+
+![Bucket S3 du projet](captures/10-s3-donnees.png)
+*Figure 10.9 : le bucket du projet. `donnees/` : les CSV lus par la Lambda ; `traces/` : chaque procès archivé avec ses pièces et sa trace ; `progression/` : l'étape en cours, relue par l'interface (#90) ; `verdicts/` : les choix de l'utilisateur, relus par la jurisprudence (#56) ; `profils/` : les Pactes créés au questionnaire (#87).*
+
+![Trace d'un procès archivée dans S3](captures/06-s3-trace.png)
+*Figure 10.10 : début d'un procès archivé dans `traces/2026-11-16/` (contrat de la section 5 de [`CLAUDE.md`](../CLAUDE.md)). Profil de test prudent, « 30 % en TSLA ». La règle de pire baisse porte le seuil mesuré par le Pacte vécu (−10,2 %), avec sa provenance et la pièce `P2` qui le prouve.*
+
+![Bucket du site : accès public bloqué](captures/10-s3-site-prive.png)
+*Figure 10.11 : le bucket `alphaforge-site-<compte>`, qui contient l'interface, bloque tout accès public. Seule la distribution CloudFront peut le lire (#135).*
+
+![Bucket du site : stratégie](captures/10-s3-site-politique.png)
+*Figure 10.12 : la stratégie du bucket du site. Une seule autorisation : `s3:GetObject` pour le service CloudFront, à condition que la demande vienne de la distribution de l'interface (`AWS:SourceArn`). Personne d'autre ne lit le bucket, même pas une autre distribution.*
+
 ## 11. Le prototype en captures
 
 Le jury ne pourra pas tester le prototype : le compte AWS de l'événement sera supprimé. Chaque écran est donc capturé dans [`preuves/ecrans/`](preuves/ecrans/README.md), en **mode démonstration** : l'interface rejoue des procès **réellement tenus** par les agents Bedrock sur AWS, sans appel réseau. Le script [`frontend/e2e/preuves.mjs`](../frontend/e2e/preuves.mjs) refait toutes les captures (#191).

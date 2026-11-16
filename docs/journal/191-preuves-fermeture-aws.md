@@ -1,6 +1,6 @@
 # #191 — Preuves avant la fermeture du compte AWS
 
-- **Issue** : #191 · **PR** : à venir (captures d'écran) · **Statut** : en cours (procès sauvegardés et preuves AWS dans une seconde PR)
+- **Issue** : #191 · **PR** : #192 (captures d'écran) · **Statut** : en cours (procès sauvegardés et preuves AWS dans une seconde PR)
 - **Dernière mise à jour** : 2026-11-15
 
 Message du jury : « On ne pourra pas tester : tout sera supprimé. Assurez-vous donc de prendre vidéos, captures d'écran, toutes preuves et tout ce qui est nécessaire pour démontrer votre solution. » Ce qui ne vit que sur AWS ou dans le navigateur est donc capturé et versé au dépôt.

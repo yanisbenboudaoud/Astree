@@ -24,6 +24,19 @@ Sur la version AWS, l'interrupteur en haut à droite, ou `?mode=demo` dans l'adr
 
 Quand le point d'accès AWS sera coupé (#191) : chaque écran est capturé dans [`docs/preuves/ecrans/`](docs/preuves/ecrans/README.md), et les preuves du fonctionnement sur AWS, exportées par l'API avant la suppression du compte (appels Bedrock, Lambda, S3, IAM, CloudFront, budget), sont dans [`docs/preuves/aws/`](docs/preuves/aws/README.md).
 
+## Documentation
+
+| Pour… | Lire |
+|---|---|
+| **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
+| Les règles du projet, son architecture et le contrat JSON (la référence) | [`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md) |
+| Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
+| La **documentation technique** (agents, garde-fous, méthode, explicabilité, validations, AWS) | [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md) |
+| Le projet **en une page** | [`docs/ONE_PAGER.md`](docs/ONE_PAGER.md) |
+| Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
+| Trouver le rôle de **chaque fichier** | [`docs/CARTE_DU_DEPOT.md`](docs/CARTE_DU_DEPOT.md) |
+| Voir la maquette de l'interface | [`docs/maquette/`](docs/maquette/) |
+
 ## Installation (guide court)
 
 Prérequis : **Python 3.14** (la version du runtime Lambda), **Node 20 ou plus** et Git. Aucun compte AWS n'est nécessaire pour les tests ni pour l'interface en mode démonstration.
@@ -139,19 +152,6 @@ Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit.
 | **L'interface montre les mêmes chiffres que ces rapports** (#172) | Le bilan du Greffier affiche, sous `verifier_chiffres` et `cadre_simulation`, les taux du bulletin : **66/66** et **80/80**, **47/78** et **71/71** ; le tiroir de la pièce de simulation affiche **27/27** et **7/7** pour les données. Deux tests garantissent que ce sont les chiffres des rapports : `tests/test_bulletin.py` recalcule le bulletin et cherche chacun de ses k/N dans le rapport, `frontend/src/test/bulletin.test.tsx` vérifie que la phrase affichée reprend exactement le fichier. La mesure de l'orchestrateur n'est pas encore au bulletin. | [`bulletin.json`](frontend/src/data/bulletin.json), écrit par les commandes d'évaluation |
 | **AWS a réellement servi** (#191) | Exporté par l'API avant la suppression du compte (2026-11-16) : Claude Sonnet 5.5 sur Bedrock appelé **1 725 fois** (environ **10,3 millions** de jetons lus, 0 erreur client) ; Lambda appelée **1 573 fois**, 0 erreur ; 218 procès, 15 verdicts et 5 profils dans S3 ; coût réel du compte **17,29 $** pour un budget de 100 $. | [`docs/preuves/aws/`](docs/preuves/aws/README.md) |
 | **La suite de tests passe** (#169) | Badge en tête de ce README, à chaque push. Dernier passage sur `main` (commit `e8f0a34`, 2026-11-15) : **1033** tests Python réussis (24 tests Bedrock exclus, payants), **144/144** tests de l'interface, **10/10** contrats JSON valides. | [Run du 2026-11-15](https://github.com/yanisbenboudaoud/Datathon2026/actions/runs/43770396725) |
-
-## Documentation
-
-| Pour… | Lire |
-|---|---|
-| **Tout comprendre, quel que soit votre niveau** | [`docs/GUIDE_DU_PROJET.md`](docs/GUIDE_DU_PROJET.md) |
-| Les règles du projet, son architecture et le contrat JSON (la référence) | [`REFERENCE_DU_PROJET.md`](REFERENCE_DU_PROJET.md) |
-| Savoir **pourquoi** l'architecture est ainsi | [`docs/CHOIX_CONCEPTION.md`](docs/CHOIX_CONCEPTION.md) |
-| La **documentation technique** (agents, garde-fous, méthode, explicabilité, validations, AWS) | [`docs/DOCUMENTATION_TECHNIQUE.md`](docs/DOCUMENTATION_TECHNIQUE.md) |
-| Le projet **en une page** | [`docs/ONE_PAGER.md`](docs/ONE_PAGER.md) |
-| Savoir **ce qui a été construit**, issue par issue | [`docs/journal/`](docs/journal/) |
-| Trouver le rôle de **chaque fichier** | [`docs/CARTE_DU_DEPOT.md`](docs/CARTE_DU_DEPOT.md) |
-| Voir la maquette de l'interface | [`docs/maquette/`](docs/maquette/) |
 
 ## Organisation du dépôt
 

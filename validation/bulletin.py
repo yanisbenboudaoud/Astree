@@ -23,7 +23,7 @@ from typing import Any
 from validation.evaluation import RACINE, ResultatCas, intervalle_wilson
 
 CHEMIN_BULLETIN = RACINE / "frontend" / "src" / "data" / "bulletin.json"
-DEPOT = "https://github.com/yanisbenboudaoud/Datathon2026/blob/main/"
+DEPOT = "https://github.com/yanisbenboudaoud/Astree/blob/main/"
 DECIMALES = 4
 
 

@@ -1,6 +1,6 @@
 {
  "description": "Bulletin du Greffier (#172) : taux mesurés par les évaluations de docs/validation/, écrits par Python (validation/bulletin.py). L'interface les affiche sans rien calculer. Ne pas modifier à la main : relancer la commande d'évaluation.",
- "depot": "https://github.com/yanisbenboudaoud/Datathon2026/blob/main/",
+ "depot": "https://github.com/yanisbenboudaoud/Astree/blob/main/",
  "mesures": {
   "cadre_simulation": {
    "issue": 166,

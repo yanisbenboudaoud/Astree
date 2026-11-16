@@ -1,6 +1,6 @@
 # AlphaForge AI - le Tribunal des décisions d'investissement
 
-[![Tests](https://github.com/yanisbenboudaoud/Datathon2026/actions/workflows/tests.yml/badge.svg)](https://github.com/yanisbenboudaoud/Datathon2026/actions/workflows/tests.yml)
+[![Tests](https://github.com/yanisbenboudaoud/Astree/actions/workflows/tests.yml/badge.svg)](https://github.com/yanisbenboudaoud/Astree/actions/workflows/tests.yml)
 
 Projet du Datathon PolyFinances 2026. L'utilisateur arrive avec **sa propre décision** (ex. : « 30 % de mon portefeuille en Tesla »). Des agents Amazon Bedrock en font le **procès** à partir de pièces calculées en Python : un Procureur argumente contre, un Avocat pour, un Greffier vérifie le Pacte de l'investisseur et chaque chiffre cité. L'utilisateur rend le verdict.
 
@@ -12,7 +12,7 @@ Deux sites, la même interface. Le premier tient de vrais procès sur AWS ; le s
 
 | | **Version AWS (complète)** | **Version démonstration (durable)** |
 |---|---|---|
-| Adresse | <https://d15khh2djw55mh.cloudfront.net> | <https://yanisbenboudaoud.github.io/Datathon2026/> |
+| Adresse | <https://d15khh2djw55mh.cloudfront.net> | <https://yanisbenboudaoud.github.io/Astree/> |
 | Hébergement | S3 + CloudFront ; agents sur Lambda + Bedrock | GitHub Pages, aucun appel à AWS |
 | Procès | Vrais procès en direct (20 à 50 s), progression affichée étape par étape | Procès réellement tenus sur Bedrock, enregistrés dans le dépôt, rejoués instantanément |
 | Juger **n'importe quelle décision** | Oui | Non : seulement les décisions enregistrées (sinon, l'écran propose la décision enregistrée) |
@@ -33,8 +33,8 @@ Prérequis : **Python 3.14** (la version du runtime Lambda), **Node 20 ou plus**
 macOS ou Linux :
 
 ```bash
-git clone https://github.com/yanisbenboudaoud/Datathon2026.git
-cd Datathon2026
+git clone https://github.com/yanisbenboudaoud/Astree.git
+cd Astree
 python3.14 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
@@ -44,8 +44,8 @@ cp .env.example .env
 Windows (PowerShell) :
 
 ```powershell
-git clone https://github.com/yanisbenboudaoud/Datathon2026.git
-cd Datathon2026
+git clone https://github.com/yanisbenboudaoud/Astree.git
+cd Astree
 py -3.14 -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
@@ -151,7 +151,7 @@ Chaque promesse du projet, la mesure qui la prouve et le rapport qui la produit.
 | **Nos données concordent avec les émetteurs** (#168) | Rendements annuels de 7 FNB à moins de 0,25 point de ceux publiés (seuil fixé avant le calcul) : **27/27** (87,5 % à 100,0 %) ; 2022 : **7/7** (64,6 % à 100,0 %) ; écart maximal : 0,12 point. | [`validation_externe.md`](docs/validation/validation_externe.md) |
 | **L'interface montre les mêmes chiffres que ces rapports** (#172) | Le bilan du Greffier affiche, sous `verifier_chiffres` et `cadre_simulation`, les taux du bulletin : **66/66** et **80/80**, **47/78** et **71/71** ; le tiroir de la pièce de simulation affiche **27/27** et **7/7** pour les données. Deux tests garantissent que ce sont les chiffres des rapports : `tests/test_bulletin.py` recalcule le bulletin et cherche chacun de ses k/N dans le rapport, `frontend/src/test/bulletin.test.tsx` vérifie que la phrase affichée reprend exactement le fichier. La mesure de l'orchestrateur n'est pas encore au bulletin. | [`bulletin.json`](frontend/src/data/bulletin.json), écrit par les commandes d'évaluation |
 | **AWS a réellement servi** (#191) | Exporté par l'API avant la suppression du compte (2026-11-16) : Claude Sonnet 5.5 sur Bedrock appelé **1 725 fois** (environ **10,3 millions** de jetons lus, 0 erreur client) ; Lambda appelée **1 573 fois**, 0 erreur ; 218 procès, 15 verdicts et 5 profils dans S3 ; coût réel du compte **17,29 $** pour un budget de 100 $. | [`docs/preuves/aws/`](docs/preuves/aws/README.md) |
-| **La suite de tests passe** (#169) | Badge en tête de ce README, à chaque push. Dernier passage sur `main` (commit `e8f0a34`, 2026-11-15) : **1033** tests Python réussis (24 tests Bedrock exclus, payants), **144/144** tests de l'interface, **10/10** contrats JSON valides. | [Run du 2026-11-15](https://github.com/yanisbenboudaoud/Datathon2026/actions/runs/43770396725) |
+| **La suite de tests passe** (#169) | Badge en tête de ce README, à chaque push. Dernier passage sur `main` (commit `e8f0a34`, 2026-11-15) : **1033** tests Python réussis (24 tests Bedrock exclus, payants), **144/144** tests de l'interface, **10/10** contrats JSON valides. | [Run du 2026-11-15](https://github.com/yanisbenboudaoud/Astree/actions/runs/43770396725) |
 
 ## Organisation du dépôt
 

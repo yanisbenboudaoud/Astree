@@ -29,12 +29,26 @@ Appels en parallèle : le client Bedrock est partagé et peut servir plusieurs
 threads à la fois. Le Procureur et l'Avocat peuvent donc être appelés en même
 temps avec ``concurrent.futures.ThreadPoolExecutor``.
 
+Mesure (#189) : pendant ``with compter_appels() as compteur:``, chaque appel
+Converse est compté (jetons lus et écrits, durée mesurée par Bedrock) au nom de
+l'agent déclaré par ``with au_nom_de("procureur"):`` dans son fil d'exécution.
+``compteur.resume()`` donne le champ ``bedrock`` du contrat. Un seul compteur
+actif par processus : une Lambda ne traite qu'un procès à la fois.
+
+Guardrail (#189) : si BEDROCK_GUARDRAIL_ID est défini, ``verifier_garde_fou``
+soumet un texte au Guardrail Amazon Bedrock (API ApplyGuardrail) : la demande et
+la question de l'utilisateur à l'entrée (attaque de consigne), chaque argument à
+la sortie (sujet refusé : conseil personnalisé ou promesse de rendement). Sans
+cette variable (tests, local), rien n'est soumis.
+
 Configuration, par variables d'environnement (jamais en dur dans le code) :
 - BEDROCK_MODEL_ID : identifiant du profil d'inférence,
   ex. « global.anthropic.claude-sonnet-5-5 ». Sur ce compte, les modèles Claude
   s'appellent par leur profil d'inférence (préfixe « global. » ou « us. »), pas
   par leur identifiant brut.
 - AWS_REGION : région Bedrock, ex. « us-east-1 ».
+- BEDROCK_GUARDRAIL_ID et BEDROCK_GUARDRAIL_VERSION (facultatifs) : le Guardrail
+  créé par ``deploiement/deployer.py`` et sa version publiée.
 
 Les identifiants AWS viennent de la chaîne standard de boto3 : « aws login » en
 local, rôle IAM dans Lambda. Aucune clé n'apparaît dans le code.
@@ -45,8 +59,9 @@ from __future__ import annotations
 import json
 import os
 import threading
-from dataclasses import dataclass
-from typing import Any
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from typing import Any, Iterator
 
 import boto3
 import jsonschema
@@ -72,12 +87,22 @@ CONFIG_BOTO = Config(
     read_timeout=DELAI_LECTURE_S,
 )
 
+# Tarif public de Sonnet 5.5 sur Bedrock, en dollars américains par million de
+# jetons, relevé le 2026-11-15 (docs/validation/evaluation_orchestrateur.md).
+# Hypothèse : sert seulement à estimer le coût d'un procès, jamais facturé ici.
+TARIF_ENTREE_USD_PAR_MILLION = 2.0
+TARIF_SORTIE_USD_PAR_MILLION = 10.0
+
 _verrou_client = threading.Lock()
 _client = None  # client Bedrock partagé, créé au premier appel
 
 
 class ErreurLLM(Exception):
     """Le modèle n'a pas rendu une réponse exploitable (ou la configuration manque)."""
+
+
+class RefusGardeFou(Exception):
+    """Le Guardrail Bedrock a refusé le texte de l'utilisateur (attaque de consigne)."""
 
 
 @dataclass(frozen=True)
@@ -100,6 +125,138 @@ class TourOutils:
     @property
     def termine(self) -> bool:
         return not self.demandes
+
+
+# --- Mesure des appels (#189) -------------------------------------------------
+
+
+@dataclass
+class Compteur:
+    """Appels Bedrock d'un procès : par agent, jetons lus et écrits, durée mesurée par Bedrock."""
+
+    appels: list[dict[str, Any]] = field(default_factory=list)
+    garde_fou: list[bool] = field(default_factory=list)  # une entrée par vérification : intervenu ?
+    _verrou: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    def noter(self, agent: str, reponse: dict[str, Any]) -> None:
+        usage = reponse.get("usage", {})
+        with self._verrou:
+            self.appels.append({
+                "agent": agent,
+                "jetons_entree": int(usage.get("inputTokens", 0)),
+                "jetons_sortie": int(usage.get("outputTokens", 0)),
+                "duree_ms": int(reponse.get("metrics", {}).get("latencyMs", 0)),
+            })
+
+    def noter_garde_fou(self, intervenu: bool) -> None:
+        with self._verrou:
+            self.garde_fou.append(intervenu)
+
+    def resume(self) -> dict[str, Any]:
+        """Champ ``bedrock`` du contrat : totaux, coût estimé et détail par agent, dans l'ordre d'apparition."""
+        with self._verrou:
+            appels, garde_fou = list(self.appels), list(self.garde_fou)
+        par_agent: dict[str, dict[str, Any]] = {}
+        for appel in appels:
+            ligne = par_agent.setdefault(appel["agent"], {"agent": appel["agent"], "appels": 0,
+                                                          "jetons_entree": 0, "jetons_sortie": 0})
+            ligne["appels"] += 1
+            ligne["jetons_entree"] += appel["jetons_entree"]
+            ligne["jetons_sortie"] += appel["jetons_sortie"]
+        entree = sum(a["jetons_entree"] for a in appels)
+        sortie = sum(a["jetons_sortie"] for a in appels)
+        resume = {
+            "modele": os.environ.get("BEDROCK_MODEL_ID", "").strip() or "inconnu",
+            "appels": len(appels),
+            "jetons_entree": entree,
+            "jetons_sortie": sortie,
+            "duree_bedrock_s": round(sum(a["duree_ms"] for a in appels) / 1000, 1),
+            "cout_estime_usd": round((entree * TARIF_ENTREE_USD_PAR_MILLION
+                                      + sortie * TARIF_SORTIE_USD_PAR_MILLION) / 1_000_000, 4),
+            "par_agent": list(par_agent.values()),
+        }
+        if garde_fou:
+            resume["garde_fou"] = {"verifications": len(garde_fou), "interventions": sum(garde_fou)}
+        return resume
+
+
+_compteur: Compteur | None = None
+_agent = threading.local()
+
+
+@contextmanager
+def compter_appels() -> Iterator[Compteur]:
+    """Compte les appels Bedrock faits pendant le bloc, dans tous les fils d'exécution."""
+    global _compteur
+    precedent, _compteur = _compteur, Compteur()
+    try:
+        yield _compteur
+    finally:
+        _compteur = precedent
+
+
+@contextmanager
+def au_nom_de(agent: str) -> Iterator[None]:
+    """Attribue à ``agent`` les appels faits pendant le bloc, dans ce fil d'exécution."""
+    precedent = getattr(_agent, "nom", None)
+    _agent.nom = agent
+    try:
+        yield
+    finally:
+        _agent.nom = precedent
+
+
+def _noter(reponse: dict[str, Any]) -> None:
+    if _compteur is not None:
+        _compteur.noter(getattr(_agent, "nom", None) or "autre", reponse)
+
+
+# --- Guardrail Amazon Bedrock (#189) -------------------------------------------
+
+
+def garde_fou_actif() -> bool:
+    """Vrai si un Guardrail est configuré (BEDROCK_GUARDRAIL_ID)."""
+    return bool(os.environ.get("BEDROCK_GUARDRAIL_ID", "").strip())
+
+
+def verifier_garde_fou(texte: str, source: str) -> str | None:
+    """Soumet un texte au Guardrail Bedrock ; renvoie le motif s'il intervient, sinon None.
+
+    Args:
+        texte: la demande ou la question de l'utilisateur (``source="INPUT"``), ou le texte
+            d'un argument (``source="OUTPUT"``).
+        source: « INPUT » ou « OUTPUT » : le Guardrail n'applique que ses filtres de ce côté.
+
+    Sans Guardrail configuré, rien n'est soumis et la fonction renvoie None.
+    """
+    identifiant = os.environ.get("BEDROCK_GUARDRAIL_ID", "").strip()
+    if not identifiant:
+        return None
+    reponse = _client_bedrock().apply_guardrail(
+        guardrailIdentifier=identifiant,
+        guardrailVersion=os.environ.get("BEDROCK_GUARDRAIL_VERSION", "").strip() or "DRAFT",
+        source=source,
+        content=[{"text": {"text": texte}}],
+    )
+    intervenu = reponse.get("action") == "GUARDRAIL_INTERVENED"
+    if _compteur is not None:
+        _compteur.noter_garde_fou(intervenu)
+    return motif_garde_fou(reponse) if intervenu else None
+
+
+def motif_garde_fou(reponse: dict[str, Any]) -> str:
+    """Motif lisible d'une intervention du Guardrail : sujets refusés et filtres déclenchés."""
+    raisons = []
+    for evaluation in reponse.get("assessments", []):
+        for sujet in evaluation.get("topicPolicy", {}).get("topics", []):
+            raisons.append(f"sujet refusé « {sujet.get('name', '?')} »")
+        for filtre in evaluation.get("contentPolicy", {}).get("filters", []):
+            if filtre.get("type") == "PROMPT_ATTACK":
+                raisons.append("tentative de détourner les consignes des agents")
+            else:
+                raisons.append(f"filtre « {filtre.get('type', '?')} »")
+    detail = ", ".join(dict.fromkeys(raisons)) or "intervention sans détail"
+    return f"Guardrail Bedrock : {detail}"
 
 
 # --- Usage 1 : un message, une réponse --------------------------------------
@@ -142,6 +299,7 @@ def appeler_llm(
         }
 
     reponse = _client_bedrock().converse(**requete)
+    _noter(reponse)
     _verifier_motif_arret(reponse, {"end_turn"})
     texte = _extraire_texte(reponse)
     if not texte:
@@ -182,6 +340,7 @@ def converser_avec_outils(
     requete["toolConfig"] = {"tools": outils}
 
     reponse = _client_bedrock().converse(**requete)
+    _noter(reponse)
     _verifier_motif_arret(reponse, {"end_turn", "tool_use"})
     message = reponse["output"]["message"]
     demandes = [

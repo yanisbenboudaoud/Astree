@@ -341,6 +341,8 @@ class TriArguments:
     relances: int
     rejetes_chiffres: int = 0       # rejetés pour un chiffre introuvable
     rejetes_cadre: int = 0          # rejetés pour un conseil ou une promesse (#60)
+    controles_garde_fou: int = 0    # arguments soumis au Guardrail Bedrock (#189)
+    rejetes_garde_fou: int = 0      # rejetés par le Guardrail Bedrock (#189)
 
 
 def trier_arguments(
@@ -348,6 +350,7 @@ def trier_arguments(
     cote: str,
     dossier: dict[str, Any],
     corriger: Callable[[dict[str, Any], str], dict[str, Any]] | None = None,
+    garde_fou: Callable[[str], str | None] | None = None,
 ) -> TriArguments:
     """Vérifie les arguments d'un côté ; un argument refusé est renvoyé **une fois** à son agent.
 
@@ -362,38 +365,67 @@ def trier_arguments(
         corriger: ``corriger(argument, motif) -> argument réécrit`` ; en pratique
             ``pipeline.debat.corriger_argument`` (l'orchestrateur garde la trace).
             None : aucun renvoi, l'argument refusé est rejeté tout de suite.
+        garde_fou: ``garde_fou(texte) -> motif ou None`` ; en pratique le Guardrail Bedrock
+            (``pipeline.llm.verifier_garde_fou``, #189), appliqué seulement à un argument qui
+            passe déjà les vérifications Python. None : pas de Guardrail.
+
+    Un argument qui en vise un autre (réplique, champ ``repond_a``, #189) le garde après
+    sa correction et dans ``arguments_rejetes``.
     """
     tri = TriArguments([], [], 0, 0)
     for argument in arguments:
-        chiffres, cadre, motif = _verifier(argument, dossier)
+        chiffres, cadre, motif, refus = _verifier(argument, dossier, garde_fou, tri)
         if motif and corriger is not None:
             tri.relances += 1
-            argument = corriger(argument, motif)
-            chiffres, cadre, motif = _verifier(argument, dossier)
+            corrige = corriger(argument, motif)
+            argument = {**corrige, "repond_a": argument["repond_a"]} if "repond_a" in argument else corrige
+            chiffres, cadre, motif, refus = _verifier(argument, dossier, garde_fou, tri)
         if not motif:
             tri.valides.append(argument)
             tri.nombres_verifies += len(chiffres.nombres)
             continue
-        tri.rejetes.append({
+        rejete = {
             "cote": cote,
             "etiquette": argument["etiquette"],
             "texte": argument["texte"],
             "pieces": list(argument["pieces"]),
             "raison": motif,
-        })
+        }
+        if "repond_a" in argument:
+            rejete["repond_a"] = argument["repond_a"]
+        tri.rejetes.append(rejete)
         tri.rejetes_chiffres += int(not chiffres.valide)
         tri.rejetes_cadre += int(not cadre.valide)
+        tri.rejetes_garde_fou += int(refus is not None)
     return tri
 
 
+def argument_recevable(argument: dict[str, Any], dossier: dict[str, Any]) -> bool:
+    """Vrai si le Greffier accepterait l'argument tel quel (chiffres et cadre), sans renvoi."""
+    return _verifier(argument, dossier)[2] is None
+
+
 def _verifier(
-    argument: dict[str, Any], dossier: dict[str, Any]
-) -> tuple[VerificationArgument, VerificationCadre, str | None]:
-    """Chiffres et cadre d'un argument, et le motif commun (None si l'argument passe les deux)."""
+    argument: dict[str, Any],
+    dossier: dict[str, Any],
+    garde_fou: Callable[[str], str | None] | None = None,
+    tri: TriArguments | None = None,
+) -> tuple[VerificationArgument, VerificationCadre, str | None, str | None]:
+    """Chiffres, cadre et Guardrail d'un argument, le motif commun (None s'il passe tout) et le refus du Guardrail.
+
+    Le Guardrail n'est consulté que si les vérifications Python passent : il ne remplace
+    pas le Greffier, il ajoute un second regard (et un appel payant) sur ce qui serait affiché.
+    """
     chiffres = verifier_argument(argument, dossier)
     cadre = verifier_cadre_simulation(argument)
     motif = " ; ".join(m for m in (chiffres.motif, cadre.motif) if m) or None
-    return chiffres, cadre, motif
+    refus = None
+    if motif is None and garde_fou is not None:
+        refus = garde_fou(argument["texte"])
+        if tri is not None:
+            tri.controles_garde_fou += 1
+        motif = refus
+    return chiffres, cadre, motif, refus
 
 
 def controle_verifier_chiffres(*tris: TriArguments) -> dict[str, Any]:

@@ -1,0 +1,862 @@
+{
+  "persona": "mateo",
+  "demande": "Je veux ajouter 10 % d'Exxon Mobil à mon portefeuille",
+  "decision": {
+    "type": "position",
+    "ticker": "XOM",
+    "taille": 0.1,
+    "financement": "proportionnel",
+    "libelle": "10 % en XOM"
+  },
+  "pacte": {
+    "id": "mateo",
+    "profil_risque": "modere",
+    "horizon_ans": [
+      8,
+      12
+    ],
+    "date_signature": "2026-11-14",
+    "regles": [
+      {
+        "id": "pire_baisse_max",
+        "type": "pire_baisse_max",
+        "seuil": -0.2,
+        "libelle": "Pire baisse tolérée : −20 %"
+      },
+      {
+        "id": "pas_de_speculation",
+        "type": "plafond",
+        "categories": [
+          "crypto"
+        ],
+        "max": 0.0,
+        "libelle": "Pas de placements hautement spéculatifs (crypto exclue)"
+      },
+      {
+        "id": "controverses_esg",
+        "type": "critere_documentaire",
+        "critere": "controverse_esg_importante",
+        "libelle": "Exclure les entreprises liées à des controverses environnementales ou sociales importantes"
+      },
+      {
+        "id": "equilibre",
+        "type": "qualitative",
+        "libelle": "Équilibre entre croissance et stabilité"
+      }
+    ]
+  },
+  "pieces": [
+    {
+      "id": "P1",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Pacte de Mateo",
+      "outil": "charger_pacte",
+      "valeurs": {
+        "date_signature": "2026-11-14",
+        "pire_baisse_max": -0.2,
+        "pas_de_speculation": 0.0,
+        "horizon_ans": [
+          8,
+          12
+        ]
+      },
+      "valeur_affichee": "Signé le 14 nov. 2026",
+      "source": "personas/mateo.json (persona fictif)",
+      "traitement": "Règles typées lues par l'agent Profil (format générique du Pacte)",
+      "limites": "Les seuils sont des hypothèses de l'équipe"
+    },
+    {
+      "id": "P2",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Simulation du portefeuille avec 10 % en XOM",
+      "outil": "simuler_portefeuille",
+      "valeurs": {
+        "taille": 0.1,
+        "pire_baisse": -0.099857,
+        "rendement_annuel": 0.134775,
+        "volatilite_annuelle": 0.094712,
+        "pire_baisse_actuelle": -0.151278,
+        "rendement_annuel_actuel": 0.114965,
+        "volatilite_annuelle_actuelle": 0.097523,
+        "part_cad": 0.495,
+        "part_usd": 0.505,
+        "part_cad_actuelle": 0.55,
+        "part_usd_actuelle": 0.45,
+        "capital": 180000,
+        "perte_au_pire_moment_cad": 17974,
+        "perte_au_pire_moment_cad_actuelle": 27230,
+        "ecart_perte_au_pire_moment_cad": 9256,
+        "ecart_pire_baisse_points": 5.1421,
+        "ecart_rendement_annuel_points": 1.981,
+        "rapport_volatilite": 0.9712,
+        "inflation_annuelle": 0.035441,
+        "rendement_reel_annuel": 0.095934,
+        "rendement_reel_annuel_actuel": 0.076802,
+        "taux_sans_risque_moyen": 0.031906,
+        "ratio_sharpe": 1.08612,
+        "ratio_sharpe_actuel": 0.851682,
+        "frais_annuels": 0.000954,
+        "frais_annuels_cad": 172,
+        "frais_annuels_actuels": 0.00106,
+        "frais_annuels_cad_actuels": 191,
+        "ecart_frais_annuels_cad": 19
+      },
+      "valeur_affichee": "−10,0 % max · +13,5 %/an",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13 ; Pages et documents des émetteurs des FNB (ratio des frais), relevés le 2026-11-15",
+      "traitement": "Rendements quotidiens en CAD, calendrier des séances américaines, rééquilibrage quotidien, 2021-11-12 → 2026-11-12 ; exposition en devise : part du portefeuille par devise de cotation (assets_universe.csv) ; inflation : IPC du Canada de 2021-09 à 2026-09 (dernier mois publié, chaque mois étant supposé publié à la fin du mois suivant) ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; ratio de Sharpe = (rendement annualisé − taux directeur moyen) ÷ volatilité annuelle ; frais : ratio des frais de chaque FNB (page ou document de l'émetteur), pondéré par les poids ; zéro pour un titre détenu en direct ; déjà prélevés dans les cours, donc affichés sans être déduits",
+      "limites": "Une seule période de 5 ans ; biais du survivant ; le passé ne prédit pas l'avenir ; exposition selon la devise de cotation, pas selon celle des titres détenus par un fonds ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés ; frais actuels des FNB, qui ont pu changer pendant la période ; commissions de courtage et écart entre prix d'achat et de vente non comptés"
+    },
+    {
+      "id": "P3",
+      "type": "documentaire",
+      "etiquette": "fait",
+      "titre": "Poursuite de l'État du Massachusetts contre Exxon Mobil sur les risques climatiques",
+      "outil": "rechercher_documents",
+      "valeurs": {
+        "ticker": "XOM",
+        "controverse_esg_importante": true,
+        "date_decision_cour_supreme": "2022-05-24",
+        "date_dernier_acte_consulte": "2026-04-15",
+        "resume": [
+          "Le procureur général du Massachusetts poursuit Exxon Mobil pour pratiques trompeuses envers les investisseurs et les consommateurs de l'État, notamment pour ne pas avoir révélé les risques liés au changement climatique. Le 2022-05-24, la Cour suprême de l'État a seulement refusé de rejeter la poursuite, qui a donc pu continuer : elle ne s'est pas prononcée sur le fond. Des actes de procédure datent encore du 2026-04-15. Ce sont des allégations, contestées par l'entreprise : la fiche ne mentionne aucun jugement sur le fond."
+        ],
+        "extraits": [
+          "asserting that Exxon Mobil Corporation committed deceptive practices against Massachusetts investors and consumers",
+          "including by failing to disclose climate change risks",
+          "affirmed a trial court's denial of Exxon Mobil Corporation's (Exxon's) special motion to dismiss"
+        ],
+        "documents": [
+          "xom_poursuite_climat_massachusetts"
+        ]
+      },
+      "valeur_affichee": "Controverse documentée : poursuite de l'État du Massachusetts sur l'information climatique (en cours)",
+      "source": "Sabin Center for Climate Change Law (Columbia Law School), Climate Change Litigation Databases, fiche « Commonwealth v. Exxon Mobil Corp. » (Massachusetts Superior Court, dossier 1984CV03333), https://climatecasechart.com/case/commonwealth-v-exxon-mobil-corp/ (consulté le 2026-11-14)",
+      "traitement": "Fiche lue le 2026-11-14 ; extraits copiés mot pour mot ; résumé en français par l'équipe. Qualification « controverse environnementale importante » : hypothèse de l'équipe, car il s'agit d'une poursuite d'un État sur l'information climatique, liée aux principes environnementaux 7 à 9 du Pacte mondial de l'ONU.",
+      "limites": "Allégations d'une poursuite en cours, contestées par l'entreprise : aucun jugement sur le fond n'est mentionné. Une seule source, consultée à une date donnée : l'affaire peut avoir évolué. La qualification « importante » est un jugement de l'équipe, pas celui d'une agence de notation ESG."
+    },
+    {
+      "id": "P4",
+      "type": "calculee",
+      "etiquette": "fictif",
+      "titre": "Rejeu de 2022 avec 10 % en XOM",
+      "outil": "simuler_portefeuille",
+      "valeurs": {
+        "taille": 0.1,
+        "periode": [
+          "2021-12-31",
+          "2022-12-30"
+        ],
+        "rendement_2022_actuel": -0.10081,
+        "rendement_2022_apres": -0.021218,
+        "capital": 180000,
+        "resultat_2022_cad_apres": -3819,
+        "resultat_2022_cad_actuel": -18146,
+        "ecart_2022_cad": 14327,
+        "ecart_2022_points": 7.9592,
+        "inflation_2022": 0.063,
+        "rendement_reel_2022_actuel": -0.154102,
+        "rendement_reel_2022_apres": -0.079227,
+        "taux_directeur_debut_2022": 0.0025,
+        "taux_directeur_fin_2022": 0.0425,
+        "taux_directeur_moyen_2022": 0.019232,
+        "obligation_10_ans_debut_2022": 0.0142,
+        "obligation_10_ans_fin_2022": 0.033
+      },
+      "valeur_affichee": "−10,1 % → −2,1 %",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada ; Banque du Canada, API Valet (IPC, taux directeur, obligation à 10 ans), extrait le 2026-11-13",
+      "traitement": "Portefeuille avec et sans la position, de la dernière séance de 2021 à la dernière séance de 2022 ; inflation : IPC du Canada de 2021-12 à 2022-12 ; rendement réel = (1 + rendement) ÷ (1 + inflation) − 1 ; taux directeur et obligation à 10 ans au début et à la fin de l'année",
+      "limites": "Une seule année de crise ; la suivante peut être différente ; inflation moyenne du Canada, pas celle de l'investisseur ; impôts non comptés"
+    },
+    {
+      "id": "P5",
+      "type": "calculee",
+      "etiquette": "fait",
+      "titre": "Jurisprudence : verdicts passés de ce profil sur la règle « controverses_esg »",
+      "outil": "consulter_jurisprudence",
+      "valeurs": {
+        "regle": "controverses_esg",
+        "proces_archives": 2,
+        "proces_en_violation": 0,
+        "maintenu": 0,
+        "modifie": 0,
+        "pacte_ajuste": 0,
+        "dates_antecedents": [],
+        "decisions_antecedents": [],
+        "regles_violees_antecedents": [],
+        "verdicts_antecedents": []
+      },
+      "valeur_affichee": "2 procès archivés · aucun en violation",
+      "source": "Archive des verdicts du Tribunal (verdicts/<profil>/), écrite par la route /verdict quand l'utilisateur rend son verdict",
+      "traitement": "Pour chaque procès archivé de ce profil : règles du Pacte en violation et verdict choisi par l'utilisateur. Au plus les 200 procès les plus récents ; les 5 derniers antécédents en violation sont détaillés.",
+      "limites": "Seuls les procès dont l'utilisateur a rendu un verdict sont archivés. Les règles sont comparées par identifiant : le Pacte a pu changer depuis. Un verdict passé ne dit rien de la qualité de la décision prise."
+    },
+    {
+      "id": "P6",
+      "type": "calculee",
+      "etiquette": "fait",
+      "titre": "Indicateurs de XOM",
+      "outil": "indicateurs_actif",
+      "valeurs": {
+        "rendement_annuel": 0.288328,
+        "volatilite_annuelle": 0.259778,
+        "pire_baisse": -0.190812,
+        "rendement_2022": 1.002105,
+        "date_sommet": "2023-09-27",
+        "date_creux": "2024-01-22",
+        "date_retour_sommet": "2024-04-02",
+        "annees_recuperation": 0.514716,
+        "periode": [
+          "2021-11-12",
+          "2026-11-12"
+        ]
+      },
+      "valeur_affichee": "−19,1 % max · +28,8 %/an · 0,5 ans pour revenir au sommet",
+      "source": "Yahoo Finance via yfinance (adj_close), extrait le 2026-11-13 ; USD/CAD Banque du Canada, extrait le 2026-11-13",
+      "traitement": "Prix adj_close convertis en CAD, calendrier des séances américaines (dernier prix reporté), 2021-11-12 → 2026-11-12 ; rendement annualisé composé, volatilité = écart type quotidien × √252, pire baisse depuis un sommet, temps de récupération du sommet précédant la pire baisse au retour à ce sommet",
+      "limites": "Une seule période de 5 ans ; une seule chute observée pour le temps de récupération ; biais du survivant ; le passé ne prédit pas l'avenir"
+    }
+  ],
+  "controles": [
+    {
+      "statut": "conforme",
+      "regle": "pire_baisse_max",
+      "message": "Pire baisse −10,0 % dans la limite du seuil −20,0 %",
+      "pieces": [
+        "P2",
+        "P1"
+      ]
+    },
+    {
+      "statut": "conforme",
+      "regle": "pas_de_speculation",
+      "message": "Cryptoactifs : 0,0 % du portefeuille après la décision, exclusion respectée",
+      "pieces": [
+        "P1"
+      ]
+    },
+    {
+      "statut": "violation",
+      "regle": "controverses_esg",
+      "message": "Critère « controverse_esg_importante » rempli pour XOM selon P3",
+      "pieces": [
+        "P3",
+        "P1"
+      ]
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "equilibre",
+      "message": "Règle déclarée, non mesurable par calcul : à juger par l'utilisateur",
+      "pieces": [
+        "P1"
+      ]
+    },
+    {
+      "statut": "conforme",
+      "regle": "verifier_chiffres",
+      "message": "Chiffres cités vérifiés contre leurs pièces : 18/18 chiffres, 9 arguments"
+    },
+    {
+      "statut": "conforme",
+      "regle": "cadre_simulation",
+      "message": "Aucun conseil personnalisé ni promesse sur l'avenir : 9 arguments vérifiés ; Guardrail Bedrock : 9 contrôles"
+    },
+    {
+      "statut": "a_verifier",
+      "regle": "biais_survivant",
+      "message": "Biais du survivant : univers choisi en 2026, les résultats passés paraissent meilleurs"
+    }
+  ],
+  "verdict": null,
+  "hypotheses": [
+    "Période : 2021-11-12 au 2026-11-12",
+    "Rendements calculés sur adj_close",
+    "Calendrier des séances américaines, dernier prix reporté",
+    "Montants convertis en CAD",
+    "Financement proportionnel par défaut : toutes les lignes du portefeuille sont réduites au prorata",
+    "Seuils du Pacte choisis par l'équipe",
+    "Portefeuille et capital fictifs",
+    "Taux sans risque : taux directeur moyen de la Banque du Canada sur la période",
+    "Frais de gestion des FNB : déjà prélevés dans les cours (adj_close), affichés sans être déduits une seconde fois"
+  ],
+  "sources": [
+    {
+      "nom": "Pacte de l'investisseur",
+      "fichier": "personas/mateo.json",
+      "date_extraction": "2026-11-14",
+      "format": "JSON (règles déclarées)",
+      "usage": "Les règles que l'investisseur s'est fixées et que le procès vérifie",
+      "pieces": [
+        {
+          "id": "P1",
+          "raison": "Toujours au dossier : les règles que le procès vérifie"
+        }
+      ]
+    },
+    {
+      "nom": "Yahoo Finance via yfinance (prix ajustés)",
+      "fichier": "prices_daily.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Les prix des titres : simulations, rejeu de 2022, indicateurs",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "x"
+        },
+        {
+          "id": "P4",
+          "raison": "Vérifier le comportement du portefeuille avec XOM durant l'année de crise où actions et obligations ont baissé ensemble."
+        },
+        {
+          "id": "P6",
+          "raison": "Évaluer le risque propre du titre, cyclique et lié à l'énergie, face au profil modéré."
+        }
+      ]
+    },
+    {
+      "nom": "Banque du Canada, API Valet : change USD/CAD",
+      "fichier": "fx_usdcad_daily.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Toujours utilisée avec les prix : tous les montants sont convertis en CAD",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "x"
+        },
+        {
+          "id": "P4",
+          "raison": "Vérifier le comportement du portefeuille avec XOM durant l'année de crise où actions et obligations ont baissé ensemble."
+        },
+        {
+          "id": "P6",
+          "raison": "Évaluer le risque propre du titre, cyclique et lié à l'énergie, face au profil modéré."
+        }
+      ]
+    },
+    {
+      "nom": "Univers d'actifs des organisateurs du datathon",
+      "fichier": "assets_universe.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "La devise et la catégorie de chaque titre : conversion en CAD, plafonds du Pacte",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "x"
+        },
+        {
+          "id": "P4",
+          "raison": "Vérifier le comportement du portefeuille avec XOM durant l'année de crise où actions et obligations ont baissé ensemble."
+        },
+        {
+          "id": "P6",
+          "raison": "Évaluer le risque propre du titre, cyclique et lié à l'énergie, face au profil modéré."
+        }
+      ],
+      "controles": [
+        "pas_de_speculation"
+      ]
+    },
+    {
+      "nom": "Banque du Canada, API Valet : IPC, taux directeur, obligation à 10 ans",
+      "fichier": "macro_rates.csv",
+      "date_extraction": "2026-11-13",
+      "format": "CSV",
+      "usage": "Le pouvoir d'achat : inflation, rendement réel, taux sans risque, ratio de Sharpe",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "x"
+        },
+        {
+          "id": "P4",
+          "raison": "Vérifier le comportement du portefeuille avec XOM durant l'année de crise où actions et obligations ont baissé ensemble."
+        }
+      ]
+    },
+    {
+      "nom": "Pages et documents des émetteurs des FNB : ratio des frais, relevé par l'équipe",
+      "fichier": "donnees_externes/frais_fnb.json",
+      "date_extraction": "2026-11-15",
+      "format": "JSON (relevé)",
+      "usage": "Le coût annuel des frais de gestion des FNB, déjà prélevés dans leurs cours",
+      "pieces": [
+        {
+          "id": "P2",
+          "raison": "x"
+        }
+      ]
+    },
+    {
+      "nom": "Documents publics sur les critères ESG, choisis et lus par l'équipe",
+      "fichier": "donnees_externes/documents_esg.json",
+      "date_extraction": "2026-11-14",
+      "format": "JSON (texte)",
+      "usage": "Les critères non financiers du Pacte, comme les controverses ESG",
+      "pieces": [
+        {
+          "id": "P3",
+          "raison": "x"
+        }
+      ],
+      "controles": [
+        "controverses_esg"
+      ]
+    },
+    {
+      "nom": "Archives des verdicts de ce profil",
+      "fichier": "verdicts/mateo/ (S3)",
+      "date_extraction": "2026-11-16",
+      "format": "JSON",
+      "usage": "Les procès passés de ce profil et les verdicts rendus",
+      "pieces": [
+        {
+          "id": "P5",
+          "raison": "La règle d'exclusion des controverses est probablement touchée ; voir si ce conflit s'est déjà présenté pour ce profil."
+        }
+      ]
+    }
+  ],
+  "limites": [
+    "Les rendements passés ne garantissent pas les rendements futurs",
+    "Biais du survivant dans l'univers d'actifs",
+    "La pire baisse et la volatilité ne sont que des indicateurs de risque parmi d'autres"
+  ],
+  "trace": [
+    {
+      "etape": "agent_profil",
+      "outil": "charger_pacte",
+      "entree": "mateo",
+      "sortie": "P1",
+      "horodatage": "2026-11-16T00:07:10.109+00:00"
+    },
+    {
+      "etape": "agent_profil",
+      "outil": "bedrock",
+      "entree": "Je veux ajouter 10 % d'Exxon Mobil à mon portefeuille",
+      "sortie": {
+        "type_decision": "position",
+        "actif_mentionne": "Exxon Mobil",
+        "ticker": "XOM",
+        "taille": 0.1,
+        "montant": null,
+        "devise_montant": "non_precisee",
+        "panier": [],
+        "actifs_hors_univers": [],
+        "financement_depuis": null,
+        "ambiguites": []
+      },
+      "horodatage": "2026-11-16T00:07:10.109+00:00"
+    },
+    {
+      "etape": "agent_profil",
+      "outil": "valider_decision",
+      "entree": {
+        "type_decision": "position",
+        "actif_mentionne": "Exxon Mobil",
+        "ticker": "XOM",
+        "taille": 0.1,
+        "montant": null,
+        "devise_montant": "non_precisee",
+        "panier": [],
+        "actifs_hors_univers": [],
+        "financement_depuis": null,
+        "ambiguites": []
+      },
+      "sortie": {
+        "type": "position",
+        "ticker": "XOM",
+        "taille": 0.1,
+        "financement": "proportionnel",
+        "libelle": "10 % en XOM"
+      },
+      "horodatage": "2026-11-16T00:07:10.109+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "simuler_portefeuille",
+      "raison": "x",
+      "entree": {
+        "financement": "proportionnel",
+        "periode": "complete",
+        "taille": 0.1,
+        "ticker": "XOM"
+      },
+      "sortie": "P2",
+      "horodatage": "2026-11-16T00:07:12.427+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "rechercher_documents",
+      "raison": "x",
+      "entree": {
+        "critere": "methodologie_fonds_esg",
+        "ticker": "XOM"
+      },
+      "sortie": "Erreur : Aucun document sur XOM pour le critère « methodologie_fonds_esg » : source manquante, le critère reste à vérifier",
+      "horodatage": "2026-11-16T00:07:14.772+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "rechercher_documents",
+      "raison": "x",
+      "entree": {
+        "critere": "controverse_esg_importante",
+        "ticker": "XOM"
+      },
+      "sortie": "P3",
+      "horodatage": "2026-11-16T00:07:16.914+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "simuler_portefeuille",
+      "raison": "Vérifier le comportement du portefeuille avec XOM durant l'année de crise où actions et obligations ont baissé ensemble.",
+      "entree": {
+        "financement": "proportionnel",
+        "periode": "2022",
+        "taille": 0.1,
+        "ticker": "XOM"
+      },
+      "sortie": "P4",
+      "horodatage": "2026-11-16T00:07:20.817+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "consulter_jurisprudence",
+      "raison": "La règle d'exclusion des controverses est probablement touchée ; voir si ce conflit s'est déjà présenté pour ce profil.",
+      "entree": {
+        "regle": "controverses_esg"
+      },
+      "sortie": "P5",
+      "horodatage": "2026-11-16T00:07:20.977+00:00"
+    },
+    {
+      "etape": "orchestrateur",
+      "outil": "indicateurs_actif",
+      "raison": "Évaluer le risque propre du titre, cyclique et lié à l'énergie, face au profil modéré.",
+      "entree": {
+        "ticker": "XOM"
+      },
+      "sortie": "P6",
+      "horodatage": "2026-11-16T00:07:21.114+00:00"
+    },
+    {
+      "etape": "procureur",
+      "outil": "bedrock",
+      "entree": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "sortie": [
+        {
+          "etiquette": "fait",
+          "texte": "Exxon Mobil fait l'objet d'une controverse climatique documentée, alors que votre Pacte dit « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Il s'agit d'allégations contestées par l'entreprise, sans jugement sur le fond.",
+          "pieces": [
+            "P1",
+            "P3"
+          ]
+        },
+        {
+          "etiquette": "hypothese",
+          "texte": "Le bon résultat de 2022 tient à un gain exceptionnel de XOM, qui a gagné +100,2 % cette année-là. Le rejeu limite la perte à 3 819 $ au lieu de 18 146 $.",
+          "pieces": [
+            "P4",
+            "P6"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Seule, l'action XOM varie beaucoup plus que votre portefeuille, ce qui pèse sur votre règle « Équilibre entre croissance et stabilité ». Ses variations d'une année à l'autre atteignent 26,0 %, contre 9,5 % pour le portefeuille avec la décision.",
+          "pieces": [
+            "P1",
+            "P2",
+            "P6"
+          ]
+        }
+      ],
+      "horodatage": "2026-11-16T00:07:44.994+00:00"
+    },
+    {
+      "etape": "avocat",
+      "outil": "bedrock",
+      "entree": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "sortie": [
+        {
+          "etiquette": "fait",
+          "texte": "Au pire moment, votre portefeuille aurait perdu 17 974 $ avec cette position, contre 27 230 $ sans elle. La règle « Pire baisse tolérée : −20 % » est respectée, la baisse étant de 10,0 %.",
+          "pieces": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Lors du rejeu de 2022, le portefeuille aurait perdu 3 819 $ avec 10 % en XOM, contre 18 146 $ sans cette position.",
+          "pieces": [
+            "P4"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "Sur la période analysée, le portefeuille avec cette position aurait gagné +13,5 % par an, contre +11,5 % sans elle. Le passé ne prédit pas l'avenir.",
+          "pieces": [
+            "P2"
+          ]
+        },
+        {
+          "etiquette": "fait",
+          "texte": "La controverse documentée sur XOM repose sur des allégations contestées par l'entreprise, et le dossier ne mentionne aucun jugement sur le fond. La qualification « importante » relève d'un jugement de l'équipe, non d'une agence de notation.",
+          "pieces": [
+            "P3"
+          ]
+        }
+      ],
+      "horodatage": "2026-11-16T00:07:42.482+00:00"
+    },
+    {
+      "etape": "procureur",
+      "outil": "bedrock_replique",
+      "entree": {
+        "repond_a": 3,
+        "argument": "La controverse documentée sur XOM repose sur des allégations contestées par l'entreprise, et le dossier ne mentionne aucun jugement sur le fond. La qualification « importante » relève d'un jugement de l'équipe, non d'une agence de notation."
+      },
+      "sortie": {
+        "etiquette": "fait",
+        "texte": "Le Pacte exclut les entreprises « liées à des controverses environnementales ou sociales importantes », sans exiger de jugement sur le fond. En 2022, la Cour suprême de l'État a refusé de rejeter la poursuite contre XOM, qui a donc pu continuer.",
+        "pieces": [
+          "P1",
+          "P3"
+        ]
+      },
+      "horodatage": "2026-11-16T00:07:56.100+00:00"
+    },
+    {
+      "etape": "avocat",
+      "outil": "bedrock_replique",
+      "entree": {
+        "repond_a": 1,
+        "argument": "Exxon Mobil fait l'objet d'une controverse climatique documentée, alors que votre Pacte dit « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Il s'agit d'allégations contestées par l'entreprise, sans jugement sur le fond."
+      },
+      "sortie": {
+        "etiquette": "fait",
+        "texte": "La controverse repose sur des allégations contestées par l'entreprise, et le dossier ne mentionne aucun jugement sur le fond. En 2022, la Cour suprême de l'État a seulement refusé de rejeter la poursuite, et la qualification « importante » reste un jugement de l'équipe, non celui d'une agence de notation.",
+        "pieces": [
+          "P3"
+        ]
+      },
+      "horodatage": "2026-11-16T00:07:53.251+00:00"
+    },
+    {
+      "etape": "greffier",
+      "outil": "verifier_pacte",
+      "entree": [
+        "pire_baisse_max",
+        "pas_de_speculation",
+        "controverses_esg",
+        "equilibre"
+      ],
+      "sortie": "1 violation, 2 conformes, 1 à vérifier",
+      "horodatage": "2026-11-16T00:07:56.100+00:00"
+    },
+    {
+      "etape": "procureur",
+      "outil": "bedrock_correction",
+      "entree": {
+        "argument": "Le bon résultat de 2022 tient à un gain exceptionnel de XOM, qui a gagné +100,2 % cette année-là. Le rejeu limite la perte à 3 819 $ au lieu de 18 146 $.",
+        "motif": "« 3 819 » introuvable dans P4, P6 : valeur négative, écrire le signe « − » ; « 18 146 » introuvable dans P4, P6 : valeur négative, écrire le signe « − »"
+      },
+      "sortie": {
+        "etiquette": "hypothese",
+        "texte": "Le résultat de 2022 tient peut-être à un seul titre, XOM, qui a gagné +100,2 % cette année-là. Le rejeu affiche −3 819 $ avec cette position, contre −18 146 $ sans elle.",
+        "pieces": [
+          "P4",
+          "P6"
+        ]
+      },
+      "horodatage": "2026-11-16T00:08:05.068+00:00"
+    },
+    {
+      "etape": "avocat",
+      "outil": "bedrock_correction",
+      "entree": {
+        "argument": "Lors du rejeu de 2022, le portefeuille aurait perdu 3 819 $ avec 10 % en XOM, contre 18 146 $ sans cette position.",
+        "motif": "« 3 819 » introuvable dans P4 : valeur négative, écrire le signe « − » ; « 18 146 » introuvable dans P4 : valeur négative, écrire le signe « − »"
+      },
+      "sortie": {
+        "etiquette": "fait",
+        "texte": "Lors du rejeu de 2022, le résultat du portefeuille aurait été de −3 819 $ avec 10 % en XOM, contre −18 146 $ sans cette position.",
+        "pieces": [
+          "P4"
+        ]
+      },
+      "horodatage": "2026-11-16T00:08:10.046+00:00"
+    },
+    {
+      "etape": "greffier",
+      "outil": "verifier_chiffres",
+      "entree": "9 arguments",
+      "sortie": "Chiffres cités vérifiés contre leurs pièces : 18/18 chiffres, 9 arguments",
+      "horodatage": "2026-11-16T00:08:10.931+00:00"
+    },
+    {
+      "etape": "greffier",
+      "outil": "verifier_cadre_simulation",
+      "entree": "9 arguments",
+      "sortie": "Aucun conseil personnalisé ni promesse sur l'avenir : 9 arguments vérifiés ; Guardrail Bedrock : 9 contrôles",
+      "horodatage": "2026-11-16T00:08:10.931+00:00"
+    }
+  ],
+  "avertissement": "Simulation éducative. Aucune transaction réelle. Ceci n'est pas un conseil financier personnalisé.",
+  "comparaison": {
+    "actuel": {
+      "rendement_annuel": 0.114965,
+      "volatilite_annuelle": 0.097523,
+      "pire_baisse": -0.151278,
+      "rendement_2022": -0.10081
+    },
+    "apres": {
+      "rendement_annuel": 0.134775,
+      "volatilite_annuelle": 0.094712,
+      "pire_baisse": -0.099857,
+      "rendement_2022": -0.021218
+    }
+  },
+  "taille_max_compatible": 0.1,
+  "points_de_bascule": [],
+  "requisitoire": [
+    {
+      "etiquette": "fait",
+      "texte": "Exxon Mobil fait l'objet d'une controverse climatique documentée, alors que votre Pacte dit « Exclure les entreprises liées à des controverses environnementales ou sociales importantes ». Il s'agit d'allégations contestées par l'entreprise, sans jugement sur le fond.",
+      "pieces": [
+        "P1",
+        "P3"
+      ]
+    },
+    {
+      "etiquette": "hypothese",
+      "texte": "Le résultat de 2022 tient peut-être à un seul titre, XOM, qui a gagné +100,2 % cette année-là. Le rejeu affiche −3 819 $ avec cette position, contre −18 146 $ sans elle.",
+      "pieces": [
+        "P4",
+        "P6"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Seule, l'action XOM varie beaucoup plus que votre portefeuille, ce qui pèse sur votre règle « Équilibre entre croissance et stabilité ». Ses variations d'une année à l'autre atteignent 26,0 %, contre 9,5 % pour le portefeuille avec la décision.",
+      "pieces": [
+        "P1",
+        "P2",
+        "P6"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Le Pacte exclut les entreprises « liées à des controverses environnementales ou sociales importantes », sans exiger de jugement sur le fond. En 2022, la Cour suprême de l'État a refusé de rejeter la poursuite contre XOM, qui a donc pu continuer.",
+      "pieces": [
+        "P1",
+        "P3"
+      ],
+      "repond_a": {
+        "cote": "plaidoirie",
+        "numero": 4
+      }
+    }
+  ],
+  "plaidoirie": [
+    {
+      "etiquette": "fait",
+      "texte": "Au pire moment, votre portefeuille aurait perdu 17 974 $ avec cette position, contre 27 230 $ sans elle. La règle « Pire baisse tolérée : −20 % » est respectée, la baisse étant de 10,0 %.",
+      "pieces": [
+        "P1",
+        "P2"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Lors du rejeu de 2022, le résultat du portefeuille aurait été de −3 819 $ avec 10 % en XOM, contre −18 146 $ sans cette position.",
+      "pieces": [
+        "P4"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "Sur la période analysée, le portefeuille avec cette position aurait gagné +13,5 % par an, contre +11,5 % sans elle. Le passé ne prédit pas l'avenir.",
+      "pieces": [
+        "P2"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "La controverse documentée sur XOM repose sur des allégations contestées par l'entreprise, et le dossier ne mentionne aucun jugement sur le fond. La qualification « importante » relève d'un jugement de l'équipe, non d'une agence de notation.",
+      "pieces": [
+        "P3"
+      ]
+    },
+    {
+      "etiquette": "fait",
+      "texte": "La controverse repose sur des allégations contestées par l'entreprise, et le dossier ne mentionne aucun jugement sur le fond. En 2022, la Cour suprême de l'État a seulement refusé de rejeter la poursuite, et la qualification « importante » reste un jugement de l'équipe, non celui d'une agence de notation.",
+      "pieces": [
+        "P3"
+      ],
+      "repond_a": {
+        "cote": "requisitoire",
+        "numero": 1
+      }
+    }
+  ],
+  "arguments_rejetes": [],
+  "bedrock": {
+    "modele": "global.anthropic.claude-sonnet-5-5",
+    "appels": 12,
+    "jetons_entree": 82993,
+    "jetons_sortie": 8916,
+    "duree_bedrock_s": 87.5,
+    "cout_estime_usd": 0.2551,
+    "par_agent": [
+      {
+        "agent": "agent_profil",
+        "appels": 1,
+        "jetons_entree": 3527,
+        "jetons_sortie": 104
+      },
+      {
+        "agent": "orchestrateur",
+        "appels": 5,
+        "jetons_entree": 36352,
+        "jetons_sortie": 987
+      },
+      {
+        "agent": "avocat",
+        "appels": 3,
+        "jetons_entree": 21296,
+        "jetons_sortie": 3370
+      },
+      {
+        "agent": "procureur",
+        "appels": 3,
+        "jetons_entree": 21818,
+        "jetons_sortie": 4455
+      }
+    ],
+    "garde_fou": {
+      "verifications": 10,
+      "interventions": 0
+    },
+    "duree_proces_s": 62.7
+  }
+}

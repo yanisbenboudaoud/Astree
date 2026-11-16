@@ -24,7 +24,7 @@ Une seule règle traverse tout le code : **Python calcule, le LLM explique** ([c
 
 ## 2. Les agents et leur rôle
 
-Les phases sont **fixes** : Profil → Orchestrateur → Procureur et Avocat → Greffier → Verdict. Elles sont enchaînées par `juger_decision` ([`pipeline/tribunal.py`](../pipeline/tribunal.py)).
+Les phases sont **fixes** : Profil → Orchestrateur → Procureur et Avocat → Réplique → Greffier → Verdict. Elles sont enchaînées par `juger_decision` ([`pipeline/tribunal.py`](../pipeline/tribunal.py)).
 
 | Phase | Qui | LLM ? | Rôle | Code | Fiche |
 |---|---|---|---|---|---|
@@ -32,6 +32,7 @@ Les phases sont **fixes** : Profil → Orchestrateur → Procureur et Avocat →
 | 1 | **Agent Profil** | Oui | Charge et valide le Pacte, puis transforme la demande en décision structurée (`position` ou `reallocation`). Demande ambiguë → contrôle `interpretation_demande` à `a_verifier` | [`agent_profil.py`](../pipeline/agent_profil.py) | [008](journal/008-agent-profil.md) |
 | 2 | **Orchestrateur** | Oui | Instruit le dossier : choisit les outils Python et leurs paramètres, avec une raison courte par appel. Chaque résultat devient une pièce numérotée | [`orchestrateur.py`](../pipeline/orchestrateur.py) | [012](journal/012-orchestrateur.md) |
 | 3 | **Procureur** et **Avocat** | Oui, en parallèle | Argumentent contre et pour, en citant **uniquement** des pièces. Ne calculent rien, n'appellent aucun outil | [`debat.py`](../pipeline/debat.py) | [011](journal/011-procureur-avocat.md) |
+| 3 bis | **Réplique** (Procureur et Avocat) | Oui, en parallèle | Chaque camp lit les arguments de l'autre que le Greffier accepte tels quels, et répond à celui qui pèse le plus contre lui, avec les mêmes pièces et les mêmes règles. Le Greffier vérifie les répliques comme les autres arguments (#189) | [`debat.py`](../pipeline/debat.py) (`repliquer_les_deux`) | [189](journal/189-agents-coordonnes.md) |
 | 4 | **Greffier** | **Non** | Contrôle chaque règle du Pacte (`verifier_pacte`), chaque chiffre cité (`verifier_chiffres`) et l'absence de conseil ou de promesse (`cadre_simulation`). Un argument fautif est renvoyé une fois, puis rejeté | [`greffier.py`](../pipeline/greffier.py), [`chiffres.py`](../pipeline/chiffres.py), [`cadre_simulation.py`](../pipeline/cadre_simulation.py) | [010](journal/010-greffier.md), [060](journal/060-cadre-simulation.md) |
 | 5 | **L'utilisateur** | — | Rend le verdict : `maintenu`, `modifie` ou `pacte_ajuste`. Archivé dans S3 ; il nourrit la jurisprudence des procès suivants | [`lambda_tribunal.py`](../deploiement/lambda_tribunal.py) (`/verdict`) | [056](journal/056-jurisprudence.md) |
 
@@ -53,9 +54,14 @@ L'orchestrateur est une boucle **Converse** de Bedrock avec `toolConfig` (*tool 
 | **Erreur d'outil** | Titre hors univers, taille impossible… : renvoyée au modèle comme résultat en erreur, sans pièce | trace : `sortie` = « Erreur : … » |
 | **Phases fixes** | L'orchestrateur choisit les outils, jamais l'ordre des phases ni le verdict. Le Greffier passe toujours en dernier | [`tribunal.py`](../pipeline/tribunal.py) |
 
+| **Guardrail Bedrock** (#189) | La demande et la question de l'utilisateur sont soumises au Guardrail avant tout appel au modèle (attaque de consigne) ; chaque argument qui passe déjà les vérifications Python l'est aussi, en sortie (sujet refusé « conseil personnalisé »). Second regard, jamais à la place du Greffier | `verifier_garde_fou` ([`llm.py`](../pipeline/llm.py)), [fiche 186](journal/189-agents-coordonnes.md) |
+| **Mesure** (#189) | Chaque étape de trace porte son heure ; le champ `bedrock` du contrat compte les appels par agent, les jetons, la durée et le coût estimé | `compter_appels` ([`llm.py`](../pipeline/llm.py)) |
+
 Ces garde-fous sont **testés avec un faux modèle** : un modèle qui demande 10 outils n'en obtient que 8 ; un modèle qui oublie la simulation la voit ajoutée d'office ; un appel à `verifier_chiffres` est refusé ; une raison chiffrée est refusée ([`validation/resultats_scenarios.md`](validation/resultats_scenarios.md), section 6).
 
 **Mesurés sur les vrais procès** (#167, [PR #175](https://github.com/yanisbenboudaoud/Datathon2026/pull/175), fichier `docs/validation/evaluation_orchestrateur.md`, lu le 2026-11-15) : sur 201 procès archivés dans S3, le budget de 8 appels est respecté 201 fois sur 201, et le modèle a demandé lui-même la simulation obligatoire dans 201 procès sur 201 (0 ajout d'office). Les outils changent avec le Pacte : `calculer_correlations` est demandé dans 30 procès sur 30 pour le profil audacieux contre 49 sur 126 pour le profil prudent, et `rechercher_documents` n'est demandé que pour le profil ESG. Limite écrite dans ce rapport : ces procès ne sont pas un échantillon planifié.
+
+**Ce qui varie et ce qui ne varie jamais.** Le plan de procès du même rapport juge chaque décision deux fois pour chaque profil : l'orchestrateur choisit les mêmes outils dans 6 cas sur 9. C'est le comportement attendu d'un agent qui *choisit* ses preuves : à la marge, il peut ajouter la liquidité ou omettre les indicateurs du titre seul. Ce qui ne varie jamais est écrit en Python : l'ordre des phases, la simulation obligatoire, les points de bascule ajoutés d'office, le budget, chaque contrôle du Pacte et la vérification de chaque chiffre. Le verdict du Greffier sur le Pacte ne dépend donc pas du choix des outils ; seuls les arguments du débat en dépendent, et chacun reste vérifié.
 
 ## 4. Les outils, la méthode de calcul et les hypothèses
 
@@ -248,12 +254,14 @@ flowchart LR
     NAV -->|"POST /tribunal, /progression, /verdict, /question"| URL["Lambda Function URL (#22)"]
     URL --> L["AWS Lambda<br/>pipeline Python + Greffier"]
     L -->|"Converse + tool use"| BR["Amazon Bedrock<br/>Agent Profil, orchestrateur,<br/>Procureur, Avocat"]
+    L -->|"ApplyGuardrail"| GR["Guardrail Bedrock (#189)<br/>entrée et sortie"]
     L <-->|"CSV, progression, traces, verdicts, profils"| S3[("Amazon S3")]
 ```
 
 | Service | Rôle | Pourquoi |
 |---|---|---|
 | **Amazon Bedrock** | Le LLM des quatre agents, région `us-east-1` | Cœur agentique ; le LLM explique, il ne calcule jamais. Profil d'inférence global depuis #150 ([fiche 150](journal/150-profil-inference-global.md)) ; les procès enregistrés de l'interface ont été tenus avec `us.anthropic.claude-sonnet-5-5` ([`index.json`](../frontend/src/data/proces/index.json)) |
+| **Guardrail Amazon Bedrock** | Second regard sur le cadre « simulation seulement » (#189) : attaque de consigne à l'entrée, conseil personnalisé à la sortie | Le contrôle Python du Greffier reste la règle ; le Guardrail ajoute un contrôle managé, compté dans le contrôle `cadre_simulation` et dans le champ `bedrock` ([fiche 186](journal/189-agents-coordonnes.md)) |
 | **AWS Lambda** | Exécute tout le pipeline : phases, outils, Greffier | Le même code qu'en local (`SOURCE_DONNEES=local\|s3`) |
 | **Lambda Function URL** | Point d'accès HTTPS de l'interface | **Choix de #22** : API Gateway coupe à 29 s ; le procès le plus long mesuré a pris 37,4 s ([fiche 022](journal/022-pieges-aws.md)). La Lambda a un délai de 300 s |
 | **Amazon S3** | Données, progression du procès en cours, traces, verdicts, profils créés | Chaque procès est archivé avec ses pièces et peut être relu ; la jurisprudence relit les verdicts |

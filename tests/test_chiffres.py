@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.chiffres import (
+    argument_recevable,
     controle_verifier_chiffres,
     detailler_argument,
     extraire_nombres,
@@ -264,3 +265,41 @@ def test_detail_meme_verdict_que_verifier_argument():
 def test_detail_sans_piece_citee():
     resultat = detail("La pire baisse passe à −29,0 %.")
     assert not resultat["valide"] and "Aucune pièce citée" in resultat["motif"]
+
+
+# --- Guardrail et répliques dans le tri (#189) --------------------------------------
+
+
+def test_garde_fou_consulte_seulement_si_python_accepte_et_compte():
+    dossier = {"decision": {}, "pieces": [piece("P1", pire_baisse=-0.2897)], "periode": ["2021-11-12", "2026-11-12"]}
+    soumis = []
+
+    def garde_fou(texte):
+        soumis.append(texte)
+        return "Guardrail Bedrock : sujet refusé « Conseil »" if "constat" in texte else None
+
+    arguments = [{"etiquette": "fait", "texte": "La pire chute est de −29,0 %.", "pieces": ["P1"]},
+                 {"etiquette": "fait", "texte": "Un constat sans chiffre.", "pieces": ["P1"],
+                  "repond_a": {"cote": "plaidoirie", "numero": 1}},
+                 {"etiquette": "fait", "texte": "La pire chute est de −31 %.", "pieces": ["P1"]}]
+    tri = trier_arguments(arguments, "requisitoire", dossier, garde_fou=garde_fou)
+
+    assert soumis == ["La pire chute est de −29,0 %.", "Un constat sans chiffre."]  # le chiffre faux n'y va pas
+    assert [a["texte"] for a in tri.valides] == ["La pire chute est de −29,0 %."]
+    assert (tri.controles_garde_fou, tri.rejetes_garde_fou, tri.rejetes_chiffres) == (2, 1, 1)
+    assert tri.rejetes[0]["repond_a"] == {"cote": "plaidoirie", "numero": 1}  # la réplique garde sa cible
+    assert tri.rejetes[0]["raison"].startswith("Guardrail Bedrock")
+
+
+def test_une_replique_corrigee_garde_sa_cible():
+    dossier = {"decision": {}, "pieces": [piece("P1", pire_baisse=-0.2897)], "periode": ["2021-11-12", "2026-11-12"]}
+    replique = {"etiquette": "fait", "texte": "La pire chute est de −31 %.", "pieces": ["P1"],
+                "repond_a": {"cote": "plaidoirie", "numero": 2}}
+
+    def corriger(argument, motif):
+        return {"etiquette": "fait", "texte": "La pire chute est de −29 %.", "pieces": ["P1"]}
+
+    tri = trier_arguments([replique], "requisitoire", dossier, corriger)
+    assert tri.valides == [{"etiquette": "fait", "texte": "La pire chute est de −29 %.", "pieces": ["P1"],
+                            "repond_a": {"cote": "plaidoirie", "numero": 2}}]
+    assert argument_recevable(tri.valides[0], dossier) and not argument_recevable(replique, dossier)

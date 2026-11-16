@@ -3,8 +3,10 @@
 Étapes, chacune sautée si la ressource est déjà dans l'état voulu :
 1. **S3** : bucket ``alphaforge-<compte>`` (créé s'il manque, accès public bloqué) ;
    les CSV de ``alphaforge_starter/`` envoyés dans ``donnees/`` ;
-2. **IAM** : rôle ``alphaforge-lambda`` (créé s'il manque), avec la politique minimale
-   ``politique_iam_lambda.json`` appliquée à ce bucket ;
+2. **Guardrail Bedrock** ``alphaforge-cadre-simulation`` (#189) : créé s'il manque ; une
+   version publiée seulement si sa configuration a changé (empreinte dans la description) ;
+   **IAM** : rôle ``alphaforge-lambda`` (créé s'il manque), avec la politique minimale
+   ``politique_iam_lambda.json`` appliquée à ce bucket et à ce Guardrail ;
 3. **Lambda** ``alphaforge-tribunal`` : créée, ou code et configuration mis à jour
    (python3.14, couche pandas, 300 s, 1024 Mo, variables d'environnement) ;
 4. **concurrence réservée** de 2 (coûts Bedrock) ; **invocation asynchrone** (procès lancé
@@ -30,6 +32,7 @@ Usage (depuis la racine du dépôt) ::
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 import time
@@ -64,6 +67,30 @@ ORIGINES_INTERFACE = ["http://localhost:5173"]
 COMMENTAIRE_INTERFACE = "alphaforge-interface"  # repère la distribution CloudFront du site (#135)
 STATEMENT_URL = "function-url-publique"
 STATEMENT_INVOCATION = "function-url-publique-invocation"
+GARDE_FOU = "alphaforge-cadre-simulation"
+# Guardrail (#189) : un second regard, en plus du Greffier Python, sur le cadre « simulation
+# seulement ». Entrée (demande, question) : attaque de consigne. Sortie (chaque argument
+# affiché) : sujet refusé « conseil personnalisé ». Le sujet ne filtre pas l'entrée : une
+# demande de conseil reçoit au contre-interrogatoire une réponse qui dit que le Tribunal ne
+# conseille pas. Les noms de sujets n'acceptent pas les accents.
+CONFIG_GARDE_FOU = {
+    "description": "Tribunal AlphaForge : aucun conseil personnalise ni promesse de rendement (#189)",
+    "topicPolicyConfig": {"topicsConfig": [{
+        "name": "Conseil personnalise",
+        "definition": ("Recommandation adressee a l'investisseur d'acheter, vendre ou conserver un placement, "
+                       "ou promesse d'un rendement ou d'un prix futur."),
+        "examples": ["Vous devriez vendre vos actions Tesla.", "Achetez du Bitcoin maintenant.",
+                     "Cette action va doubler l'an prochain.", "Je vous recommande d'alleger votre position."],
+        "type": "DENY",
+        "inputEnabled": False,
+        "outputEnabled": True,
+    }]},
+    "contentPolicyConfig": {"filtersConfig": [
+        {"type": "PROMPT_ATTACK", "inputStrength": "HIGH", "outputStrength": "NONE"},
+    ]},
+    "blockedInputMessaging": "Demande refusee par le garde-fou du Tribunal.",
+    "blockedOutputsMessaging": "Argument refuse par le garde-fou du Tribunal.",
+}
 ROUTES = "/tribunal, /progression, /verdict, /question, /verifier, /proces-verbal, /questionnaire, /profil, /table"  # lambda_tribunal.ROUTES
 CONFIANCE_LAMBDA = {
     "Version": "2012-10-17",
@@ -76,15 +103,17 @@ def nom_bucket(compte: str) -> str:
     return f"alphaforge-{compte}"
 
 
-def politique_pour_bucket(bucket: str) -> str:
-    """La politique minimale du dépôt, avec le nom réel du bucket."""
+def politique_pour_bucket(bucket: str, garde_fou_arn: str) -> str:
+    """La politique minimale du dépôt, avec le nom réel du bucket et l'ARN du Guardrail."""
     texte = (RACINE / "deploiement" / "politique_iam_lambda.json").read_text(encoding="utf-8")
-    return json.dumps(json.loads(texte.replace("NOM_DU_BUCKET", bucket)))
+    return json.dumps(json.loads(texte.replace("NOM_DU_BUCKET", bucket).replace("ARN_DU_GARDE_FOU", garde_fou_arn)))
 
 
-def variables_environnement(bucket: str) -> dict[str, str]:
+def variables_environnement(bucket: str, garde_fou: tuple[str, str]) -> dict[str, str]:
     # AWS_REGION n'est pas définie ici : Lambda la fournit elle-même.
-    return {"SOURCE_DONNEES": "s3", "BUCKET_PROJET": bucket, "BEDROCK_MODEL_ID": MODELE}
+    identifiant, version = garde_fou
+    return {"SOURCE_DONNEES": "s3", "BUCKET_PROJET": bucket, "BEDROCK_MODEL_ID": MODELE,
+            "BEDROCK_GUARDRAIL_ID": identifiant, "BEDROCK_GUARDRAIL_VERSION": version}
 
 
 # --- 1. S3 -------------------------------------------------------------------------
@@ -110,10 +139,42 @@ def envoyer_donnees(s3, bucket: str) -> None:
     print(f"S3 : {len(fichiers)} CSV envoyés dans s3://{bucket}/donnees/")
 
 
-# --- 2. IAM ------------------------------------------------------------------------
+# --- 2. Guardrail Bedrock et IAM ---------------------------------------------------
 
 
-def preparer_role(iam, bucket: str) -> str:
+def empreinte_garde_fou() -> str:
+    """Empreinte de ``CONFIG_GARDE_FOU`` : une nouvelle version n'est publiée que si elle change."""
+    return hashlib.sha256(json.dumps(CONFIG_GARDE_FOU, sort_keys=True).encode()).hexdigest()[:12]
+
+
+def assurer_garde_fou(bedrock) -> tuple[str, str, str]:
+    """Crée ou met à jour le Guardrail, puis renvoie (identifiant, version publiée, ARN).
+
+    Idempotent : la version publiée porte l'empreinte de la configuration dans sa description ;
+    si la dernière version l'a déjà, rien n'est modifié.
+    """
+    empreinte = f"config {empreinte_garde_fou()}"
+    existant = next((g for g in bedrock.list_guardrails()["guardrails"] if g["name"] == GARDE_FOU), None)
+    if existant is None:
+        cree = bedrock.create_guardrail(name=GARDE_FOU, **CONFIG_GARDE_FOU)
+        identifiant, arn = cree["guardrailId"], cree["guardrailArn"]
+        print(f"Bedrock : Guardrail {GARDE_FOU} créé")
+    else:
+        identifiant, arn = existant["id"], existant["arn"]
+    versions = [v for v in bedrock.list_guardrails(guardrailIdentifier=identifiant)["guardrails"]
+                if v["version"] != "DRAFT"]
+    derniere = max(versions, key=lambda v: int(v["version"]), default=None)
+    if derniere is not None and derniere.get("description") == empreinte:
+        print(f"Bedrock : Guardrail {GARDE_FOU} déjà à jour (version {derniere['version']})")
+        return identifiant, derniere["version"], arn
+    if existant is not None:
+        bedrock.update_guardrail(guardrailIdentifier=identifiant, name=GARDE_FOU, **CONFIG_GARDE_FOU)
+    version = bedrock.create_guardrail_version(guardrailIdentifier=identifiant, description=empreinte)["version"]
+    print(f"Bedrock : Guardrail {GARDE_FOU}, version {version} publiée")
+    return identifiant, version, arn
+
+
+def preparer_role(iam, bucket: str, garde_fou_arn: str) -> str:
     try:
         arn = iam.get_role(RoleName=ROLE)["Role"]["Arn"]
         print(f"IAM : rôle {ROLE} déjà présent")
@@ -122,17 +183,17 @@ def preparer_role(iam, bucket: str) -> str:
                               Description="Lambda du Tribunal AlphaForge (#13)")["Role"]["Arn"]
         print(f"IAM : rôle {ROLE} créé")
         time.sleep(10)  # le temps que le nouveau rôle soit visible par Lambda
-    iam.put_role_policy(RoleName=ROLE, PolicyName=ROLE, PolicyDocument=politique_pour_bucket(bucket))
-    print("IAM : politique minimale appliquée (Bedrock Sonnet 5.5 sur 3 régions, CloudWatch, bucket, "
-          "invocation de la fonction elle-même)")
+    iam.put_role_policy(RoleName=ROLE, PolicyName=ROLE, PolicyDocument=politique_pour_bucket(bucket, garde_fou_arn))
+    print("IAM : politique minimale appliquée (Bedrock Sonnet 5.5 sur 3 régions, Guardrail du projet, CloudWatch, "
+          "bucket, invocation de la fonction elle-même)")
     return arn
 
 
 # --- 3 à 5. Lambda -----------------------------------------------------------------
 
 
-def deployer_fonction(lam, code: bytes, role_arn: str, bucket: str) -> None:
-    configuration = {**CONFIGURATION, "Environment": {"Variables": variables_environnement(bucket)}}
+def deployer_fonction(lam, code: bytes, role_arn: str, bucket: str, garde_fou: tuple[str, str]) -> None:
+    configuration = {**CONFIGURATION, "Environment": {"Variables": variables_environnement(bucket, garde_fou)}}
     try:
         lam.get_function(FunctionName=FONCTION)
     except lam.exceptions.ResourceNotFoundException:
@@ -251,9 +312,10 @@ def main(arguments: list[str] | None = None) -> int:
     preparer_bucket(s3, bucket)
     if not options.sans_donnees:
         envoyer_donnees(s3, bucket)
-    role_arn = preparer_role(iam, bucket)
+    garde_fou_id, garde_fou_version, garde_fou_arn = assurer_garde_fou(session.client("bedrock"))
+    role_arn = preparer_role(iam, bucket, garde_fou_arn)
     zip_lambda = options.zip or construire()
-    deployer_fonction(lam, zip_lambda.read_bytes(), role_arn, bucket)
+    deployer_fonction(lam, zip_lambda.read_bytes(), role_arn, bucket, (garde_fou_id, garde_fou_version))
     regler_concurrence(lam)
     regler_invocation_asynchrone(lam)
     print(f"Prêt : {assurer_function_url(lam, origines)} (routes POST : {ROUTES})")

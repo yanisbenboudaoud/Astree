@@ -1,5 +1,5 @@
 /**
- * Progression d'un procès (#90) : les 4 phases fixes du Tribunal et les étapes de chacune.
+ * Progression d'un procès (#90) : les 5 phases fixes du Tribunal et les étapes de chacune.
  * Sert au Tribunal en direct (progression réelle publiée par la Lambda, relue toutes les 1,5 s)
  * et à la relecture d'un procès enregistré (sa trace, rejouée étape par étape).
  * Rien n'est animé selon le temps écoulé : une phase n'avance que sur une étape réelle.
@@ -7,7 +7,7 @@
 import type { EtapeTraceContrat } from '../api/contrat';
 import type { EtapeTrace } from '../api/types';
 
-export type PhaseProces = 'agent_profil' | 'orchestrateur' | 'debat' | 'greffier';
+export type PhaseProces = 'agent_profil' | 'orchestrateur' | 'debat' | 'replique' | 'greffier';
 export type EtatPhase = 'faite' | 'en_cours' | 'a_venir';
 
 /** Ordre fixe imposé par Python (pipeline/progression.py, PHASES). */
@@ -15,6 +15,7 @@ export const PHASES: { id: PhaseProces; libelle: string; detail: string }[] = [
   { id: 'agent_profil', libelle: 'Agent Profil', detail: 'lit votre demande et votre Pacte' },
   { id: 'orchestrateur', libelle: 'Orchestrateur', detail: 'choisit les calculs ; chaque résultat devient une pièce' },
   { id: 'debat', libelle: 'Procureur et Avocat', detail: 'plaident contre et pour, pièces à l’appui' },
+  { id: 'replique', libelle: 'Réplique', detail: 'chacun répond à l’argument de l’autre qui pèse le plus' },
   { id: 'greffier', libelle: 'Greffier', detail: 'vérifie le Pacte, les chiffres et le cadre' },
 ];
 
@@ -26,6 +27,7 @@ export function estPhase(valeur: unknown): valeur is PhaseProces {
 export function phaseDeLEtape(etape: Pick<EtapeTraceContrat, 'etape' | 'outil'>): PhaseProces {
   if (etape.etape === 'orchestrateur') return 'orchestrateur';
   if (etape.etape === 'greffier' || etape.outil === 'bedrock_correction') return 'greffier';
+  if (etape.outil === 'bedrock_replique') return 'replique';
   if (etape.etape === 'procureur' || etape.etape === 'avocat') return 'debat';
   return 'agent_profil'; // agent_profil, calibrage (Pacte vécu)
 }

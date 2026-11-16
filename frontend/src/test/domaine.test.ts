@@ -198,7 +198,7 @@ describe('contre-interrogatoire (#55)', () => {
 describe('procès enregistrés (mode démonstration)', () => {
   it('rejoue le procès qui juge exactement la décision, avec son identifiant S3', async () => {
     const trente = await jugerDecision('robert', decisionRobert);
-    expect(trente.procesId).toBe('2026-11-15-e79cef530bc9');
+    expect(trente.procesId).toBe('2026-11-16-dc4199dcaa79'); // le plus récent, avec ses répliques (#189)
     expect(trente.echanges).toHaveLength(1); // contre-interrogatoire enregistré, rejoué tel quel
     const vingtCinq = await jugerDecision('robert', { type: 'position', ticker: 'TSLA', taille: 25 });
     expect(vingtCinq.procesId).toBe('2026-11-15-032ec3367b19');

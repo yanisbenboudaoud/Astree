@@ -319,6 +319,12 @@ def controle_cadre_simulation(*tris: TriArguments) -> dict[str, Any]:
     if rejetes:
         relance = " après une relance" if sum(t.relances for t in tris) else ""
         message += f" ; {rejetes} {_pluriel(rejetes, 'argument')} {_pluriel(rejetes, 'rejeté')}{relance}"
+    garde_fou = sum(t.controles_garde_fou for t in tris)
+    if garde_fou:  # Guardrail Bedrock configuré (#189)
+        refus = sum(t.rejetes_garde_fou for t in tris)
+        message += f" ; Guardrail Bedrock : {garde_fou} {_pluriel(garde_fou, 'contrôle')}"
+        if refus:
+            message += f", {refus} {_pluriel(refus, 'argument')} {_pluriel(refus, 'rejeté')}"
     return {"statut": "conforme", "regle": "cadre_simulation", "message": message}
 
 

@@ -6,7 +6,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import type { Argument, DecisionUI, Piece, Profil, ProgressionTribunal, ResultatTribunal } from '../api/types';
+import type { Argument, DecisionUI, EtapeTrace, Piece, Profil, ProgressionTribunal, ResultatTribunal } from '../api/types';
+import type { BedrockContrat } from '../api/contrat';
 import { MODE_DIRECT, ProcesNonEnregistre, jugerDecision, poserQuestion, questionLibreDisponible, reprendreProces, reveillerLambda } from '../api/tribunal';
 import { adapterEchange } from '../api/adaptateur';
 import { Gabarit, useTitre } from '../components/Gabarit';
@@ -24,6 +25,7 @@ import { libelleDecision } from '../domaine/decision';
 import { resultatCalibrage } from '../domaine/calibrage';
 import { phaseEnRelecture } from '../domaine/progression';
 import { regrouperDebat, type ArgumentNumerote } from '../domaine/debat';
+import { choixInstruction, moment, resumeBedrock } from '../domaine/instruction';
 import { GROUPES, bilanGreffier, type Groupe } from '../domaine/bilan';
 import { pointsDeBascule } from '../domaine/verdict';
 import { sourcesAffichees } from '../domaine/sources';
@@ -105,7 +107,11 @@ function Debat({ procureur, avocat, surlignes, onOuvrir }: {
   surlignes: Set<string>;
   onOuvrir: (code: string, el: HTMLElement) => void;
 }) {
-  const points = useMemo(() => regrouperDebat(procureur, avocat), [procureur, avocat]);
+  // Les répliques (#189) viennent après les plaidoiries : elles ont leur propre bloc, sous le tableau.
+  const points = useMemo(
+    () => regrouperDebat(procureur.filter((a) => !a.repondA), avocat.filter((a) => !a.repondA)),
+    [procureur, avocat],
+  );
   if (!points.length) return null;
   return (
     <section className={styles.debat} aria-labelledby="titre-debat">
@@ -145,6 +151,89 @@ function Debat({ procureur, avocat, surlignes, onOuvrir }: {
           </div>
         ))}
       </div>
+      <Repliques procureur={procureur} avocat={avocat} surlignes={surlignes} onOuvrir={onOuvrir} />
+    </section>
+  );
+}
+
+/**
+ * Les répliques (#189) : chaque camp a lu les arguments de l'autre et répond à celui qui pèse
+ * le plus contre lui. L'argument visé est rappelé par sa première phrase.
+ */
+function Repliques({ procureur, avocat, surlignes, onOuvrir }: {
+  procureur: Argument[];
+  avocat: Argument[];
+  surlignes: Set<string>;
+  onOuvrir: (code: string, el: HTMLElement) => void;
+}) {
+  const repliques = [procureur, avocat].flatMap((args) => args.map((argument, i) => ({ argument, numero: i + 1 })))
+    .filter(({ argument }) => argument.repondA);
+  if (!repliques.length) return null;
+  return (
+    <div className={styles.repliques}>
+      <h3 className="t-intertitre">Les répliques</h3>
+      <p className="t-petit c-700">
+        Chaque camp a lu les arguments de l’autre et répond à celui qui pèse le plus contre lui, avec les mêmes pièces.
+        Le Greffier a vérifié chaque réplique comme les autres arguments.
+      </p>
+      <ul className={styles.listeRepliques}>
+        {repliques.map(({ argument, numero }) => {
+          const vise = argument.repondA!;
+          return (
+            <li key={argument.texte} className={`${styles.replique} ${argument.camp === 'Procureur' ? styles.caseProcureur : styles.caseAvocat}`}>
+              <p className="t-petit-fort">
+                {argument.camp === 'Procureur' ? 'Le Procureur' : 'L’Avocat'} répond à l’argument {vise.numero}{' '}
+                {vise.camp === 'Procureur' ? 'du Procureur' : 'de l’Avocat'}
+              </p>
+              <p className={`t-petit c-500 ${styles.argumentVise}`}>« {sansCoupure(vise.accroche)} »</p>
+              <Plaidoyer argument={argument} surligne={surlignes.has(`${argument.camp}-${numero}`)} onOuvrir={onOuvrir} />
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Comment les agents ont instruit ce dossier (#189) : chaque calcul choisi par l'orchestrateur
+ * (avec sa raison) ou ajouté d'office par Python, puis la mesure des appels Bedrock du procès.
+ * Visible sans rien déplier : c'est ce qui montre que les preuves dépendent du Pacte.
+ */
+function Instruction({ trace, bedrock, onOuvrir }: {
+  trace: EtapeTrace[];
+  bedrock?: BedrockContrat;
+  onOuvrir: (code: string, el: HTMLElement) => void;
+}) {
+  const choix = choixInstruction(trace);
+  if (!choix.length) return null;
+  const choisis = choix.filter((c) => c.origine === 'orchestrateur').length;
+  return (
+    <section className={styles.instruction} aria-labelledby="titre-instruction">
+      <h2 className="t-intertitre" id="titre-instruction">Comment les agents ont instruit ce dossier</h2>
+      <p className="t-petit c-700">
+        L’orchestrateur (Bedrock) a choisi lui-même {choisis} calcul{choisis > 1 ? 's' : ''} pour ce Pacte et cette décision ;
+        Python les a exécutés, et chaque résultat est devenu une pièce. Un autre Pacte ou une autre décision mène à d’autres preuves.
+      </p>
+      <ol className={styles.listeInstruction}>
+        {choix.map((c, i) => (
+          <li key={`${i}-${c.titre}`} className={styles.choix}>
+            <span className={`${styles.origineChoix} ${c.origine === 'orchestrateur' ? '' : styles.origineOffice}`}>
+              {c.origine === 'orchestrateur' ? 'Choisi par l’orchestrateur' : c.origine === 'office' ? 'Ajouté d’office par Python' : 'Appel refusé'}
+            </span>
+            <span className={styles.texteChoix}>
+              <span className="t-petit-fort">{c.titre}</span>
+              {c.raison && c.origine !== 'office' && <span className="t-petit c-700">{c.raison}</span>}
+            </span>
+            {c.piece && <PastillePiece code={c.piece} onOuvrir={onOuvrir} />}
+          </li>
+        ))}
+      </ol>
+      {bedrock && (
+        <ul className={styles.mesureBedrock} aria-label="Mesure des appels Bedrock">
+          {resumeBedrock(bedrock).map((ligne) => <li key={ligne} className="t-petit c-700">{ligne}</li>)}
+        </ul>
+      )}
     </section>
   );
 }
@@ -574,6 +663,8 @@ export function Tribunal({ profil }: { profil: Profil }) {
 
           <Debat procureur={procureur} avocat={avocat} surlignes={surlignes} onOuvrir={ouvrirPiece} />
 
+          <Instruction trace={resultat.trace} bedrock={resultat.contrat.bedrock} onOuvrir={ouvrirPiece} />
+
           {(resultat.argumentsRejetes.length > 0 || resultat.corrections.length > 0) && (
             <section className={styles.rejetes} aria-labelledby="titre-rejetes">
               <h2 className="t-intertitre" id="titre-rejetes">Arguments contrôlés par le Greffier pendant ce procès</h2>
@@ -707,7 +798,10 @@ export function Tribunal({ profil }: { profil: Profil }) {
                       <Icone nom={e.etat === 'signalement' ? 'alerte' : 'check'} taille={14} />
                     </span>
                     <span className={styles.texteChrono}>
-                      <span className="t-petit c-500">{e.role}{e.etat === 'signalement' && <span className="visuellement-cache"> (signalement)</span>}</span>
+                      <span className="t-petit c-500">
+                        {e.role}{e.secondes !== undefined && ` · ${moment(e.secondes)}`}
+                        {e.etat === 'signalement' && <span className="visuellement-cache"> (signalement)</span>}
+                      </span>
                       <span className="t-corps-fort">{e.titre}</span>
                       <code className="t-trace c-500">{e.appel}</code>
                       {e.raison && <span className="t-petit c-700">Raison : {e.raison}</span>}

@@ -67,7 +67,7 @@ def test_function_url_passe_en_none_avec_les_deux_permissions():
 
 def test_politique_autorise_seulement_l_invocation_de_la_fonction_elle_meme():
     """#90 : la Lambda s'invoque en asynchrone pour le procès ; rien d'autre côté Lambda."""
-    politique = json.loads(deployer.politique_pour_bucket("alphaforge-123"))
+    politique = json.loads(deployer.politique_pour_bucket("alphaforge-123", "arn:aws:bedrock:us-east-1:123:guardrail/gr1"))
     invocations = [s for s in politique["Statement"] if "lambda:InvokeFunction" in str(s["Action"])]
     assert invocations == [{"Sid": "SInvoquerEnAsynchronePourLaProgression", "Effect": "Allow",
                             "Action": "lambda:InvokeFunction",
@@ -125,3 +125,65 @@ def test_relancer_ne_double_pas_les_permissions():
     deployer.assurer_function_url(lam, ["http://localhost:5173"])
     deployer.assurer_function_url(lam, ["http://localhost:5173"])
     assert len(lam.permissions) == 2
+
+
+# --- Guardrail Bedrock (#189) ---------------------------------------------------------
+
+
+class FauxBedrock:
+    """Client Bedrock (plan de contrôle) minimal : un Guardrail et ses versions numérotées."""
+
+    def __init__(self, existe: bool = False, description_version: str | None = None):
+        self.appels: list[str] = []
+        self.versions = [] if description_version is None else [{"version": "1", "description": description_version}]
+        self.existe = existe
+
+    def list_guardrails(self, guardrailIdentifier=None):
+        if guardrailIdentifier is None:
+            return {"guardrails": [{"id": "gr1", "arn": "arn:aws:bedrock:us-east-1:123:guardrail/gr1", "name": deployer.GARDE_FOU, "version": "DRAFT"}]
+                    if self.existe else []}
+        return {"guardrails": [{"version": "DRAFT"}, *self.versions]}
+
+    def create_guardrail(self, name, **config):
+        self.appels.append("create_guardrail")
+        self.existe = True
+        return {"guardrailId": "gr1", "guardrailArn": "arn:aws:bedrock:us-east-1:123:guardrail/gr1", "version": "DRAFT"}
+
+    def update_guardrail(self, guardrailIdentifier, name, **config):
+        self.appels.append("update_guardrail")
+
+    def create_guardrail_version(self, guardrailIdentifier, description):
+        self.appels.append("create_guardrail_version")
+        version = str(len(self.versions) + 1)
+        self.versions.append({"version": version, "description": description})
+        return {"guardrailId": guardrailIdentifier, "version": version}
+
+
+def test_garde_fou_cree_puis_publie_une_version():
+    bedrock = FauxBedrock()
+    assert deployer.assurer_garde_fou(bedrock) == ("gr1", "1", "arn:aws:bedrock:us-east-1:123:guardrail/gr1")
+    assert bedrock.appels == ["create_guardrail", "create_guardrail_version"]
+
+
+def test_relancer_ne_publie_pas_de_nouvelle_version():
+    bedrock = FauxBedrock(existe=True, description_version=f"config {deployer.empreinte_garde_fou()}")
+    assert deployer.assurer_garde_fou(bedrock) == ("gr1", "1", "arn:aws:bedrock:us-east-1:123:guardrail/gr1")
+    assert bedrock.appels == []
+
+
+def test_configuration_changee_mise_a_jour_et_nouvelle_version():
+    bedrock = FauxBedrock(existe=True, description_version="config ancienne")
+    assert deployer.assurer_garde_fou(bedrock)[1] == "2"
+    assert bedrock.appels == ["update_guardrail", "create_guardrail_version"]
+
+
+def test_garde_fou_filtre_l_entree_et_la_sortie_et_droit_minimal():
+    [sujet] = deployer.CONFIG_GARDE_FOU["topicPolicyConfig"]["topicsConfig"]
+    assert (sujet["inputEnabled"], sujet["outputEnabled"]) == (False, True)  # une demande de conseil n'est pas bloquée
+    [attaque] = deployer.CONFIG_GARDE_FOU["contentPolicyConfig"]["filtersConfig"]
+    assert attaque == {"type": "PROMPT_ATTACK", "inputStrength": "HIGH", "outputStrength": "NONE"}
+    politique = json.loads(deployer.politique_pour_bucket("alphaforge-123", "arn:aws:bedrock:us-east-1:123:guardrail/gr1"))
+    assert {"Sid": "GuardrailDuProjet", "Effect": "Allow", "Action": "bedrock:ApplyGuardrail",
+            "Resource": "arn:aws:bedrock:us-east-1:123:guardrail/gr1"} in politique["Statement"]
+    variables = deployer.variables_environnement("alphaforge-123", ("gr1", "3"))
+    assert (variables["BEDROCK_GUARDRAIL_ID"], variables["BEDROCK_GUARDRAIL_VERSION"]) == ("gr1", "3")

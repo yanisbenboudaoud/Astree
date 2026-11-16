@@ -38,7 +38,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from pipeline.llm import appeler_llm
+from pipeline.llm import appeler_llm, au_nom_de
 from pipeline.pacte import (
     CHEMIN_SCHEMA,
     DOSSIER_PERSONAS,
@@ -180,11 +180,12 @@ def structurer_decision(
         univers: titres connus du système (``pipeline.univers.charger_univers``).
         poche: profil à poches (#115) : poche imposée par l'appelant, ou None.
     """
-    extraction = appeler_llm(
-        construire_systeme(univers),
-        construire_message(demande, profil, univers),
-        schema_extraction(univers, profil),
-    )
+    with au_nom_de("agent_profil"):
+        extraction = appeler_llm(
+            construire_systeme(univers),
+            construire_message(demande, profil, univers),
+            schema_extraction(univers, profil),
+        )
     trace = [{"etape": "agent_profil", "outil": "bedrock", "entree": demande, "sortie": extraction}]
     profil_juge, controles_poche, hypotheses_poche = profil, [], []
     if a_des_poches(profil):

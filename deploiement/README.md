@@ -205,8 +205,9 @@ Après le redéploiement de #13 (code de `main` avec les cas 2 et 3, CSV lus dan
 
 ## IAM
 
-Le rôle de la Lambda utilise [`politique_iam_lambda.json`](politique_iam_lambda.json), en remplaçant `NOM_DU_BUCKET` :
+Le rôle de la Lambda utilise [`politique_iam_lambda.json`](politique_iam_lambda.json), en remplaçant `NOM_DU_BUCKET` et `ARN_DU_GARDE_FOU` :
 - `bedrock:InvokeModel` sur le **profil d'inférence global** `global.anthropic.claude-sonnet-5-5`, sur le modèle dans us-east-1 **et** sur le modèle sans région (`arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-5-5`) : le profil global peut répartir les appels sur toutes les régions commerciales. Sans ce dernier ARN, certains appels échoueraient au hasard.
+- `bedrock:ApplyGuardrail` sur le **seul** Guardrail du projet (#189).
 - Les journaux CloudWatch, et la lecture et l'écriture dans le bucket du projet.
 - `s3:ListBucket` sur ce bucket seulement : sans ce droit, S3 répond « accès refusé » au lieu de « introuvable » pour un objet absent, et `/verdict` renverrait une erreur 500 au lieu de 404 pour un procès inconnu.
 - `lambda:InvokeFunction` sur la fonction `alphaforge-tribunal` **elle-même seulement** (#90) : `/tribunal` lance le procès en arrière-plan. La progression (`progression/*`) est couverte par le droit sur le bucket.
@@ -216,4 +217,5 @@ Le rôle de la Lambda utilise [`politique_iam_lambda.json`](politique_iam_lambda
 
 - Région `us-east-1`, profil global `global.anthropic.claude-sonnet-5-5` (15 novembre 2026 : la page « Utilisation responsable » recommande le profil `global.` quand il existe ; vérifié par un procès complet sur la Lambda, contrat valide). Avant : `us.anthropic.claude-sonnet-5-5`. Quota : 6 millions de jetons par minute, bien au-delà d'un procès.
 - Les relances adaptatives et le délai de lecture de 300 s sont déjà dans `pipeline/llm.py` (#7).
+- **Guardrail** `alphaforge-cadre-simulation` (#189), créé par `deployer.py` (`CONFIG_GARDE_FOU`) : filtre d'attaque de consigne à l'entrée (force HIGH), sujet refusé « Conseil personnalise » à la sortie seulement. Une nouvelle version n'est publiée que si la configuration change (empreinte dans la description de la version). La Lambda reçoit `BEDROCK_GUARDRAIL_ID` et `BEDROCK_GUARDRAIL_VERSION` ; sans ces variables (local, tests), rien n'est soumis. Coût : quelques unités de texte par procès (un argument fait moins de 1 000 caractères).
 - **Vérifié** : 5 procès complets d'affilée, soit 25 appels Converse, sans aucune relance de boto3 ni erreur de limitation.

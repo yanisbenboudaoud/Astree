@@ -41,6 +41,7 @@ from pipeline import correlations, documents, indicateurs, jurisprudence, liquid
 from pipeline.donnees import ErreurDonnees
 from pipeline.llm import (
     DemandeOutil,
+    au_nom_de,
     converser_avec_outils,
     message_resultats,
     message_utilisateur,
@@ -215,7 +216,8 @@ def _jouer(instruction: "_Instruction", systeme: str, dossier: str, outils: list
     descriptions = [_avec_raison(outil.description_bedrock) for outil in outils]
     conversation = [message_utilisateur(dossier)]
     while instruction.resultat.appels < instruction.budget:
-        tour = converser(systeme, conversation, descriptions)
+        with au_nom_de("orchestrateur"):
+            tour = converser(systeme, conversation, descriptions)
         conversation.append(tour.message_assistant)
         if tour.termine:
             break

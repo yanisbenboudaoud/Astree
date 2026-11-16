@@ -237,11 +237,20 @@ def _controles(controles: list[dict[str, Any]]) -> str:
 def _arguments(titre: str, arguments: list[dict[str, Any]], niveau: str = "h2") -> str:
     elements = "".join(
         f"<li><span class=\"petit discret\">{_t(ETIQUETTES.get(a['etiquette'], a['etiquette']))}</span> "
-        f"{_t(a['texte'])} <span class=\"mono discret\">({_pieces_citees(a['pieces'])})</span></li>"
+        f"{_replique(a)}{_t(a['texte'])} <span class=\"mono discret\">({_pieces_citees(a['pieces'])})</span></li>"
         for a in arguments
     )
     corps = f"<ul>{elements}</ul>" if arguments else f"<p>{LIBELLES['aucun']}</p>"
     return f"<{niveau}>{titre}</{niveau}>{corps}"
+
+
+def _replique(argument: dict[str, Any]) -> str:
+    """« Réplique à l'argument 1 de l'Avocat : » devant une réplique (#189), rien sinon."""
+    cible = argument.get("repond_a")
+    if cible is None:
+        return ""
+    camp = "de l'Avocat" if cible["cote"] == "plaidoirie" else "du Procureur"
+    return f"<strong>Réplique à l'argument {cible['numero']} {camp} :</strong> "
 
 
 def _rejetes(rejetes: list[dict[str, Any]], niveau: str = "h2") -> str:

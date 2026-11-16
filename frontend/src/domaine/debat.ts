@@ -17,7 +17,7 @@ export function accroche(texte: string): { tete: string; suite: string } {
 }
 
 export type Theme =
-  | 'recuperation' | 'titre_seul' | 'reactions' | 'antecedents' | 'valeurs' | 'annee_2022' | 'frais' | 'devise' | 'taille'
+  | 'recuperation' | 'titre_seul' | 'reactions' | 'antecedents' | 'valeurs' | 'annee_2022' | 'frais' | 'devise' | 'liquidite' | 'taille'
   | 'diversification' | 'regles' | 'rendement' | 'perte' | 'autre';
 
 /** Question affichée au-dessus de chaque point, dans l'ordre où les règles sont essayées. */
@@ -30,6 +30,7 @@ export const QUESTIONS: Record<Theme, string> = {
   annee_2022: 'Et dans une année de crise comme 2022 ?',
   frais: 'Combien coûtent les frais des fonds chaque année ?',
   devise: 'Et le risque de change ?',
+  liquidite: 'Pourriez-vous revendre vite ?',
   taille: 'Une taille plus modeste passerait-elle ?',
   diversification: 'Les titres bougent-ils ensemble ?',
   regles: 'Et les autres règles de votre Pacte ?',
@@ -48,6 +49,7 @@ export const LIBELLES_COURTS: Record<Theme, string> = {
   annee_2022: 'Crise de 2022',
   frais: 'Frais',
   devise: 'Devise',
+  liquidite: 'Revendre vite',
   taille: 'Taille modeste',
   diversification: 'Diversification',
   regles: 'Autres règles',
@@ -69,6 +71,8 @@ const REGLES: [Theme, RegExp][] = [
   ['frais', /\bfrais\b/i],
   // Pas « USD » seul : il apparaît dans les symboles BTC-USD et ETH-USD.
   ['devise', /dollars? américains?|devise|taux de change/i],
+  // Risque de liquidité (#117) : jours pour revendre, part des montants échangés chaque jour.
+  ['liquidite', /échang\S* (chaque jour|quotidien)|échanges quotidiens|revendre|jours? de bourse/i],
   ['taille', /jusqu.à \d|plus modeste|respecterait|serait respectée|au maximum respecte|(position|taille|réallocation) (limitée à |de )\d|\bà \d+(,\d+)?\s%\sen [A-Z]/i],
   ['diversification', /ensemble|corrélation|\blien\b|\bliés\b|moteur|d.un seul bloc|indépendamment/i],
   ['regles', /crypto|\btech\b|règles calculables|seule la règle|équilibre|stabilité|votre Pacte (demande|prévoit|dit|pose)/i],

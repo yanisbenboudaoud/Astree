@@ -246,6 +246,7 @@ def proces_sans_bedrock(monkeypatch):
     debat = FauxDebat()
     monkeypatch.setattr(tribunal, "debattre", debat.debattre)
     monkeypatch.setattr(tribunal, "corriger_argument", debat.corriger_argument)
+    monkeypatch.setattr(tribunal, "repliquer_les_deux", debat.repliquer_les_deux)
 
     def extraire(poche=None):
         monkeypatch.setattr(agent_profil, "appeler_llm",
@@ -297,6 +298,7 @@ def test_sans_poches_aucune_trace_de_poche_dans_le_contrat(monkeypatch):
     debat = FauxDebat()
     monkeypatch.setattr(tribunal, "debattre", debat.debattre)
     monkeypatch.setattr(tribunal, "corriger_argument", debat.corriger_argument)
+    monkeypatch.setattr(tribunal, "repliquer_les_deux", debat.repliquer_les_deux)
     schemas = []
     monkeypatch.setattr(agent_profil, "appeler_llm",
                         lambda systeme, message, schema: schemas.append(schema) or copy.deepcopy(EXTRACTION_TSLA))

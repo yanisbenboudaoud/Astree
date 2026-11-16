@@ -95,6 +95,7 @@ from pipeline.chiffres import detailler_argument
 from pipeline.contre_interrogatoire import QuestionInvalide, interroger, pieces_de_l_echange
 from pipeline.donnees import ErreurDonnees, seances_americaines
 from pipeline.jurisprudence import cle_verdict
+from pipeline.llm import RefusGardeFou
 from pipeline.pacte import PacteInvalide
 from pipeline.poches import PocheInconnue
 from pipeline.proces_verbal import proces_verbal_html
@@ -257,7 +258,7 @@ def _tribunal(corps: dict[str, Any], adresse: str) -> dict[str, Any]:
 
     try:
         contrat = juger_decision(profil, demande, calibrage=calibrage, poche=poche)
-    except (ErreurCalibrage, PocheInconnue) as erreur:
+    except (ErreurCalibrage, PocheInconnue, RefusGardeFou) as erreur:
         return _reponse(400, {"erreur": str(erreur)})
     except ProfilInconnu as erreur:
         return _reponse(404, {"erreur": str(erreur)})
@@ -341,7 +342,7 @@ def juger_en_arriere_plan(evenement: dict[str, Any]) -> dict[str, Any]:
 
 def motif_erreur(erreur: Exception) -> str:
     """Motif affiché par l'interface quand un procès en arrière-plan s'arrête."""
-    if isinstance(erreur, (ErreurCalibrage, ProfilInconnu, ErreurDonnees, PocheInconnue)):
+    if isinstance(erreur, (ErreurCalibrage, ProfilInconnu, ErreurDonnees, PocheInconnue, RefusGardeFou)):
         return str(erreur)
     if isinstance(erreur, PacteInvalide):
         return "Pacte du profil invalide"

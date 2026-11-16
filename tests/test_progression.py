@@ -84,4 +84,4 @@ def test_signaux_de_deux_fils_tous_gardes():
 
 
 def test_phases_dans_l_ordre_fixe_du_tribunal():
-    assert PHASES == ("agent_profil", "orchestrateur", "debat", "greffier")
+    assert PHASES == ("agent_profil", "orchestrateur", "debat", "replique", "greffier")

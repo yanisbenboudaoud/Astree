@@ -240,3 +240,48 @@ def test_correction_reelle_d_un_nombre_derive():
     print(f"\nAvant : {argument['texte']}\nAprès : {corrige['texte']}  ({', '.join(corrige['pieces'])})")
     assert "4 fois" not in corrige["texte"]
     valide_contre_le_contrat(corrige, "argument")
+
+
+# --- Réplique (#189) ---------------------------------------------------------------
+
+POUR = [{"etiquette": "fait", "texte": "Le rendement serait de +12,0 % par an.", "pieces": ["P1"]},
+        {"etiquette": "fait", "texte": "Votre horizon est long.", "pieces": ["P1"]}]
+CONTRE = [{"etiquette": "fait", "texte": "La pire chute passe de −7,8 % à −29,0 %.", "pieces": ["P1"]}]
+
+
+def test_repliquer_vise_un_argument_adverse_par_son_numero(monkeypatch):
+    recu = {}
+
+    def faux_llm(systeme, message, schema):
+        recu.update(systeme=systeme, message=message, schema=schema)
+        return {"repond_a": 2, "etiquette": "fait", "texte": " Votre Pacte fixe une pire baisse. ",
+                "pieces": ["P3", "P3"]}
+    monkeypatch.setattr(debat, "appeler_llm", faux_llm)
+
+    replique = debat.repliquer("procureur", DOSSIER, POUR)
+
+    assert recu["systeme"] == debat.CONSIGNES["procureur"]
+    assert "Arguments de l'Avocat" in recu["message"] and debat.CONSIGNE_REPLIQUE in recu["message"]
+    assert recu["schema"]["properties"]["repond_a"] == {"type": "integer", "enum": [1, 2]}
+    assert recu["schema"]["required"][0] == "repond_a"
+    assert replique.cible is POUR[1]  # le même objet : le Tribunal le retrouve dans la liste finale
+    assert replique.argument == {"etiquette": "fait", "texte": "Votre Pacte fixe une pire baisse.", "pieces": ["P3"]}
+    assert replique.etape == {"etape": "procureur", "outil": "bedrock_replique",
+                              "entree": {"repond_a": 2, "argument": "Votre horizon est long."},
+                              "sortie": replique.argument}
+    valide_contre_le_contrat(replique.etape, "etape_trace")
+
+
+def test_repliquer_les_deux_en_parallele_et_sans_adversaire_pas_de_replique(monkeypatch):
+    def faux_llm(systeme, message, schema):
+        return {"repond_a": 1, "etiquette": "fait", "texte": "Réponse.", "pieces": ["P1"]}
+    monkeypatch.setattr(debat, "appeler_llm", faux_llm)
+    signales = []
+
+    repliques = debat.repliquer_les_deux(DOSSIER, CONTRE, POUR, signaler_etape=signales.append)
+    assert [r.role for r in repliques] == ["procureur", "avocat"]
+    assert [r.cible for r in repliques] == [POUR[0], CONTRE[0]]
+    assert sorted(e["etape"] for e in signales) == ["avocat", "procureur"]
+
+    seul = debat.repliquer_les_deux(DOSSIER, CONTRE, [])  # l'Avocat n'a rien dit : le Procureur ne réplique pas
+    assert [r.role for r in seul] == ["avocat"]

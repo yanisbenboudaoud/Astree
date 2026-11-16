@@ -199,6 +199,7 @@ def proces_sans_bedrock(monkeypatch):
     debat = FauxDebat()
     monkeypatch.setattr(tribunal, "debattre", debat.debattre)
     monkeypatch.setattr(tribunal, "corriger_argument", debat.corriger_argument)
+    monkeypatch.setattr(tribunal, "repliquer_les_deux", debat.repliquer_les_deux)
     monkeypatch.setattr(agent_profil, "appeler_llm", lambda *args: copy.deepcopy(EXTRACTION_TSLA))
 
 

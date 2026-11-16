@@ -117,6 +117,14 @@ def test_contre_interrogatoire_affiche():
     assert "« Et à 15 % ? »" in texte and "À 15 %, la pire baisse serait moindre." in texte
 
 
+def test_une_replique_dit_a_quel_argument_elle_repond():
+    contrat = lire(EXEMPLES[0])
+    contrat["requisitoire"].append({**contrat["requisitoire"][0], "texte": "Votre Pacte fixe une limite.",
+                                    "repond_a": {"cote": "plaidoirie", "numero": 1}})
+    texte = texte_visible(proces_verbal_html(contrat))
+    assert "Réplique à l'argument 1 de l'Avocat : Votre Pacte fixe une limite." in texte
+
+
 def test_proces_verbaux_de_l_interface_a_jour():
     """frontend/public/proces-verbaux/ correspond aux procès enregistrés (« python -m pipeline.proces_verbal --demo »)."""
     attendus = {f"{identifiant}.html": proces_verbal_html(contrat, identifiant) for identifiant, contrat in proces_demo()}

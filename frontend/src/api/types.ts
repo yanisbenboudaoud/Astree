@@ -30,6 +30,8 @@ export interface Argument {
   texte: string;
   provenance: Provenance;
   pieces: string[];
+  /** Réplique (#189) : l'argument adverse visé, son numéro dans son camp et sa première phrase. */
+  repondA?: { camp: 'Procureur' | 'Avocat'; numero: number; accroche: string };
 }
 
 export interface Controle {
@@ -54,6 +56,8 @@ export interface EtapeTrace {
   dureeMs?: number;
   raison?: string;
   sortie?: string;
+  /** Secondes écoulées depuis la première étape horodatée du procès (#189). */
+  secondes?: number;
 }
 
 /** Progression réelle d'un procès en direct (#90), relue sur la Lambda pendant l'attente. */

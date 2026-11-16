@@ -196,7 +196,7 @@ await navigateur.close();
 const index = [
   '# Captures de chaque écran',
   '',
-  `Mode démonstration (procès réellement tenus par les agents sur AWS, rejoués sans réseau), ${new Date().toISOString().slice(0, 10)}. Généré par \`frontend/e2e/preuves.mjs\` (#191).`,
+  `Mode démonstration (procès réellement tenus par les agents sur AWS, rejoués sans réseau), ${new Date().toISOString().slice(0, 10)} (UTC). Généré par \`frontend/e2e/preuves.mjs\` (#191).`,
   '',
   '| Capture | Ce qu’elle montre |',
   '|---|---|',

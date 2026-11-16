@@ -1,6 +1,6 @@
 # Captures de chaque écran
 
-Mode démonstration (procès réellement tenus par les agents sur AWS, rejoués sans réseau), 2026-11-16. Généré par `frontend/e2e/preuves.mjs` (#191).
+Mode démonstration (procès réellement tenus par les agents sur AWS, rejoués sans réseau), 2026-11-16 (UTC). Généré par `frontend/e2e/preuves.mjs` (#191).
 
 | Capture | Ce qu’elle montre |
 |---|---|

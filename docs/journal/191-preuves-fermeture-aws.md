@@ -16,6 +16,7 @@ Message du jury : « On ne pourra pas tester : tout sera supprimé. Assurez-vous
   - Mateo, XOM (cas 3) : décision et Tribunal ;
   - Construire mon Pacte : une question, puis le Pacte tiré des réponses ;
   - Pacte vécu : une question, puis la limite mesurée.
+- **`docs/DOCUMENTATION_TECHNIQUE.md`** : nouvelle section 11, « Le prototype en captures » (le parcours écran par écran, quatre écrans clés affichés), et une ligne « À l'écran » dans les sections 2, 3, 5, 6, 7 et 8, qui renvoie à la capture qui illustre chacune.
 - **`.gitignore`** : le dossier local `Datathonprep2026/` (case, présentation et transcription de l'événement) n'est jamais versionné.
 
 ## Comment l'utiliser
